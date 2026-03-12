@@ -2,6 +2,8 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from './common/logger/logger.module';
 import { DatabaseModule } from './common/database/database.module';
+import { KafkaModule } from './kafka/kafka.module';
+import { QueueModule } from './queue/queue.module';
 import { NotificationModule } from './notification/notification.module';
 
 @Module({
@@ -11,6 +13,8 @@ import { NotificationModule } from './notification/notification.module';
     }),
     LoggerModule,
     DatabaseModule,
+    QueueModule,
+    KafkaModule,
     NotificationModule,
   ],
 })

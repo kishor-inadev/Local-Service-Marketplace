@@ -2,7 +2,9 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { LoggerModule } from './common/logger/logger.module';
 import { DatabaseModule } from './common/database/database.module';
-import { PaymentModule } from './modules/payment/payment.module';
+import { QueueModule } from './queue/queue.module';
+import { KafkaModule } from './kafka/kafka.module';
+import { PaymentModule } from './payment/payment.module';
 
 @Module({
   imports: [
@@ -11,6 +13,8 @@ import { PaymentModule } from './modules/payment/payment.module';
     }),
     LoggerModule,
     DatabaseModule,
+    QueueModule,
+    KafkaModule,
     PaymentModule,
   ],
 })

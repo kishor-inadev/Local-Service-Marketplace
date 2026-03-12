@@ -15,15 +15,18 @@ import {
   ConflictException,
   BadRequestException,
 } from '@/common/exceptions/http.exceptions';
+import { RedisService } from '../../../redis/redis.service';
 
 @Injectable()
 export class ProviderService {
   private readonly defaultLimit: number;
+  private readonly PROVIDER_CACHE_TTL = 300; // 5 minutes
 
   constructor(
     private readonly providerRepo: ProviderRepository,
     private readonly providerServiceRepo: ProviderServiceRepository,
     private readonly providerAvailabilityRepo: ProviderAvailabilityRepository,
+    private readonly redisService: RedisService,
     private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {
@@ -76,6 +79,11 @@ export class ProviderService {
       provider_id: provider.id,
     });
 
+    // Invalidate cache
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.delPattern('provider:*');
+    }
+
     return this.getProvider(provider.id);
   }
 
@@ -115,6 +123,11 @@ export class ProviderService {
       provider_id: providerId,
     });
 
+    // Invalidate cache for this provider
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.del(`provider:${providerId}`);
+    }
+
     return this.getProvider(providerId);
   }
 
@@ -123,6 +136,20 @@ export class ProviderService {
       context: 'ProviderService',
       provider_id: providerId,
     });
+
+    // Try cache first
+    if (this.redisService.isCacheEnabled()) {
+      const cacheKey = `provider:${providerId}`;
+      const cached = await this.redisService.get(cacheKey);
+      
+      if (cached) {
+        this.logger.info('Cache hit for provider', {
+          context: 'ProviderService',
+          provider_id: providerId,
+        });
+        return JSON.parse(cached);
+      }
+    }
 
     const provider = await this.providerRepo.findById(providerId);
     if (!provider) {
@@ -135,7 +162,7 @@ export class ProviderService {
     // Get availability
     const availability = await this.providerAvailabilityRepo.findByProviderId(providerId);
 
-    return {
+    const response = {
       id: provider.id,
       user_id: provider.user_id,
       business_name: provider.business_name,
@@ -150,6 +177,14 @@ export class ProviderService {
       })),
       created_at: provider.created_at,
     };
+
+    // Cache the result
+    if (this.redisService.isCacheEnabled()) {
+      const cacheKey = `provider:${providerId}`;
+      await this.redisService.set(cacheKey, JSON.stringify(response), this.PROVIDER_CACHE_TTL);
+    }
+
+    return response;
   }
 
   async getProviders(

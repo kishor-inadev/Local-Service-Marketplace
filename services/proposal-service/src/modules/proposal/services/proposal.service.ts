@@ -5,11 +5,13 @@ import { CreateProposalDto } from '../dto/create-proposal.dto';
 import { ProposalQueryDto } from '../dto/proposal-query.dto';
 import { ProposalResponseDto, PaginatedProposalResponseDto } from '../dto/proposal-response.dto';
 import { NotFoundException, BadRequestException, ConflictException } from '../../../common/exceptions/http.exceptions';
+import { KafkaService } from '../../../kafka/kafka.service';
 
 @Injectable()
 export class ProposalService {
   constructor(
     private readonly proposalRepository: ProposalRepository,
+    private readonly kafkaService: KafkaService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
   ) {}
 
@@ -30,6 +32,20 @@ export class ProposalService {
     const proposal = await this.proposalRepository.createProposal(dto);
 
     this.logger.log(`Proposal created successfully: ${proposal.id}`, ProposalService.name);
+
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent('proposal-events', {
+      eventType: 'proposal_submitted',
+      eventId: `${proposal.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        proposalId: proposal.id,
+        requestId: proposal.request_id,
+        providerId: proposal.provider_id,
+        price: proposal.price,
+        status: proposal.status,
+      },
+    });
 
     return ProposalResponseDto.fromEntity(proposal);
   }
@@ -78,6 +94,19 @@ export class ProposalService {
 
     this.logger.log(`Proposal accepted successfully: ${id}`, ProposalService.name);
 
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent('proposal-events', {
+      eventType: 'proposal_accepted',
+      eventId: `${proposal.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        proposalId: proposal.id,
+        requestId: proposal.request_id,
+        providerId: proposal.provider_id,
+        status: proposal.status,
+      },
+    });
+
     return ProposalResponseDto.fromEntity(proposal);
   }
 
@@ -98,6 +127,19 @@ export class ProposalService {
     const proposal = await this.proposalRepository.rejectProposal(id);
 
     this.logger.log(`Proposal rejected successfully: ${id}`, ProposalService.name);
+
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent('proposal-events', {
+      eventType: 'proposal_rejected',
+      eventId: `${proposal.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        proposalId: proposal.id,
+        requestId: proposal.request_id,
+        providerId: proposal.provider_id,
+        status: proposal.status,
+      },
+    });
 
     return ProposalResponseDto.fromEntity(proposal);
   }

@@ -16,6 +16,6 @@ import { DatabaseModule } from '../../common/database/database.module';
     RequestRepository,
     CategoryRepository,
   ],
-  exports: [RequestService, CategoryService],
+  exports: [RequestService, CategoryService, CategoryRepository],
 })
 export class RequestModule {}

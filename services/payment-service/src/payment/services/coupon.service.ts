@@ -2,7 +2,7 @@ import { Injectable, Inject, LoggerService } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { CouponRepository } from '../repositories/coupon.repository';
 import { Coupon } from '../entities/coupon.entity';
-import { NotFoundException, BadRequestException } from '../../../common/exceptions/http.exceptions';
+import { NotFoundException, BadRequestException } from '../../common/exceptions/http.exceptions';
 
 @Injectable()
 export class CouponService {

@@ -13,6 +13,7 @@ import { EventService } from './services/event.service';
 import { BackgroundJobService } from './services/background-job.service';
 import { RateLimitService } from './services/rate-limit.service';
 import { FeatureFlagService } from './services/feature-flag.service';
+import { EventConsumerService } from './services/event-consumer.service';
 
 // Repositories
 import { EventRepository } from './repositories/event.repository';
@@ -34,6 +35,7 @@ import { FeatureFlagRepository } from './repositories/feature-flag.repository';
     BackgroundJobService,
     RateLimitService,
     FeatureFlagService,
+    EventConsumerService,
     // Repositories
     EventRepository,
     BackgroundJobRepository,

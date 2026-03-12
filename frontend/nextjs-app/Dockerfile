@@ -6,7 +6,13 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci
+
+# Configure npm for slower networks
+RUN npm config set fetch-timeout 600000 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
+
+RUN npm install
 
 # Stage 2: Builder
 FROM node:18-alpine AS builder

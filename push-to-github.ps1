@@ -1,34 +1,34 @@
 # GitHub Push Helper Script
 # This script will help you push your code to GitHub
 
-Write-Host "
-╔══════════════════════════════════════════════════════════╗
-║   GitHub Push Helper - Local Service Marketplace        ║
-╚══════════════════════════════════════════════════════════╝
-" -ForegroundColor Cyan
+Write-Host ""
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host "   GitHub Push Helper - Local Service Marketplace          " -ForegroundColor Cyan
+Write-Host "============================================================" -ForegroundColor Cyan
+Write-Host ""
 
-Write-Host "✅ Git repository initialized and committed!" -ForegroundColor Green
+Write-Host "[OK] Git repository initialized and committed!" -ForegroundColor Green
 Write-Host ""
 
 # Check current git status
-Write-Host "📊 Current Git Status:" -ForegroundColor Yellow
+Write-Host "Current Git Status:" -ForegroundColor Yellow
 git log --oneline -1
 Write-Host ""
 
 # Get GitHub username
-Write-Host "📝 Let's set up GitHub remote..." -ForegroundColor Cyan
+Write-Host "Let's set up GitHub remote..." -ForegroundColor Cyan
 Write-Host ""
 $username = Read-Host "Enter your GitHub username"
 
 if ([string]::IsNullOrWhiteSpace($username)) {
-    Write-Host "❌ Username is required!" -ForegroundColor Red
+    Write-Host "[ERROR] Username is required!" -ForegroundColor Red
     exit 1
 }
 
 # Suggest repository name
 $repoName = "local-service-marketplace"
 Write-Host ""
-Write-Host "📦 Suggested repository name: $repoName" -ForegroundColor Gray
+Write-Host "Suggested repository name: $repoName" -ForegroundColor Gray
 $customName = Read-Host "Press Enter to use this name, or type a different name"
 
 if (-not [string]::IsNullOrWhiteSpace($customName)) {
@@ -38,13 +38,13 @@ if (-not [string]::IsNullOrWhiteSpace($customName)) {
 $repoUrl = "https://github.com/$username/$repoName.git"
 
 Write-Host ""
-Write-Host "🌐 Repository URL will be: $repoUrl" -ForegroundColor Cyan
+Write-Host "Repository URL will be: $repoUrl" -ForegroundColor Cyan
 Write-Host ""
 
 # Check if repository exists on GitHub
-Write-Host "⚠️  IMPORTANT: You need to create the repository on GitHub first!" -ForegroundColor Yellow
+Write-Host "[IMPORTANT] You need to create the repository on GitHub first!" -ForegroundColor Yellow
 Write-Host ""
-Write-Host "📋 Steps to create repository:" -ForegroundColor Cyan
+Write-Host "Steps to create repository:" -ForegroundColor Cyan
 Write-Host "1. Go to: https://github.com/new" -ForegroundColor White
 Write-Host "2. Repository name: $repoName" -ForegroundColor White
 Write-Host "3. Description: Complete microservices marketplace platform" -ForegroundColor White
@@ -64,7 +64,7 @@ if ($created -ne "Y" -and $created -ne "y") {
 }
 
 Write-Host ""
-Write-Host "🔗 Adding GitHub remote..." -ForegroundColor Yellow
+Write-Host "Adding GitHub remote..." -ForegroundColor Yellow
 
 # Remove existing remote if any
 git remote remove origin 2>$null
@@ -73,14 +73,14 @@ git remote remove origin 2>$null
 git remote add origin $repoUrl
 
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Remote added successfully!" -ForegroundColor Green
+    Write-Host "[OK] Remote added successfully!" -ForegroundColor Green
 } else {
-    Write-Host "❌ Failed to add remote" -ForegroundColor Red
+    Write-Host "[ERROR] Failed to add remote" -ForegroundColor Red
     exit 1
 }
 
 Write-Host ""
-Write-Host "📤 Pushing to GitHub..." -ForegroundColor Yellow
+Write-Host "Pushing to GitHub..." -ForegroundColor Yellow
 Write-Host "This may take a few minutes for the first push..." -ForegroundColor Gray
 Write-Host ""
 
@@ -90,13 +90,13 @@ git push -u origin main
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
-    Write-Host "╔══════════════════════════════════════════════════════════╗" -ForegroundColor Green
-    Write-Host "║   🎉 SUCCESS! Code pushed to GitHub!                   ║" -ForegroundColor Green
-    Write-Host "╚══════════════════════════════════════════════════════════╝" -ForegroundColor Green
+    Write-Host "============================================================" -ForegroundColor Green
+    Write-Host "   SUCCESS! Code pushed to GitHub!                         " -ForegroundColor Green
+    Write-Host "============================================================" -ForegroundColor Green
     Write-Host ""
-    Write-Host "🌐 Your repository: https://github.com/$username/$repoName" -ForegroundColor Cyan
+    Write-Host "Your repository: https://github.com/$username/$repoName" -ForegroundColor Cyan
     Write-Host ""
-    Write-Host "📋 Next steps:" -ForegroundColor Cyan
+    Write-Host "Next steps:" -ForegroundColor Cyan
     Write-Host "1. Add repository description on GitHub" -ForegroundColor White
     Write-Host "2. Add topics/tags: nextjs, nestjs, microservices, typescript, docker" -ForegroundColor White
     Write-Host "3. Set up branch protection rules (optional)" -ForegroundColor White
@@ -110,7 +110,7 @@ if ($LASTEXITCODE -eq 0) {
     
 } else {
     Write-Host ""
-    Write-Host "❌ Failed to push to GitHub!" -ForegroundColor Red
+    Write-Host "[ERROR] Failed to push to GitHub!" -ForegroundColor Red
     Write-Host ""
     Write-Host "Common issues:" -ForegroundColor Yellow
     Write-Host "1. Repository doesn't exist on GitHub - create it first" -ForegroundColor White

@@ -28,8 +28,9 @@ describe('Request Service (e2e)', () => {
       }),
     );
 
-    // Apply exception filter
-    app.useGlobalFilters(new HttpExceptionFilter());
+    // Get logger from DI container and apply exception filter
+    const logger = app.get('winston');
+    app.useGlobalFilters(new HttpExceptionFilter(logger));
 
     await app.init();
 

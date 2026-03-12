@@ -109,7 +109,7 @@ export class RedisService implements OnModuleDestroy {
   /**
    * Clean completed jobs from queue
    */
-  async cleanQueue(queueName: string, grace: number = 0, status: Bull.JobStatus = 'completed'): Promise<Bull.Job[]> {
+  async cleanQueue(queueName: string, grace: number = 0, status: 'completed' | 'wait' | 'active' | 'delayed' | 'failed' = 'completed'): Promise<Bull.Job[]> {
     const queue = this.getQueue(queueName);
     return queue.clean(grace, status);
   }

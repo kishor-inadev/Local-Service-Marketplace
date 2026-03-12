@@ -22,8 +22,9 @@ async function bootstrap() {
     }),
   );
 
-  // Global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // Global exception filter with logger from DI container
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
   const port = process.env.PORT || 3005;
   await app.listen(port);

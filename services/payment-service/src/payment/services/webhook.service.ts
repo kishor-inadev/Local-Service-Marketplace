@@ -3,7 +3,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { WebhookRepository } from '../repositories/webhook.repository';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { PaymentWebhook } from '../entities/payment-webhook.entity';
-import { NotFoundException } from '../../../common/exceptions/http.exceptions';
+import { NotFoundException } from '../../common/exceptions/http.exceptions';
 
 @Injectable()
 export class WebhookService {

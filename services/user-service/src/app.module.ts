@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { UserModule } from './modules/user/user.module';
 import { DatabaseModule } from './common/database/database.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { RedisModule } from './redis/redis.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { LoggerModule } from './common/logger/logger.module';
     }),
     LoggerModule,
     DatabaseModule,
+    RedisModule,
     UserModule,
   ],
 })

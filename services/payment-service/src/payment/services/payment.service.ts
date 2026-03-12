@@ -3,7 +3,8 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { CouponService } from './coupon.service';
 import { Payment } from '../entities/payment.entity';
-import { NotFoundException, BadRequestException } from '../../../common/exceptions/http.exceptions';
+import { NotFoundException, BadRequestException } from '../../common/exceptions/http.exceptions';
+import { KafkaService } from '../../kafka/kafka.service';
 
 @Injectable()
 export class PaymentService {
@@ -11,6 +12,7 @@ export class PaymentService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
     private readonly paymentRepository: PaymentRepository,
     private readonly couponService: CouponService,
+    private readonly kafkaService: KafkaService,
   ) {}
 
   async createPayment(
@@ -50,6 +52,22 @@ export class PaymentService {
     await this.paymentRepository.updatePaymentStatus(payment.id, 'completed', transactionId);
 
     this.logger.log(`Payment created successfully: ${payment.id}`, 'PaymentService');
+    
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent('payment-events', {
+      eventType: 'payment_completed',
+      eventId: `${payment.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        paymentId: payment.id,
+        jobId: payment.jobId,
+        amount: payment.amount,
+        currency: payment.currency,
+        status: 'completed',
+        transactionId: payment.transactionId,
+      },
+    });
+    
     return payment;
   }
 

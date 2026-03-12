@@ -1,14 +1,17 @@
 import { Injectable, Inject, LoggerService } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { RefundRepository } from '../repositories/refund.repository';
 import { PaymentRepository } from '../repositories/payment.repository';
 import { Refund } from '../entities/refund.entity';
-import { NotFoundException, BadRequestException } from '../../../common/exceptions/http.exceptions';
+import { NotFoundException, BadRequestException } from '../../common/exceptions/http.exceptions';
 
 @Injectable()
 export class RefundService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+    @InjectQueue('refund-queue') private readonly refundQueue: Queue,
     private readonly refundRepository: RefundRepository,
     private readonly paymentRepository: PaymentRepository,
   ) {}
@@ -48,16 +51,28 @@ export class RefundService {
     // Create refund
     const refund = await this.refundRepository.createRefund(paymentId, refundAmount);
 
-    // In production, this would integrate with payment gateway
-    // For now, simulate refund processing
-    await this.refundRepository.updateRefundStatus(refund.id, 'completed');
+    // Queue refund processing job for background processing
+    await this.refundQueue.add(
+      'process-refund',
+      {
+        refundId: refund.id,
+        paymentId,
+        amount: refundAmount,
+        reason: 'Customer requested refund',
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 5000,
+        },
+      },
+    );
 
-    // Update payment status if fully refunded
-    if (totalRefunded + refundAmount >= payment.amount) {
-      await this.paymentRepository.updatePaymentStatus(paymentId, 'refunded');
-    }
-
-    this.logger.log(`Refund created successfully: ${refund.id}`, 'RefundService');
+    this.logger.log(
+      `Refund created and queued for processing: ${refund.id}`,
+      'RefundService',
+    );
     return refund;
   }
 

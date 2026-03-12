@@ -6,8 +6,13 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Configure npm for slower networks
+RUN npm config set fetch-timeout 600000 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
+
 # Install dependencies
-RUN npm ci
+RUN npm install
 
 # Copy source code
 COPY . .
@@ -23,15 +28,26 @@ WORKDIR /app
 # Copy package files
 COPY package*.json ./
 
+# Configure npm for slower networks
+RUN npm config set fetch-timeout 600000 && \
+    npm config set fetch-retry-mintimeout 20000 && \
+    npm config set fetch-retry-maxtimeout 120000
+
 # Install production dependencies only
-RUN npm ci --only=production
+RUN npm install --omit=dev
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
 
+# Create logs directory
+RUN mkdir -p logs
+
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs && \
     adduser -S nestjs -u 1001
+
+# Give ownership of logs directory to nestjs user
+RUN chown -R nestjs:nodejs logs
 
 USER nestjs
 
@@ -39,4 +55,4 @@ USER nestjs
 EXPOSE 3000
 
 # Start application
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]

@@ -5,11 +5,17 @@ import { CreateJobDto } from '../dto/create-job.dto';
 import { UpdateJobStatusDto, JobStatus } from '../dto/update-job-status.dto';
 import { JobResponseDto } from '../dto/job-response.dto';
 import { NotFoundException, BadRequestException, ConflictException } from '../../../common/exceptions/http.exceptions';
+import { KafkaService } from '../../../kafka/kafka.service';
+import { RedisService } from '../../../redis/redis.service';
 
 @Injectable()
 export class JobService {
+  private readonly JOB_CACHE_TTL = 180; // 3 minutes (jobs change status frequently)
+
   constructor(
     private readonly jobRepository: JobRepository,
+    private readonly kafkaService: KafkaService,
+    private readonly redisService: RedisService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
   ) {}
 
@@ -26,11 +32,35 @@ export class JobService {
 
     this.logger.log(`Job created successfully: ${job.id}`, JobService.name);
 
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent('job-events', {
+      eventType: 'job_created',
+      eventId: `${job.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        jobId: job.id,
+        requestId: job.request_id,
+        providerId: job.provider_id,
+        status: job.status,
+      },
+    });
+
     return JobResponseDto.fromEntity(job);
   }
 
   async getJobById(id: string): Promise<JobResponseDto> {
     this.logger.log(`Fetching job: ${id}`, JobService.name);
+
+    // Try cache first
+    if (this.redisService.isCacheEnabled()) {
+      const cacheKey = `job:${id}`;
+      const cached = await this.redisService.get(cacheKey);
+      
+      if (cached) {
+        this.logger.log(`Cache hit for job: ${id}`, JobService.name);
+        return JSON.parse(cached);
+      }
+    }
 
     const job = await this.jobRepository.getJobById(id);
 
@@ -38,7 +68,15 @@ export class JobService {
       throw new NotFoundException('Job not found');
     }
 
-    return JobResponseDto.fromEntity(job);
+    const response = JobResponseDto.fromEntity(job);
+
+    // Cache the result
+    if (this.redisService.isCacheEnabled()) {
+      const cacheKey = `job:${id}`;
+      await this.redisService.set(cacheKey, JSON.stringify(response), this.JOB_CACHE_TTL);
+    }
+
+    return response;
   }
 
   async updateJobStatus(id: string, dto: UpdateJobStatusDto): Promise<JobResponseDto> {
@@ -62,6 +100,24 @@ export class JobService {
     const job = await this.jobRepository.updateJobStatus(id, dto.status);
 
     this.logger.log(`Job status updated successfully: ${id}`, JobService.name);
+
+    // Invalidate cache
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.del(`job:${id}`);
+    }
+
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent('job-events', {
+      eventType: dto.status === 'in_progress' ? 'job_started' : `job_${dto.status}`,
+      eventId: `${job.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        jobId: job.id,
+        requestId: job.request_id,
+        providerId: job.provider_id,
+        status: job.status,
+      },
+    });
 
     return JobResponseDto.fromEntity(job);
   }
@@ -87,6 +143,24 @@ export class JobService {
     const job = await this.jobRepository.completeJob(id);
 
     this.logger.log(`Job completed successfully: ${id}`, JobService.name);
+
+    // Invalidate cache
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.del(`job:${id}`);
+    }
+
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent('job-events', {
+      eventType: 'job_completed',
+      eventId: `${job.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        jobId: job.id,
+        requestId: job.request_id,
+        providerId: job.provider_id,
+        status: job.status,
+      },
+    });
 
     return JobResponseDto.fromEntity(job);
   }

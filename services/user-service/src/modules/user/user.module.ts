@@ -24,6 +24,8 @@ import { LocationRepository } from './repositories/location.repository';
     ProviderService,
     FavoriteService,
     ProviderRepository,
+    ProviderServiceRepository,
+    ProviderAvailabilityRepository,
     FavoriteRepository,
     LocationRepository,
   ],

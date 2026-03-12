@@ -27,8 +27,9 @@ async function bootstrap() {
     }),
   );
 
-  // Global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // Global exception filter with logger from DI container
+  const logger = app.get('winston');
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
   // Enable CORS
   app.enableCors();

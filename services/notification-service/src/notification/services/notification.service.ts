@@ -1,14 +1,17 @@
 import { Injectable, Inject, LoggerService } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bull';
+import { Queue } from 'bull';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { NotificationRepository } from '../repositories/notification.repository';
 import { NotificationDeliveryRepository } from '../repositories/notification-delivery.repository';
 import { Notification } from '../entities/notification.entity';
-import { NotFoundException } from '../../../common/exceptions/http.exceptions';
+import { NotFoundException } from '../../common/exceptions/http.exceptions';
 
 @Injectable()
 export class NotificationService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+    @InjectQueue('email-queue') private readonly emailQueue: Queue,
     private readonly notificationRepository: NotificationRepository,
     private readonly deliveryRepository: NotificationDeliveryRepository,
   ) {}
@@ -18,10 +21,32 @@ export class NotificationService {
     const notification = await this.notificationRepository.createNotification(userId, type, message);
 
     // Create delivery records for email and push channels
-    await this.deliveryRepository.createDelivery(notification.id, 'email', 'pending');
-    await this.deliveryRepository.createDelivery(notification.id, 'push', 'pending');
+    const emailDelivery = await this.deliveryRepository.createDelivery(notification.id, 'email', 'pending');
+    const pushDelivery = await this.deliveryRepository.createDelivery(notification.id, 'push', 'pending');
 
-    this.logger.log(`Notification created successfully: ${notification.id}`, 'NotificationService');
+    // Queue email sending job (background processing)
+    await this.emailQueue.add(
+      'send-email',
+      {
+        deliveryId: emailDelivery.id,
+        notificationId: notification.id,
+        userId,
+        type,
+        message,
+      },
+      {
+        attempts: 3,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      },
+    );
+
+    this.logger.log(
+      `Notification created and queued successfully: ${notification.id}`,
+      'NotificationService',
+    );
     return notification;
   }
 
