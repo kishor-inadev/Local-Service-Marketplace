@@ -8,6 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { Select } from '@/components/ui/Select';
 import { signupSchema, SignupFormData } from '@/schemas/auth.schema';
 import toast from 'react-hot-toast';
@@ -137,9 +138,8 @@ export default function SignupPage() {
 
             {/* Password Field */}
             <div>
-              <Input
+              <PasswordInput
                 label="Password"
-                type="password"
                 {...register('password')}
                 error={errors.password?.message}
                 autoComplete="new-password"

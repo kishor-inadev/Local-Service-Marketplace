@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
 
@@ -11,6 +11,25 @@ import { useThemeStore } from '@/store/themeStore';
  */
 export function ThemeToggle() {
   const { theme, toggleTheme, isDark } = useThemeStore();
+  const [mounted, setMounted] = useState(false);
+
+  // Prevent hydration mismatch by only rendering after mount
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  // Return placeholder during SSR to avoid hydration mismatch
+  if (!mounted) {
+    return (
+      <button
+        className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 transition-colors"
+        aria-label="Toggle dark mode"
+        disabled
+      >
+        <Moon className="h-5 w-5" />
+      </button>
+    );
+  }
 
   return (
     <button

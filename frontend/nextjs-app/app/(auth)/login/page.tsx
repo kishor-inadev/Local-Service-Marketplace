@@ -9,6 +9,7 @@ import { z } from 'zod';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { PasswordInput } from '@/components/ui/PasswordInput';
 import { loginSchema, type LoginFormData } from '@/schemas/auth.schema';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -251,9 +252,8 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <Input
+                <PasswordInput
                   label="Password"
-                  type="password"
                   {...emailForm.register('password')}
                   autoComplete="current-password"
                 />
@@ -310,9 +310,8 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <Input
+                <PasswordInput
                   label="Password"
-                  type="password"
                   {...phonePasswordForm.register('password')}
                   autoComplete="current-password"
                 />
