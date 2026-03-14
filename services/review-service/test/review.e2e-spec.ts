@@ -28,7 +28,8 @@ describe('ReviewController (e2e)', () => {
       }),
     );
 
-    app.useGlobalFilters(new HttpExceptionFilter());
+    const logger = app.get('winston');
+    app.useGlobalFilters(new HttpExceptionFilter(logger));
 
     await app.init();
 

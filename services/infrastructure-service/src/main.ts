@@ -23,8 +23,9 @@ async function bootstrap() {
   // Global response transform interceptor
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
-  // Global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // Global exception filter with logger
+  const logger = app.get('winston');
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
   // CORS is handled by API Gateway - not needed in internal services
 

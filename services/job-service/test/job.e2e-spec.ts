@@ -29,7 +29,8 @@ describe('Job Service (e2e)', () => {
     );
 
     // Apply exception filter
-    app.useGlobalFilters(new HttpExceptionFilter());
+    const logger = app.get('winston');
+    app.useGlobalFilters(new HttpExceptionFilter(logger));
 
     await app.init();
 

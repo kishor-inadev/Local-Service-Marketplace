@@ -25,8 +25,9 @@ async function bootstrap() {
   // Global response transform interceptor
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
-  // Global exception filter
-  app.useGlobalFilters(new HttpExceptionFilter());
+  // Global exception filter with logger
+  const logger = app.get('winston');
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
   const port = process.env.PORT || 3009;
   await app.listen(port);
