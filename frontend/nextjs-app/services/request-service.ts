@@ -56,11 +56,10 @@ export interface UpdateRequestData {
   status?: ServiceRequest['status'];
 }
 
-// Cursor-based pagination response
+// Paginated response from API (standardized format)
 export interface PaginatedResponse<T> {
   data: T[];
-  cursor: string | null;
-  hasMore: boolean;
+  total: number;
 }
 
 export interface RequestFilters {
@@ -95,11 +94,13 @@ class RequestService {
     const response = await apiClient.get<PaginatedResponse<ServiceRequest>>(
       `/requests?${params.toString()}`,
     );
+    // API client unwraps to { data, total } for responses with total
     return response.data;
   }
 
   async getRequestById(id: string): Promise<ServiceRequest> {
     const response = await apiClient.get<ServiceRequest>(`/requests/${id}`);
+    // API client unwraps to just the data
     return response.data;
   }
 
@@ -127,13 +128,17 @@ class RequestService {
       throw new Error('User not authenticated');
     }
     
-    const response = await apiClient.get<ServiceRequest[]>(`/requests/my?user_id=${userId}`);
-    return response.data;
+    const response = await apiClient.get<any>(`/requests/my?user_id=${userId}`);
+    // API returns standardized format with { data: [], total: 0 }
+    // API client unwraps it to { data, total } for responses with total
+    // If it has total, extract data array, otherwise use response.data directly
+    return response.data?.data || response.data || [];
   }
 
   async getCategories(): Promise<any[]> {
-    const response = await apiClient.get<any[]>('/categories');
-    return response.data;
+    const response = await apiClient.get<any>('/categories');
+    // For array responses, unwrapped to { data, total } or just the array
+    return response.data?.data || response.data || [];
   }
 }
 

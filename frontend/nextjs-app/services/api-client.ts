@@ -74,17 +74,26 @@ class ApiClient {
           
           // For successful responses, unwrap the data field
           if (standardResponse.success) {
-            // If there's a total count (for paginated responses), preserve it
+            // If there's a total count (for paginated/array responses), preserve it
             if (standardResponse.total !== undefined) {
-              // For paginated responses, keep both data and total
+              // For paginated responses, return object with data and total
               response.data = {
-                ...standardResponse.data,
+                data: standardResponse.data,
                 total: standardResponse.total
               };
             } else {
               // For non-paginated responses, just return the data
               response.data = standardResponse.data;
             }
+          } else {
+            // Error response in standardized format
+            // Keep the full error response for error handler
+            return Promise.reject({
+              response: {
+                status: standardResponse.statusCode,
+                data: standardResponse
+              }
+            });
           }
         }
         return response;

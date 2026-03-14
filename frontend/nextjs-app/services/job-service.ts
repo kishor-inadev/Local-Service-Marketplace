@@ -88,13 +88,16 @@ class JobService {
       throw new Error('User not authenticated');
     }
     
-    const response = await apiClient.get<Job[]>(`/jobs/my?user_id=${userId}`);
-    return response.data;
+    const response = await apiClient.get<any>(`/jobs/my?user_id=${userId}`);
+    // API returns standardized format with { data: [], total: 0 }
+    // API client unwraps it to { data, total } for responses with total
+    return response.data?.data || response.data || [];
   }
 
   async getJobsByStatus(status: Job['status']): Promise<Job[]> {
-    const response = await apiClient.get<Job[]>(`/jobs?status=${status}`);
-    return response.data;
+    const response = await apiClient.get<any>(`/jobs?status=${status}`);
+    // For array responses with total
+    return response.data?.data || response.data || [];
   }
 }
 
