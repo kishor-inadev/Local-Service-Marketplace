@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { SubscriptionRepository } from '../repositories/subscription.repository';
-import { NotificationClient } from '../../../common/clients/notification.client';
+import { NotificationClient } from '../../common/notification/notification.client';
 
 @Injectable()
 export class SubscriptionExpiryJob {
