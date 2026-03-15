@@ -77,8 +77,17 @@ Write-Host "Installing dependencies..." -ForegroundColor Yellow
 Remove-Item -Path "node_modules" -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item -Path "pnpm-lock.yaml" -Force -ErrorAction SilentlyContinue
 
+# Temporarily set NODE_ENV to development to ensure dev dependencies are installed
+$originalNodeEnv = $env:NODE_ENV
+$env:NODE_ENV = "development"
+
 npm install
-if ($LASTEXITCODE -ne 0) {
+$installExitCode = $LASTEXITCODE
+
+# Restore original NODE_ENV
+if ($originalNodeEnv) { $env:NODE_ENV = $originalNodeEnv } else { Remove-Item Env:\NODE_ENV -ErrorAction SilentlyContinue }
+
+if ($installExitCode -ne 0) {
     Write-Host "   Failed to install dependencies" -ForegroundColor Red
     Set-Location -Path $rootDir
     exit 1
