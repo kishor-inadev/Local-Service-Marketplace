@@ -34,34 +34,35 @@ export function useAuth() {
     });
 
     if (result?.error) {
-      toast.error(result.error);
+      // Return error for component to handle
       throw new Error(result.error);
     }
 
-    if (result?.ok) {
-      toast.success('Login successful!');
-      router.push(ROUTES.DASHBOARD);
+    if (!result?.ok) {
+      throw new Error('Login failed. Please check your credentials.');
     }
+
+    // Let the component handle success message and redirect
+    return result;
   };
 
   const signup = async (data: SignupData) => {
-    try {
-      // Call backend signup endpoint
-      const response = await authService.signup(data);
-      
-      // After successful signup, automatically sign in
-      await signIn('credentials', {
-        email: data.email,
-        password: data.password,
-        redirect: false,
-      });
+    // Call backend signup endpoint
+    const response = await authService.signup(data);
+    
+    // After successful signup, automatically sign in
+    const signInResult = await signIn('credentials', {
+      email: data.email,
+      password: data.password,
+      redirect: false,
+    });
 
-      toast.success('Account created successfully!');
-      router.push(ROUTES.DASHBOARD);
-    } catch (error: any) {
-      toast.error(error?.message || 'Signup failed');
-      throw error;
+    if (!signInResult?.ok) {
+      throw new Error('Account created but auto-login failed. Please log in manually.');
     }
+
+    // Let component handle success and redirect
+    return response;
   };
 
   const logout = async () => {
