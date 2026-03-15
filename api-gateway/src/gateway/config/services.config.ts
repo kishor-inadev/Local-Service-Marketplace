@@ -75,16 +75,43 @@ export const routingConfig = {
   '/feature-flags': 'infrastructure',
 };
 
+// Public routes configuration
+// Note: Routes can be strings (all methods) or objects with method filtering
 export const publicRoutes = [
+	// Authentication endpoints
 	"/api/v1/auth/signup",
 	"/api/v1/auth/login",
 	"/api/v1/auth/refresh",
 	"/api/v1/auth/password-reset/request",
 	"/api/v1/auth/password-reset/confirm",
+	"/api/v1/auth/email/verify", // Email verification
+	"/api/v1/auth/check-identifier", // Check if email/phone exists
+	
+	// OAuth endpoints
+	"/api/v1/auth/google",
+	"/api/v1/auth/google/callback",
+	"/api/v1/auth/facebook",
+	"/api/v1/auth/facebook/callback",
+	
+	// Phone authentication endpoints
+	"/api/v1/auth/phone/login", // Phone + password login
+	"/api/v1/auth/phone/otp/request", // Request OTP via SMS
+	"/api/v1/auth/phone/otp/verify", // Verify OTP code
+	
+	// Public endpoints
 	"/api/v1/admin/contact",  // Contact form submission - public access
 	"/api/v1/health",
 	"/api/v1/health/services",
 	// Health endpoints are excluded from global prefix, so they're accessible without /api/v1
 	"/health",
 	"/health/services",
+];
+
+// Public GET-only routes (for browsing without authentication)
+// These routes allow GET requests without auth, but POST/PATCH/DELETE require authentication
+export const publicGetRoutes = [
+	"/api/v1/requests", // Browse service requests (GET only)
+	"/api/v1/providers", // Browse provider directory (GET only)
+	"/api/v1/requests/", // View individual requests (GET only)
+	"/api/v1/providers/", // View individual provider profiles (GET only)
 ];

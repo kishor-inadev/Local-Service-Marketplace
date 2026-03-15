@@ -15,23 +15,58 @@ import toast from 'react-hot-toast';
 
 // Unified login schema - accepts email OR phone
 const loginSchema = z.object({
-  identifier: z.string().min(1, 'Email or phone number is required'),
+  identifier: z.string()
+    .min(1, 'Email or phone number is required')
+    .refine((val) => {
+      const type = detectInputType(val);
+      return type !== 'unknown';
+    }, {
+      message: 'Enter a valid email (e.g., user@example.com) or phone (e.g., +1234567890)',
+    }),
   password: z.string().min(6, 'Password or OTP must be at least 6 characters'),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
 
+// Helper to format phone number as user types (123-456-7890)
+const formatPhoneNumber = (value: string): string => {
+  // Remove all non-digits
+  const digits = value.replace(/\D/g, '');
+  
+  // Format based on length
+  if (digits.length <= 3) {
+    return digits;
+  } else if (digits.length <= 6) {
+    return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  } else {
+    return `${digits.slice(0, 3)}-${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+};
+
 // Helper to detect if input is email or phone
 const detectInputType = (input: string): 'email' | 'phone' | 'unknown' => {
-  // Email pattern: contains @ symbol
-  if (input.includes('@')) {
+  if (!input || input.trim().length === 0) {
+    return 'unknown';
+  }
+  
+  // Email validation: proper email format
+  const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (emailRegex.test(input.trim())) {
     return 'email';
   }
-  // Phone pattern: starts with + or contains only digits
+  
+  // Phone validation: at least 10 digits (with optional formatting)
   const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-  if (phoneRegex.test(input)) {
-    return 'phone';
+  const digitsOnly = input.replace(/[\s\-\(\)]/g, ''); // Remove formatting
+  
+  // Check if it's phone format AND has at least 10 digits
+  if (phoneRegex.test(input) && digitsOnly.length >= 10) {
+    // Must start with + or digit
+    if (input.trim().match(/^[\+\d]/)) {
+      return 'phone';
+    }
   }
+  
   return 'unknown';
 };
 
@@ -51,16 +86,27 @@ export default function LoginPage() {
   } = useAuth();
   
   const [isLoading, setIsLoading] = useState(false);
-  const [loginMethod, setLoginMethod] = useState<'password' | 'otp'>('password'); // Password or OTP
+  const [step, setStep] = useState<'identifier' | 'method' | 'authenticate'>('identifier');
+  const [loginMethod, setLoginMethod] = useState<'password' | 'otp' | null>(null);
   const [otpSent, setOtpSent] = useState(false);
   const [otpTimer, setOtpTimer] = useState(0);
   const [detectedType, setDetectedType] = useState<'email' | 'phone' | 'unknown'>('unknown');
+  const [otpValues, setOtpValues] = useState<string[]>(['', '', '', '', '', '']);
+  const otpInputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  
+  // Backend validation states
+  const [checkingIdentifier, setCheckingIdentifier] = useState(false);
+  const [identifierExists, setIdentifierExists] = useState<boolean | null>(null);
+  const [otpAvailable, setOtpAvailable] = useState<boolean>(false);
+  const [availableMethods, setAvailableMethods] = useState<('password' | 'otp')[]>([]);
+  const checkTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Unified form - one field for email OR phone
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors, isValid, isDirty },
     setFocus,
   } = useForm<LoginFormData>({
@@ -74,14 +120,141 @@ export default function LoginPage() {
 
   const identifier = watch('identifier');
 
-  // Auto-detect input type as user types
+  // Handle phone number formatting
+  const handleIdentifierChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    
+    // Check if it looks like a phone number (starts with digit or +)
+    if (value && /^[\d\+]/.test(value)) {
+      // If it's a phone number (no @), apply formatting
+      if (!value.includes('@')) {
+        const formatted = formatPhoneNumber(value);
+        e.target.value = formatted;
+      }
+    }
+  };
+
+  // Handle OTP input changes
+  const handleOtpChange = (index: number, value: string) => {
+    // Only allow digits
+    if (value && !/^\d$/.test(value)) return;
+    
+    const newOtpValues = [...otpValues];
+    newOtpValues[index] = value;
+    setOtpValues(newOtpValues);
+    
+    // Update the form field with combined OTP
+    const combinedOtp = newOtpValues.join('');
+    setValue('password', combinedOtp, { shouldValidate: true });
+    
+    // Auto-focus next field
+    if (value && index < 5) {
+      otpInputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  // Handle OTP backspace
+  const handleOtpKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Backspace' && !otpValues[index] && index > 0) {
+      otpInputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  // Handle OTP paste
+  const handleOtpPaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    const newOtpValues = pastedData.split('').concat(['', '', '', '', '', '']).slice(0, 6);
+    setOtpValues(newOtpValues);
+    setValue('password', pastedData, { shouldValidate: true });
+    
+    // Focus last filled or first empty field
+    const nextIndex = Math.min(pastedData.length, 5);
+    otpInputRefs.current[nextIndex]?.focus();
+  };
+
+  // Check if identifier exists in backend (debounced)
+  const checkIdentifierExists = async (identifierValue: string, type: 'email' | 'phone') => {
+    setCheckingIdentifier(true);
+    setIdentifierExists(null);
+    
+    try {
+      // Remove phone formatting for API call
+      const cleanIdentifier = type === 'phone' 
+        ? identifierValue.replace(/\D/g, '') 
+        : identifierValue;
+      
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_GATEWAY_URL || 'http://localhost:3500'}/api/v1/auth/check-identifier`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ 
+          identifier: cleanIdentifier,
+          type 
+        }),
+      });
+      
+      const data = await response.json();
+      setIdentifierExists(data.exists === true);
+      setOtpAvailable(data.otpAvailable === true);
+      setAvailableMethods(data.availableMethods || ['password']);
+      
+      if (data.exists) {
+        setStep('method');
+      }
+    } catch (error) {
+      console.error('Error checking identifier:', error);
+      // On error, assume identifier exists to not block user (fail open)
+      setIdentifierExists(true);
+      setOtpAvailable(false); // On error, disable OTP for safety
+      setAvailableMethods(['password']); // Only show password on error
+      setStep('method');
+    } finally {
+      setCheckingIdentifier(false);
+    }
+  };
+
+  // Auto-detect input type and check backend (debounced)
   useEffect(() => {
+    // Clear previous timeout
+    if (checkTimeoutRef.current) {
+      clearTimeout(checkTimeoutRef.current);
+    }
+    
     if (identifier && identifier.length > 0) {
       const type = detectInputType(identifier);
       setDetectedType(type);
+      
+      // If valid format, check backend after 800ms delay
+      if (type !== 'unknown') {
+        checkTimeoutRef.current = setTimeout(() => {
+          checkIdentifierExists(identifier, type);
+        }, 800);
+      } else {
+        setIdentifierExists(null);
+        setOtpAvailable(false);
+        setAvailableMethods([]);
+        setStep('identifier');
+      }
     } else {
       setDetectedType('unknown');
+      setIdentifierExists(null);
+      setOtpAvailable(false);
+      setAvailableMethods([]);
+      
+      // Reset to identifier step if input is cleared
+      if (step !== 'identifier') {
+        setStep('identifier');
+        setLoginMethod(null);
+      }
     }
+    
+    return () => {
+      if (checkTimeoutRef.current) {
+        clearTimeout(checkTimeoutRef.current);
+      }
+    };
   }, [identifier]);
 
   // Auto-focus identifier field on mount
@@ -171,42 +344,46 @@ export default function LoginPage() {
     }
   };
 
-  // Unified OTP request - detects email or phone and calls correct backend
-  const handleRequestOTP = async () => {
-    if (!identifier) {
-      toast.error('Please enter your email or phone number');
-      return;
-    }
-
-    const type = detectInputType(identifier);
+  // Handle method selection - auto-send OTP if OTP method chosen
+  const handleMethodSelect = async (method: 'password' | 'otp') => {
+    setLoginMethod(method);
+    setStep('authenticate');
     
-    if (type === 'unknown') {
-      toast.error('Please enter a valid email address or phone number');
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      if (type === 'email') {
-        await requestEmailOTP(identifier);
-        toast.success('OTP sent to your email!');
-      } else {
-        await requestOTP(identifier);
-        toast.success('OTP sent to your phone!');
-      }
+    // If OTP selected, automatically send OTP
+    if (method === 'otp') {
+      const type = detectInputType(identifier);
       
-      setOtpSent(true);
-      setOtpTimer(60);
-    } catch (error: any) {
-      toast.error(error.message || 'Failed to send OTP');
-    } finally {
-      setIsLoading(false);
+      setIsLoading(true);
+      
+      try {
+        if (type === 'email') {
+          await requestEmailOTP(identifier);
+          toast.success('OTP sent to your email!');
+        } else {
+          await requestOTP(identifier);
+          toast.success('OTP sent to your phone!');
+        }
+        
+        setOtpSent(true);
+        setOtpTimer(60);
+        
+        // Focus on password field (which will be the OTP input)
+        setTimeout(() => setFocus('password'), 100);
+      } catch (error: any) {
+        toast.error(error.message || 'Failed to send OTP');
+        setStep('method');
+        setLoginMethod(null);
+      } finally {
+        setIsLoading(false);
+      }
+    } else {
+      // Focus on password field
+      setTimeout(() => setFocus('password'), 100);
     }
   };
 
   // Determine if submit button should be disabled
-  const isSubmitDisabled = isLoading || !isValid || !isDirty || (loginMethod === 'otp' && !otpSent);
+  const isSubmitDisabled = isLoading || !isValid || !isDirty || step !== 'authenticate' || !loginMethod;
 
   const handleSocialLogin = async (provider: 'google' | 'facebook') => {
     try {
@@ -241,69 +418,162 @@ export default function LoginPage() {
           </p>
         </div>
 
-        {/* Input Type Indicator (Auto-detected) */}
-        {detectedType !== 'unknown' && identifier && (
-          <div className="text-center">
-            <span className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200">
-              {detectedType === 'email' ? '📧 Email detected' : '📱 Phone detected'}
+        {/* Step Indicator */}
+        <div className="flex items-center justify-center space-x-2 text-sm">
+          <div className={`flex items-center ${detectedType !== 'unknown' ? 'text-green-600 dark:text-green-400' : 'text-blue-600 dark:text-blue-400'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center ${detectedType !== 'unknown' ? 'bg-green-600 text-white' : 'bg-blue-600 text-white'}`}>
+              {detectedType !== 'unknown' ? '✓' : '1'}
             </span>
+            <span className="ml-2">Enter</span>
           </div>
-        )}
-
-        {/* Login Method Toggle (Password/OTP) */}
-        <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
-          <button
-            type="button"
-            onClick={() => {
-              setLoginMethod('password');
-              setOtpSent(false);
-            }}
-            className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-              loginMethod === 'password'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-            }`}
-          >
-            🔐 Password
-          </button>
-          <button
-            type="button"
-            onClick={() => setLoginMethod('otp')}
-            className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-              loginMethod === 'otp'
-                ? 'bg-blue-600 text-white'
-                : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300'
-            }`}
-          >
-            📲 OTP
-          </button>
+          <div className="w-8 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
+          <div className={`flex items-center ${step === 'authenticate' ? 'text-green-600 dark:text-green-400' : loginMethod ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'authenticate' ? 'bg-green-600 text-white' : loginMethod ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-white'}`}>
+              {step === 'authenticate' ? '✓' : '2'}
+            </span>
+            <span className="ml-2">Choose</span>
+          </div>
+          <div className="w-8 h-0.5 bg-gray-300 dark:bg-gray-600"></div>
+          <div className={`flex items-center ${step === 'authenticate' ? 'text-blue-600 dark:text-blue-400' : 'text-gray-400'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center ${step === 'authenticate' ? 'bg-blue-600 text-white' : 'bg-gray-300 dark:bg-gray-600 text-white'}`}>
+              3
+            </span>
+            <span className="ml-2">Sign in</span>
+          </div>
         </div>
 
         {/* Login Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)} noValidate>
           <div className="space-y-4">
-            {/* Unified Email/Phone Field */}
+            {/* Step 1: Email/Phone Input */}
             <div>
-              <Input
-                label="Email or Phone Number"
-                type="text"
-                {...register('identifier')}
-                placeholder="email@example.com or +1234567890"
-                autoComplete="username"
-                autoFocus
-                aria-invalid={errors.identifier ? 'true' : 'false'}
-                disabled={isLoading}
-                className={errors.identifier ? 'border-red-500 focus:ring-red-500' : ''}
-              />
+              <div className="relative">
+                <Input
+                  label="Email or Phone Number"
+                  type="text"
+                  {...register('identifier')}
+                  onChange={(e) => {
+                    handleIdentifierChange(e);
+                    register('identifier').onChange(e);
+                  }}
+                  placeholder="email@example.com or 123-456-7890"
+                  autoComplete="username"
+                  autoFocus
+                  aria-invalid={errors.identifier ? 'true' : 'false'}
+                  disabled={isLoading || step === 'authenticate'}
+                  className={errors.identifier ? 'border-red-500 focus:ring-red-500' : ''}
+                />
+                {/* Detection Badge */}
+                {detectedType !== 'unknown' && identifier && (
+                  <div className="absolute right-3 top-9">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200">
+                      {detectedType === 'email' ? '📧 Email' : '📱 Phone'}
+                    </span>
+                  </div>
+                )}
+              </div>
               {errors.identifier && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
                   {errors.identifier.message}
                 </p>
               )}
+              {/* Checking backend status */}
+              {checkingIdentifier && detectedType !== 'unknown' && (
+                <p className="mt-1 text-sm text-blue-600 dark:text-blue-400 flex items-center">
+                  <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Checking if {detectedType === 'email' ? 'email' : 'phone'} is registered...
+                </p>
+              )}
+              {/* Not registered message */}
+              {!checkingIdentifier && identifierExists === false && detectedType !== 'unknown' && (
+                <div className="mt-2 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+                  <p className="text-sm text-amber-800 dark:text-amber-200">
+                    ⚠ This {detectedType === 'email' ? 'email' : 'phone number'} is not registered.
+                  </p>
+                  <Link 
+                    href="/signup" 
+                    className="text-sm font-medium text-amber-900 dark:text-amber-100 hover:underline"
+                  >
+                    Create an account →
+                  </Link>
+                </div>
+              )}
+              {/* Format hint */}
+              {identifier && detectedType === 'unknown' && !checkingIdentifier && (
+                <p className="mt-1 text-sm text-amber-600 dark:text-amber-400">
+                  ⚠ Email: user@example.com • Phone: 123-456-7890 (auto-formats as you type)
+                </p>
+              )}
             </div>
 
-            {/* Password/OTP Field */}
-            {loginMethod === 'password' ? (
+            {/* Step 2: Method Selection (shown only when identifier is valid AND exists) */}
+            {(step === 'method' || step === 'authenticate') && identifierExists && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Choose login method
+                </label>
+                <div className={`grid ${availableMethods.includes('otp') ? 'grid-cols-2' : 'grid-cols-1'} gap-3`}>
+                  {/* Password Button - Always Available */}
+                  {availableMethods.includes('password') && (
+                    <button
+                      type="button"
+                      onClick={() => handleMethodSelect('password')}
+                      disabled={isLoading || checkingIdentifier || step === 'authenticate'}
+                      className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
+                        loginMethod === 'password'
+                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                          : checkingIdentifier
+                          ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      } ${step === 'authenticate' && loginMethod !== 'password' ? 'opacity-50' : ''}`}
+                    >
+                      <span className="text-2xl mr-2">🔐</span>
+                      <span className="font-medium">Password</span>
+                    </button>
+                  )}
+                  
+                  {/* OTP Button - Only if OTP service is enabled */}
+                  {availableMethods.includes('otp') && (
+                    <button
+                      type="button"
+                      onClick={() => handleMethodSelect('otp')}
+                      disabled={isLoading || checkingIdentifier || step === 'authenticate'}
+                      className={`flex items-center justify-center px-4 py-3 rounded-lg border-2 transition-all ${
+                        loginMethod === 'otp'
+                          ? 'border-blue-600 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300'
+                          : checkingIdentifier
+                          ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 text-gray-400 dark:text-gray-600 cursor-not-allowed'
+                          : 'border-gray-300 dark:border-gray-600 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-gray-50 dark:hover:bg-gray-800'
+                      } ${step === 'authenticate' && loginMethod !== 'otp' ? 'opacity-50' : ''}`}
+                    >
+                      <span className="text-2xl mr-2">📲</span>
+                      <span className="font-medium">OTP</span>
+                    </button>
+                  )}
+                </div>
+                
+                {/* Success Message */}
+                <p className="mt-2 text-sm text-green-600 dark:text-green-400 text-center flex items-center justify-center">
+                  <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
+                  </svg>
+                  {detectedType === 'email' ? 'Email' : 'Phone number'} verified. Choose how to continue.
+                </p>
+                
+                {/* OTP Not Available Notice */}
+                {!availableMethods.includes('otp') && (
+                  <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
+                    ℹ️ OTP login currently unavailable. Please use password.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Step 3: Authentication Field (appears after method selection) */}
+            {step === 'authenticate' && loginMethod === 'password' && (
               <div>
                 <PasswordInput
                   label="Password"
@@ -317,33 +587,43 @@ export default function LoginPage() {
                   </p>
                 )}
               </div>
-            ) : (
+            )}
+
+            {step === 'authenticate' && loginMethod === 'otp' && (
               <div>
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <PasswordInput
-                      label="6-Digit OTP"
-                      {...register('password')}
-                      placeholder="000000"
-                      autoComplete="one-time-code"
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                  Enter 6-Digit OTP
+                </label>
+                <div className="flex gap-2 justify-between">
+                  {[0, 1, 2, 3, 4, 5].map((index) => (
+                    <input
+                      key={index}
+                      ref={(el) => (otpInputRefs.current[index] = el)}
+                      type="text"
+                      inputMode="numeric"
+                      maxLength={1}
+                      value={otpValues[index]}
+                      onChange={(e) => handleOtpChange(index, e.target.value)}
+                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
+                      onPaste={index === 0 ? handleOtpPaste : undefined}
                       disabled={isLoading}
+                      className="w-12 h-14 text-center text-2xl font-bold border-2 border-gray-300 dark:border-gray-600 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:text-white transition-all"
+                      aria-label={`OTP digit ${index + 1}`}
                     />
-                  </div>
-                  <div className="pt-6">
-                    <Button
-                      type="button"
-                      onClick={handleRequestOTP}
-                      variant="outline"
-                      disabled={isLoading || otpTimer > 0 || detectedType === 'unknown'}
-                      className="whitespace-nowrap"
-                    >
-                      {otpTimer > 0 ? `${otpTimer}s` : otpSent ? 'Resend' : 'Send OTP'}
-                    </Button>
-                  </div>
+                  ))}
+                  {otpTimer > 0 && (
+                    <div className="flex items-center justify-center w-14 h-14 rounded-lg bg-gray-100 dark:bg-gray-700">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                        {otpTimer}s
+                      </span>
+                    </div>
+                  )}
                 </div>
+                {/* Hidden input to maintain form compatibility */}
+                <input type="hidden" {...register('password')} />
                 {otpSent && (
-                  <p className="mt-1 text-sm text-green-600 dark:text-green-400">
-                    OTP sent! Check your {detectedType === 'email' ? 'email' : 'phone'}.
+                  <p className="mt-2 text-sm text-green-600 dark:text-green-400">
+                    ✓ OTP sent to your {detectedType === 'email' ? 'email' : 'phone'}
                   </p>
                 )}
               </div>
@@ -351,7 +631,7 @@ export default function LoginPage() {
           </div>
 
           {/* Forgot Password Link */}
-          {loginMethod === 'password' && (detectedType === 'email' || detectedType === 'unknown') && (
+          {step === 'authenticate' && loginMethod === 'password' && (detectedType === 'email' || detectedType === 'unknown') && (
             <div className="flex items-center justify-between">
               <div className="text-sm">
                 <Link
@@ -366,15 +646,33 @@ export default function LoginPage() {
           )}
 
           {/* Submit Button */}
-          <Button
-            type="submit"
-            className="w-full"
-            isLoading={isLoading}
-            disabled={isSubmitDisabled}
-            aria-label={isLoading ? 'Signing in...' : 'Sign in'}
-          >
-            {isLoading ? 'Signing in...' : loginMethod === 'otp' ? 'Verify & Sign in' : 'Sign in'}
-          </Button>
+          {step === 'authenticate' && (
+            <Button
+              type="submit"
+              className="w-full"
+              isLoading={isLoading}
+              disabled={isSubmitDisabled}
+              aria-label={isLoading ? 'Signing in...' : 'Sign in'}
+            >
+              {isLoading ? 'Signing in...' : loginMethod === 'otp' ? 'Verify & Sign in' : 'Sign in'}
+            </Button>
+          )}
+
+          {/* Back Button (when on authenticate step) */}
+          {step === 'authenticate' && !isLoading && (
+            <button
+              type="button"
+              onClick={() => {
+                setStep('method');
+                setLoginMethod(null);
+                setOtpSent(false);
+                setOtpTimer(0);
+              }}
+              className="w-full text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
+            >
+              ← Change login method
+            </button>
+          )}
         </form>
 
         {/* Social Login Divider */}

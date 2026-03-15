@@ -564,6 +564,17 @@ export class AuthService {
   async requestPhoneOtp(phone: string): Promise<{ message: string }> {
     this.logger.info('OTP request for phone login', { context: 'AuthService', phone });
 
+    // Check if SMS service is enabled
+    if (!this.isOtpServiceAvailable('phone')) {
+      this.logger.warn('OTP request attempted but SMS service is disabled', {
+        context: 'AuthService',
+        phone,
+      });
+      throw new BadRequestException(
+        'SMS service is currently unavailable. Please use password login instead.'
+      );
+    }
+
     // Check if user exists with this phone
     const user = await this.userRepo.findByPhone(phone);
     if (!user) {
@@ -611,6 +622,17 @@ export class AuthService {
    */
   async verifyPhoneOtp(phone: string, code: string, ipAddress?: string): Promise<AuthResponseDto> {
     this.logger.info('OTP verification attempt for phone login', { context: 'AuthService', phone });
+
+    // Check if SMS service is enabled
+    if (!this.isOtpServiceAvailable('phone')) {
+      this.logger.warn('OTP verification attempted but SMS service is disabled', {
+        context: 'AuthService',
+        phone,
+      });
+      throw new BadRequestException(
+        'SMS service is currently unavailable. Please use password login instead.'
+      );
+    }
 
     // Find user by phone
     const user = await this.userRepo.findByPhone(phone);
@@ -737,6 +759,69 @@ export class AuthService {
       });
       
       throw new UnauthorizedException('Invalid or expired token');
+    }
+  }
+
+  /**
+   * Check if email or phone exists in the system
+   */
+  async checkIdentifierExists(identifier: string, type: 'email' | 'phone'): Promise<boolean> {
+    this.logger.info('Checking identifier existence', {
+      context: 'AuthService',
+      type,
+    });
+
+    try {
+      if (type === 'email') {
+        const user = await this.userRepo.findByEmail(identifier);
+        return !!user;
+      } else if (type === 'phone') {
+        const user = await this.userRepo.findByPhone(identifier);
+        return !!user;
+      }
+      
+      return false;
+    } catch (error) {
+      this.logger.error('Error checking identifier', {
+        context: 'AuthService',
+        type,
+        error: error.message,
+      });
+      
+      // Return true on error to prevent user enumeration via error states
+      return true;
+    }
+  }
+
+  /**
+   * Check if OTP services (SMS/Email) are enabled and available
+   */
+  isOtpServiceAvailable(type: 'email' | 'phone'): boolean {
+    try {
+      if (type === 'phone') {
+        // Check if SMS service is configured
+        const smsEnabled = this.configService.get<string>('SMS_SERVICE_ENABLED', 'false') === 'true';
+        const twilioSid = this.configService.get<string>('TWILIO_ACCOUNT_SID');
+        const twilioToken = this.configService.get<string>('TWILIO_AUTH_TOKEN');
+        
+        return smsEnabled && !!twilioSid && !!twilioToken;
+      } else if (type === 'email') {
+        // Check if Email service is configured
+        const emailEnabled = this.configService.get<string>('EMAIL_SERVICE_ENABLED', 'false') === 'true';
+        const smtpHost = this.configService.get<string>('SMTP_HOST');
+        const smtpUser = this.configService.get<string>('SMTP_USER');
+        
+        return emailEnabled && !!smtpHost && !!smtpUser;
+      }
+      
+      return false;
+    } catch (error) {
+      this.logger.error('Error checking OTP service availability', {
+        context: 'AuthService',
+        type,
+        error: error.message,
+      });
+      return false;
     }
   }
 }

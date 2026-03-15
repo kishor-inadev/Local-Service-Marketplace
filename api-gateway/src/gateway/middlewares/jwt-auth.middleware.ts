@@ -5,7 +5,7 @@ import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import * as jwt from 'jsonwebtoken';
 import { UnauthorizedException } from '../../common/exceptions/http.exceptions';
-import { publicRoutes } from '../config/services.config';
+import { publicRoutes, publicGetRoutes } from '../config/services.config';
 import { ConfigService } from '@nestjs/config';
 
 interface UserInfo {
@@ -39,11 +39,15 @@ export class JwtAuthMiddleware implements NestMiddleware {
 
   use(req: Request, res: Response, next: NextFunction) {
 		const path = req.originalUrl.split("?")[0]; // strip query string
+		const method = req.method.toUpperCase();
 
-		// Check if route is public
+		// Check if route is fully public (all methods)
 		const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
 
-		if (isPublicRoute) {
+		// Check if route is public for GET requests only
+		const isPublicGetRoute = method === 'GET' && publicGetRoutes.some((route) => path.startsWith(route));
+
+		if (isPublicRoute || isPublicGetRoute) {
 			return next();
 		}
 
@@ -51,7 +55,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
 		const authHeader = req.headers.authorization;
 
 		if (!authHeader || !authHeader.startsWith("Bearer ")) {
-			this.logger.error(`Missing or invalid Authorization header for ${path}`, "JwtAuthMiddleware");
+			this.logger.error(`Missing or invalid Authorization header for ${method} ${path}`, "JwtAuthMiddleware");
 			throw new UnauthorizedException(`Missing or invalid authorization token`);
 		}
 

@@ -15,6 +15,7 @@ import { PhoneOtpVerifyDto } from '../dto/phone-otp-verify.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { OAuthUserDto } from '../dto/oauth-user.dto';
 import { VerifyTokenDto, VerifyTokenResponseDto } from '../dto/verify-token.dto';
+import { CheckIdentifierDto, CheckIdentifierResponseDto } from '../dto/check-identifier.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -245,6 +246,41 @@ export class AuthController {
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
     
     return result;
+  }
+
+  // ==========================================
+  // Check Identifier (Email/Phone Existence)
+  // ==========================================
+
+  @Post('check-identifier')
+  async checkIdentifier(
+    @Body() checkIdentifierDto: CheckIdentifierDto,
+  ): Promise<CheckIdentifierResponseDto> {
+    this.logger.info('POST /auth/check-identifier', {
+      context: 'AuthController',
+      type: checkIdentifierDto.type,
+    });
+    
+    const exists = await this.authService.checkIdentifierExists(
+      checkIdentifierDto.identifier,
+      checkIdentifierDto.type,
+    );
+    
+    // Check if OTP service is available for this type
+    const otpAvailable = this.authService.isOtpServiceAvailable(checkIdentifierDto.type);
+    
+    // Determine available auth methods
+    const availableMethods: ('password' | 'otp')[] = ['password']; // Password always available
+    if (otpAvailable && exists) {
+      availableMethods.push('otp'); // OTP only if service is enabled AND user exists
+    }
+    
+    return {
+      exists,
+      type: checkIdentifierDto.type,
+      otpAvailable,
+      availableMethods,
+    };
   }
 
   // ==========================================
