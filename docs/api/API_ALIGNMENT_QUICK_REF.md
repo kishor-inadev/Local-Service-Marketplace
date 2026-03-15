@@ -151,6 +151,5 @@ Response: { data: [...], hasMore: true, nextCursor: "abc" }
 
 ## See Also
 
-- [Full Report](FRONTEND_BACKEND_API_ALIGNMENT_REPORT.md)
-- [API Specification](docs/API_SPECIFICATION.md)
-- [Architecture Docs](docs/ARCHITECTURE.md)
+- [API Specification](API_SPECIFICATION.md)
+- [Architecture Docs](../architecture/ARCHITECTURE.md)

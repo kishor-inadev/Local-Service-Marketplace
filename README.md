@@ -76,8 +76,7 @@ Email: admin@marketplace.com
 Password: password123
 ```
 
-📖 **See [SEED_QUICK_START.md](./SEED_QUICK_START.md)** for quick reference  
-📖 **See [DATABASE_SEEDING.md](./DATABASE_SEEDING.md)** for full documentation
+📖 **See [docs/DATABASE_SEEDING.md](docs/DATABASE_SEEDING.md)** for full documentation
 
 ---
 
@@ -661,28 +660,25 @@ docker exec marketplace-postgres psql -U postgres -d marketplace -f /docker-entr
 ## 📚 Documentation
 
 ### Core Documentation
-- **[STARTUP_GUIDE.md](STARTUP_GUIDE.md)** - Comprehensive startup instructions
-- **[ENV_FILES_STATUS.md](ENV_FILES_STATUS.md)** - Environment variables status & setup
+- **[docs/deployment/STARTUP_GUIDE.md](docs/deployment/STARTUP_GUIDE.md)** - Comprehensive startup instructions
 - **[docs/ENVIRONMENT_VARIABLES_GUIDE.md](docs/ENVIRONMENT_VARIABLES_GUIDE.md)** - Complete env vars reference
-- **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** - System architecture overview
-- **[docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)** - Complete API documentation
+- **[docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md)** - System architecture overview
+- **[docs/api/API_SPECIFICATION.md](docs/api/API_SPECIFICATION.md)** - Complete API documentation
 - **[docs/IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md)** - Implementation details
-- **[docs/MICROSERVICE_BOUNDARY_MAP.md](docs/MICROSERVICE_BOUNDARY_MAP.md)** - Service boundaries
+- **[docs/architecture/MICROSERVICE_BOUNDARY_MAP.md](docs/architecture/MICROSERVICE_BOUNDARY_MAP.md)** - Service boundaries
 
 ### Authentication & Security
 - **[api-gateway/TOKEN_VALIDATION_GUIDE.md](api-gateway/TOKEN_VALIDATION_GUIDE.md)** - Token validation strategies
-- **[docs/BACKEND_USER_CONTEXT_EXAMPLES.md](docs/BACKEND_USER_CONTEXT_EXAMPLES.md)** - Using user headers in services
-- **[docs/AUTH_SYSTEM_COMPLETE.md](docs/AUTH_SYSTEM_COMPLETE.md)** - Authentication system details
+- **[docs/guides/AUTHENTICATION_WORKFLOW.md](docs/guides/AUTHENTICATION_WORKFLOW.md)** - Authentication system details
 
 ### Performance & Scaling
-- **[docs/CACHING_GUIDE.md](docs/CACHING_GUIDE.md)** - Redis caching layer guide
-- **[docs/BACKGROUND_JOBS_GUIDE.md](docs/BACKGROUND_JOBS_GUIDE.md)** - Background job processing guide
-- **[KAFKA_INTEGRATION.md](KAFKA_INTEGRATION.md)** - Event streaming integration
-- **[docs/SCALING_OPTIMIZATIONS.md](docs/SCALING_OPTIMIZATIONS.md)** - Complete scaling optimizations summary
+- **[docs/guides/CACHING_GUIDE.md](docs/guides/CACHING_GUIDE.md)** - Redis caching layer guide
+- **[docs/guides/BACKGROUND_JOBS_GUIDE.md](docs/guides/BACKGROUND_JOBS_GUIDE.md)** - Background job processing guide
+- **[docs/guides/KAFKA_INTEGRATION.md](docs/guides/KAFKA_INTEGRATION.md)** - Event streaming integration
+- **[docs/deployment/SCALING_STRATEGY.md](docs/deployment/SCALING_STRATEGY.md)** - Scaling strategy guide
 
 ### Frontend
-- **[frontend/nextjs-app/README.md](frontend/nextjs-app/README.md)** - Frontend documentation
-- **[docs/FRONTEND_COMPLETE_IMPLEMENTATION.md](docs/FRONTEND_COMPLETE_IMPLEMENTATION.md)** - Frontend implementation guide
+- **[frontend/README.md](frontend/README.md)** - Frontend documentation
 
 ---
 

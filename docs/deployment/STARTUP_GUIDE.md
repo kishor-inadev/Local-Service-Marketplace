@@ -379,11 +379,11 @@ If you can access http://localhost:3001 and see the homepage, congratulations! T
 
 ## 📚 Additional Resources
 
-- [Architecture Guide](docs/ARCHITECTURE.md)
-- [API Specification](docs/API_SPECIFICATION.md)
-- [Implementation Guide](docs/IMPLEMENTATION_GUIDE.md)
-- [Scaling Strategy](docs/SCALING_STRATEGY.md)
-- [Frontend README](frontend/nextjs-app/README.md)
+- [Architecture Guide](../architecture/ARCHITECTURE.md)
+- [API Specification](../api/API_SPECIFICATION.md)
+- [Implementation Guide](../IMPLEMENTATION_GUIDE.md)
+- [Scaling Strategy](SCALING_STRATEGY.md)
+- [Frontend README](../../frontend/README.md)
 
 ---
 

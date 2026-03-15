@@ -461,7 +461,7 @@ You're now running a production-grade Local Service Marketplace!
 
 **Need Help?**
 - Check logs: `docker-compose logs -f`
-- Test endpoints: See [API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
+- Test endpoints: See [API_SPECIFICATION.md](../api/API_SPECIFICATION.md)
 - Report issues: Create GitHub issue
 - Support: your-support@email.com
 

@@ -125,7 +125,7 @@ All endpoints use the `/api/v1` prefix:
 - `POST /api/v1/auth/login`
 - `GET /api/v1/users`
 - `POST /api/v1/requests`
-- See [API_SPECIFICATION.md](API_SPECIFICATION.md) for complete list
+- See [api/API_SPECIFICATION.md](api/API_SPECIFICATION.md) for complete list
 
 ---
 
@@ -219,18 +219,18 @@ SELECT * FROM users LIMIT 5;
 Now that you're up and running:
 
 ### Learn the Architecture
-- 📖 [ARCHITECTURE.md](ARCHITECTURE.md) - System design and microservices
-- 📖 [MICROSERVICE_BOUNDARY_MAP.md](MICROSERVICE_BOUNDARY_MAP.md) - Service responsibilities
-- 📖 [API_SPECIFICATION.md](API_SPECIFICATION.md) - Complete API reference
+- 📖 [architecture/ARCHITECTURE.md](architecture/ARCHITECTURE.md) - System design and microservices
+- 📖 [architecture/MICROSERVICE_BOUNDARY_MAP.md](architecture/MICROSERVICE_BOUNDARY_MAP.md) - Service responsibilities
+- 📖 [api/API_SPECIFICATION.md](api/API_SPECIFICATION.md) - Complete API reference
 
 ### Explore Features
-- 📖 [LOCATION_INTEGRATION_COMPLETE.md](LOCATION_INTEGRATION_COMPLETE.md) - Google Maps integration
-- 📖 [AUTHENTICATION_WORKFLOW.md](AUTHENTICATION_WORKFLOW.md) - Auth system
-- 📖 [OAUTH_INTEGRATION_GUIDE.md](OAUTH_INTEGRATION_GUIDE.md) - Google/Facebook login
+- 📖 [GOOGLE_MAPS_SETUP.md](GOOGLE_MAPS_SETUP.md) - Google Maps integration
+- 📖 [guides/AUTHENTICATION_WORKFLOW.md](guides/AUTHENTICATION_WORKFLOW.md) - Auth system
+- 📖 [guides/OAUTH_INTEGRATION_GUIDE.md](guides/OAUTH_INTEGRATION_GUIDE.md) - Google/Facebook login
 
 ### Configure Optional Services
-- 📖 [EMAIL_SMS_INTEGRATION_GUIDE.md](EMAIL_SMS_INTEGRATION_GUIDE.md) - Email/SMS setup
-- 📖 [SERVICE_PAYMENT_README.md](SERVICE_PAYMENT_README.md) - Stripe integration
+- 📖 [guides/EMAIL_SMS_INTEGRATION_GUIDE.md](guides/EMAIL_SMS_INTEGRATION_GUIDE.md) - Email/SMS setup
+- 📖 [services/SERVICE_PAYMENT_README.md](services/SERVICE_PAYMENT_README.md) - Stripe integration
 
 ### Troubleshooting
 - 📖 [TROUBLESHOOTING.md](TROUBLESHOOTING.md) - Common issues & solutions
@@ -323,4 +323,4 @@ After completing this guide, you should have:
 
 ---
 
-[← Back to Documentation Index](00_DOCUMENTATION_INDEX.md) | [Architecture Overview →](ARCHITECTURE.md)
+[← Back to Documentation Index](00_DOCUMENTATION_INDEX.md) | [Architecture Overview →](architecture/ARCHITECTURE.md)

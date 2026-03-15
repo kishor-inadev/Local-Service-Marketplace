@@ -438,10 +438,10 @@ The Local Service Marketplace platform now has **complete end-to-end integration
 
 ## 📚 Documentation References
 
-- [Architecture Overview](ARCHITECTURE.md)
-- [Microservice Boundaries](MICROSERVICE_BOUNDARY_MAP.md)
-- [API Specification](API_SPECIFICATION.md)
-- [API Testing Guide](API_TESTING_GUIDE.md)
+- [Architecture Overview](architecture/ARCHITECTURE.md)
+- [Microservice Boundaries](architecture/MICROSERVICE_BOUNDARY_MAP.md)
+- [API Specification](api/API_SPECIFICATION.md)
+- [API Testing Guide](api/API_TESTING_GUIDE.md)
 - [Implementation Guide](IMPLEMENTATION_GUIDE.md)
 - [Database Schema](../database/schema.sql)
 

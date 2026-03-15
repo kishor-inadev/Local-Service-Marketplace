@@ -367,7 +367,7 @@ stringData:
 
 **Questions about secrets management?**
 - 🔒 Security Team: security@marketplace.com
-- 📚 Documentation: [SECURITY_AUDIT_REPORT.md](SECURITY_AUDIT_REPORT.md)
+- 📚 Documentation: See security best practices in docs
 - 🆘 Incident: Follow incident response plan above
 
 ---

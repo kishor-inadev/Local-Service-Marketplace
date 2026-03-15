@@ -377,7 +377,7 @@ Before deploying to production:
 ## 🔗 Related Documentation
 
 - [OAuth Setup Guide](./OAUTH_SETUP_GUIDE.md) - Detailed OAuth configuration
-- [Auth Service README](./SERVICE_AUTH_README.md) - Backend auth implementation
+- [Auth Service README](../services/SERVICE_AUTH_README.md) - Backend auth implementation
 - [Phone Login Guide](./PHONE_LOGIN_GUIDE.md) - SMS/OTP configuration
 
 ---

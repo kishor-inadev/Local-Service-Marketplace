@@ -4,45 +4,44 @@
 
 ## 🎯 Start Here
 
-**Master Documentation Index:** [docs/00_DOCUMENTATION_INDEX.md](docs/00_DOCUMENTATION_INDEX.md)
+**Master Documentation Index:** [00_DOCUMENTATION_INDEX.md](00_DOCUMENTATION_INDEX.md)
 
 ---
 
 ## ⚡ Quick Links
 
 ### 🚀 Getting Started
-- **[Startup Guide](docs/STARTUP_GUIDE.md)** - How to start the platform
-- **[Testing Guide](docs/TESTING_GUIDE.md)** - Verify all services work
+- **[Startup Guide](deployment/STARTUP_GUIDE.md)** - How to start the platform
+- **[Testing Guide](TESTING_GUIDE.md)** - Verify all services work
 - **Run:** `.\start.ps1` then `.\verify-integration.ps1`
 
 ### 🏗️ Architecture
-- **[Architecture Diagram](docs/ARCHITECTURE_DIAGRAM.md)** - Visual system overview
-- **[Architecture Guide](docs/ARCHITECTURE.md)** - Detailed architecture
-- **[Service Boundaries](docs/MICROSERVICE_BOUNDARY_MAP.md)** - Microservice responsibilities
+- **[Architecture Diagram](architecture/ARCHITECTURE_DIAGRAM.md)** - Visual system overview
+- **[Architecture Guide](architecture/ARCHITECTURE.md)** - Detailed architecture
+- **[Service Boundaries](architecture/MICROSERVICE_BOUNDARY_MAP.md)** - Microservice responsibilities
 
 ### 📡 API Reference
-- **[API Specification](docs/API_SPECIFICATION.md)** - Complete API reference for all 12 services
-- **[API Verification](docs/API_VERIFICATION_REPORT.md)** - Frontend-backend integration
+- **[API Specification](api/API_SPECIFICATION.md)** - Complete API reference for all 12 services
+- **[API Testing Guide](api/API_TESTING_GUIDE.md)** - How to test APIs
 
 ### ✅ Implementation Status
-- **[Platform Integration Report](docs/PLATFORM_INTEGRATION_REPORT.md)** ⭐ **MASTER REPORT**
-- **[Backend Complete](docs/BACKEND_IMPLEMENTATION_COMPLETE.md)** - Backend implementation (100%)
-- **[Frontend Complete](docs/FRONTEND_IMPLEMENTATION_COMPLETE.md)** - Frontend implementation (100%)
+- **[Integration Status Report](INTEGRATION_STATUS_REPORT.md)** ⭐ **SYSTEM STATUS**
+- **[Complete Integration Status](COMPLETE_INTEGRATION_STATUS.md)** - Detailed integration report
 
 ### 🔐 Features
-- **[Authentication](docs/AUTHENTICATION_WORKFLOW.md)** - Auth flow, sessions, JWT
-- **[OAuth Setup](docs/OAUTH_INTEGRATION_GUIDE.md)** - Google & Facebook login
-- **[Email/SMS](docs/EMAIL_SMS_INTEGRATION_GUIDE.md)** - Notification integration
-- **[WebSocket Chat](docs/WEBSOCKET_IMPLEMENTATION.md)** - Real-time messaging
+- **[Authentication](guides/AUTHENTICATION_WORKFLOW.md)** - Auth flow, sessions, JWT
+- **[OAuth Setup](guides/OAUTH_INTEGRATION_GUIDE.md)** - Google & Facebook login
+- **[Email/SMS](guides/EMAIL_SMS_INTEGRATION_GUIDE.md)** - Notification integration
+- **[WebSocket Chat](guides/WEBSOCKET_IMPLEMENTATION.md)** - Real-time messaging
 
 ### 📈 Scaling & Performance
-- **[Scaling Strategy](docs/SCALING_STRATEGY.md)** - Levels 1-5 (200 to 50K+ users)
-- **[Caching Guide](docs/CACHING_GUIDE.md)** - Redis optimization
-- **[Background Jobs](docs/BACKGROUND_JOBS_GUIDE.md)** - Bull queue processing
+- **[Scaling Strategy](deployment/SCALING_STRATEGY.md)** - Levels 1-5 (200 to 50K+ users)
+- **[Caching Guide](guides/CACHING_GUIDE.md)** - Redis optimization
+- **[Background Jobs](guides/BACKGROUND_JOBS_GUIDE.md)** - Bull queue processing
 
 ### 🚀 Production
-- **[Production Readiness](docs/PRODUCTION_READINESS_REPORT.md)** - Deployment checklist
-- **[Docker Guide](docs/DOCKER_SCRIPTS_GUIDE.md)** - Container deployment
+- **[Launch Guide](deployment/LAUNCH_GUIDE.md)** - Production deployment
+- **[Docker Guide](deployment/DOCKER_SCRIPTS_GUIDE.md)** - Container deployment
 
 ---
 
@@ -50,14 +49,14 @@
 
 | Component | Status | Docs |
 |-----------|--------|------|
-| **Backend (12 services)** | ✅ 100% | [Backend Complete](docs/BACKEND_IMPLEMENTATION_COMPLETE.md) |
-| **Frontend (Next.js)** | ✅ 100% | [Frontend Complete](docs/FRONTEND_IMPLEMENTATION_COMPLETE.md) |
-| **API Gateway** | ✅ Complete | [Architecture](docs/ARCHITECTURE_DIAGRAM.md) |
-| **Database (PostgreSQL)** | ✅ 45+ tables | [Schema](database/schema.sql) |
-| **Real-time (WebSocket)** | ✅ Complete | [WebSocket Guide](docs/WEBSOCKET_IMPLEMENTATION.md) |
-| **Notifications** | ✅ Complete | [Email/SMS Guide](docs/EMAIL_SMS_INTEGRATION_GUIDE.md) |
-| **OAuth** | ✅ Complete | [OAuth Guide](docs/OAUTH_INTEGRATION_GUIDE.md) |
-| **Docker** | ✅ Complete | [Docker Guide](docs/DOCKER_SCRIPTS_GUIDE.md) |
+| **Backend (12 services)** | ✅ 100% | [Service Docs](services/) |
+| **Frontend (Next.js)** | ✅ 100% | [Frontend README](../frontend/README.md) |
+| **API Gateway** | ✅ Complete | [Architecture](architecture/ARCHITECTURE_DIAGRAM.md) |
+| **Database (PostgreSQL)** | ✅ 45+ tables | [Schema](../database/schema.sql) |
+| **Real-time (WebSocket)** | ✅ Complete | [WebSocket Guide](guides/WEBSOCKET_IMPLEMENTATION.md) |
+| **Notifications** | ✅ Complete | [Email/SMS Guide](guides/EMAIL_SMS_INTEGRATION_GUIDE.md) |
+| **OAuth** | ✅ Complete | [OAuth Guide](guides/OAUTH_INTEGRATION_GUIDE.md) |
+| **Docker** | ✅ Complete | [Docker Guide](deployment/DOCKER_SCRIPTS_GUIDE.md) |
 
 ---
 

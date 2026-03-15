@@ -388,8 +388,8 @@ SMS_SERVICE_ENABLED=true
 
 - [Authentication Workflow](./AUTHENTICATION_WORKFLOW.md)
 - [Smart Login Guide](./PROGRESSIVE_LOGIN_GUIDE.md)
-- [Environment Variables Guide](./ENVIRONMENT_VARIABLES_GUIDE.md)
-- [API Specification](./API_SPECIFICATION.md)
+- [Environment Variables Guide](../ENVIRONMENT_VARIABLES_GUIDE.md)
+- [API Specification](../api/API_SPECIFICATION.md)
 
 ---
 

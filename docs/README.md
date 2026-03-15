@@ -13,7 +13,7 @@ All documentation has been centralized in the `/docs` folder.
 ✅ FRONTEND_IMPLEMENTATION_COMPLETE.md  
 
 ### New Index Created
-✅ **[docs/00_DOCUMENTATION_INDEX.md](docs/00_DOCUMENTATION_INDEX.md)** - Master documentation index
+✅ **[00_DOCUMENTATION_INDEX.md](00_DOCUMENTATION_INDEX.md)** - Master documentation index
 
 ### Quick Reference Created
 ✅ **[DOCS_QUICK_REFERENCE.md](DOCS_QUICK_REFERENCE.md)** - Quick links in root
@@ -45,11 +45,11 @@ ls *.md
 
 ## 🎯 Most Important Documents
 
-1. **[docs/00_DOCUMENTATION_INDEX.md](docs/00_DOCUMENTATION_INDEX.md)** - START HERE
-2. **[docs/PLATFORM_INTEGRATION_REPORT.md](docs/PLATFORM_INTEGRATION_REPORT.md)** - Master platform report
-3. **[docs/ARCHITECTURE_DIAGRAM.md](docs/ARCHITECTURE_DIAGRAM.md)** - Visual architecture
-4. **[docs/STARTUP_GUIDE.md](docs/STARTUP_GUIDE.md)** - How to start
-5. **[docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md)** - How to test
+1. **[00_DOCUMENTATION_INDEX.md](00_DOCUMENTATION_INDEX.md)** - START HERE
+2. **[INTEGRATION_STATUS_REPORT.md](INTEGRATION_STATUS_REPORT.md)** - Master platform report
+3. **[architecture/ARCHITECTURE_DIAGRAM.md](architecture/ARCHITECTURE_DIAGRAM.md)** - Visual architecture
+4. **[deployment/STARTUP_GUIDE.md](deployment/STARTUP_GUIDE.md)** - How to start
+5. **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - How to test
 
 ---
 
@@ -65,34 +65,34 @@ ls *.md
 ## 🔍 Find Documentation By Topic
 
 ### Starting the Platform
-→ [docs/STARTUP_GUIDE.md](docs/STARTUP_GUIDE.md)
+→ [deployment/STARTUP_GUIDE.md](deployment/STARTUP_GUIDE.md)
 
 ### Testing & Verification  
-→ [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md)
+→ [TESTING_GUIDE.md](TESTING_GUIDE.md)
 
 ### Platform Status & Integration
-→ [docs/PLATFORM_INTEGRATION_REPORT.md](docs/PLATFORM_INTEGRATION_REPORT.md)
+→ [INTEGRATION_STATUS_REPORT.md](INTEGRATION_STATUS_REPORT.md)
 
 ### Architecture & Design
-→ [docs/ARCHITECTURE_DIAGRAM.md](docs/ARCHITECTURE_DIAGRAM.md)
+→ [architecture/ARCHITECTURE_DIAGRAM.md](architecture/ARCHITECTURE_DIAGRAM.md)
 
 ### API Reference
-→ [docs/API_SPECIFICATION.md](docs/API_SPECIFICATION.md)
+→ [api/API_SPECIFICATION.md](api/API_SPECIFICATION.md)
 
 ### Scaling & Performance
-→ [docs/SCALING_STRATEGY.md](docs/SCALING_STRATEGY.md)
+→ [deployment/SCALING_STRATEGY.md](deployment/SCALING_STRATEGY.md)
 
 ### Email/SMS Integration
-→ [docs/EMAIL_SMS_INTEGRATION_GUIDE.md](docs/EMAIL_SMS_INTEGRATION_GUIDE.md)
+→ [guides/EMAIL_SMS_INTEGRATION_GUIDE.md](guides/EMAIL_SMS_INTEGRATION_GUIDE.md)
 
 ### WebSocket Real-time Chat
-→ [docs/WEBSOCKET_IMPLEMENTATION.md](docs/WEBSOCKET_IMPLEMENTATION.md)
+→ [guides/WEBSOCKET_IMPLEMENTATION.md](guides/WEBSOCKET_IMPLEMENTATION.md)
 
 ### OAuth (Google/Facebook)
-→ [docs/OAUTH_INTEGRATION_GUIDE.md](docs/OAUTH_INTEGRATION_GUIDE.md)
+→ [guides/OAUTH_INTEGRATION_GUIDE.md](guides/OAUTH_INTEGRATION_GUIDE.md)
 
 ### Production Deployment
-→ [docs/PRODUCTION_READINESS_REPORT.md](docs/PRODUCTION_READINESS_REPORT.md)
+→ [deployment/LAUNCH_GUIDE.md](deployment/LAUNCH_GUIDE.md)
 
 ---
 
