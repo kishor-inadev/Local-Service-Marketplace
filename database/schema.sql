@@ -153,6 +153,22 @@ CREATE INDEX idx_providers_deleted_at ON providers(deleted_at) WHERE deleted_at 
 CREATE INDEX idx_providers_verification_status ON providers(verification_status);
 CREATE INDEX idx_providers_total_jobs ON providers(total_jobs_completed DESC);
 
+-- =====================================================
+-- SERVICE CATEGORIES
+-- =====================================================
+
+CREATE TABLE service_categories (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(100) UNIQUE NOT NULL,
+  description TEXT,
+  icon TEXT,
+  active BOOLEAN DEFAULT true NOT NULL,
+  created_at TIMESTAMP DEFAULT now() NOT NULL
+);
+
+CREATE INDEX idx_service_categories_active ON service_categories(active) WHERE active = true;
+CREATE INDEX idx_service_categories_name ON service_categories(name);
+
 CREATE TABLE provider_services (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
@@ -174,22 +190,6 @@ CREATE TABLE provider_availability (
 CREATE INDEX idx_provider_availability_provider_id ON provider_availability(provider_id);
 CREATE INDEX idx_provider_availability_day ON provider_availability(day_of_week);
 CREATE INDEX idx_provider_availability_composite ON provider_availability(provider_id, day_of_week, start_time);
-
--- =====================================================
--- SERVICE CATEGORIES
--- =====================================================
-
-CREATE TABLE service_categories (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name VARCHAR(100) UNIQUE NOT NULL,
-  description TEXT,
-  icon TEXT,
-  active BOOLEAN DEFAULT true NOT NULL,
-  created_at TIMESTAMP DEFAULT now() NOT NULL
-);
-
-CREATE INDEX idx_service_categories_active ON service_categories(active) WHERE active = true;
-CREATE INDEX idx_service_categories_name ON service_categories(name);
 
 -- =====================================================
 -- LOCATIONS
