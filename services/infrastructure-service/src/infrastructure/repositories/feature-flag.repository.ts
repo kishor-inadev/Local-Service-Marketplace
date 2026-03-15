@@ -18,7 +18,7 @@ export class FeatureFlagRepository {
     const values = [
       createFlagDto.key,
       createFlagDto.enabled,
-      createFlagDto.rolloutPercentage,
+      createFlagDto.rollout_percentage,
     ];
 
     const result = await this.pool.query(query, values);

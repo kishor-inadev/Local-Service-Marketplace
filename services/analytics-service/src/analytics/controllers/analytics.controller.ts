@@ -26,7 +26,7 @@ export class AnalyticsController {
   @Post('activity')
   async trackActivity(@Body() trackActivityDto: TrackActivityDto) {
     this.logger.log(
-      `POST /analytics/activity - Track activity for user ${trackActivityDto.userId}`,
+      `POST /analytics/activity - Track activity for user ${trackActivityDto.user_id}`,
       'AnalyticsController',
     );
 

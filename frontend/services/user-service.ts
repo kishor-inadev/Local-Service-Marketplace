@@ -125,7 +125,7 @@ export const getProviderProfile = async (providerId: string): Promise<ProviderPr
 export const getProviderServices = async (providerId: string): Promise<ProviderService[]> => {
   const response = await apiClient.get<ProviderService[]>(`/providers/${providerId}/services`);
   // API client unwraps standardized response
-  return response.data?.data || response.data || [];
+  return response.data || [];
 };
 
 /**
@@ -140,7 +140,7 @@ export const updateProviderServices = async (
     data
   );
   // API client unwraps standardized response
-  return response.data?.data || response.data || [];
+  return response.data || [];
 };
 
 /**
@@ -229,7 +229,7 @@ export const uploadProviderDocument = async (
 export const getProviderDocuments = async (providerId: string): Promise<ProviderDocument[]> => {
   const response = await apiClient.get<ProviderDocument[]>(`/provider-documents/provider/${providerId}`);
   // API client unwraps standardized response
-  return response.data?.data || response.data || [];
+  return response.data || [];
 };
 
 /**
@@ -305,7 +305,7 @@ export const createPortfolioItem = async (
 export const getProviderPortfolio = async (providerId: string): Promise<PortfolioItem[]> => {
   const response = await apiClient.get<PortfolioItem[]>(`/provider-portfolio/provider/${providerId}`);
   // API client unwraps standardized response
-  return response.data?.data || response.data || [];
+  return response.data || [];
 };
 
 /**

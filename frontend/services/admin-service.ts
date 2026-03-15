@@ -45,7 +45,7 @@ class AdminService {
 
     const response = await apiClient.get<User[]>(`/admin/users?${searchParams.toString()}`);
     // API client unwraps standardized response
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 
   async getUserById(id: string): Promise<User> {
@@ -77,7 +77,7 @@ class AdminService {
       `/admin/disputes?${searchParams.toString()}`,
     );
     // API client unwraps standardized response
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 
   async updateDispute(
@@ -104,7 +104,7 @@ class AdminService {
       `/admin/audit-logs?${searchParams.toString()}`,
     );
     // API client unwraps standardized response
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 
   async getSystemStats(): Promise<any> {

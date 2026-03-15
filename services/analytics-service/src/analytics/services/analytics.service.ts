@@ -20,7 +20,7 @@ export class AnalyticsService {
       const activity = await this.userActivityRepository.trackActivity(trackActivityDto);
       
       this.logger.log(
-        `Activity tracked: ${trackActivityDto.action} by user ${trackActivityDto.userId}`,
+        `Activity tracked: ${trackActivityDto.action} by user ${trackActivityDto.user_id}`,
         'AnalyticsService',
       );
 

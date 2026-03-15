@@ -97,10 +97,7 @@ export default function NotificationsPage() {
                         </div>
                       </div>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-gray-900">
-                          {notification.title}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-gray-900">
                           {notification.message}
                         </p>
                         <p className="text-xs text-gray-500 mt-2">

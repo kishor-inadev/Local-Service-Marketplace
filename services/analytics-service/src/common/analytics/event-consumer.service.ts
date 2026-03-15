@@ -59,7 +59,7 @@ export class EventConsumerService implements OnModuleInit {
     
     if (userId) {
       await this.userActivityRepository.trackActivity({
-        userId: userId,
+        user_id: userId,
         action: event.eventType,
         metadata: event.data,
       });

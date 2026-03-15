@@ -18,7 +18,7 @@ class FavoriteService {
   async getFavorites(userId: string): Promise<Favorite[]> {
     const response = await apiClient.get<Favorite[]>(`/favorites?user_id=${userId}`);
     // API client unwraps standardized response
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 
   async addFavorite(data: CreateFavoriteData): Promise<Favorite> {

@@ -56,6 +56,8 @@ function SubmitReviewContent() {
     mutationFn: (data: ReviewFormData) => 
       createReview({
         job_id: jobId!,
+        user_id: '', // TODO: Get from user context
+        provider_id: providerId!,
         rating: data.rating,
         comment: data.comment,
       }),

@@ -46,7 +46,7 @@ class ProposalService {
   async getProposalsByRequest(requestId: string): Promise<Proposal[]> {
     const response = await apiClient.get<Proposal[]>(`/requests/${requestId}/proposals`);
     // API client unwraps standardized response
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 
   async getProposalById(id: string): Promise<Proposal> {
@@ -87,7 +87,7 @@ class ProposalService {
     }
     const response = await apiClient.get<Proposal[]>(`/proposals/my?user_id=${userId}`);
     // API client unwraps standardized response
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 }
 

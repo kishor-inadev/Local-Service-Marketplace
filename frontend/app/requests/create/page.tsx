@@ -85,12 +85,12 @@ export default function CreateRequestPage() {
     const requestData = {
       ...data,
       location: {
-        lat: location.lat,
-        lng: location.lng,
+        latitude: location.lat,
+        longitude: location.lng,
         address: location.address,
         city: location.city,
         state: location.state,
-        zipCode: location.zipCode,
+        zip_code: location.zipCode,
         country: location.country,
       },
     };

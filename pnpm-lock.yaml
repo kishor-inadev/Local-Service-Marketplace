@@ -129,7 +129,7 @@ importers:
         specifier: ^5.3.3
         version: 5.3.3
 
-  frontend/nextjs-app:
+  frontend:
     dependencies:
       '@dnd-kit/core':
         specifier: ^6.3.1

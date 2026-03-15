@@ -31,7 +31,7 @@ class NotificationService {
       `/notifications?${params.toString()}`,
     );
     // API client unwraps standardized response to { data, total } or just data
-    const unwrapped = response.data?.data || response.data;
+    const unwrapped = response.data;
     return unwrapped.notifications || unwrapped || [];
   }
 

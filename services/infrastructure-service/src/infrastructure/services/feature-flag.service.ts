@@ -167,14 +167,14 @@ export class FeatureFlagService {
       }
 
       // Check rollout percentage
-      if (flag.rolloutPercentage < 100 && userId) {
+      if (flag.rollout_percentage < 100 && userId) {
         // Use consistent hashing for gradual rollout
         const hash = this.hashString(userId);
         const percentage = hash % 100;
-        return percentage < flag.rolloutPercentage;
+        return percentage < flag.rollout_percentage;
       }
 
-      return flag.rolloutPercentage === 100;
+      return flag.rollout_percentage === 100;
     } catch (error) {
       this.logger.error(
         `Failed to check feature enabled: ${error.message}`,

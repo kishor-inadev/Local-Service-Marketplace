@@ -60,6 +60,8 @@ export interface UpdateRequestData {
 export interface PaginatedResponse<T> {
   data: T[];
   total: number;
+  cursor?: string;
+  hasMore?: boolean;
 }
 
 export interface RequestFilters {
@@ -132,13 +134,13 @@ class RequestService {
     // API returns standardized format with { data: [], total: 0 }
     // API client unwraps it to { data, total } for responses with total
     // If it has total, extract data array, otherwise use response.data directly
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 
   async getCategories(): Promise<any[]> {
     const response = await apiClient.get<any>('/categories');
     // For array responses, unwrapped to { data, total } or just the array
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 }
 

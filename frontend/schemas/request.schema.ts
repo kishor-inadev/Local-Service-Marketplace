@@ -4,12 +4,12 @@ import { z } from 'zod';
  * Location validation schema
  */
 export const locationSchema = z.object({
-  lat: z.number().min(-90).max(90),
-  lng: z.number().min(-180).max(180),
+  latitude: z.number().min(-90).max(90),
+  longitude: z.number().min(-180).max(180),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  zipCode: z.string().optional(),
+  zip_code: z.string().optional(),
   country: z.string().optional(),
 });
 

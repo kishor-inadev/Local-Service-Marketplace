@@ -46,7 +46,8 @@ export default function MessagesPage() {
     try {
       await messageService.sendMessage({
         job_id: selectedJobId,
-        content: messageText,
+        sender_id: '', // TODO: Get from user context
+        message: messageText,
       });
       setMessageText('');
     } catch (error) {

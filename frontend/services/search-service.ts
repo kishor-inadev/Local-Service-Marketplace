@@ -32,7 +32,7 @@ class SearchService {
     );
 
     // Handle paginated response
-    const data = response.data?.data || response.data;
+    const data = response.data;
     return Array.isArray(data) ? data : [];
   }
 
@@ -46,7 +46,7 @@ class SearchService {
       `/categories?search=${encodeURIComponent(query)}&limit=${limit}`,
     );
     // API client unwraps standardized response
-    return response.data?.data || response.data || [];
+    return response.data || [];
   }
 
   /**

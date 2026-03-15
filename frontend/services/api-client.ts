@@ -126,7 +126,7 @@ class ApiClient {
               const response = await this.client.post('/auth/refresh', { refreshToken });
               
               // Extract new tokens from response (handle standardized format)
-              const responseData = response.data?.data || response.data;
+              const responseData = response.data;
               const newAccessToken = responseData?.accessToken;
               const newRefreshToken = responseData?.refreshToken;
               
