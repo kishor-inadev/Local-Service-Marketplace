@@ -78,9 +78,15 @@ export const ROUTES = {
   DASHBOARD_EARNINGS: '/dashboard/earnings',
   DASHBOARD_AVAILABILITY: '/dashboard/availability',
   
-  // Public Requests (accessible to everyone, including anonymous users)
+  // Dashboard - Provider Profile Management
+  DASHBOARD_PROVIDER_OVERVIEW: '/dashboard/provider',
+  DASHBOARD_PROVIDER_PORTFOLIO: '/dashboard/provider/portfolio',
+  DASHBOARD_PROVIDER_REVIEWS: '/dashboard/provider/reviews',
+  DASHBOARD_PROVIDER_DOCUMENTS: '/dashboard/provider/documents',
+  
+  // Public Requests (only create is public - viewing requires authentication)
   CREATE_REQUEST: '/requests/create',
-  REQUEST_DETAIL: (id: string) => `/requests/${id}`,
+  REQUEST_DETAIL: (id: string) => `/dashboard/requests/${id}`, // Requires authentication
   
   // Providers (Public - accessible before login)
   PROVIDERS: '/providers',
@@ -101,14 +107,14 @@ export const ROUTES = {
   PROFILE: '/dashboard/profile',
   PROFILE_EDIT: '/dashboard/profile/edit',
   SETTINGS: '/dashboard/settings',
-  REQUESTS: '/dashboard/requests',
+  REQUESTS: '/dashboard/requests', // Requires authentication - view all requests
   JOBS: '/dashboard/jobs',
   JOB_DETAIL: (id: string) => `/dashboard/jobs/${id}`,
   MESSAGES: '/dashboard/messages',
   NOTIFICATIONS: '/dashboard/notifications',
   PAYMENT_HISTORY: '/dashboard/payments/history',
   REVIEW_SUBMIT: '/dashboard/reviews/submit',
-  DASHBOARD_CREATE_REQUEST: '/requests/create', // Redirect to public route
+  DASHBOARD_CREATE_REQUEST: '/requests/create', // Public route - unauthenticated users can create requests
 } as const;
 
 export const API_ENDPOINTS = {

@@ -20,6 +20,9 @@ import {
   Search,
   Calendar,
   TrendingUp,
+  User,
+  Star,
+  ImageIcon,
 } from 'lucide-react';
 
 export default function ProviderDashboard() {
@@ -144,6 +147,41 @@ export default function ProviderDashboard() {
                 <Button variant="outline" className="w-full justify-start">
                   <Calendar className="h-4 w-4 mr-2" />
                   Set Availability
+                </Button>
+              </Link>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Provider Profile Management */}
+        <Card className="mb-8">
+          <CardHeader>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Profile Management</h2>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Link href={ROUTES.DASHBOARD_PROVIDER_OVERVIEW}>
+                <Button variant="outline" className="w-full justify-start">
+                  <User className="h-4 w-4 mr-2" />
+                  Overview
+                </Button>
+              </Link>
+              <Link href={ROUTES.DASHBOARD_PROVIDER_PORTFOLIO}>
+                <Button variant="outline" className="w-full justify-start">
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Portfolio
+                </Button>
+              </Link>
+              <Link href={ROUTES.DASHBOARD_PROVIDER_REVIEWS}>
+                <Button variant="outline" className="w-full justify-start">
+                  <Star className="h-4 w-4 mr-2" />
+                  Reviews
+                </Button>
+              </Link>
+              <Link href={ROUTES.DASHBOARD_PROVIDER_DOCUMENTS}>
+                <Button variant="outline" className="w-full justify-start">
+                  <FileText className="h-4 w-4 mr-2" />
+                  Documents
                 </Button>
               </Link>
             </div>
