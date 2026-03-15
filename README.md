@@ -3,8 +3,8 @@
 A production-ready microservices-based marketplace platform connecting service providers with customers.
 
 **📚 ALL DOCUMENTATION:** See **[docs/00_DOCUMENTATION_INDEX.md](docs/00_DOCUMENTATION_INDEX.md)** for complete documentation index  
-**⚡ Quick Reference:** See **[DOCS_QUICK_REFERENCE.md](DOCS_QUICK_REFERENCE.md)** for quick links  
-**🔐 Security:** See **[ENV_FILES_STATUS.md](ENV_FILES_STATUS.md)** for environment setup status
+**⚡ Quick Reference:** See **[QUICK_REFERENCE.md](QUICK_REFERENCE.md)** for essential commands  
+**📊 System Status:** See **[docs/INTEGRATION_STATUS_REPORT.md](docs/INTEGRATION_STATUS_REPORT.md)** for current integration status
 
 ---
 

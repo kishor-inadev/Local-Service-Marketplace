@@ -1,52 +1,103 @@
 # 📚 Documentation Index
-
-**Last Updated:** March 14, 2026
-
-All documentation for the Local Service Marketplace platform is organized in this directory.
+**Local Service Marketplace Platform**  
+Last Updated: March 15, 2026
 
 ---
 
 ## 🚀 Quick Start
 
 **New to the project?** Start here:
-
-1. **[README.md](../README.md)** - Project overview and quick start
-2. **[STARTUP_GUIDE.md](STARTUP_GUIDE.md)** - Step-by-step setup instructions
-3. **[TESTING_GUIDE.md](TESTING_GUIDE.md)** - Test all services quickly
-4. **[ARCHITECTURE_DIAGRAM.md](ARCHITECTURE_DIAGRAM.md)** - Visual system architecture
-
----
-
-## 📋 Documentation Categories
-
-### 🏗️ Architecture & Design
-
-| Document | Description | Status |
-|----------|-------------|--------|
-| **[ARCHITECTURE.md](ARCHITECTURE.md)** | High-level system architecture | ✅ Complete |
-| **[ARCHITECTURE_DIAGRAM.md](ARCHITECTURE_DIAGRAM.md)** | Visual service diagrams with ports and flows | ✅ Complete |
-| **[MICROSERVICE_BOUNDARY_MAP.md](MICROSERVICE_BOUNDARY_MAP.md)** | Service boundaries and responsibilities | ✅ Complete |
-| **[SYSTEM_DIAGRAM.md](SYSTEM_DIAGRAM.md)** | System component diagrams | ✅ Complete |
-| **[API_SPECIFICATION.md](API_SPECIFICATION.md)** | Complete API reference for all services | ✅ Complete |
+1. [Quick Start Guide](QUICK_START.md) - Get up and running in 5 minutes
+2. [Environment Variables Guide](ENVIRONMENT_VARIABLES_GUIDE.md) - Configure your environment
+3. [Database Seeding](DATABASE_SEEDING.md) - Populate test data
+4. [Integration Status Report](INTEGRATION_STATUS_REPORT.md) - Current system status
 
 ---
 
-### 🔧 Implementation & Setup
+## 📁 Documentation Structure
 
-| Document | Description | Status |
-|----------|-------------|--------|
-| **[IMPLEMENTATION_GUIDE.md](IMPLEMENTATION_GUIDE.md)** | Step-by-step implementation guide | ✅ Complete |
-| **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** | Current implementation status | ✅ Complete |
-| **[IMPLEMENTATION_COMPLETION_SUMMARY.md](IMPLEMENTATION_COMPLETION_SUMMARY.md)** | Summary of completed features | ✅ Complete |
-| **[BACKEND_IMPLEMENTATION_COMPLETE.md](BACKEND_IMPLEMENTATION_COMPLETE.md)** | Backend completion report (Provider endpoints, WebSocket) | ✅ Complete |
-| **[FRONTEND_IMPLEMENTATION_COMPLETE.md](FRONTEND_IMPLEMENTATION_COMPLETE.md)** | Frontend completion report | ✅ Complete |
-| **[STARTUP_GUIDE.md](STARTUP_GUIDE.md)** | How to start the platform | ✅ Complete |
-| **[DOCKER_SCRIPTS_GUIDE.md](DOCKER_SCRIPTS_GUIDE.md)** | Docker startup scripts documentation | ✅ Complete |
-| **[DOCKER_OPTIMIZATION.md](DOCKER_OPTIMIZATION.md)** | Docker image optimization guide | ✅ Complete |
+### API Documentation → [/docs/api](api/)
+- [API Specification](api/API_SPECIFICATION.md) - Complete API reference
+- [API Gateway README](api/API_GATEWAY_README.md) - Gateway configuration
+- [API Testing Guide](api/API_TESTING_GUIDE.md) - How to test APIs
+- [API Versioning](api/API_VERSIONING.md) - Version management
+- [API Alignment Quick Reference](api/API_ALIGNMENT_QUICK_REF.md)
+- [Standardized API Responses](STANDARDIZED_API_RESPONSES.md)
 
----
+### Architecture Documentation → [/docs/architecture](architecture/)
+- [Architecture Overview](architecture/ARCHITECTURE.md) - System design
+- [Architecture Diagram](architecture/ARCHITECTURE_DIAGRAM.md) - Visual diagrams
+- [System Diagram](architecture/SYSTEM_DIAGRAM.md) - Infrastructure
+- [Microservice Boundary Map](architecture/MICROSERVICE_BOUNDARY_MAP.md) - Service boundaries
 
-### 🔐 Authentication & Security
+### Service Documentation → [/docs/services](services/)
+Individual service READMEs:
+- [Auth Service](services/SERVICE_AUTH_README.md)
+- [User Service](services/SERVICE_USER_README.md)
+- [Request Service](services/SERVICE_REQUEST_README.md)
+- [Proposal Service](services/SERVICE_PROPOSAL_README.md)
+- [Job Service](services/SERVICE_JOB_README.md)
+- [Payment Service](services/SERVICE_PAYMENT_README.md)
+- [Notification Service](services/SERVICE_NOTIFICATION_README.md)
+- [Review Service](services/SERVICE_REVIEW_README.md)
+- [Messaging Service](services/SERVICE_MESSAGING_README.md)
+- [Admin Service](services/SERVICE_ADMIN_README.md)
+- [Analytics Service](services/SERVICE_ANALYTICS_README.md)
+- [Infrastructure Service](services/SERVICE_INFRASTRUCTURE_README.md)
+- [Email Service](services/SERVICE_EMAIL_README.md)
+
+### Deployment Documentation → [/docs/deployment](deployment/)
+- [Docker Scripts Guide](deployment/DOCKER_SCRIPTS_GUIDE.md) - Docker utilities
+- [Launch Guide](deployment/LAUNCH_GUIDE.md) - Production deployment
+- [Startup Guide](deployment/STARTUP_GUIDE.md) - Development setup
+- [Scaling Strategy](deployment/SCALING_STRATEGY.md) - Scale the platform
+
+### Guides → [/docs/guides](guides/)
+
+**Authentication & Security:**
+- [Authentication Workflow](guides/AUTHENTICATION_WORKFLOW.md)
+- [Multi-Auth Guide](guides/MULTI_AUTH_GUIDE.md)
+- [OAuth Integration Guide](guides/OAUTH_INTEGRATION_GUIDE.md)
+- [OAuth Setup Guide](guides/OAUTH_SETUP_GUIDE.md)
+- [Phone Login Guide](guides/PHONE_LOGIN_GUIDE.md)
+- [Progressive Login Guide](guides/PROGRESSIVE_LOGIN_GUIDE.md)
+- [Smart Login Guide](guides/SMART_LOGIN_GUIDE.md)
+- [Unified Login Guide](guides/UNIFIED_LOGIN_GUIDE.md)
+- [Quick Reference: Smart Login](guides/QUICK_REF_SMART_LOGIN.md)
+- [Email OTP Backend Guide](guides/EMAIL_OTP_BACKEND_GUIDE.md)
+- [OTP Service Configuration](guides/OTP_SERVICE_CONFIGURATION.md)
+- [Secrets Management Guide](guides/SECRETS_MANAGEMENT_GUIDE.md)
+
+**Infrastructure:**
+- [Kafka Integration](guides/KAFKA_INTEGRATION.md)
+- [Caching Guide](guides/CACHING_GUIDE.md)
+- [Background Jobs Guide](guides/BACKGROUND_JOBS_GUIDE.md)
+- [WebSocket Implementation](guides/WEBSOCKET_IMPLEMENTATION.md)
+- [Email & SMS Integration](guides/EMAIL_SMS_INTEGRATION_GUIDE.md)
+
+### Feature Documentation
+- [Contact Form System](CONTACT_FORM_SYSTEM.md)
+- [Route Protection Reference](ROUTE_PROTECTION_REFERENCE.md)
+- [Google Maps Setup](GOOGLE_MAPS_SETUP.md)
+
+### Development
+- [Implementation Guide](IMPLEMENTATION_GUIDE.md)
+- [Migration Guide](MIGRATION_GUIDE.md)
+- [Testing Guide](TESTING_GUIDE.md)
+- [Troubleshooting](TROUBLESHOOTING.md)
+- [Feature Roadmap](FEATURE_ROADMAP.md)
+
+### AI Development
+- [AI Developer Guide](AI_DEVELOPER_GUIDE.md)
+- [AI System Prompt](AI_SYSTEM_PROMPT.md)
+
+### Configuration
+- [Environment Variables Guide](ENVIRONMENT_VARIABLES_GUIDE.md)
+- [Port Configuration](PORT_CONFIGURATION.md)
+- [Database Seeding](DATABASE_SEEDING.md)
+
+### Archive → [/docs/archive](archive/)
+Historical and deprecated documentation (for reference only)
 
 | Document | Description | Status |
 |----------|-------------|--------|

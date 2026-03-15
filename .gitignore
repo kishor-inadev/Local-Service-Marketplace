@@ -67,6 +67,7 @@ next-env.d.ts
 
 secrets.env
 secrets.json
+docker.env
 *.secret
 *.key
 .env.production
