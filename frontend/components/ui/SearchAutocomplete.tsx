@@ -6,6 +6,7 @@ import { searchService, SearchResult } from '@/services/search-service';
 import { Search, Loader2, MapPin, Briefcase, Tag } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useDebounce } from '@/hooks/useDebounce';
+import { ROUTES } from '@/config/constants';
 
 interface SearchAutocompleteProps {
   placeholder?: string;
@@ -68,9 +69,9 @@ export function SearchAutocomplete({
     } else {
       // Default navigation
       if (result.type === 'provider') {
-        router.push(`/providers/${result.id}`);
+        router.push(ROUTES.PROVIDER_DETAIL(result.id));
       } else if (result.type === 'category') {
-        router.push(`/providers?category=${result.id}`);
+        router.push(`${ROUTES.PROVIDERS}?category=${result.id}`);
       }
     }
   };

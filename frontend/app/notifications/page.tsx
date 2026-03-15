@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { isNotificationsEnabled } from '@/config/features';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -17,18 +18,21 @@ export default function NotificationsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { setUnreadCount } = useNotificationStore();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 
-  // Redirect if notifications are disabled
+  // Redirect if not authenticated or notifications are disabled
   useEffect(() => {
-    if (!isNotificationsEnabled()) {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    } else if (!authLoading && isAuthenticated && !isNotificationsEnabled()) {
       router.push('/dashboard');
     }
-  }, [router]);
+  }, [isAuthenticated, authLoading, router]);
 
   const { data: notifications, isLoading } = useQuery({
     queryKey: ['notifications'],
     queryFn: () => notificationService.getNotifications({ limit: 50 }),
-    enabled: isNotificationsEnabled(),
+    enabled: isNotificationsEnabled() && isAuthenticated,
   });
 
   const markAsReadMutation = useMutation({
@@ -47,6 +51,14 @@ export default function NotificationsPage() {
       setUnreadCount(0);
     },
   });
+
+  if (authLoading) {
+    return <Loading />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Layout>

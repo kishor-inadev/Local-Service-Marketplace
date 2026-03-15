@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { z } from 'zod';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -26,11 +27,18 @@ type ReviewFormData = z.infer<typeof reviewSchema>;
 function SubmitReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const jobId = searchParams.get('jobId');
   const providerId = searchParams.get('providerId');
   
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const { register, handleSubmit, setValue, formState: { errors } } = useForm<ReviewFormData>({
     resolver: zodResolver(reviewSchema),
@@ -86,6 +94,14 @@ function SubmitReviewContent() {
   const onSubmit = (data: ReviewFormData) => {
     submitMutation.mutate(data);
   };
+
+  if (authLoading) {
+    return <Loading />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (!jobId || !providerId) {
     return null;

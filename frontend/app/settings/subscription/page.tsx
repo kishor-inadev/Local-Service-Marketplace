@@ -1,11 +1,22 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import { Loading } from '@/components/ui/Loading';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { SubscriptionManagement } from '@/components/features/subscription/SubscriptionManagement';
 
 export default function SubscriptionPage() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [providerId, setProviderId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   useEffect(() => {
     const getProviderId = async () => {
@@ -23,6 +34,14 @@ export default function SubscriptionPage() {
 
     getProviderId();
   }, []);
+
+  if (authLoading) {
+    return <Loading />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (!providerId) {
     return (

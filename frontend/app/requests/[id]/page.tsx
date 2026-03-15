@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { Layout } from '@/components/layout/Layout';
@@ -20,18 +21,25 @@ export default function RequestDetailPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const requestId = params.id as string;
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const { data: request, isLoading } = useQuery({
     queryKey: ['request', requestId],
     queryFn: () => requestService.getRequestById(requestId),
+    enabled: isAuthenticated,
   });
 
   const { data: proposals } = useQuery({
     queryKey: ['proposals', requestId],
     queryFn: () => proposalService.getProposalsByRequest(requestId),
-    enabled: !!requestId,
+    enabled: !!requestId && isAuthenticated,
   });
 
   const acceptProposalMutation = useMutation({

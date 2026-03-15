@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
+import { ROUTES } from '@/config/constants';
 import { Loading } from '@/components/ui/Loading';
 
 interface ProtectedRouteProps {
@@ -16,7 +17,7 @@ export function ProtectedRoute({
   children,
   requireAuth = true,
   requiredRole,
-  redirectTo = '/login',
+  redirectTo = ROUTES.LOGIN,
 }: ProtectedRouteProps) {
   const router = useRouter();
   const { isAuthenticated, user, isLoading } = useAuthStore();
@@ -33,7 +34,7 @@ export function ProtectedRoute({
 
     // Check role if specified
     if (requiredRole && user?.role !== requiredRole) {
-      router.push('/dashboard');
+      router.push(ROUTES.DASHBOARD);
       return;
     }
 

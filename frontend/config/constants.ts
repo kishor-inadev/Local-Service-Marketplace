@@ -22,17 +22,35 @@ export const APP_CONFIG = {
 export const ROUTES = {
   // Public
   HOME: '/',
+  ABOUT: '/about',
+  HOW_IT_WORKS: '/how-it-works',
+  HELP: '/help',
+  CONTACT: '/contact',
+  FAQ: '/faq',
+  CAREERS: '/careers',
+  PRICING: '/pricing',
   
   // Auth
   LOGIN: '/login',
   SIGNUP: '/signup',
-  FORGOT_PASSWORD: '/auth/forgot-password',
-  RESET_PASSWORD: '/auth/reset-password',
+  FORGOT_PASSWORD: '/forgot-password',
+  RESET_PASSWORD: '/reset-password',
   VERIFY_EMAIL: '/auth/verify-email',
   CALLBACK: '/auth/callback',
   
   // Dashboard
   DASHBOARD: '/dashboard',
+  
+  // Profile
+  PROFILE: '/profile',
+  PROFILE_EDIT: '/profile/edit',
+  
+  // Settings
+  SETTINGS: '/settings',
+  SETTINGS_NOTIFICATIONS: '/settings/notifications',
+  SETTINGS_PASSWORD: '/settings/password',
+  SETTINGS_PAYMENT_METHODS: '/settings/payment-methods',
+  SETTINGS_SUBSCRIPTION: '/settings/subscription',
   
   // Providers
   PROVIDERS: '/providers',
@@ -53,11 +71,22 @@ export const ROUTES = {
   // Notifications
   NOTIFICATIONS: '/notifications',
   
+  // Payments
+  PAYMENT_HISTORY: '/payments/history',
+  
+  // Reviews
+  REVIEW_SUBMIT: '/reviews/submit',
+  
   // Admin
   ADMIN: '/admin',
   ADMIN_USERS: '/admin/users',
   ADMIN_DISPUTES: '/admin/disputes',
   ADMIN_SETTINGS: '/admin/settings',
+  
+  // Legal
+  PRIVACY: '/privacy',
+  TERMS: '/terms',
+  COOKIES: '/cookies',
 } as const;
 
 export const API_ENDPOINTS = {

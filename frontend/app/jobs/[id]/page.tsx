@@ -1,7 +1,10 @@
 'use client';
 
+import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -10,17 +13,36 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { jobService } from '@/services/job-service';
 import { formatDate, formatDateTime } from '@/utils/helpers';
 import { ArrowLeft } from 'lucide-react';
-import { useRouter } from 'next/navigation';
 
 export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const jobId = params.id as string;
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const { data: job, isLoading } = useQuery({
     queryKey: ['job', jobId],
     queryFn: () => jobService.getJobById(jobId),
+    enabled: isAuthenticated,
   });
+
+  if (authLoading) {
+    return (
+      <Layout>
+        <Loading />
+      </Layout>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (isLoading) {
     return (

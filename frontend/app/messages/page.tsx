@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { isMessagingEnabled } from '@/config/features';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -12,31 +13,32 @@ import { Loading } from '@/components/ui/Loading';
 import { messageService } from '@/services/message-service';
 import { formatDateTime } from '@/utils/helpers';
 import { Send } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
 
 export default function MessagesPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
 
-  // Redirect if messaging is disabled
+  // Redirect if not authenticated or messaging is disabled
   useEffect(() => {
-    if (!isMessagingEnabled()) {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    } else if (!authLoading && isAuthenticated && !isMessagingEnabled()) {
       router.push('/dashboard');
     }
-  }, [router]);
+  }, [isAuthenticated, authLoading, router]);
 
   const { data: conversations, isLoading } = useQuery({
     queryKey: ['conversations'],
     queryFn: () => messageService.getConversations(),
-    enabled: isMessagingEnabled(),
+    enabled: isMessagingEnabled() && isAuthenticated,
   });
 
   const { data: messages } = useQuery({
     queryKey: ['messages', selectedJobId],
     queryFn: () => messageService.getMessagesByJob(selectedJobId!),
-    enabled: !!selectedJobId && isMessagingEnabled(),
+    enabled: !!selectedJobId && isMessagingEnabled() && isAuthenticated,
   });
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -54,6 +56,14 @@ export default function MessagesPage() {
       console.error('Failed to send message');
     }
   };
+
+  if (authLoading) {
+    return <Loading />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Layout>

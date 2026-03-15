@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
+import { useAuth } from '@/hooks/useAuth';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -18,11 +19,19 @@ import { ArrowLeft, Save } from 'lucide-react';
 export default function ProfileEditPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [profileImage, setProfileImage] = useState<File[]>([]);
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
 
   const { data: profile, isLoading } = useQuery({
     queryKey: ['user-profile'],
     queryFn: getUserProfile,
+    enabled: isAuthenticated,
   });
 
   const { register, handleSubmit, formState: { errors } } = useForm({
@@ -59,6 +68,18 @@ export default function ProfileEditPage() {
   const onSubmit = (data: any) => {
     updateMutation.mutate(data);
   };
+
+  if (authLoading) {
+    return (
+      <Layout>
+        <Loading />
+      </Layout>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   if (isLoading) {
     return (

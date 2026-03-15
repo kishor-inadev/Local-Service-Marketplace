@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
+import { ROUTES } from '@/config/constants';
 import { Mail, Facebook, Twitter, Linkedin, Instagram } from 'lucide-react';
 
 export function Footer() {
@@ -29,7 +30,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/about"
+                  href={ROUTES.ABOUT}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   About Us
@@ -37,7 +38,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/how-it-works"
+                  href={ROUTES.HOW_IT_WORKS}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   How It Works
@@ -45,7 +46,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/careers"
+                  href={ROUTES.CAREERS}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Careers
@@ -53,7 +54,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/pricing"
+                  href={ROUTES.PRICING}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Pricing
@@ -70,7 +71,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/help"
+                  href={ROUTES.HELP}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Help Center
@@ -78,7 +79,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/contact"
+                  href={ROUTES.CONTACT}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Contact Us
@@ -86,7 +87,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/faq"
+                  href={ROUTES.FAQ}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   FAQ
@@ -103,7 +104,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/providers"
+                  href={ROUTES.PROVIDERS}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Find Providers
@@ -111,7 +112,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/requests/create"
+                  href={ROUTES.CREATE_REQUEST}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Post a Request
@@ -119,7 +120,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/signup"
+                  href={ROUTES.SIGNUP}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Sign Up
@@ -127,7 +128,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/login"
+                  href={ROUTES.LOGIN}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Login
@@ -144,7 +145,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li>
                 <Link
-                  href="/privacy"
+                  href={ROUTES.PRIVACY}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Privacy Policy
@@ -152,7 +153,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/terms"
+                  href={ROUTES.TERMS}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Terms of Service
@@ -160,7 +161,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/cookies"
+                  href={ROUTES.COOKIES}
                   className="text-sm text-gray-600 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
                 >
                   Cookie Policy
@@ -250,21 +251,21 @@ export function Footer() {
             {/* Quick Links */}
             <div className="flex items-center space-x-4 text-sm">
               <Link
-                href="/privacy"
+                href={ROUTES.PRIVACY}
                 className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 Privacy
               </Link>
               <span className="text-gray-300 dark:text-gray-600">•</span>
               <Link
-                href="/terms"
+                href={ROUTES.TERMS}
                 className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 Terms
               </Link>
               <span className="text-gray-300 dark:text-gray-600">•</span>
               <Link
-                href="/cookies"
+                href={ROUTES.COOKIES}
                 className="text-gray-500 dark:text-gray-400 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
               >
                 Cookies

@@ -1,6 +1,9 @@
 'use client';
 
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/hooks/useAuth';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
@@ -10,13 +13,21 @@ import { paymentService } from '@/services/payment-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
 import { analytics } from '@/utils/analytics';
 import toast from 'react-hot-toast';
-import { useEffect } from 'react';
 import { DollarSign, Download } from 'lucide-react';
 
 export default function PaymentHistoryPage() {
+  const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, authLoading, router]);
   const { data: payments, isLoading } = useQuery({
     queryKey: ['payment-history'],
     queryFn: () => paymentService.getMyPayments(),
+    enabled: isAuthenticated,
   });
 
   useEffect(() => {
@@ -25,6 +36,14 @@ export default function PaymentHistoryPage() {
       title: 'Payment History',
     });
   }, []);
+
+  if (authLoading) {
+    return <Loading />;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   return (
     <Layout>

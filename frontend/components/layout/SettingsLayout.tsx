@@ -4,6 +4,7 @@ import React, { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Layout } from './Layout';
+import { ROUTES } from '@/config/constants';
 import { Bell, CreditCard, Crown, Lock, User, Settings as SettingsIcon } from 'lucide-react';
 import { isNotificationsEnabled } from '@/config/features';
 
@@ -16,31 +17,31 @@ export function SettingsLayout({ children }: SettingsLayoutProps) {
 
   const menuItems = [
     {
-      href: '/settings',
+      href: ROUTES.SETTINGS,
       label: 'General',
       icon: SettingsIcon,
       enabled: true,
     },
     {
-      href: '/settings/notifications',
+      href: ROUTES.SETTINGS_NOTIFICATIONS,
       label: 'Notifications',
       icon: Bell,
       enabled: isNotificationsEnabled(),
     },
     {
-      href: '/settings/password',
+      href: ROUTES.SETTINGS_PASSWORD,
       label: 'Password',
       icon: Lock,
       enabled: true,
     },
     {
-      href: '/settings/payment-methods',
+      href: ROUTES.SETTINGS_PAYMENT_METHODS,
       label: 'Payment Methods',
       icon: CreditCard,
       enabled: true,
     },
     {
-      href: '/settings/subscription',
+      href: ROUTES.SETTINGS_SUBSCRIPTION,
       label: 'Subscription',
       icon: Crown,
       enabled: true,

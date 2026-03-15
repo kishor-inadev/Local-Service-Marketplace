@@ -6,6 +6,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/authStore';
 import { useNotifications } from '@/hooks/useNotifications';
 import { isNotificationsEnabled, isMessagingEnabled } from '@/config/features';
+import { ROUTES } from '@/config/constants';
 import { ThemeToggle } from '@/components/ui/ThemeToggle';
 import { SearchAutocomplete } from '@/components/ui/SearchAutocomplete';
 import { Bell, LogOut, User, Menu, X, ChevronDown, Settings } from 'lucide-react';
@@ -23,7 +24,7 @@ export function Navbar() {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/login');
+    router.push(ROUTES.LOGIN);
   };
 
   // Close user menu when clicking outside
@@ -50,7 +51,7 @@ export function Navbar() {
           {/* Logo */}
           <div className="flex items-center">
             <Link
-              href={isAuthenticated ? '/dashboard' : '/'}
+              href={isAuthenticated ? ROUTES.DASHBOARD : ROUTES.HOME}
               className="text-xl font-bold text-primary-600 dark:text-primary-400"
             >
               Local Service Marketplace
@@ -68,9 +69,9 @@ export function Navbar() {
           <div className="hidden md:flex items-center space-x-4">{isAuthenticated ? (
               <>
                 <Link
-                  href="/dashboard"
+                  href={ROUTES.DASHBOARD}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    pathname === '/dashboard'
+                    pathname === ROUTES.DASHBOARD
                       ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20'
                       : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
@@ -78,9 +79,9 @@ export function Navbar() {
                   Dashboard
                 </Link>
                 <Link
-                  href="/providers"
+                  href={ROUTES.PROVIDERS}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    pathname?.startsWith('/providers')
+                    pathname?.startsWith(ROUTES.PROVIDERS)
                       ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20'
                       : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
@@ -88,9 +89,9 @@ export function Navbar() {
                   Providers
                 </Link>
                 <Link
-                  href="/requests"
+                  href={ROUTES.REQUESTS}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    pathname?.startsWith('/requests')
+                    pathname?.startsWith(ROUTES.REQUESTS)
                       ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20'
                       : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
@@ -98,9 +99,9 @@ export function Navbar() {
                   Requests
                 </Link>
                 <Link
-                  href="/jobs"
+                  href={ROUTES.JOBS}
                   className={`px-3 py-2 rounded-md text-sm font-medium ${
-                    pathname?.startsWith('/jobs')
+                    pathname?.startsWith(ROUTES.JOBS)
                       ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20'
                       : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                   }`}
@@ -109,9 +110,9 @@ export function Navbar() {
                 </Link>
                 {isMessagingEnabled() && (
                   <Link
-                    href="/messages"
+                    href={ROUTES.MESSAGES}
                     className={`px-3 py-2 rounded-md text-sm font-medium ${
-                      pathname === '/messages'
+                      pathname === ROUTES.MESSAGES
                         ? 'text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20'
                         : 'text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'
                     }`}
@@ -123,7 +124,7 @@ export function Navbar() {
                 {/* Notifications with Badge */}
                 {isNotificationsEnabled() && (
                   <Link
-                    href="/notifications"
+                    href={ROUTES.NOTIFICATIONS}
                     className="relative p-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
                   >
                     <Bell className="h-5 w-5" />
@@ -154,7 +155,7 @@ export function Navbar() {
                   {userMenuOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700">
                       <Link
-                        href="/profile"
+                        href={ROUTES.PROFILE}
                         onClick={() => setUserMenuOpen(false)}
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
@@ -162,7 +163,7 @@ export function Navbar() {
                         View Profile
                       </Link>
                       <Link
-                        href="/settings"
+                        href={ROUTES.SETTINGS}
                         onClick={() => setUserMenuOpen(false)}
                         className="block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
                       >
@@ -187,32 +188,32 @@ export function Navbar() {
             ) : (
               <>
                 <Link
-                  href="/about"
+                  href={ROUTES.ABOUT}
                   className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
                 >
                   About
                 </Link>
                 <Link
-                  href="/how-it-works"
+                  href={ROUTES.HOW_IT_WORKS}
                   className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
                 >
                   How It Works
                 </Link>
                 <Link
-                  href="/help"
+                  href={ROUTES.HELP}
                   className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
                 >
                   Help
                 </Link>
                 <ThemeToggle />
                 <Link
-                  href="/login"
+                  href={ROUTES.LOGIN}
                   className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
                 >
                   Login
                 </Link>
                 <Link
-                  href="/signup"
+                  href={ROUTES.SIGNUP}
                   className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600"
                 >
                   Sign Up
@@ -244,32 +245,32 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <Link
-                  href="/dashboard"
+                  href={ROUTES.DASHBOARD}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Dashboard
                 </Link>
                 <Link
-                  href="/providers"
+                  href={ROUTES.PROVIDERS}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Providers
                 </Link>
                 <Link
-                  href="/requests"
+                  href={ROUTES.REQUESTS}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Requests
                 </Link>
                 <Link
-                  href="/jobs"
+                  href={ROUTES.JOBS}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Jobs
                 </Link>
                 {isMessagingEnabled() && (
                   <Link
-                    href="/messages"
+                    href={ROUTES.MESSAGES}
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     Messages
@@ -277,20 +278,20 @@ export function Navbar() {
                 )}
                 {isNotificationsEnabled() && (
                   <Link
-                    href="/notifications"
+                    href={ROUTES.NOTIFICATIONS}
                     className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                   >
                     Notifications {unreadCount > 0 && `(${unreadCount})`}
                   </Link>
                 )}
                 <Link
-                  href="/profile"
+                  href={ROUTES.PROFILE}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Profile
                 </Link>
                 <Link
-                  href="/settings"
+                  href={ROUTES.SETTINGS}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Settings
@@ -308,37 +309,37 @@ export function Navbar() {
             ) : (
               <>
                 <Link
-                  href="/about"
+                  href={ROUTES.ABOUT}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   About
                 </Link>
                 <Link
-                  href="/how-it-works"
+                  href={ROUTES.HOW_IT_WORKS}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   How It Works
                 </Link>
                 <Link
-                  href="/help"
+                  href={ROUTES.HELP}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Help
                 </Link>
                 <Link
-                  href="/contact"
+                  href={ROUTES.CONTACT}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Contact
                 </Link>
                 <Link
-                  href="/login"
+                  href={ROUTES.LOGIN}
                   className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700"
                 >
                   Login
                 </Link>
                 <Link
-                  href="/signup"
+                  href={ROUTES.SIGNUP}
                   className="block px-3 py-2 rounded-md text-base font-medium text-white bg-primary-600 hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600"
                 >
                   Sign Up
