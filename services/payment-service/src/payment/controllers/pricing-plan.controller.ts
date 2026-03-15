@@ -7,12 +7,15 @@ import {
   Body,
   Request,
   ParseUUIDPipe,
-  Query
+  Query,
+  UseGuards
 } from '@nestjs/common';
 import { PricingPlanService } from '../services/pricing-plan.service';
 import { CreatePricingPlanDto } from '../dto/create-pricing-plan.dto';
 import { UpdatePricingPlanDto } from '../dto/update-pricing-plan.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('pricing-plans')
 export class PricingPlanController {
   constructor(

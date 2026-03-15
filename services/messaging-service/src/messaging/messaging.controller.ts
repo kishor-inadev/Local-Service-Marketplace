@@ -1,10 +1,12 @@
-import { Controller, Post, Get, Body, Param, Query, Inject, LoggerService, ParseIntPipe, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, Inject, LoggerService, ParseIntPipe, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { MessageService } from './services/message.service';
 import { AttachmentService } from './services/attachment.service';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { CreateAttachmentDto } from './dto/create-attachment.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('messages')
 export class MessagingController {
   constructor(

@@ -16,7 +16,9 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ProviderDocumentService } from '../services/provider-document.service';
 import { UploadDocumentDto } from '../dto/upload-document.dto';
 import { VerifyDocumentDto } from '../dto/verify-document.dto';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('provider-documents')
 export class ProviderDocumentController {
   constructor(

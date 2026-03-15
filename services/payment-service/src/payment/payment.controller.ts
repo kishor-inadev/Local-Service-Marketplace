@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, Query, Inject, LoggerService, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, Inject, LoggerService, Headers, HttpCode, HttpStatus, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { PaymentService } from './services/payment.service';
 import { RefundService } from './services/refund.service';
@@ -8,7 +8,14 @@ import { CreatePaymentDto } from './dto/create-payment.dto';
 import { RefundPaymentDto } from './dto/refund-payment.dto';
 import { WebhookPayloadDto } from './dto/webhook-payload.dto';
 import { ValidateCouponDto } from './dto/validate-coupon.dto';
+import { ProviderEarningsQueryDto, ProviderEarningsResponseDto } from './dto/provider-earnings-response.dto';
+import { TransactionQueryDto, PaginatedTransactionResponseDto } from './dto/transaction-query.dto';
+import { PayoutResponseDto } from './dto/payout-response.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Controller('payments')
 export class PaymentController {
   constructor(
@@ -60,6 +67,8 @@ export class PaymentController {
     return payments;
   }
 
+  @Roles('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post(':id/refund')
   async refundPayment(
     @Param('id') paymentId: string,
@@ -87,6 +96,8 @@ export class PaymentController {
     return webhook;
   }
 
+  @Roles('admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Get('webhooks/unprocessed')
   async getUnprocessedWebhooks() {
     this.logger.log('GET /payments/webhooks/unprocessed - Get unprocessed webhooks', 'PaymentController');
@@ -99,5 +110,52 @@ export class PaymentController {
     this.logger.log('POST /payments/coupons/validate - Validate coupon', 'PaymentController');
     const coupon = await this.couponService.validateCoupon(validateCouponDto.couponCode);
     return { coupon };
+  }
+
+  @Roles('provider', 'admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('provider/:providerId/earnings')
+  @HttpCode(HttpStatus.OK)
+  async getProviderEarnings(
+    @Param('providerId', ParseUUIDPipe) providerId: string,
+    @Query() queryDto: ProviderEarningsQueryDto,
+  ): Promise<ProviderEarningsResponseDto> {
+    this.logger.log(`GET /payments/provider/${providerId}/earnings - Get provider earnings`, 'PaymentController');
+    
+    const startDate = queryDto.start_date ? new Date(queryDto.start_date) : undefined;
+    const endDate = queryDto.end_date ? new Date(queryDto.end_date) : undefined;
+    
+    return this.paymentService.getProviderEarnings(providerId, startDate, endDate);
+  }
+
+  @Roles('provider', 'admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('provider/:providerId/transactions')
+  @HttpCode(HttpStatus.OK)
+  async getProviderTransactions(
+    @Param('providerId', ParseUUIDPipe) providerId: string,
+    @Query() queryDto: TransactionQueryDto,
+  ): Promise<PaginatedTransactionResponseDto> {
+    this.logger.log(`GET /payments/provider/${providerId}/transactions - Get provider transactions`, 'PaymentController');
+    
+    return this.paymentService.getProviderTransactions(
+      providerId,
+      queryDto.limit,
+      queryDto.cursor,
+      queryDto.status,
+    );
+  }
+
+  @Roles('provider', 'admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('provider/:providerId/payouts')
+  @HttpCode(HttpStatus.OK)
+  async getProviderPayouts(
+    @Param('providerId', ParseUUUIDPipe) providerId: string,
+  ): Promise<PayoutResponseDto> {
+    this.logger.log(`GET /payments/provider/${providerId}/payouts - Get provider payouts`, 'PaymentController');
+    
+    const data = await this.paymentService.getProviderPayouts(providerId);
+    return { data, total: data.length };
   }
 }

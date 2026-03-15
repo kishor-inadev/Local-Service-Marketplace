@@ -9,12 +9,15 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  UseGuards,
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { FavoriteService } from '../services/favorite.service';
 import { CreateFavoriteDto } from '../dto/create-favorite.dto';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('favorites')
 export class FavoriteController {
   constructor(

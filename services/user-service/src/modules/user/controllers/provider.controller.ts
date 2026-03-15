@@ -10,6 +10,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  UseGuards,
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -21,7 +22,11 @@ import { UpdateProviderAvailabilityDto } from '../dto/update-provider-availabili
 import { ProviderQueryDto } from '../dto/provider-query.dto';
 import { ProviderResponseDto } from '../dto/provider-response.dto';
 import { PaginatedResponseDto } from '../dto/paginated-response.dto';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
 
+@UseGuards(JwtAuthGuard)
 @Controller('providers')
 export class ProviderController {
   constructor(
@@ -63,6 +68,8 @@ export class ProviderController {
     return this.providerService.getProviders(queryDto);
   }
 
+  @Roles('provider', 'admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async updateProvider(
@@ -76,6 +83,8 @@ export class ProviderController {
     return this.providerService.updateProvider(id, updateProviderDto);
   }
 
+  @Roles('provider', 'admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteProvider(@Param('id') id: string): Promise<void> {
@@ -90,6 +99,8 @@ export class ProviderController {
    * Update provider service categories
    * PATCH /providers/:id/services
    */
+  @Roles('provider', 'admin')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(':id/services')
   @HttpCode(HttpStatus.OK)
   async updateProviderServices(

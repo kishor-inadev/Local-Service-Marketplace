@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-postgres_dev_only}
       POSTGRES_DB: marketplace
     ports:
       - "5432:5432"
@@ -97,14 +97,14 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${DATABASE_PASSWORD:-postgres_dev_only}@postgres:5432/marketplace
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres_dev_only}
       - DATABASE_NAME=marketplace
       - REDIS_URL=redis://redis:6379
-      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      - JWT_SECRET=${JWT_SECRET}
       - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
       - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
       - JWT_EXPIRES_IN=7d
@@ -673,7 +673,7 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3000
-      - JWT_SECRET=${JWT_SECRET:-your-secret-key-change-in-production}
+      - JWT_SECRET=${JWT_SECRET}
       - AUTH_SERVICE_URL=http://auth-service:3001
       - USER_SERVICE_URL=http://user-service:3002
       - REQUEST_SERVICE_URL=http://request-service:3003

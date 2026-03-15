@@ -7,10 +7,13 @@ import {
   Query,
   ParseIntPipe,
   DefaultValuePipe,
+  UseGuards,
 } from '@nestjs/common';
 import { ReviewService } from './services/review.service';
 import { CreateReviewDto } from './dto/create-review.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('reviews')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}

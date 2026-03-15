@@ -102,7 +102,19 @@ All documentation for the Local Service Marketplace platform is organized in thi
 
 ---
 
-### 🗺️ Planning & Roadmap
+### �️ Database & Data Management
+
+| Document | Description | Status |
+|----------|-------------|--------|
+| **[../DATABASE_SEEDING.md](../DATABASE_SEEDING.md)** | Complete database seeding guide | ✅ Complete |
+| **[../SEED_QUICK_START.md](../SEED_QUICK_START.md)** | Quick reference for database seeding | ✅ Complete |
+| **[../DATABASE_SEEDING_SUMMARY.md](../DATABASE_SEEDING_SUMMARY.md)** | Detailed summary of seeded data | ✅ Complete |
+| **[../database/README.md](../database/README.md)** | Database seeding technical documentation | ✅ Complete |
+| **[DATABASE_PRODUCTION_READINESS_AUDIT.md](DATABASE_PRODUCTION_READINESS_AUDIT.md)** | Database production audit | ✅ Complete |
+
+---
+
+### �🗺️ Planning & Roadmap
 
 | Document | Description | Status |
 |----------|-------------|--------|
@@ -176,6 +188,9 @@ All documentation for the Local Service Marketplace platform is organized in thi
 
 ### "How do I add email/SMS notifications?"
 → **[EMAIL_SMS_INTEGRATION_GUIDE.md](EMAIL_SMS_INTEGRATION_GUIDE.md)**
+
+### "How do I populate the database with sample data?"
+→ **[../SEED_QUICK_START.md](../SEED_QUICK_START.md)** + Run `.\seed-database.ps1`
 
 ### "How do I enable real-time chat?"
 → **[WEBSOCKET_IMPLEMENTATION.md](WEBSOCKET_IMPLEMENTATION.md)**

@@ -5,10 +5,13 @@ import {
   Query,
   ParseUUIDPipe,
   ParseFloatPipe,
-  ParseIntPipe
+  ParseIntPipe,
+  UseGuards
 } from '@nestjs/common';
 import { ProviderReviewAggregateService } from '../services/provider-review-aggregate.service';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('review-aggregates')
 export class ProviderReviewAggregateController {
   constructor(

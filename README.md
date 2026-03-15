@@ -55,6 +55,30 @@ That's it! The entire platform will start automatically:
 - API Gateway: http://localhost:3500
 - API Documentation: http://localhost:3500/health
 
+### Step 3: Seed Database with Sample Data (Optional)
+
+Populate your database with realistic sample data for development and testing:
+
+```powershell
+# Run the database seeder
+.\seed-database.ps1
+```
+
+This creates:
+- ✅ **151 Users** (100 customers, 50 providers, 1 admin)
+- ✅ **1000+ Records** across all tables
+- ✅ **Realistic data** with proper relationships
+- ✅ **Login credentials** (all users: `password123`)
+
+**Default Admin Login:**
+```
+Email: admin@marketplace.com
+Password: password123
+```
+
+📖 **See [SEED_QUICK_START.md](./SEED_QUICK_START.md)** for quick reference  
+📖 **See [DATABASE_SEEDING.md](./DATABASE_SEEDING.md)** for full documentation
+
 ---
 
 ## 🎯 What's Included

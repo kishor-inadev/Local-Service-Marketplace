@@ -29,7 +29,8 @@ export class RequestService {
   ) {}
 
   async createRequest(dto: CreateRequestDto): Promise<RequestResponseDto> {
-    this.logger.log(`Creating request for user ${dto.user_id}`, RequestService.name);
+    const userContext = dto.user_id ? `user ${dto.user_id}` : 'anonymous user';
+    this.logger.log(`Creating request for ${userContext}`, RequestService.name);
 
     // Validate category exists
     const categoryExists = await this.categoryRepository.categoryExists(dto.category_id);
@@ -42,12 +43,17 @@ export class RequestService {
       throw new BadRequestException('Budget must be a positive number');
     }
 
+    // For anonymous users, validate guest_info is provided
+    if (!dto.user_id && (!dto.guest_info || !dto.guest_info.email)) {
+      throw new BadRequestException('Guest contact information is required for anonymous requests');
+    }
+
     // Create location if provided
     let location_id: string | undefined;
     if (dto.location) {
       this.logger.log('Creating location for request', RequestService.name);
       const location = await this.locationRepository.createLocation({
-        user_id: dto.user_id,
+        user_id: dto.user_id, // Will be null for anonymous users
         latitude: dto.location.lat,
         longitude: dto.location.lng,
         address: dto.location.address,
@@ -66,17 +72,35 @@ export class RequestService {
 
     this.logger.log(`Request created successfully: ${request.id}`, RequestService.name);
 
-    // Send notification to user
-    const userEmail = await this.userClient.getUserEmail(request.user_id);
-    if (userEmail) {
+    // Send notification
+    if (dto.user_id) {
+      // Authenticated user - send to their account email
+      const userEmail = await this.userClient.getUserEmail(request.user_id);
+      if (userEmail) {
+        this.notificationClient.sendEmail({
+          to: userEmail,
+          template: 'newRequest',
+          variables: {
+            serviceName: dto.description?.substring(0, 50) || 'Service Request',
+            requestId: request.id,
+            budget: request.budget,
+            requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
+          },
+        }).catch(err => {
+          this.logger.warn(`Failed to send request creation notification: ${err.message}`, RequestService.name);
+        });
+      }
+    } else if (dto.guest_info?.email) {
+      // Anonymous user - send to provided guest email
       this.notificationClient.sendEmail({
-        to: userEmail,
+        to: dto.guest_info.email,
         template: 'newRequest',
         variables: {
           serviceName: dto.description?.substring(0, 50) || 'Service Request',
           requestId: request.id,
           budget: request.budget,
           requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
+          guestName: dto.guest_info.name,
         },
       }).catch(err => {
         this.logger.warn(`Failed to send request creation notification: ${err.message}`, RequestService.name);
@@ -90,7 +114,8 @@ export class RequestService {
       timestamp: new Date().toISOString(),
       data: {
         requestId: request.id,
-        userId: request.user_id,
+        userId: request.user_id || null,
+        isAnonymous: !dto.user_id,
         categoryId: request.category_id,
         budget: request.budget,
         status: request.status,

@@ -88,7 +88,8 @@ export class PaymentRepository {
       UPDATE payments 
       SET status = $1, 
           transaction_id = COALESCE($2, transaction_id),
-          failed_reason = $3
+          failed_reason = $3,
+          paid_at = CASE WHEN $1 = 'completed' THEN NOW() ELSE paid_at END
       WHERE id = $4
       RETURNING *
     `;
@@ -107,6 +108,7 @@ export class PaymentRepository {
       transaction_id: result.rows[0].transaction_id,
       failed_reason: result.rows[0].failed_reason,
       created_at: result.rows[0].created_at,
+      paid_at: result.rows[0].paid_at,
     });
   }
 
@@ -232,17 +234,99 @@ export class PaymentRepository {
   ): Promise<any> {
     const query = `
       SELECT 
-        SUM(provider_amount) as total_earnings,
-        COUNT(*) as payment_count,
-        currency
+        COALESCE(SUM(provider_amount), 0) as total_earnings,
+        COALESCE(SUM(CASE WHEN status = 'completed' THEN provider_amount ELSE 0 END), 0) as total_paid,
+        COALESCE(SUM(CASE WHEN status = 'pending' THEN provider_amount ELSE 0 END), 0) as pending_payout,
+        COUNT(CASE WHEN status = 'completed' THEN 1 END) as completed_count,
+        COALESCE(MAX(currency), 'USD') as currency
+      FROM payments
+      WHERE provider_id = $1
+        AND created_at >= COALESCE($2, '2020-01-01')
+        AND created_at <= COALESCE($3, NOW())
+    `;
+    const result = await this.pool.query(query, [providerId, startDate, endDate]);
+    return result.rows[0] || { 
+      total_earnings: 0, 
+      total_paid: 0, 
+      pending_payout: 0, 
+      completed_count: 0, 
+      currency: 'USD' 
+    };
+  }
+
+  async getProviderEarningsByMonth(
+    providerId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<any[]> {
+    const query = `
+      SELECT 
+        TO_CHAR(created_at, 'YYYY-MM') as month,
+        SUM(provider_amount) as earnings,
+        COUNT(*) as job_count
       FROM payments
       WHERE provider_id = $1
         AND status = 'completed'
-        AND created_at BETWEEN COALESCE($2, '2020-01-01') AND COALESCE($3, NOW())
-      GROUP BY currency
+        AND created_at >= COALESCE($2, '2020-01-01')
+        AND created_at <= COALESCE($3, NOW())
+      GROUP BY TO_CHAR(created_at, 'YYYY-MM')
+      ORDER BY month DESC
+      LIMIT 12
     `;
     const result = await this.pool.query(query, [providerId, startDate, endDate]);
-    return result.rows[0] || { total_earnings: 0, payment_count: 0 };
+    return result.rows;
+  }
+
+  async getProviderTransactions(
+    providerId: string,
+    limit: number = 20,
+    cursor?: string,
+    status?: string,
+  ): Promise<any> {
+    let query = `
+      SELECT 
+        p.*,
+        u.name as customer_name
+      FROM payments p
+      LEFT JOIN users u ON p.user_id = u.id
+      WHERE p.provider_id = $1
+    `;
+    
+    const params: any[] = [providerId];
+    let paramIndex = 2;
+
+    if (status) {
+      query += ` AND p.status = $${paramIndex}`;
+      params.push(status);
+      paramIndex++;
+    }
+
+    if (cursor) {
+      query += ` AND p.created_at < $${paramIndex}`;
+      params.push(cursor);
+      paramIndex++;
+    }
+
+    query += ` ORDER BY p.created_at DESC LIMIT $${paramIndex}`;
+    params.push(limit);
+
+    const result = await this.pool.query(query, params);
+    
+    const nextCursor = result.rows.length === limit
+      ? result.rows[result.rows.length - 1].created_at
+      : null;
+
+    return {
+      data: result.rows,
+      total: result.rowCount,
+      cursor: nextCursor,
+    };
+  }
+
+  async getProviderPayouts(providerId: string): Promise<any[]> {
+    // For MVP, return empty array - payout system not yet implemented
+    // This can be expanded later when payout tracking is added
+    return [];
   }
 
   async getPaymentStats(): Promise<any> {

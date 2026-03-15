@@ -1,10 +1,12 @@
-import { Controller, Post, Get, Patch, Delete, Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Delete, Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { RequestService } from '../services/request.service';
 import { CreateRequestDto } from '../dto/create-request.dto';
 import { UpdateRequestDto } from '../dto/update-request.dto';
 import { RequestQueryDto } from '../dto/request-query.dto';
 import { RequestResponseDto, PaginatedRequestResponseDto } from '../dto/request-response.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('requests')
 export class RequestController {
   constructor(private readonly requestService: RequestService) {}

@@ -29,8 +29,11 @@ Need help? Visit our help center or contact support.
 
 Best regards,
 The Local Service Marketplace Team
+
+---
+To stop receiving promotional emails, click: ${appUrl}/unsubscribe?email={{email}}
     `,
-    html: ({ name, dashboardUrl = 'http://localhost:3000/dashboard' }) => `
+    html: ({ name, email, dashboardUrl = 'http://localhost:3000/dashboard' }) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -42,6 +45,7 @@ The Local Service Marketplace Team
     .content { background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px; }
     .button { display: inline-block; padding: 12px 30px; background: #667eea; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
     .footer { text-align: center; margin-top: 30px; color: #666; font-size: 12px; }
+    .unsubscribe { margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb; color: #9ca3af; font-size: 11px; }
   </style>
 </head>
 <body>
@@ -57,6 +61,10 @@ The Local Service Marketplace Team
     </div>
     <div class="footer">
       <p>&copy; ${new Date().getFullYear()} Local Service Marketplace. All rights reserved.</p>
+      <div class="unsubscribe">
+        <p>You're receiving this email because you created an account.</p>
+        <p><a href="${appUrl}/unsubscribe?email=${encodeURIComponent(email)}" style="color: #667eea;">Unsubscribe from promotional emails</a></p>
+      </div>
     </div>
   </div>
 </body>

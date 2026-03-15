@@ -1,0 +1,23 @@
+{
+  "name": "marketplace-database-seeder",
+  "version": "1.0.0",
+  "description": "Database seeding script for Local Service Marketplace",
+  "scripts": {
+    "seed": "npx ts-node seed.ts",
+    "seed:dev": "cross-env NODE_ENV=development npx ts-node seed.ts"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.4.5",
+    "pg": "^8.11.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/node": "^20.11.19",
+    "@types/pg": "^8.18.0",
+    "cross-env": "^7.0.3",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

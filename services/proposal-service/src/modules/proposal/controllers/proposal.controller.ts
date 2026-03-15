@@ -1,8 +1,10 @@
-import { Controller, Post, Get, Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { ProposalService } from '../services/proposal.service';
 import { CreateProposalDto } from '../dto/create-proposal.dto';
 import { ProposalResponseDto, PaginatedProposalResponseDto } from '../dto/proposal-response.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller()
 export class ProposalController {
   constructor(private readonly proposalService: ProposalService) {}

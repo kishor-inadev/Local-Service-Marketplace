@@ -1,9 +1,11 @@
-import { Controller, Post, Get, Patch, Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Post, Get, Patch, Body, Param, Query, HttpCode, HttpStatus, ParseUUIDPipe, UseGuards } from '@nestjs/common';
 import { JobService } from '../services/job.service';
 import { CreateJobDto } from '../dto/create-job.dto';
 import { UpdateJobStatusDto } from '../dto/update-job-status.dto';
 import { JobResponseDto } from '../dto/job-response.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('jobs')
 export class JobController {
   constructor(private readonly jobService: JobService) {}

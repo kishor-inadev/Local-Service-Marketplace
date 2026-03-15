@@ -1,4 +1,4 @@
 packages:
   - 'services/*'
   - 'api-gateway'
-  - 'frontend/nextjs-app'
+  - 'frontend'

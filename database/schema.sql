@@ -77,7 +77,7 @@ CREATE INDEX idx_password_reset_tokens_expires ON password_reset_tokens(expires_
 
 CREATE TABLE login_attempts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  email TEXT NOT NULL,
+  email VARCHAR(255) NOT NULL,
   ip_address TEXT,
   user_agent TEXT,
   location TEXT,
@@ -89,6 +89,8 @@ CREATE INDEX idx_login_attempts_email ON login_attempts(email);
 CREATE INDEX idx_login_attempts_ip_address ON login_attempts(ip_address);
 CREATE INDEX idx_login_attempts_created_at ON login_attempts(created_at DESC);
 CREATE INDEX idx_login_attempts_email_created ON login_attempts(email, created_at DESC);
+CREATE INDEX idx_login_attempts_failed ON login_attempts(email, created_at DESC) WHERE success = false;
+CREATE INDEX idx_login_attempts_ip_failed ON login_attempts(ip_address, created_at DESC) WHERE success = false;
 
 -- =====================================================
 -- SOCIAL AUTH
@@ -135,7 +137,7 @@ CREATE TABLE providers (
   description TEXT,
   profile_picture_url TEXT,
   rating DECIMAL,
-  total_jobs_completed INT DEFAULT 0,
+  total_jobs_completed INT DEFAULT 0 CHECK (total_jobs_completed >= 0),
   years_of_experience INT,
   service_area_radius DECIMAL(10, 2),
   response_time_avg DECIMAL(10, 2),
@@ -171,6 +173,7 @@ CREATE TABLE provider_availability (
 
 CREATE INDEX idx_provider_availability_provider_id ON provider_availability(provider_id);
 CREATE INDEX idx_provider_availability_day ON provider_availability(day_of_week);
+CREATE INDEX idx_provider_availability_composite ON provider_availability(provider_id, day_of_week, start_time);
 
 -- =====================================================
 -- SERVICE CATEGORIES
@@ -194,7 +197,7 @@ CREATE INDEX idx_service_categories_name ON service_categories(name);
 
 CREATE TABLE locations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Nullable for anonymous requests
   latitude DECIMAL(10, 8) NOT NULL,
   longitude DECIMAL(11, 8) NOT NULL,
   address TEXT,
@@ -206,7 +209,7 @@ CREATE TABLE locations (
 );
 
 CREATE INDEX idx_locations_coordinates ON locations(latitude, longitude);
-CREATE INDEX idx_locations_user_id ON locations(user_id);
+CREATE INDEX idx_locations_user_id ON locations(user_id) WHERE user_id IS NOT NULL;
 
 -- =====================================================
 -- SERVICE REQUESTS
@@ -214,7 +217,7 @@ CREATE INDEX idx_locations_user_id ON locations(user_id);
 
 CREATE TABLE service_requests (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Nullable to allow anonymous requests
   category_id UUID NOT NULL REFERENCES service_categories(id),
   location_id UUID REFERENCES locations(id),
   description TEXT NOT NULL,
@@ -223,21 +226,31 @@ CREATE TABLE service_requests (
   preferred_date DATE,
   urgency TEXT DEFAULT 'medium' CHECK (urgency IN ('low', 'medium', 'high', 'urgent')),
   expiry_date TIMESTAMP,
-  view_count INT DEFAULT 0,
+  view_count INT DEFAULT 0 CHECK (view_count >= 0),
   status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'assigned', 'completed', 'cancelled')),
+  -- Guest information for anonymous requests (when user_id is NULL)
+  guest_name VARCHAR(255),
+  guest_email VARCHAR(255) CHECK (guest_email IS NULL OR guest_email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
+  guest_phone VARCHAR(20) CHECK (guest_phone IS NULL OR guest_phone ~ '^\+?[0-9]{10,15}$'),
   created_at TIMESTAMP DEFAULT now() NOT NULL,
   updated_at TIMESTAMP,
-  deleted_at TIMESTAMP
+  deleted_at TIMESTAMP,
+  -- Ensure either user_id OR guest contact info is provided
+  CONSTRAINT check_user_or_guest CHECK (
+    (user_id IS NOT NULL) OR 
+    (guest_name IS NOT NULL AND guest_email IS NOT NULL AND guest_phone IS NOT NULL)
+  )
 );
 
-CREATE INDEX idx_service_requests_user_id ON service_requests(user_id);
+CREATE INDEX idx_service_requests_user_id ON service_requests(user_id) WHERE user_id IS NOT NULL;
 CREATE INDEX idx_service_requests_category_id ON service_requests(category_id);
 CREATE INDEX idx_service_requests_status ON service_requests(status);
 CREATE INDEX idx_service_requests_created_at ON service_requests(created_at DESC);
-CREATE INDEX idx_service_requests_user_status ON service_requests(user_id, status);
+CREATE INDEX idx_service_requests_user_status ON service_requests(user_id, status) WHERE user_id IS NOT NULL;
 CREATE INDEX idx_service_requests_deleted_at ON service_requests(deleted_at) WHERE deleted_at IS NULL;
 CREATE INDEX idx_service_requests_urgency ON service_requests(urgency);
 CREATE INDEX idx_service_requests_expiry ON service_requests(expiry_date) WHERE expiry_date IS NOT NULL;
+CREATE INDEX idx_service_requests_guest_email ON service_requests(guest_email) WHERE guest_email IS NOT NULL;
 
 -- =====================================================
 -- PROPOSALS
@@ -263,6 +276,7 @@ CREATE INDEX idx_proposals_provider_id ON proposals(provider_id);
 CREATE INDEX idx_proposals_status ON proposals(status);
 CREATE INDEX idx_proposals_created_at ON proposals(created_at DESC);
 CREATE INDEX idx_proposals_request_status ON proposals(request_id, status);
+CREATE UNIQUE INDEX idx_proposals_provider_request_unique ON proposals(provider_id, request_id) WHERE status NOT IN ('withdrawn', 'rejected');
 
 -- =====================================================
 -- JOBS
@@ -309,7 +323,8 @@ CREATE TABLE payments (
   status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
   transaction_id TEXT,
   failed_reason TEXT,
-  created_at TIMESTAMP DEFAULT now() NOT NULL
+  created_at TIMESTAMP DEFAULT now() NOT NULL,
+  paid_at TIMESTAMP
 );
 
 CREATE INDEX idx_payments_job_id ON payments(job_id);
@@ -318,6 +333,10 @@ CREATE INDEX idx_payments_provider_id ON payments(provider_id);
 CREATE INDEX idx_payments_status ON payments(status);
 CREATE INDEX idx_payments_created_at ON payments(created_at DESC);
 CREATE INDEX idx_payments_transaction_id ON payments(transaction_id);
+CREATE INDEX idx_payments_provider_created ON payments(provider_id, created_at DESC);
+CREATE INDEX idx_payments_provider_status ON payments(provider_id, status);
+CREATE INDEX idx_payments_paid_at ON payments(paid_at DESC) WHERE paid_at IS NOT NULL;
+CREATE UNIQUE INDEX idx_payments_job_unique ON payments(job_id) WHERE status = 'completed';
 
 CREATE TABLE payment_webhooks (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -359,7 +378,7 @@ CREATE TABLE reviews (
   comment TEXT,
   response TEXT,
   response_at TIMESTAMP,
-  helpful_count INT DEFAULT 0,
+  helpful_count INT DEFAULT 0 CHECK (helpful_count >= 0),
   verified_purchase BOOLEAN DEFAULT true,
   created_at TIMESTAMP DEFAULT now() NOT NULL
 );
@@ -368,6 +387,7 @@ CREATE INDEX idx_reviews_job_id ON reviews(job_id);
 CREATE INDEX idx_reviews_provider_id ON reviews(provider_id);
 CREATE INDEX idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX idx_reviews_created_at ON reviews(created_at DESC);
+CREATE INDEX idx_reviews_provider_rating ON reviews(provider_id, rating DESC);
 CREATE UNIQUE INDEX idx_reviews_job_user_unique ON reviews(job_id, user_id);
 
 -- =====================================================
@@ -390,6 +410,7 @@ CREATE INDEX idx_messages_job_id ON messages(job_id);
 CREATE INDEX idx_messages_sender_id ON messages(sender_id);
 CREATE INDEX idx_messages_created_at ON messages(created_at ASC);
 CREATE INDEX idx_messages_job_created ON messages(job_id, created_at ASC);
+CREATE INDEX idx_messages_job_read_created ON messages(job_id, read, created_at ASC) WHERE read = false;
 
 -- =====================================================
 -- NOTIFICATIONS
@@ -428,7 +449,8 @@ CREATE INDEX idx_notification_deliveries_status ON notification_deliveries(statu
 CREATE TABLE favorites (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-  provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE
+  provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
 CREATE INDEX idx_favorites_user_id ON favorites(user_id);
@@ -568,6 +590,9 @@ CREATE TABLE background_jobs (
 );
 
 CREATE INDEX idx_background_jobs_pending ON background_jobs(status) WHERE status != 'completed';
+CREATE INDEX idx_background_jobs_status_scheduled ON background_jobs(status, scheduled_for) WHERE status IN ('pending', 'processing');
+CREATE INDEX idx_background_jobs_type_status ON background_jobs(job_type, status);
+CREATE INDEX idx_background_jobs_attempts ON background_jobs(attempts) WHERE status != 'completed';
 
 -- =====================================================
 -- RATE LIMITING
@@ -582,6 +607,7 @@ CREATE TABLE rate_limits (
 
 CREATE INDEX idx_rate_limits_key ON rate_limits(key);
 CREATE INDEX idx_rate_limits_window_start ON rate_limits(window_start);
+CREATE INDEX idx_rate_limits_key_window ON rate_limits(key, window_start DESC);
 
 -- =====================================================
 -- FEATURE FLAGS

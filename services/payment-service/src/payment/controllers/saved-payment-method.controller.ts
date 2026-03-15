@@ -7,11 +7,14 @@ import {
   Body,
   Request,
   ParseUUIDPipe,
-  Put
+  Put,
+  UseGuards
 } from '@nestjs/common';
 import { SavedPaymentMethodService } from '../services/saved-payment-method.service';
 import { SavePaymentMethodDto } from '../dto/save-payment-method.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('payment-methods')
 export class SavedPaymentMethodController {
   constructor(

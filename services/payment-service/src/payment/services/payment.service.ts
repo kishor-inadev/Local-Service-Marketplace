@@ -129,4 +129,88 @@ export class PaymentService {
     this.logger.log(`Fetching payments for user ${userId}`, 'PaymentService');
     return this.paymentRepository.getPaymentsByUser(userId);
   }
+
+  async getProviderEarnings(
+    providerId: string,
+    startDate?: Date,
+    endDate?: Date,
+  ): Promise<any> {
+    this.logger.log(`Fetching earnings for provider ${providerId}`, 'PaymentService');
+    
+    // Get earnings summary from repository
+    const summary = await this.paymentRepository.getProviderEarnings(
+      providerId,
+      startDate,
+      endDate,
+    );
+
+    // Get monthly breakdown
+    const monthly = await this.paymentRepository.getProviderEarningsByMonth(
+      providerId,
+      startDate,
+      endDate,
+    );
+
+    // Calculate average
+    const avgPerJob = summary.completed_count > 0
+      ? summary.total_earnings / summary.completed_count
+      : 0;
+
+    return {
+      summary: {
+        total_earnings: parseFloat(summary.total_earnings) || 0,
+        total_paid: parseFloat(summary.total_paid) || 0,
+        pending_payout: parseFloat(summary.pending_payout) || 0,
+        completed_count: parseInt(summary.completed_count) || 0,
+        currency: summary.currency || 'USD',
+      },
+      monthly: monthly.map(m => ({
+        month: m.month,
+        earnings: parseFloat(m.earnings) || 0,
+        job_count: parseInt(m.job_count) || 0,
+      })),
+      average_per_job: avgPerJob,
+    };
+  }
+
+  async getProviderTransactions(
+    providerId: string,
+    limit: number = 20,
+    cursor?: string,
+    status?: string,
+  ): Promise<any> {
+    this.logger.log(`Fetching transactions for provider ${providerId}`, 'PaymentService');
+    
+    const result = await this.paymentRepository.getProviderTransactions(
+      providerId,
+      limit,
+      cursor,
+      status,
+    );
+
+    return {
+      data: result.data.map((t: any) => ({
+        id: t.id,
+        job_id: t.job_id,
+        customer_id: t.user_id,
+        provider_amount: parseFloat(t.provider_amount) || 0,
+        platform_fee: parseFloat(t.platform_fee) || 0,
+        total_amount: parseFloat(t.amount) || 0,
+        status: t.status,
+        payment_method: t.payment_method || 'card',
+        transaction_id: t.transaction_id || '',
+        currency: t.currency || 'USD',
+        created_at: t.created_at,
+        paid_at: t.paid_at || null,
+        customer_name: t.customer_name || 'Unknown',
+      })),
+      total: result.total,
+      cursor: result.cursor,
+    };
+  }
+
+  async getProviderPayouts(providerId: string): Promise<any[]> {
+    this.logger.log(`Fetching payouts for provider ${providerId}`, 'PaymentService');
+    return this.paymentRepository.getProviderPayouts(providerId);
+  }
 }

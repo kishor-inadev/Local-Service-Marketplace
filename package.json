@@ -5,8 +5,8 @@
   "description": "Microservices-based Local Service Marketplace",
   "scripts": {
     "install:all": "pnpm install",
-    "build:all": "pnpm -r --filter './services/*' --filter './api-gateway' build",
-    "start:dev": "pnpm -r --parallel --filter './services/*' --filter './api-gateway' start:dev"
+    "build:all": "pnpm -r build",
+    "start:dev": "pnpm -r --parallel start:dev"
   },
   "engines": {
     "node": ">=18.0.0",

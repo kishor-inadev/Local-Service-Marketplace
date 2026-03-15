@@ -12,6 +12,7 @@ export class Payment {
   transaction_id?: string;
   failed_reason?: string;                // ✅ NEW
   created_at: Date;
+  paid_at?: Date;                        // ✅ NEW - When payment was completed
 
   constructor(partial: Partial<Payment>) {
     Object.assign(this, partial);

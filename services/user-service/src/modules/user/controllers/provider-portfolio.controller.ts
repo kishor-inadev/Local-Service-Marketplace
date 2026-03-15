@@ -16,7 +16,9 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProviderPortfolioService } from '../services/provider-portfolio.service';
 import { CreatePortfolioDto } from '../dto/create-portfolio.dto';
+import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('provider-portfolio')
 export class ProviderPortfolioController {
   constructor(

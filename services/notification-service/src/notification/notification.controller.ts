@@ -1,4 +1,4 @@
-import { Controller, Get, Patch, Post, Param, Query, Body, Headers, Inject, LoggerService, ParseIntPipe, BadRequestException } from '@nestjs/common';
+import { Controller, Get, Patch, Post, Param, Query, Body, Headers, Inject, LoggerService, ParseIntPipe, BadRequestException, UseGuards } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { NotificationService } from './services/notification.service';
@@ -10,7 +10,9 @@ import { SendNotificationDto } from './dto/send-notification.dto';
 import { SendEmailDto } from './dto/send-email.dto';
 import { SendSmsDto, SendOtpDto, VerifyOtpDto } from './dto/send-sms.dto';
 import { UnsubscribeDto, CheckUnsubscribeDto } from './dto/unsubscribe.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('notifications')
 export class NotificationController {
   constructor(
@@ -83,8 +85,10 @@ export class NotificationController {
   /**
    * Send notification via email, SMS, or both
    * This is the main endpoint that other services should use
+   * Rate limited to 20 notifications per minute
    */
   @Post('send')
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
   async sendNotification(@Body() dto: SendNotificationDto) {
     this.logger.log(
       `POST /notifications/send - Sending ${dto.channel} notification to ${dto.recipient}`,

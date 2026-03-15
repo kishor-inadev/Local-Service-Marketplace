@@ -12,6 +12,7 @@ import {
   DefaultValuePipe,
   Ip,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 import { UserModerationService } from './services/user-moderation.service';
@@ -24,7 +25,12 @@ import { UpdateDisputeDto } from './dto/update-dispute.dto';
 import { UpdateSystemSettingDto } from './dto/update-system-setting.dto';
 import { CreateContactMessageDto } from './dto/create-contact-message.dto';
 import { UpdateContactMessageDto } from './dto/update-contact-message.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 
+@Roles('admin')
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('admin')
 export class AdminController {
   constructor(

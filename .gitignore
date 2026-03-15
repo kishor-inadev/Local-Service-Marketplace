@@ -64,3 +64,11 @@ next-env.d.ts
 
 # Misc
 .turbo
+
+secrets.env
+secrets.json
+*.secret
+*.key
+.env.production
+.env.staging
+

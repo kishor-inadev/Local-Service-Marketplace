@@ -7,12 +7,15 @@ import {
   Body,
   Request,
   ParseUUIDPipe,
-  Query
+  Query,
+  UseGuards
 } from '@nestjs/common';
 import { SubscriptionService } from '../services/subscription.service';
 import { CreateSubscriptionDto } from '../dto/create-subscription.dto';
 import { UpgradeSubscriptionDto } from '../dto/upgrade-subscription.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('subscriptions')
 export class SubscriptionController {
   constructor(

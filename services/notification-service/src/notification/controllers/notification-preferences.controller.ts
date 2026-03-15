@@ -5,12 +5,15 @@ import {
   Body,
   Request,
   ParseUUIDPipe,
-  BadRequestException
+  BadRequestException,
+  UseGuards
 } from '@nestjs/common';
 import { NotificationPreferencesService } from '../services/notification-preferences.service';
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { UpdateNotificationPreferencesDto } from '../dto/update-notification-preferences.dto';
+import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
+@UseGuards(JwtAuthGuard)
 @Controller('notification-preferences')
 export class NotificationPreferencesController {
   constructor(

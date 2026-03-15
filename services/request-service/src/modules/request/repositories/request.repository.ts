@@ -20,7 +20,7 @@ export class RequestRepository {
         RETURNING id
       `;
       const locationResult = await this.pool.query(locationQuery, [
-        dto.user_id,
+        dto.user_id || null, // Allow null for anonymous requests
         dto.location.lat,
         dto.location.lng,
         dto.location.address,
@@ -35,22 +35,26 @@ export class RequestRepository {
     const query = `
       INSERT INTO service_requests (
         user_id, category_id, location_id, description, budget, 
-        images, preferred_date, urgency, expiry_date, view_count, status
+        images, preferred_date, urgency, expiry_date, view_count, status,
+        guest_name, guest_email, guest_phone
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, 'pending')
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 0, 'pending', $10, $11, $12)
       RETURNING *
     `;
 
     const values = [
-      dto.user_id,
+      dto.user_id || null,                              // Nullable for anonymous
       dto.category_id,
-      locationId,                                       // Updated
+      locationId,
       dto.description,
       dto.budget,
-      dto.images ? JSON.stringify(dto.images) : null,   // ✅ NEW
-      dto.preferred_date || null,                       // ✅ NEW
-      dto.urgency || 'medium',                          // ✅ NEW
-      dto.expiry_date || null,                          // ✅ NEW
+      dto.images ? JSON.stringify(dto.images) : null,
+      dto.preferred_date || null,
+      dto.urgency || 'medium',
+      dto.expiry_date || null,
+      dto.guest_info?.name || null,                     // Guest name
+      dto.guest_info?.email || null,                    // Guest email
+      dto.guest_info?.phone || null,                    // Guest phone
     ];
 
     const result = await this.pool.query(query, values);
@@ -63,7 +67,9 @@ export class RequestRepository {
     let query = `
       SELECT 
         r.id, r.user_id, r.category_id, r.location_id, r.description, r.budget, r.status, 
-        r.images, r.preferred_date, r.urgency, r.expiry_date, r.view_count, r.created_at, r.updated_at,
+        r.images, r.preferred_date, r.urgency, r.expiry_date, r.view_count, 
+        r.guest_name, r.guest_email, r.guest_phone,
+        r.created_at, r.updated_at,
         l.id as loc_id, l.latitude, l.longitude, l.address, l.city, l.state, l.zip_code, l.country, l.created_at as loc_created_at
       FROM service_requests r
       LEFT JOIN locations l ON r.location_id = l.id

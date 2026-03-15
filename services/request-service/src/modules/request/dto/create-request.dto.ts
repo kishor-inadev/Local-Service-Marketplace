@@ -30,8 +30,17 @@ export class LocationDto {
 }
 
 export class CreateRequestDto {
+  @IsOptional()
   @IsUUID()
-  user_id: string;
+  user_id?: string;
+
+  @IsOptional()
+  @IsObject()
+  guest_info?: {
+    name: string;
+    email: string;
+    phone: string;
+  };
 
   @IsUUID()
   category_id: string;
