@@ -84,7 +84,7 @@ export function useAuth() {
 
   const requestOTP = async (phone: string) => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    const response = await fetch(`${API_URL}/api/v1/auth/phone/otp/request`, {
+    const response = await fetch(`${API_URL}/api/v1/user/auth/phone/otp/request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -102,7 +102,7 @@ export function useAuth() {
 
   const requestEmailOTP = async (email: string) => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    const response = await fetch(`${API_URL}/api/v1/auth/email/otp/request`, {
+    const response = await fetch(`${API_URL}/api/v1/user/auth/email/otp/request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -139,19 +139,19 @@ export function useAuth() {
   const loginWithGoogle = () => {
     // Redirect to backend OAuth endpoint
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    window.location.href = `${API_URL}/api/v1/auth/google`;
+    window.location.href = `${API_URL}/api/v1/user/auth/google`;
   };
 
   const loginWithFacebook = () => {
     // Redirect to backend OAuth endpoint
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    window.location.href = `${API_URL}/api/v1/auth/facebook`;
+    window.location.href = `${API_URL}/api/v1/user/auth/facebook`;
   };
 
   const signup = async (data: SignupData) => {
     // Call backend signup endpoint
     const response = await authService.signup(data);
-    
+
     // After successful signup, automatically sign in
     const signInResult = await signIn('credentials', {
       email: data.email,
@@ -205,30 +205,30 @@ export function useAuth() {
     session,
     isLoading,
     isAuthenticated,
-    
+
     // Email/Password auth
     login,
     signup,
     logout,
-    
+
     // Phone auth
     loginWithPhone,
     loginWithOTP,
     requestOTP,
-    
+
     // Email OTP auth
     loginWithEmailOTP,
     requestEmailOTP,
-    
+
     // OAuth
     loginWithGoogle,
     loginWithFacebook,
-    
+
     // Utilities
     requireAuth,
     requireRole,
     updateSession: update,
-    
+
     // Debugging
     tokenExpires: session?.accessTokenExpires,
     hasTokenError: session?.error === "RefreshAccessTokenError",
