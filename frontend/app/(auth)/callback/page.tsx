@@ -31,7 +31,7 @@ export default function AuthCallbackPage() {
       if (token && refreshToken) {
         try {
           setStatus('loading');
-          
+
           // Store tokens and create NextAuth session
           // We'll use a cookie to pass the tokens to NextAuth
           document.cookie = `oauth-token=${token}; path=/; max-age=3600; SameSite=Lax`;
@@ -40,7 +40,7 @@ export default function AuthCallbackPage() {
           // Create session with the OAuth tokens
           // This is a workaround - in production, consider using a backend endpoint
           // to validate the tokens and create a proper session
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/verify-token`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/auth/verify-token`, {
             headers: {
               'Authorization': `Bearer ${token}`
             }
@@ -48,7 +48,7 @@ export default function AuthCallbackPage() {
 
           if (response.ok) {
             const userData = await response.json();
-            
+
             // Sign in with credentials using the token
             // This will create a NextAuth session
             const result = await signIn('credentials', {

@@ -27,64 +27,77 @@ export function useAuth() {
   }, [session?.error, router]);
 
   const login = async (email: string, password: string) => {
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      // Return error for component to handle
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid email or password.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('Login failed. Please check your credentials.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Login failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('Login failed. Please check your credentials.');
-    }
-
-    // Let the component handle success message and redirect
-    return result;
   };
 
   const loginWithPhone = async (phone: string, password: string) => {
-    const result = await signIn('phone-password', {
-      phone,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('phone-password', {
+        phone,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid phone or password.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('Phone login failed. Please check your credentials.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Phone login failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('Phone login failed. Please check your credentials.');
-    }
-
-    return result;
   };
 
   const loginWithOTP = async (phone: string, otp: string) => {
-    const result = await signIn('phone-otp', {
-      phone,
-      otp,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('phone-otp', {
+        phone,
+        otp,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid OTP code.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('OTP verification failed. Please check your code.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('OTP verification failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('OTP verification failed. Please check your code.');
-    }
-
-    return result;
   };
 
   const requestOTP = async (phone: string) => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    const response = await fetch(`${API_URL}/api/v1/auth/phone/otp/request`, {
+    const response = await fetch(`${API_URL}/api/v1/user/auth/phone/otp/request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -102,7 +115,7 @@ export function useAuth() {
 
   const requestEmailOTP = async (email: string) => {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    const response = await fetch(`${API_URL}/api/v1/auth/email/otp/request`, {
+    const response = await fetch(`${API_URL}/api/v1/user/auth/email/otp/request`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -119,39 +132,44 @@ export function useAuth() {
   };
 
   const loginWithEmailOTP = async (email: string, otp: string) => {
-    const result = await signIn('email-otp', {
-      email,
-      otp,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('email-otp', {
+        email,
+        otp,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid OTP code.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('OTP verification failed. Please check your code.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Email OTP verification failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('OTP verification failed. Please check your code.');
-    }
-
-    return result;
   };
 
   const loginWithGoogle = () => {
     // Redirect to backend OAuth endpoint
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    window.location.href = `${API_URL}/api/v1/auth/google`;
+    window.location.href = `${API_URL}/api/v1/user/auth/google`;
   };
 
   const loginWithFacebook = () => {
     // Redirect to backend OAuth endpoint
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    window.location.href = `${API_URL}/api/v1/auth/facebook`;
+    window.location.href = `${API_URL}/api/v1/user/auth/facebook`;
   };
 
   const signup = async (data: SignupData) => {
     // Call backend signup endpoint
     const response = await authService.signup(data);
-    
+
     // After successful signup, automatically sign in
     const signInResult = await signIn('credentials', {
       email: data.email,
@@ -205,30 +223,30 @@ export function useAuth() {
     session,
     isLoading,
     isAuthenticated,
-    
+
     // Email/Password auth
     login,
     signup,
     logout,
-    
+
     // Phone auth
     loginWithPhone,
     loginWithOTP,
     requestOTP,
-    
+
     // Email OTP auth
     loginWithEmailOTP,
     requestEmailOTP,
-    
+
     // OAuth
     loginWithGoogle,
     loginWithFacebook,
-    
+
     // Utilities
     requireAuth,
     requireRole,
     updateSession: update,
-    
+
     // Debugging
     tokenExpires: session?.accessTokenExpires,
     hasTokenError: session?.error === "RefreshAccessTokenError",

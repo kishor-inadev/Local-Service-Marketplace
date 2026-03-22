@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { auth } from "@/auth.config";
+import { getToken } from 'next-auth/jwt';
 
 /**
  * Middleware Route Protection Configuration
@@ -14,7 +14,6 @@ import { auth } from "@/auth.config";
  *   - /login, /signup (auth pages)
  *   - /about, /contact, /terms, /privacy (static pages)
  *   - /services, /providers (public browsing)
- *   - Any other route not in protectedRoutes
  * 
  * AUTO-REDIRECTS:
  * - Logged-in users visiting /login or /signup → /dashboard
@@ -29,21 +28,25 @@ const authRoutes = ['/login', '/signup'];
 
 export async function middleware(req: NextRequest) {
   const { nextUrl } = req;
-  
+
   // CRITICAL: Skip middleware for NextAuth API routes
   if (nextUrl.pathname.startsWith('/api/auth')) {
     return NextResponse.next();
   }
-  
-  // Get session using NextAuth
-  const session = await auth();
-  const isLoggedIn = !!session;
+
+  // Get session token using NextAuth v4 getToken
+  const token = await getToken({
+    req,
+    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
+  });
+
+  const isLoggedIn = !!token;
 
   // Check if current route requires authentication
-  const isProtectedRoute = protectedRoutes.some(route => 
+  const isProtectedRoute = protectedRoutes.some(route =>
     nextUrl.pathname === route || nextUrl.pathname.startsWith(route)
   );
-  
+
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 
   // Redirect logged-in users away from auth pages to dashboard

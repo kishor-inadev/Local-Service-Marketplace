@@ -61,7 +61,7 @@ export default function SignupPage() {
     } catch (error: any) {
       // Handle different error types
       let errorMessage = 'Signup failed. Please try again.';
-      
+
       if (error.message?.includes('email') && error.message?.includes('exists')) {
         errorMessage = 'This email is already registered. Try logging in instead.';
       } else if (error.message?.includes('phone')) {
@@ -69,9 +69,9 @@ export default function SignupPage() {
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       toast.error(errorMessage);
-      
+
       // Set focus to first error field
       if (errors.name) setFocus('name');
       else if (errors.email) setFocus('email');
@@ -82,7 +82,7 @@ export default function SignupPage() {
   };
 
   const handleSocialSignup = (provider: 'google' | 'facebook') => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/auth/${provider}`;
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/v1/user/auth/${provider}`;
   };
 
   // Determine if submit button should be disabled
@@ -197,11 +197,10 @@ export default function SignupPage() {
                 aria-invalid={errors.role ? 'true' : 'false'}
                 aria-describedby={errors.role ? 'role-error' : undefined}
                 disabled={isLoading}
-                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                  errors.role
+                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${errors.role
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-300 dark:border-gray-600'
-                }`}
+                  }`}
               >
                 <option value="customer">Customer (Looking for services)</option>
                 <option value="provider">Provider (Offering services)</option>
@@ -245,15 +244,14 @@ export default function SignupPage() {
                   {[1, 2, 3, 4].map((level) => (
                     <div
                       key={level}
-                      className={`h-1.5 flex-1 rounded transition-colors ${
-                        level <= passwordStrength
+                      className={`h-1.5 flex-1 rounded transition-colors ${level <= passwordStrength
                           ? passwordStrength === 4
                             ? 'bg-green-500'
                             : passwordStrength === 3
-                            ? 'bg-yellow-500'
-                            : 'bg-orange-500'
+                              ? 'bg-yellow-500'
+                              : 'bg-orange-500'
                           : 'bg-gray-300 dark:bg-gray-600'
-                      }`}
+                        }`}
                       aria-hidden="true"
                     />
                   ))}
@@ -329,7 +327,7 @@ export default function SignupPage() {
               aria-label="Sign up with Facebook"
             >
               <svg className="w-5 h-5 mr-2" fill="#1877F2" viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
               </svg>
               Facebook
             </button>

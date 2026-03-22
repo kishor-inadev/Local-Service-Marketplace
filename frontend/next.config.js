@@ -2,7 +2,7 @@
 const nextConfig = {
   output: 'standalone', // For Docker deployment
   reactStrictMode: true,
-  
+
   // Environment variables
   env: {
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500',
@@ -71,12 +71,7 @@ const nextConfig = {
   // API rewrites
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    return {
-			// afterFiles: Next.js checks filesystem routes first (e.g. app/api/auth/[...nextauth])
-			// before applying these rewrites. This ensures /api/auth/* is handled by NextAuth
-			// internally and never proxied to the backend gateway.
-			afterFiles: [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }],
-		};
+    return [{ source: "/api/v1/:path*", destination: `${apiUrl}/v1/:path*` }];
   },
 
   // Webpack optimization

@@ -155,7 +155,7 @@ export const getProviders = async (params?: {
   location_id?: string;
 }): Promise<{ data: ProviderProfile[]; hasMore: boolean; nextCursor?: string }> => {
   const queryParams = new URLSearchParams();
-  
+
   if (params?.limit) queryParams.append('limit', params.limit.toString());
   if (params?.cursor) queryParams.append('cursor', params.cursor);
   if (params?.category_id) queryParams.append('category_id', params.category_id);
