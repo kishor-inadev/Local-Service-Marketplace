@@ -10,7 +10,7 @@ param(
 )
 
 # Forward all parameters to the database seeder script
-$scriptPath = Join-Path $PSScriptRoot "database\run-seeder.ps1"
+$scriptPath = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot "..\database\run-seeder.ps1"))
 
 if (-not (Test-Path $scriptPath)) {
     Write-Host "Error: Seeder script not found at: $scriptPath" -ForegroundColor Red

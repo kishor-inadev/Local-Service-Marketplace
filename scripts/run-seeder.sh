@@ -3,7 +3,7 @@
 # Run this from the project root folder
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-SEEDER_SCRIPT="$SCRIPT_DIR/database/run-seeder.sh"
+SEEDER_SCRIPT="$SCRIPT_DIR/../database/run-seeder.sh"
 
 if [ ! -f "$SEEDER_SCRIPT" ]; then
     echo "Error: Seeder script not found at: $SEEDER_SCRIPT"

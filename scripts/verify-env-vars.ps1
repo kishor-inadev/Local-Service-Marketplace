@@ -151,7 +151,7 @@ if ($allValid) {
     Write-Host "Some environment variables need attention. Please fix the errors above." -ForegroundColor Red
     Write-Host ""
     Write-Host "Common fixes:" -ForegroundColor Yellow
-    Write-Host "  1. Run: .\setup-env-files.ps1 to create missing .env files" -ForegroundColor White
+    Write-Host "  1. Run: .\scripts\setup-env-files.ps1 to create missing .env files" -ForegroundColor White
     Write-Host "  2. Ensure JWT_SECRET is the same in api-gateway and auth-service" -ForegroundColor White
     Write-Host "  3. Ensure GATEWAY_INTERNAL_SECRET is the same in both services" -ForegroundColor White
     Write-Host "  4. Replace placeholder values with real secrets" -ForegroundColor White

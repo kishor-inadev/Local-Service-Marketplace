@@ -20,7 +20,7 @@ if ($LASTEXITCODE -eq 0) {
     Write-Host "   docker-compose down" -ForegroundColor Gray
     Write-Host ""
     Write-Host "To start again, run:" -ForegroundColor Cyan
-    Write-Host "   .\start.ps1" -ForegroundColor Gray
+    Write-Host "   .\scripts\start.ps1" -ForegroundColor Gray
     Write-Host ""
 } else {
     Write-Host ""

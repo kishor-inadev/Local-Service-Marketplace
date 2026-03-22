@@ -9,10 +9,10 @@
 
 ```powershell
 # Generate new production secrets
-.\generate-production-secrets.ps1
+.\scripts\generate-production-secrets.ps1
 
 # Apply secrets to all services
-.\apply-secrets.ps1
+.\scripts\apply-secrets.ps1
 ```
 
 **Important:** Always generate fresh secrets for production!
@@ -23,7 +23,7 @@
 
 ```powershell
 # Seed database with test data (1000+ records)
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 
 # Connect to database manually
 docker exec -it marketplace-postgres psql -U postgres -d marketplace
@@ -92,7 +92,7 @@ Invoke-WebRequest -Uri "http://localhost:3002/health"  # User service
 Invoke-WebRequest -Uri "http://localhost:3003/health"  # Request service
 
 # Check all services
-.\verify-integration.ps1
+.\scripts\verify-integration.ps1
 ```
 
 ---
@@ -136,9 +136,9 @@ Local-Service-Marketplace/
 │   ├── guides/
 │   └── archive/
 ├── docker-compose.yml    # Docker orchestration
-├── generate-production-secrets.ps1
-├── apply-secrets.ps1
-└── seed-database.ps1
+├── scripts/generate-production-secrets.ps1
+├── scripts/apply-secrets.ps1
+└── scripts/seed-database.ps1
 ```
 
 ---
@@ -267,8 +267,8 @@ docker-compose up -d
 
 ```powershell
 # 1. Generate and apply secrets
-.\generate-production-secrets.ps1
-.\apply-secrets.ps1
+.\scripts\generate-production-secrets.ps1
+.\scripts\apply-secrets.ps1
 
 # 2. Start Docker services
 docker-compose up -d
@@ -277,7 +277,7 @@ docker-compose up -d
 Start-Sleep -Seconds 30
 
 # 4. Seed database
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 
 # 5. Start frontend
 cd frontend

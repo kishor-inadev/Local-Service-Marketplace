@@ -134,8 +134,8 @@ EVENT_BUS_ENABLED=true
 ### Step 2: Restart Services
 
 ```powershell
-.\stop.ps1
-.\start.ps1
+.\scripts\stop.ps1
+.\scripts\start.ps1
 ```
 
 ### Step 3: Verify Connection

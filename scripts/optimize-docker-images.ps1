@@ -305,7 +305,7 @@ Write-Host "4. If successful, rebuild all services:" -ForegroundColor White
 Write-Host "   docker-compose build" -ForegroundColor Gray
 Write-Host ""
 Write-Host "5. Compare sizes:" -ForegroundColor White
-Write-Host "   .\check-docker-sizes.ps1" -ForegroundColor Gray
+Write-Host "   .\scripts\check-docker-sizes.ps1" -ForegroundColor Gray
 Write-Host ""
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host "Expected Improvements" -ForegroundColor Cyan

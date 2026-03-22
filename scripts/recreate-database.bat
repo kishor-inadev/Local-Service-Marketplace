@@ -44,7 +44,7 @@ cd ..
 
 echo.
 echo Running seeder...
-call run-seeder.ps1 -Force
+call "%~dp0run-seeder.ps1" -Force
 
 echo.
 echo ================================================

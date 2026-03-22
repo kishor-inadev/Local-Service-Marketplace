@@ -70,11 +70,11 @@ if ($averageSizeMB -lt 100) {
 } elseif ($averageSizeMB -lt 300) {
     Write-Host ""
     Write-Host "Images could be optimized further" -ForegroundColor Yellow
-    Write-Host "Run: .\optimize-docker-images.ps1" -ForegroundColor Gray
+    Write-Host "Run: .\scripts\optimize-docker-images.ps1" -ForegroundColor Gray
 } else {
     Write-Host ""
     Write-Host "Images need optimization!" -ForegroundColor Red
-    Write-Host "Run: .\optimize-docker-images.ps1" -ForegroundColor Gray
+    Write-Host "Run: .\scripts\optimize-docker-images.ps1" -ForegroundColor Gray
 }
 
 Write-Host ""

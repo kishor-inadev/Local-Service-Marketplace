@@ -51,17 +51,17 @@ if (Test-Path "services") {
 # Test 2: Optimize script exists and valid
 Write-Host ""
 Write-Log "Test 2: Checking optimize-docker-images.ps1..." "Info"
-if (Test-Script "optimize-docker-images.ps1") { $passCount++ } else { $failCount++ }
+if (Test-Script "scripts/optimize-docker-images.ps1") { $passCount++ } else { $failCount++ }
 
 # Test 3: Restore script exists and valid
 Write-Host ""
 Write-Log "Test 3: Checking restore-dockerfiles.ps1..." "Info"
-if (Test-Script "restore-dockerfiles.ps1") { $passCount++ } else { $failCount++ }
+if (Test-Script "scripts/restore-dockerfiles.ps1") { $passCount++ } else { $failCount++ }
 
 # Test 4: Cleanup script exists and valid
 Write-Host ""
 Write-Log "Test 4: Checking cleanup-backups.ps1..." "Info"
-if (Test-Script "cleanup-backups.ps1") { $passCount++ } else { $failCount++ }
+if (Test-Script "scripts/cleanup-backups.ps1") { $passCount++ } else { $failCount++ }
 
 # Test 5: Check for existing Dockerfiles
 Write-Host ""
@@ -117,9 +117,9 @@ if ($failCount -eq 0) {
     Write-Log "All tests passed! Scripts are ready to use." "Success"
     Write-Host ""
     Write-Host "Next steps:" -ForegroundColor Cyan
-    Write-Host "  1. Run: .\optimize-docker-images.ps1" -ForegroundColor Gray
+    Write-Host "  1. Run: .\scripts\optimize-docker-images.ps1" -ForegroundColor Gray
     Write-Host "  2. Test: docker build -t test ." -ForegroundColor Gray
-    Write-Host "  3. If needed: .\restore-dockerfiles.ps1" -ForegroundColor Gray
+    Write-Host "  3. If needed: .\scripts\restore-dockerfiles.ps1" -ForegroundColor Gray
     Write-Host ""
     exit 0
 } else {

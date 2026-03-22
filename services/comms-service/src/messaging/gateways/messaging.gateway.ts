@@ -126,22 +126,16 @@ export class MessagingGateway
         return { error: 'Unauthorized' };
       }
 
-      this.logger.log(
-        `Message sent via WS from ${senderId} for job ${data.jobId}`,
-      );
+      this.logger.log(`Message sent via WS from ${senderId} for job ${data.job_id}`);
 
       // Create message using the existing service (3 separate parameters)
-      const message = await this.messageService.createMessage(
-        data.jobId,
-        senderId,
-        data.message,
-      );
+      const message = await this.messageService.createMessage(data.job_id, senderId, data.message);
 
       // Emit to sender's sockets (for multi-device sync)
       this.server.to(`user:${senderId}`).emit('message:sent', message);
 
       // Emit to all users in the job room
-      this.server.to(`job:${data.jobId}`).emit('message:received', message);
+      this.server.to(`job:${data.job_id}`).emit("message:received", message);
 
       return { success: true, message };
     } catch (error) {
@@ -195,11 +189,9 @@ export class MessagingGateway
       const message = await this.messageService.getMessageById(data.messageId);
 
       // Notify sender that message was read
-      this.server.to(`user:${message.senderId}`).emit('message:read', {
-        messageId: data.messageId,
-        readBy: userId,
-        readAt: new Date(),
-      });
+      this.server
+				.to(`user:${message.sender_id}`)
+				.emit("message:read", { messageId: data.messageId, readBy: userId, readAt: new Date() });
 
       return { success: true };
     } catch (error) {

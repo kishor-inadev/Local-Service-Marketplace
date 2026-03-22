@@ -22,7 +22,7 @@ cd "c:\workSpace\Projects\Application"
 cd "Local Service Marketplace"
 
 # Start all services with Docker
-.\start.ps1
+.\scripts\start.ps1
 
 # Wait for all containers to start (30-60 seconds)
 # You should see: "✅ All services are healthy"
@@ -166,10 +166,10 @@ All endpoints use the `/api/v1` prefix:
 
 ```powershell
 # Start all services
-.\start.ps1
+.\scripts\start.ps1
 
 # Stop all services
-.\stop.ps1
+.\scripts\stop.ps1
 
 # Restart a specific service
 docker-compose restart auth-service
@@ -245,7 +245,7 @@ Now that you're up and running:
 docker --version
 
 # Restart Docker Desktop
-# Then: .\start.ps1
+# Then: .\scripts\start.ps1
 ```
 
 ### Issue: "Cannot connect to database"

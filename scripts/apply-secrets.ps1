@@ -8,7 +8,7 @@ Write-Host "========================================`n" -ForegroundColor Cyan
 # Check if secrets.env exists
 if (-not (Test-Path "secrets.env")) {
     Write-Host "ERROR: secrets.env not found!" -ForegroundColor Red
-    Write-Host "Run .\generate-production-secrets.ps1 first" -ForegroundColor Yellow
+    Write-Host "Run .\scripts\generate-production-secrets.ps1 first" -ForegroundColor Yellow
     exit 1
 }
 

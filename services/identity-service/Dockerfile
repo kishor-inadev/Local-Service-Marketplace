@@ -60,4 +60,4 @@ EXPOSE 3001
 USER node
 
 # Start application
-CMD ["node", "dist/src/main.js"]
+CMD ["node", "dist/main.js"]

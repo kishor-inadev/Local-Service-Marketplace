@@ -90,7 +90,7 @@ docs/
 
 **Run Command:**
 ```powershell
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 ### 4. Documentation Index Updated ✓
@@ -151,13 +151,13 @@ docs/
 
 ```powershell
 # Step 1: Generate fresh secrets
-.\generate-production-secrets.ps1
+.\scripts\generate-production-secrets.ps1
 
 # Step 2: Review secrets.env
 notepad secrets.env
 
 # Step 3: Apply to all services
-.\apply-secrets.ps1
+.\scripts\apply-secrets.ps1
 
 # Step 4: Restart services
 docker-compose down
@@ -207,7 +207,7 @@ docker-compose up -d
 
 ### Database: ✅ Ready
 - Schema: 45 tables
-- Seeding: Ready (`.\seed-database.ps1`)
+- Seeding: Ready (`.\scripts\seed-database.ps1`)
 - Connection: localhost:5432
 
 ### Backend Services: ✅ Configured
@@ -233,7 +233,7 @@ docker-compose up -d
 1. ✅ Documentation organized
 2. ✅ Secrets generated and applied
 3. ✅ Database seeding ready
-4. ⏭️ Run database seeding: `.\seed-database.ps1`
+4. ⏭️ Run database seeding: `.\scripts\seed-database.ps1`
 5. ⏭️ Test all services with seeded data
 
 ### Before Production:
@@ -289,13 +289,13 @@ docker-compose up -d
 ### Essential Commands:
 ```powershell
 # Generate secrets
-.\generate-production-secrets.ps1
+.\scripts\generate-production-secrets.ps1
 
 # Apply secrets
-.\apply-secrets.ps1
+.\scripts\apply-secrets.ps1
 
 # Seed database
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 
 # Start Docker services
 docker-compose up -d
@@ -304,7 +304,7 @@ docker-compose up -d
 cd frontend; npm run dev
 
 # Check integration
-.\verify-integration.ps1
+.\scripts\verify-integration.ps1
 ```
 
 ### Essential Documentation:

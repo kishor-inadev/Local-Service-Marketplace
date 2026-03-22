@@ -243,7 +243,7 @@ if ($LASTEXITCODE -eq 0) {
     }
     
     if ($showConfigHelp) {
-        Write-Host "  Then restart:       .\start.ps1" -ForegroundColor Gray
+        Write-Host "  Then restart:       .\scripts\start.ps1" -ForegroundColor Gray
     }
     
     Write-Host ""

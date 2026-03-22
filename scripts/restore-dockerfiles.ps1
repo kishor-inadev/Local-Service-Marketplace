@@ -197,7 +197,7 @@ if ($restoredCount -eq 0) {
 
 Write-Host ""
 Write-Host "Backup files are kept for safety." -ForegroundColor Gray
-Write-Host "To clean up backups, run: .\cleanup-backups.ps1" -ForegroundColor Gray
+Write-Host "To clean up backups, run: .\scripts\cleanup-backups.ps1" -ForegroundColor Gray
 Write-Host ""
 
 exit 0

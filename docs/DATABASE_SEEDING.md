@@ -5,7 +5,7 @@
 **Run this command from the root directory:**
 
 ```powershell
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 This will populate your database with **1000+ sample records** across all tables.
@@ -79,7 +79,7 @@ POSTGRES_DB=marketplace
 ### Option 1: Interactive Script (Recommended)
 
 ```powershell
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 This will:
@@ -180,10 +180,10 @@ SELECT 'jobs', COUNT(*) FROM jobs;
 
 ```powershell
 # Start all services
-.\start.ps1
+.\scripts\start.ps1
 
 # Or start MVP services only
-.\start-mvp.ps1
+.\scripts\start-mvp.ps1
 ```
 
 ### 3. **Login and Explore**
@@ -239,7 +239,7 @@ docker exec -it postgres-db psql -U postgres -d marketplace -c "DROP SCHEMA publ
 docker exec -i postgres-db psql -U postgres -d marketplace < database/schema.sql
 
 # Run seeder again
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 ---
@@ -253,7 +253,7 @@ docker exec -i postgres-db psql -U postgres -d marketplace < database/schema.sql
 cd database
 pnpm install
 cd ..
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 ---
@@ -278,7 +278,7 @@ randomDate(new Date(2024, 0, 1), new Date()) // <- Change dates
 
 Then re-run:
 ```powershell
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 ---
@@ -291,14 +291,14 @@ To reset and re-seed:
 # Method 1: Drop and recreate
 docker exec -it postgres-db psql -U postgres -d marketplace -c "DROP SCHEMA public CASCADE; CREATE SCHEMA public;"
 docker exec -i postgres-db psql -U postgres -d marketplace < database/schema.sql
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 
 # Method 2: Recreate entire database
 docker-compose down -v
 docker-compose up -d postgres-db
 # Wait a few seconds
 docker exec -i postgres-db psql -U postgres -d marketplace < database/schema.sql
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 ---
@@ -332,7 +332,7 @@ This is **development/testing data only** with:
 
 2. **Verify environment:**
    ```powershell
-   .\verify-env.ps1
+   .\scripts\verify-env.ps1
    ```
 
 3. **Review seeder output:**
@@ -347,7 +347,7 @@ This is **development/testing data only** with:
 **Run this ONE command to get started:**
 
 ```powershell
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 Your database will be fully populated with realistic data, ready for development and testing! 🚀

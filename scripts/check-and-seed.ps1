@@ -71,10 +71,10 @@ $response = Read-Host "Seed database? (Y/N)"
 
 if ($response -eq 'Y' -or $response -eq 'y') {
     Write-Host "`n  Starting database seeding..." -ForegroundColor Yellow
-    & ".\seed-database.ps1"
+    & ".\scripts\seed-database.ps1"
 } else {
     Write-Host "`n  Skipping database seeding" -ForegroundColor Gray
-    Write-Host "  You can run it later with: .\seed-database.ps1`n" -ForegroundColor Cyan
+    Write-Host "  You can run it later with: .\scripts\seed-database.ps1`n" -ForegroundColor Cyan
 }
 
 # Final status
