@@ -12,34 +12,28 @@ services:
       - NODE_ENV=production
       - PORT=3500
       - JWT_SECRET=${JWT_SECRET}
-      - AUTH_SERVICE_URL=http://auth-service:3001
-      - USER_SERVICE_URL=http://user-service:3002
-      - REQUEST_SERVICE_URL=http://request-service:3003
-      - PROPOSAL_SERVICE_URL=http://proposal-service:3004
-      - JOB_SERVICE_URL=http://job-service:3005
+      - AUTH_SERVICE_URL=http://identity-service:3001
+      - USER_SERVICE_URL=http://identity-service:3001
+      - REQUEST_SERVICE_URL=http://marketplace-service:3003
+      - PROPOSAL_SERVICE_URL=http://marketplace-service:3003
+      - JOB_SERVICE_URL=http://marketplace-service:3003
       - PAYMENT_SERVICE_URL=http://payment-service:3006
-      - MESSAGING_SERVICE_URL=http://messaging-service:3007
-      - NOTIFICATION_SERVICE_URL=http://notification-service:3008
-      - REVIEW_SERVICE_URL=http://review-service:3009
-      - ADMIN_SERVICE_URL=http://admin-service:3010
-      - ANALYTICS_SERVICE_URL=http://analytics-service:3011
+      - MESSAGING_SERVICE_URL=http://comms-service:3007
+      - NOTIFICATION_SERVICE_URL=http://comms-service:3007
+      - REVIEW_SERVICE_URL=http://marketplace-service:3003
+      - ADMIN_SERVICE_URL=http://oversight-service:3010
+      - ANALYTICS_SERVICE_URL=http://oversight-service:3010
       - INFRASTRUCTURE_SERVICE_URL=http://infrastructure-service:3012
       - RATE_LIMIT_WINDOW_MS=60000
       - RATE_LIMIT_MAX_REQUESTS=100
     networks:
       - marketplace-network
     depends_on:
-      - auth-service
-      - user-service
-      - request-service
-      - proposal-service
-      - job-service
+      - identity-service
+      - marketplace-service
       - payment-service
-      - messaging-service
-      - notification-service
-      - review-service
-      - admin-service
-      - analytics-service
+      - comms-service
+      - oversight-service
       - infrastructure-service
     restart: unless-stopped
     healthcheck:

@@ -71,12 +71,12 @@ const nextConfig = {
   // API rewrites
   async rewrites() {
     const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
-    return [
-      {
-        source: '/api/:path*',
-        destination: `${apiUrl}/:path*`,
-      },
-    ];
+    return {
+			// afterFiles: Next.js checks filesystem routes first (e.g. app/api/auth/[...nextauth])
+			// before applying these rewrites. This ensures /api/auth/* is handled by NextAuth
+			// internally and never proxied to the backend gateway.
+			afterFiles: [{ source: "/api/:path*", destination: `${apiUrl}/api/:path*` }],
+		};
   },
 
   // Webpack optimization

@@ -96,7 +96,7 @@ These scripts will:
 
 ```powershell
 # Windows PowerShell (if exists from previous setup)
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 ### Option 3: Run directly with npm

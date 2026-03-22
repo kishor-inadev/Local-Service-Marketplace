@@ -19,10 +19,10 @@ A production-ready microservices-based marketplace platform connecting service p
 
 ```powershell
 # Windows PowerShell - Copy and configure .env files
-.\setup-env-files.ps1
+.\scripts\setup-env-files.ps1
 
 # Verify all variables are properly set
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 ```
 
 **Important:** Update these critical secrets in your `.env` files before starting:
@@ -41,7 +41,7 @@ openssl rand -base64 48
 
 ```powershell
 # One-line startup
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 That's it! The entire platform will start automatically:
@@ -61,7 +61,7 @@ Populate your database with realistic sample data for development and testing:
 
 ```powershell
 # Run the database seeder
-.\seed-database.ps1
+.\scripts\seed-database.ps1
 ```
 
 This creates:
@@ -687,7 +687,7 @@ docker exec marketplace-postgres psql -U postgres -d marketplace -f /docker-entr
 ### Start Everything
 ```powershell
 # Using startup script
-.\start.ps1
+.\scripts\start.ps1
 
 # Or using docker-compose directly
 docker-compose up -d
@@ -696,7 +696,7 @@ docker-compose up -d
 ### Stop Everything
 ```powershell
 # Using stop script
-.\stop.ps1
+.\scripts\stop.ps1
 
 # Or using docker-compose directly
 docker-compose stop
@@ -763,13 +763,13 @@ docker-compose down -v
 **Step 1: Create Environment Files**
 ```powershell
 # Automatically create .env from .env.example for all services
-.\setup-env-files.ps1
+.\scripts\setup-env-files.ps1
 ```
 
 **Step 2: Verify Configuration**
 ```powershell
 # Check all required variables are set and match between services
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 ```
 
 **Step 3: Update Critical Secrets**
@@ -890,8 +890,8 @@ Local Service Marketplace/
 │
 ├── 📄 docker-compose.yml    # Complete platform orchestration
 ├── 📄 .env.example          # Environment variables template
-├── 📄 start.ps1            # Quick start script
-├── 📄 stop.ps1             # Quick stop script
+├── 📄 scripts/start.ps1    # Quick start script
+├── 📄 scripts/stop.ps1     # Quick stop script
 └── 📄 STARTUP_GUIDE.md     # Detailed startup guide
 ```
 
@@ -926,7 +926,7 @@ Open http://localhost:3000
 **JWT_SECRET doesn't match between services**
 ```powershell
 # Run verification script
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 
 # Fix: Update both files with same value
 # Edit: api-gateway/.env
@@ -937,7 +937,7 @@ JWT_SECRET=same-value-in-both-files
 **GATEWAY_INTERNAL_SECRET doesn't match**
 ```powershell
 # Run verification script
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 
 # Fix: Ensure same value in both services
 # api-gateway/.env and services/auth-service/.env
@@ -947,10 +947,10 @@ GATEWAY_INTERNAL_SECRET=same-secret-here
 **.env file missing**
 ```powershell
 # Create all missing .env files
-.\setup-env-files.ps1
+.\scripts\setup-env-files.ps1
 
 # Verify setup
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 ```
 
 ### Token Validation Issues
@@ -963,7 +963,7 @@ Possible causes:
 3. Wrong TOKEN_VALIDATION_STRATEGY
 
 Solutions:
-- Run: .\verify-env-vars.ps1
+- Run: .\scripts\verify-env-vars.ps1
 - Check: Both services have same JWT_SECRET
 - Check: TOKEN_VALIDATION_STRATEGY is set correctly
 - Try: Refresh token to get new access token
@@ -980,7 +980,7 @@ When using TOKEN_VALIDATION_STRATEGY=api:
    AUTH_SERVICE_URL=http://localhost:3001  # or auth-service for Docker
 
 3. Check GATEWAY_INTERNAL_SECRET matches:
-   .\verify-env-vars.ps1
+   .\scripts\verify-env-vars.ps1
 
 4. View auth-service logs:
    docker-compose logs -f auth-service
@@ -1014,8 +1014,8 @@ See: docs/BACKEND_USER_CONTEXT_EXAMPLES.md
 
 2. **Check environment files exist**
    ```powershell
-   .\verify-env-vars.ps1
-   # If missing, run: .\setup-env-files.ps1
+   .\scripts\verify-env-vars.ps1
+   # If missing, run: .\scripts\setup-env-files.ps1
    ```
 
 3. **Check ports are available**
@@ -1206,7 +1206,7 @@ docker-compose up -d
 
 1. Run diagnostics:
    ```powershell
-   .\verify-env-vars.ps1
+   .\scripts\verify-env-vars.ps1
    docker-compose ps
    docker-compose logs --tail=50
    ```
@@ -1358,7 +1358,7 @@ FRONTEND_ENABLED=false
 API_GATEWAY_ENABLED=false
 
 # Then restart
-.\start.ps1
+.\scripts\start.ps1
 # Services will be on ports 3001-3012
 ```
 
@@ -1432,14 +1432,14 @@ This project is part of the Local Service Marketplace platform.
 - [ ] All prerequisites verified
 
 ### Environment Configuration
-- [ ] Ran `.\setup-env-files.ps1` to create .env files
-- [ ] Ran `.\verify-env-vars.ps1` to verify configuration
+- [ ] Ran `.\scripts\setup-env-files.ps1` to create .env files
+- [ ] Ran `.\scripts\verify-env-vars.ps1` to verify configuration
 - [ ] JWT_SECRET matches in api-gateway and auth-service ✅
 - [ ] GATEWAY_INTERNAL_SECRET matches in both services ✅
 - [ ] Updated placeholder secrets for production (optional for dev)
 
 ### Platform Startup
-- [ ] Ran `.\start.ps1` or `docker-compose up -d`
+- [ ] Ran `.\scripts\start.ps1` or `docker-compose up -d`
 - [ ] All services showing as "Up": `docker-compose ps`
 - [ ] No error logs: `docker-compose logs --tail=50`
 
@@ -1491,21 +1491,21 @@ Last Updated: March 15, 2026
 ### Quick Commands Reference
 ```powershell
 # Setup
-.\setup-env-files.ps1        # Create environment files
-.\verify-env-vars.ps1       # Verify configuration
+.\scripts\setup-env-files.ps1        # Create environment files
+.\scripts\verify-env-vars.ps1       # Verify configuration
 
 # Startup
-.\start.ps1                 # Start all services
-.\start-mvp.ps1            # Start MVP (minimal services)
+.\scripts\start.ps1                 # Start all services
+.\scripts\start-mvp.ps1            # Start MVP (minimal services)
 
 # Management
-.\stop.ps1                 # Stop all services
+.\scripts\stop.ps1                 # Stop all services
 docker-compose restart      # Restart services
 docker-compose logs -f      # View logs
 
 # Diagnostics
 docker-compose ps          # Check service status
-.\check-env.ps1           # Check environment variables
+.\scripts\check-env.ps1           # Check environment variables
 ```
 
 ### Important URLs
@@ -1525,7 +1525,7 @@ docker-compose ps          # Check service status
 
 ### Need Help?
 1. Check troubleshooting section above
-2. Run diagnostics: `.\verify-env-vars.ps1`
+2. Run diagnostics: `.\scripts\verify-env-vars.ps1`
 3. View logs: `docker-compose logs -f`
 4. Review documentation in `/docs`
 

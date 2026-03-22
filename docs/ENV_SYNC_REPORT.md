@@ -58,7 +58,7 @@ Already synchronized with docker.env ✅
 
 ### 4. ✅ Created Verification Script
 
-**File**: `verify-env-sync.ps1`
+**File**: `scripts/verify-env-sync.ps1`
 
 **Features**:
 - Checks existence of all required .env.example files
@@ -69,7 +69,7 @@ Already synchronized with docker.env ✅
 
 **Usage**:
 ```powershell
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 ```
 
 ### 5. ✅ Created Comprehensive Documentation
@@ -89,7 +89,7 @@ Already synchronized with docker.env ✅
 
 ## Verification Results
 
-Ran `verify-env-sync.ps1` and confirmed:
+Ran `scripts/verify-env-sync.ps1` and confirmed:
 
 ✅ All critical secrets files exist  
 ✅ JWT_SECRET synchronized across docker.env and secrets.env  
@@ -124,7 +124,7 @@ Ran `verify-env-sync.ps1` and confirmed:
    - Standardized to JWT_EXPIRES_IN=15m
 
 ### Created Files
-1. `verify-env-sync.ps1` - Automated environment variable synchronization checker
+1. `scripts/verify-env-sync.ps1` - Automated environment variable synchronization checker
 2. `docs/ENV_SYNC_STATUS.md` - Comprehensive environment variables documentation
 
 ---
@@ -156,14 +156,14 @@ Ran `verify-env-sync.ps1` and confirmed:
 ## Next Steps (If Needed)
 
 ### For Development
-1. Run `.\setup-env-files.ps1` to copy all .env.example to .env
+1. Run `.\scripts\setup-env-files.ps1` to copy all .env.example to .env
 2. Update service-specific .env files with your credentials
-3. Run `.\verify-env-sync.ps1` to confirm
+3. Run `.\scripts\verify-env-sync.ps1` to confirm
 
 ### For Production
-1. Run `.\generate-production-secrets.ps1` to create strong secrets
+1. Run `.\scripts\generate-production-secrets.ps1` to create strong secrets
 2. Update production-specific values (Stripe live keys, production SMTP, etc.)
-3. Run `.\verify-env-sync.ps1` before deployment
+3. Run `.\scripts\verify-env-sync.ps1` before deployment
 4. Deploy with confidence ✅
 
 ---
@@ -173,7 +173,7 @@ Ran `verify-env-sync.ps1` and confirmed:
 ### Regular Checks
 Run verification after any environment variable changes:
 ```powershell
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 ```
 
 ### When Adding New Services

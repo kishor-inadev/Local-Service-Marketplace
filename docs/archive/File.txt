@@ -1,0 +1,1347 @@
+﻿ 
+Flow to follow
+ 
+ 
+auth-service
+user-service
+request-service
+proposal-service
+job-service
+payment-service
+messaging-service
+notification-service
+review-service
+admin-service
+analytics-service
+infrastructure-service
+ 
+ 
+
+
+ 
+ 
+UI
+
+
+ 
+Act as a senior full-stack engineer specializing in scalable web platforms.
+ 
+Generate a production-ready frontend application for the Local Service Marketplace platform.
+ 
+Follow documentation in this repository:
+ 
+.github/copilot-instructions.md
+docs/ARCHITECTURE.md
+docs/API_SPECIFICATION.md
+docs/FEATURE_ROADMAP.md
+ 
+Backend services are implemented as NestJS microservices.
+ 
+Frontend must interact with these APIs.
+ 
+---
+ 
+Technology stack
+ 
+Next.js (App Router)
+TypeScript
+React
+TailwindCSS
+Axios for API calls
+React Query for data fetching
+Zustand for global state
+JWT authentication
+ 
+---
+ 
+Project structure
+ 
+frontend/nextjs-app
+ 
+app/
+layout.tsx
+page.tsx
+ 
+(auth)/
+login/
+signup/
+ 
+dashboard/
+ 
+requests/
+create/
+[id]/
+ 
+proposals/
+ 
+jobs/
+[id]/
+ 
+messages/
+ 
+notifications/
+ 
+admin/
+ 
+components/
+ 
+ui/
+layout/
+forms/
+ 
+services/
+ 
+api-client.ts
+auth-service.ts
+request-service.ts
+proposal-service.ts
+job-service.ts
+payment-service.ts
+ 
+hooks/
+ 
+useAuth.ts
+usePagination.ts
+ 
+store/
+ 
+authStore.ts
+ 
+types/
+ 
+api-types.ts
+ 
+utils/
+ 
+api.ts
+helpers.ts
+ 
+---
+ 
+Authentication
+ 
+Implement login and signup pages.
+ 
+Store JWT token securely.
+ 
+Handle authentication state using Zustand.
+ 
+Protected routes must require authentication.
+ 
+---
+ 
+Dashboard
+ 
+Create dashboard page showing:
+ 
+active requests
+active jobs
+notifications
+recent activity
+ 
+---
+ 
+Service Requests
+ 
+Implement pages:
+ 
+Create request page
+Request list page
+Request details page
+ 
+Features
+ 
+create service request
+list requests with pagination
+view request details
+update request
+ 
+API endpoints
+ 
+POST /requests
+GET /requests
+GET /requests/:id
+PATCH /requests/:id
+ 
+---
+ 
+Proposals
+ 
+Create UI for:
+ 
+view proposals
+accept proposal
+reject proposal
+ 
+Endpoints
+ 
+GET /requests/:requestId/proposals
+POST /proposals
+POST /proposals/:id/accept
+POST /proposals/:id/reject
+ 
+---
+ 
+Jobs
+ 
+Create job management pages.
+ 
+Features
+ 
+view job details
+update job status
+complete job
+ 
+Endpoints
+ 
+POST /jobs
+GET /jobs/:id
+PATCH /jobs/:id/status
+ 
+---
+ 
+Messaging
+ 
+Create messaging UI.
+ 
+Features
+ 
+conversation view
+send message
+attachments
+ 
+Endpoints
+ 
+POST /messages
+GET /jobs/:jobId/messages
+ 
+---
+ 
+Notifications
+ 
+Create notification center.
+ 
+Features
+ 
+view notifications
+mark notification read
+ 
+Endpoints
+ 
+GET /notifications
+PATCH /notifications/:id/read
+ 
+---
+ 
+Admin Panel
+ 
+Admin pages:
+ 
+users list
+disputes
+audit logs
+ 
+Endpoints
+ 
+GET /admin/users
+PATCH /admin/users/:id/suspend
+PATCH /admin/disputes/:id
+ 
+---
+ 
+UI Requirements
+ 
+Use responsive design.
+ 
+Use reusable components.
+ 
+Use TailwindCSS for styling.
+ 
+Create UI components:
+ 
+Navbar
+Sidebar
+Pagination
+Modal
+Form inputs
+Tables
+Notification badge
+ 
+---
+ 
+Data Fetching
+ 
+Use React Query for:
+ 
+API caching
+pagination
+error handling
+loading states
+ 
+---
+ 
+Error Handling
+ 
+Implement:
+ 
+global API error handler
+loading states
+toast notifications
+ 
+---
+ 
+Testing
+ 
+Generate basic component tests using:
+ 
+Jest
+React Testing Library
+ 
+---
+ 
+DevOps
+ 
+Generate Dockerfile for frontend.
+ 
+---
+ 
+Expected output
+ 
+A full Next.js frontend application containing:
+ 
+authentication pages
+dashboard
+requests pages
+proposals UI
+jobs UI
+messaging UI
+notifications
+admin panel
+API client services
+state management
+Dockerfile
+ 
+
+
+
+
+
+
+ Auth Service Prompt
+
+Act as a senior backend engineer specializing in NestJS microservices.
+ 
+Generate a production-grade NestJS microservice called auth-service.
+ 
+Follow the architecture and documentation in this repository:
+ 
+.github/copilot-instructions.md
+docs/ARCHITECTURE.md
+docs/MICROSERVICE_BOUNDARY_MAP.md
+docs/API_SPECIFICATION.md
+database/schema.sql
+ 
+Technology stack
+ 
+NestJS
+PostgreSQL
+JWT authentication
+bcrypt password hashing
+Docker
+ 
+Architecture rules
+ 
+- Follow NestJS modular architecture
+- Implement layered architecture
+- Use repository pattern
+- Use DTO validation with class-validator
+- Implement structured logging
+- Implement centralized error handling
+- Use UUID primary keys
+ 
+Folder structure
+ 
+src/modules/auth/
+ 
+controllers
+services
+repositories
+dto
+entities
+auth.module.ts
+ 
+Include:
+ 
+main.ts
+app.module.ts
+ 
+Database tables owned by auth-service
+ 
+users
+sessions
+email_verification_tokens
+password_reset_tokens
+login_attempts
+social_accounts
+user_devices
+ 
+APIs to implement
+ 
+POST /auth/signup
+POST /auth/login
+POST /auth/logout
+POST /auth/password-reset/request
+POST /auth/password-reset/confirm
+ 
+Features
+ 
+user signup
+user login
+JWT token generation
+refresh token
+email verification
+password reset
+login attempt tracking
+social login support
+ 
+Add validation pipes
+Add structured logging
+Add proper error handling
+ 
+Generate integration tests using Jest and Supertest.
+ 
+Create Dockerfile.
+ 
+Expected output
+ 
+controllers
+services
+repositories
+DTOs
+entities
+tests
+Dockerfile
+
+user-service-----------
+
+Act as a senior backend engineer specializing in NestJS microservices.
+ 
+Generate a production-grade NestJS microservice called user-service.
+ 
+Follow the architecture and documentation in this repository:
+ 
+.github/copilot-instructions.md
+
+docs/ARCHITECTURE.md
+
+docs/MICROSERVICE_BOUNDARY_MAP.md
+
+docs/API_SPECIFICATION.md
+
+database/schema.sql
+ 
+Technology stack
+ 
+NestJS
+
+PostgreSQL
+
+Redis (optional caching)
+
+Docker
+ 
+Architecture rules
+ 
+- Follow NestJS modular architecture
+
+- Implement layered architecture
+
+- Use repository pattern for database access
+
+- Use DTO validation with class-validator
+
+- Implement structured logging
+
+- Implement centralized error handling
+
+- Use UUID primary keys
+
+- Support pagination
+ 
+Folder structure
+ 
+src/
+ 
+modules/user/
+ 
+controllers/
+
+services/
+
+repositories/
+
+dto/
+
+entities/
+
+user.module.ts
+ 
+Also include:
+ 
+main.ts
+
+app.module.ts
+ 
+---
+ 
+Database tables owned by user-service
+ 
+providers
+
+provider_services
+
+provider_availability
+
+favorites
+
+locations
+ 
+Use parameterized SQL queries.
+ 
+Avoid cross-service joins.
+ 
+---
+ 
+Implement the following APIs
+ 
+POST /providers
+
+PATCH /providers/:id
+
+GET /providers/:id
+
+GET /providers
+ 
+POST /favorites
+
+GET /favorites
+ 
+---
+ 
+Features
+ 
+Create provider profile  
+
+Update provider profile  
+
+Get provider profile  
+
+List providers with pagination  
+
+Manage provider services  
+
+Manage provider availability  
+
+Save favorite providers  
+
+Manage location data  
+ 
+---
+ 
+DTO classes
+ 
+CreateProviderDto  
+
+UpdateProviderDto  
+
+ProviderQueryDto  
+ 
+DTOs must use class-validator.
+ 
+---
+ 
+Repository methods
+ 
+createProvider()  
+
+updateProvider()  
+
+getProviderById()  
+
+getProvidersPaginated()  
+
+saveFavoriteProvider()  
+
+getFavoriteProviders()  
+ 
+---
+ 
+Service layer responsibilities
+ 
+createProvider()  
+
+updateProvider()  
+
+getProvider()  
+
+getProviders()  
+
+saveFavoriteProvider()  
+ 
+Handle validation and business logic here.
+ 
+---
+ 
+Controller responsibilities
+ 
+Expose REST endpoints:
+ 
+POST /providers  
+
+PATCH /providers/:id  
+
+GET /providers/:id  
+
+GET /providers  
+ 
+POST /favorites  
+
+GET /favorites  
+ 
+Use proper HTTP status codes.
+ 
+---
+ 
+Infrastructure requirements
+ 
+Add validation pipes  
+
+Add structured logging  
+
+Add centralized error handling  
+ 
+---
+ 
+Testing
+ 
+Generate integration tests using:
+ 
+Jest  
+
+Supertest  
+ 
+---
+ 
+DevOps
+ 
+Generate Dockerfile for this service.
+ 
+---
+ 
+Expected final output
+ 
+A fully functional NestJS microservice containing:
+ 
+controllers  
+
+services  
+
+repositories  
+
+DTOs  
+
+entities  
+
+tests  
+
+Dockerfile
+ 
+
+ Request - service 
+
+
+ 
+Act as a senior backend engineer specializing in NestJS microservices.
+ 
+Generate a production-grade NestJS microservice called request-service.
+ 
+Follow the architecture and documentation in this repository:
+ 
+.github/copilot-instructions.md
+docs/ARCHITECTURE.md
+docs/MICROSERVICE_BOUNDARY_MAP.md
+docs/API_SPECIFICATION.md
+database/schema.sql
+ 
+The generated code must strictly follow the repository architecture.
+ 
+---
+ 
+Technology stack
+ 
+NestJS
+PostgreSQL
+Redis (optional caching / jobs)
+Docker
+ 
+---
+ 
+Architecture requirements
+ 
+- Use NestJS modular architecture
+- Implement layered architecture
+- Use repository pattern for database access
+- Never access tables owned by other services
+- Use DTO validation with class-validator
+- Implement structured logging
+- Implement global exception handling
+- Use UUID primary keys
+- Support pagination for list endpoints
+ 
+---
+ 
+Project folder structure
+ 
+src/
+ 
+modules/request/
+ 
+controllers/
+services/
+repositories/
+dto/
+entities/
+request.module.ts
+ 
+Also include:
+ 
+main.ts
+app.module.ts
+ 
+---
+ 
+Database tables owned by this service
+ 
+service_requests
+service_categories
+service_request_search
+ 
+Use parameterized SQL queries.
+ 
+Avoid cross-service joins.
+ 
+---
+ 
+Implement APIs from docs/API_SPECIFICATION.md
+ 
+POST /requests
+GET /requests
+GET /requests/:id
+PATCH /requests/:id
+ 
+---
+ 
+Required features
+ 
+Create service request  
+Fetch requests with pagination  
+Fetch request by id  
+Update request  
+ 
+---
+ 
+DTO classes
+ 
+CreateRequestDto
+UpdateRequestDto
+RequestQueryDto
+ 
+DTOs must use class-validator.
+ 
+---
+ 
+Repository methods
+ 
+createRequest()
+getRequestsPaginated()
+getRequestById()
+updateRequest()
+ 
+---
+ 
+Service layer responsibilities
+ 
+createRequest()
+getRequests()
+getRequest()
+updateRequest()
+ 
+Handle validation and business logic here.
+ 
+---
+ 
+Controller responsibilities
+ 
+Expose REST endpoints:
+ 
+POST /requests
+GET /requests
+GET /requests/:id
+PATCH /requests/:id
+ 
+Return proper HTTP status codes.
+ 
+---
+ 
+Infrastructure requirements
+ 
+Add validation pipes  
+Add structured logging  
+Add centralized error handling  
+ 
+---
+ 
+Testing
+ 
+Generate integration tests using:
+ 
+Jest
+Supertest
+ 
+Test all endpoints.
+ 
+---
+ 
+DevOps
+ 
+Generate Dockerfile for this service.
+ 
+---
+ 
+Expected final output
+ 
+A fully functional NestJS microservice containing:
+ 
+controllers
+services
+repositories
+DTOs
+entities
+tests
+Dockerfile
+ 
+ 
+2️⃣ Proposal Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a production-grade NestJS microservice called proposal-service.
+ 
+Follow the repository architecture.
+ 
+Technology stack
+ 
+NestJS
+PostgreSQL
+Docker
+ 
+Database tables owned by proposal-service
+ 
+proposals
+ 
+APIs
+ 
+POST /proposals
+GET /requests/:requestId/proposals
+POST /proposals/:id/accept
+POST /proposals/:id/reject
+ 
+Features
+ 
+submit proposal
+list proposals for a request
+accept proposal
+reject proposal
+ 
+DTOs
+ 
+CreateProposalDto
+ProposalQueryDto
+ 
+Repository methods
+ 
+createProposal()
+getProposalsForRequest()
+acceptProposal()
+rejectProposal()
+ 
+Add structured logging
+Add error handling
+Add validation pipes
+ 
+Generate integration tests.
+ 
+Create Dockerfile.
+
+
+
+3️⃣ Job Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a NestJS microservice called job-service.
+ 
+Tables owned
+ 
+jobs
+ 
+APIs
+ 
+POST /jobs
+GET /jobs/:id
+PATCH /jobs/:id/status
+POST /jobs/:id/complete
+ 
+Features
+ 
+create job when proposal accepted
+track job lifecycle
+update job status
+complete job
+ 
+DTOs
+ 
+CreateJobDto
+UpdateJobStatusDto
+ 
+Repository methods
+ 
+createJob()
+getJobById()
+updateJobStatus()
+completeJob()
+ 
+Use DTO validation
+Use repository pattern
+Add structured logging
+Add centralized error handling
+ 
+Generate tests and Dockerfile.
+
+
+4️⃣ Payment Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a production-ready NestJS microservice called payment-service.
+ 
+Tables owned
+ 
+payments
+refunds
+payment_webhooks
+coupons
+coupon_usage
+ 
+APIs
+ 
+POST /payments
+GET /payments/:id
+POST /payments/webhook
+POST /payments/:id/refund
+ 
+Features
+ 
+create payment
+handle payment webhooks
+process refunds
+apply coupons
+ 
+DTOs
+ 
+CreatePaymentDto
+RefundPaymentDto
+ 
+Repository methods
+ 
+createPayment()
+getPaymentById()
+processRefund()
+ 
+Add structured logging
+Add validation
+Add error handling
+ 
+Generate tests and Dockerfile.
+
+
+
+5️⃣ Messaging Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a NestJS microservice called messaging-service.
+ 
+Tables owned
+ 
+messages
+attachments
+ 
+APIs
+ 
+POST /messages
+GET /jobs/:jobId/messages
+POST /attachments
+ 
+Features
+ 
+send message
+retrieve job conversation
+upload attachments
+ 
+DTOs
+ 
+CreateMessageDto
+ 
+Repository methods
+ 
+createMessage()
+getMessagesForJob()
+ 
+Add pagination support.
+ 
+Add logging and validation.
+ 
+Generate tests and Dockerfile.
+
+
+
+6️⃣ Notification Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a NestJS microservice called notification-service.
+ 
+Tables owned
+ 
+notifications
+notification_deliveries
+ 
+APIs
+ 
+GET /notifications
+PATCH /notifications/:id/read
+ 
+Features
+ 
+store notifications
+mark notifications as read
+track notification delivery
+ 
+Worker tasks
+ 
+send email notifications
+send push notifications
+ 
+Add structured logging.
+ 
+Generate tests and Dockerfile.
+
+
+
+
+7️⃣ Review Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a NestJS microservice called review-service.
+ 
+Tables owned
+ 
+reviews
+ 
+APIs
+ 
+POST /reviews
+GET /providers/:providerId/reviews
+ 
+Features
+ 
+create review
+list provider reviews
+calculate provider rating
+ 
+DTOs
+ 
+CreateReviewDto
+ 
+Add pagination support.
+ 
+Add validation and logging.
+ 
+Generate tests and Dockerfile.
+8️⃣ Admin Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a NestJS microservice called admin-service.
+ 
+Tables owned
+ 
+admin_actions
+disputes
+audit_logs
+system_settings
+ 
+APIs
+ 
+GET /admin/users
+PATCH /admin/users/:id/suspend
+PATCH /admin/disputes/:id
+GET /admin/audit-logs
+ 
+Features
+ 
+user moderation
+dispute resolution
+audit logging
+system configuration
+ 
+Add logging and validation.
+ 
+Generate tests and Dockerfile.
+
+
+9️⃣ Analytics Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a NestJS microservice called analytics-service.
+ 
+Tables owned
+ 
+user_activity_logs
+daily_metrics
+ 
+APIs
+ 
+GET /analytics/metrics
+GET /analytics/user-activity
+ 
+Features
+ 
+track user activity
+aggregate daily metrics
+generate analytics reports
+ 
+Use background jobs for aggregation.
+ 
+Generate tests and Dockerfile.
+🔟 Infrastructure Service Prompt
+Act as a senior NestJS backend engineer.
+ 
+Generate a NestJS microservice called infrastructure-service.
+ 
+Tables owned
+ 
+events
+background_jobs
+rate_limits
+feature_flags
+ 
+Features
+ 
+store system events
+manage background jobs
+implement rate limiting
+manage feature flags
+ 
+Integrate Redis for job queue.
+ 
+Add structured logging.
+ 
+Generate Dockerfile.
+
+
+
+
+
+Act as a senior backend engineer specializing in NestJS microservices architecture.
+ 
+Generate a production-grade API Gateway service for the Local Service Marketplace platform.
+ 
+Follow the repository documentation:
+ 
+.github/copilot-instructions.md
+docs/ARCHITECTURE.md
+docs/MICROSERVICE_BOUNDARY_MAP.md
+docs/API_SPECIFICATION.md
+ 
+The gateway will act as the single entry point for all client requests.
+ 
+---
+ 
+Technology stack
+ 
+NestJS
+Node.js
+Axios for service communication
+Redis (optional caching / rate limiting)
+Docker
+ 
+---
+ 
+Architecture rules
+ 
+- The gateway must not contain business logic
+- The gateway only routes requests to microservices
+- Validate JWT tokens before forwarding requests
+- Implement request logging
+- Implement rate limiting
+- Handle CORS
+- Support centralized error handling
+ 
+---
+ 
+Gateway responsibilities
+ 
+Route incoming requests to the appropriate microservice.
+ 
+Services in the system:
+ 
+auth-service
+user-service
+request-service
+proposal-service
+job-service
+payment-service
+messaging-service
+notification-service
+review-service
+admin-service
+analytics-service
+ 
+---
+ 
+Routing rules
+ 
+/auth/* → auth-service
+ 
+/users/* → user-service
+/providers/* → user-service
+ 
+/requests/* → request-service
+ 
+/proposals/* → proposal-service
+ 
+/jobs/* → job-service
+ 
+/payments/* → payment-service
+ 
+/messages/* → messaging-service
+ 
+/notifications/* → notification-service
+ 
+/reviews/* → review-service
+ 
+/admin/* → admin-service
+ 
+/analytics/* → analytics-service
+ 
+---
+ 
+Project structure
+ 
+src/
+ 
+gateway/
+ 
+controllers/
+services/
+middlewares/
+config/
+ 
+gateway.module.ts
+ 
+Also include:
+ 
+main.ts
+app.module.ts
+ 
+---
+ 
+Middleware requirements
+ 
+JWT authentication middleware
+ 
+Validate:
+ 
+Authorization: Bearer <token>
+ 
+Rate limiting middleware
+ 
+Example:
+ 
+100 requests per minute per user
+ 
+Logging middleware
+ 
+Log:
+ 
+timestamp
+request path
+method
+user id
+response status
+ 
+---
+ 
+Gateway service logic
+ 
+Use Axios to forward requests to services.
+ 
+Example:
+ 
+auth-service → http://auth-service:3000
+ 
+request-service → http://request-service:3000
+ 
+job-service → http://job-service:3000
+ 
+---
+ 
+Controller responsibilities
+ 
+Forward requests to correct services.
+ 
+Example
+ 
+POST /auth/login → auth-service
+ 
+GET /requests → request-service
+ 
+POST /proposals → proposal-service
+ 
+PATCH /jobs/:id → job-service
+ 
+---
+ 
+Infrastructure requirements
+ 
+Add CORS support
+ 
+Add centralized error handling
+ 
+Add request logging
+ 
+---
+ 
+DevOps
+ 
+Generate Dockerfile for API gateway.
+ 
+---
+ 
+Expected output
+ 
+A fully functional NestJS API Gateway including:
+ 
+controllers
+routing logic
+JWT middleware
+rate limiting middleware
+logging middleware
+service forwarding logic
+Dockerfile

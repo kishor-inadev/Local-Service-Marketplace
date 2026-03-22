@@ -21,7 +21,7 @@ These scripts reduce Docker image sizes from **~500MB to ~50MB** (90% reduction)
 ### Step 1: Test Everything First
 
 ```powershell
-.\test-docker-optimization.ps1
+.\scripts\test-docker-optimization.ps1
 ```
 
 **Expected output:** `All tests passed!`
@@ -31,7 +31,7 @@ These scripts reduce Docker image sizes from **~500MB to ~50MB** (90% reduction)
 ### Step 2: Optimize All Services
 
 ```powershell
-.\optimize-docker-images.ps1
+.\scripts\optimize-docker-images.ps1
 ```
 
 **What happens:**
@@ -81,7 +81,7 @@ docker-compose build
 ### Step 5: Verify Results
 
 ```powershell
-.\check-docker-sizes.ps1
+.\scripts\check-docker-sizes.ps1
 ```
 
 **Expected output:**
@@ -102,7 +102,7 @@ Average Size: 52.03 MB per service
 ### Restore All Services
 
 ```powershell
-.\restore-dockerfiles.ps1
+.\scripts\restore-dockerfiles.ps1
 ```
 
 **What happens:**
@@ -132,7 +132,7 @@ docker-compose build
 After confirming everything works, remove backup files:
 
 ```powershell
-.\cleanup-backups.ps1
+.\scripts\cleanup-backups.ps1
 ```
 
 **Interactive prompt:**
@@ -289,10 +289,10 @@ graph TD
 **Command sequence:**
 ```powershell
 # 1. Test
-.\test-docker-optimization.ps1
+.\scripts\test-docker-optimization.ps1
 
 # 2. Optimize
-.\optimize-docker-images.ps1
+.\scripts\optimize-docker-images.ps1
 
 # 3. Test one
 cd services\auth-service
@@ -303,10 +303,10 @@ cd ..\..
 docker-compose build
 
 # 5. Verify
-.\check-docker-sizes.ps1
+.\scripts\check-docker-sizes.ps1
 
 # 6. (Optional) Cleanup
-.\cleanup-backups.ps1
+.\scripts\cleanup-backups.ps1
 ```
 
 ---
@@ -354,9 +354,9 @@ CMD ["node", "dist/main"]             # No node_modules needed!
 
 If you encounter issues:
 
-1. Run test script: `.\test-docker-optimization.ps1`
+1. Run test script: `.\scripts\test-docker-optimization.ps1`
 2. Check error messages (they're detailed)
-3. Restore if needed: `.\restore-dockerfiles.ps1`
+3. Restore if needed: `.\scripts\restore-dockerfiles.ps1`
 4. All operations are safe and reversible
 
 ---
@@ -365,11 +365,11 @@ If you encounter issues:
 
 | Task | Command |
 |------|---------|
-| Test | `.\test-docker-optimization.ps1` |
-| Optimize | `.\optimize-docker-images.ps1` |
-| Restore | `.\restore-dockerfiles.ps1` |
-| Check sizes | `.\check-docker-sizes.ps1` |
-| Cleanup | `.\cleanup-backups.ps1` |
+| Test | `.\scripts\test-docker-optimization.ps1` |
+| Optimize | `.\scripts\optimize-docker-images.ps1` |
+| Restore | `.\scripts\restore-dockerfiles.ps1` |
+| Check sizes | `.\scripts\check-docker-sizes.ps1` |
+| Cleanup | `.\scripts\cleanup-backups.ps1` |
 | Build one | `cd services\<name>; docker build -t <name> .` |
 | Build all | `docker-compose build` |
 

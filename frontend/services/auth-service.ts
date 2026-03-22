@@ -2,35 +2,35 @@ import { apiClient } from './api-client';
 import { signIn as nextAuthSignIn } from 'next-auth/react';
 
 export interface SignupData {
-  email: string;
-  password: string;
-  name?: string;
-  role: 'customer' | 'provider' | 'admin';
-  phone?: string;
-  timezone?: string;
-  language?: string;
+	email: string;
+	password: string;
+	name?: string;
+	role: 'customer' | 'provider' | 'admin';
+	phone?: string;
+	timezone?: string;
+	language?: string;
 }
 
 export interface LoginData {
-  email: string;
-  password: string;
+	email: string;
+	password: string;
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: {
-    id: string;
-    email: string;
-    name?: string;
-    role: string;
-    email_verified: boolean;
-    profile_picture_url?: string;
-    timezone?: string;
-    language?: string;
-    phone_verified?: boolean;
-    last_login_at?: string;
-  };
+	accessToken: string;
+	refreshToken: string;
+	user: {
+		id: string;
+		email: string;
+		name?: string;
+		role: string;
+		email_verified: boolean;
+		profile_picture_url?: string;
+		timezone?: string;
+		language?: string;
+		phone_verified?: boolean;
+		last_login_at?: string;
+	};
 }
 
 export interface CheckIdentifierResult {
@@ -40,12 +40,12 @@ export interface CheckIdentifierResult {
 }
 
 export interface PasswordResetRequest {
-  email: string;
+	email: string;
 }
 
 export interface PasswordResetConfirm {
-  token: string;
-  newPassword: string;
+	token: string;
+	newPassword: string;
 }
 
 class AuthService {
@@ -63,7 +63,7 @@ class AuthService {
 	 * Signup - still uses direct API call as NextAuth doesn't handle registration
 	 */
 	async signup(data: SignupData): Promise<AuthResponse> {
-		const response = await apiClient.post<AuthResponse>("/auth/signup", data);
+		const response = await apiClient.post<AuthResponse>("/user/auth/signup", data);
 		return response.data;
 	}
 
@@ -75,34 +75,34 @@ class AuthService {
 		// Logout is handled by NextAuth signOut
 		// Call backend to invalidate session if needed
 		try {
-			await apiClient.post<void>("/auth/logout");
+			await apiClient.post<void>("/user/auth/logout");
 		} catch (error) {
 			console.error("Backend logout error:", error);
 		}
 	}
 
 	async getProfile(): Promise<AuthResponse["user"]> {
-		const response = await apiClient.get<AuthResponse["user"]>("/auth/profile");
+		const response = await apiClient.get<AuthResponse["user"]>("/user/auth/profile");
 		return response.data;
 	}
 
 	async requestPasswordReset(data: PasswordResetRequest): Promise<void> {
-		const response = await apiClient.post<void>("/auth/password-reset/request", data);
+		const response = await apiClient.post<void>("/user/auth/password-reset/request", data);
 		return response.data;
 	}
 
 	async confirmPasswordReset(data: PasswordResetConfirm): Promise<void> {
-		const response = await apiClient.post<void>("/auth/password-reset/confirm", data);
+		const response = await apiClient.post<void>("/user/auth/password-reset/confirm", data);
 		return response.data;
 	}
 
 	async checkIdentifier(identifier: string, type: "email" | "phone"): Promise<CheckIdentifierResult> {
-		const response = await apiClient.post<CheckIdentifierResult>("/auth/check-identifier", { identifier, type });
+		const response = await apiClient.post<CheckIdentifierResult>("/user/auth/check-identifier", { identifier, type });
 		return response.data;
 	}
 
 	async verifyEmail(token: string): Promise<void> {
-		const response = await apiClient.post<void>("/auth/verify-email", { token });
+		const response = await apiClient.post<void>("/user/auth/verify-email", { token });
 		return response.data;
 	}
 
@@ -111,7 +111,7 @@ class AuthService {
 	 * @deprecated Not needed with NextAuth
 	 */
 	async refreshToken(refreshToken: string): Promise<AuthResponse> {
-		const response = await apiClient.post<AuthResponse>("/auth/refresh", { refreshToken });
+		const response = await apiClient.post<AuthResponse>("/user/auth/refresh", { refreshToken });
 		return response.data;
 	}
 

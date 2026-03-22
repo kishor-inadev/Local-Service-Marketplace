@@ -155,7 +155,7 @@ API_GATEWAY_PORT=3500            # API Gateway host port
 
 ### Start Core Services + API Gateway
 ```powershell
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 This starts:
@@ -169,7 +169,7 @@ This starts:
 FRONTEND_ENABLED=true
 
 # Restart
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 ### Enable Email Service
@@ -178,7 +178,7 @@ FRONTEND_ENABLED=true
 EMAIL_ENABLED=true
 
 # Restart
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 ---
@@ -207,7 +207,7 @@ Open browser: http://localhost:3000
 
 ### Issue: "Cannot connect to localhost:3500"
 **Cause:** API Gateway not running or profile not enabled  
-**Fix:** Check that `API_GATEWAY_ENABLED=true` in `.env` and run `.\start.ps1`
+**Fix:** Check that `API_GATEWAY_ENABLED=true` in `.env` and run `.\scripts\start.ps1`
 
 ### Issue: "Cannot connect to localhost:3000"
 **Cause:** Frontend is disabled  

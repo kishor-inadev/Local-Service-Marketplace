@@ -336,7 +336,7 @@ All .env.example files are properly configured with:
 
 ## Validation Script Enhancement Recommendations
 
-### Current verify-env-sync.ps1 Checks:
+### Current scripts/verify-env-sync.ps1 Checks:
 - [x] File existence
 - [x] Critical secrets synchronization
 - [x] docker-compose.yml configuration
@@ -371,13 +371,13 @@ All .env.example files are properly configured with:
 ## Recommendations
 
 ### For Development:
-1. Run `.\setup-env-files.ps1` to create .env from .env.example
+1. Run `.\scripts\setup-env-files.ps1` to create .env from .env.example
 2. Update service-specific credentials (SMTP, Stripe, etc.)
 3. Keep Docker container names for docker-compose deployments
 4. Use localhost for local development outside Docker
 
 ### For Production:
-1. Generate secure secrets: `.\generate-production-secrets.ps1`
+1. Generate secure secrets: `.\scripts\generate-production-secrets.ps1`
 2. Update all production credentials (Stripe live keys, production SMTP)
 3. Enable feature flags as needed (caching, events, workers)
 4. Update OAuth callback URLs for production domain
@@ -386,7 +386,7 @@ All .env.example files are properly configured with:
 1. When adding new services, follow existing patterns
 2. Keep .env.example updated when adding new variables
 3. Document Docker vs Local configuration
-4. Run `.\verify-env-sync.ps1` after changes
+4. Run `.\scripts\verify-env-sync.ps1` after changes
 
 ---
 

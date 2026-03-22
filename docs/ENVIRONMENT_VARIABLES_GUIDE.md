@@ -7,13 +7,13 @@ This guide explains all environment variables used across the Local Service Mark
 ### 1. Copy Example Files
 ```powershell
 # Copy all .env.example to .env files
-.\setup-env-files.ps1
+.\scripts\setup-env-files.ps1
 ```
 
 ### 2. Verify Configuration
 ```powershell
 # Check if all required variables are set
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 ```
 
 ### 3. Update Critical Secrets
@@ -396,7 +396,7 @@ MESSAGING_ENABLED=false
 
 Run verification script:
 ```powershell
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 ```
 
 ### Manual Checks:
