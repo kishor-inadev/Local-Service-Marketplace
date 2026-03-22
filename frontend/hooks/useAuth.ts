@@ -27,59 +27,72 @@ export function useAuth() {
   }, [session?.error, router]);
 
   const login = async (email: string, password: string) => {
-    const result = await signIn('credentials', {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      // Return error for component to handle
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid email or password.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('Login failed. Please check your credentials.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Login failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('Login failed. Please check your credentials.');
-    }
-
-    // Let the component handle success message and redirect
-    return result;
   };
 
   const loginWithPhone = async (phone: string, password: string) => {
-    const result = await signIn('phone-password', {
-      phone,
-      password,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('phone-password', {
+        phone,
+        password,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid phone or password.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('Phone login failed. Please check your credentials.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Phone login failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('Phone login failed. Please check your credentials.');
-    }
-
-    return result;
   };
 
   const loginWithOTP = async (phone: string, otp: string) => {
-    const result = await signIn('phone-otp', {
-      phone,
-      otp,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('phone-otp', {
+        phone,
+        otp,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid OTP code.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('OTP verification failed. Please check your code.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('OTP verification failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('OTP verification failed. Please check your code.');
-    }
-
-    return result;
   };
 
   const requestOTP = async (phone: string) => {
@@ -119,21 +132,26 @@ export function useAuth() {
   };
 
   const loginWithEmailOTP = async (email: string, otp: string) => {
-    const result = await signIn('email-otp', {
-      email,
-      otp,
-      redirect: false,
-    });
+    try {
+      const result = await signIn('email-otp', {
+        email,
+        otp,
+        redirect: false,
+      });
 
-    if (result?.error) {
-      throw new Error(result.error);
+      if (result?.error) {
+        throw new Error(result.error === 'CredentialsSignin' ? 'Invalid OTP code.' : result.error);
+      }
+
+      if (!result?.ok) {
+        throw new Error('OTP verification failed. Please check your code.');
+      }
+
+      return result;
+    } catch (error) {
+      if (error instanceof Error) throw error;
+      throw new Error('Email OTP verification failed. Please try again.');
     }
-
-    if (!result?.ok) {
-      throw new Error('OTP verification failed. Please check your code.');
-    }
-
-    return result;
   };
 
   const loginWithGoogle = () => {

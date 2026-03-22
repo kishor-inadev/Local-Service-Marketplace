@@ -1,33 +1,37 @@
-import NextAuth, { NextAuthConfig } from "next-auth";
-import Credentials from "next-auth/providers/credentials";
+// NextAuthOptions not imported directly to avoid @auth/core v5 type conflict.
+// TypeScript infers the correct v4 type from NextAuth(authOptions) at call site.
+import CredentialsProvider from "next-auth/providers/credentials";
 import { TOKEN_CONFIG } from "@/types/auth-alignment";
 import { serverAuthService } from "@/services/server-auth-service";
 
 async function refreshAccessToken(token: any) {
-  try {
-    const data = await serverAuthService.refreshToken(token.refreshToken);
+	try {
+		const data = await serverAuthService.refreshToken(token.refreshToken);
 		if (!data) throw new Error("Token refresh failed");
 
-    return {
+		return {
 			...token,
 			accessToken: data.accessToken,
 			accessTokenExpires: Date.now() + TOKEN_CONFIG.ACCESS_TOKEN_EXPIRATION,
 			refreshToken: data.refreshToken ?? token.refreshToken,
 		};
-  } catch (error) {
-    console.error('Error refreshing access token:', error);
-    return { ...token, error: "RefreshAccessTokenError" as const };
-  }
+	} catch (error) {
+		console.error('Error refreshing access token:', error);
+		return { ...token, error: "RefreshAccessTokenError" as const };
+	}
 }
 
-export const authConfig: NextAuthConfig = {
+export const authOptions = {
 	providers: [
 		// Email + Password Login
-		Credentials({
+		CredentialsProvider({
 			id: "credentials",
 			name: "Email & Password",
-			credentials: { email: { label: "Email", type: "email" }, password: { label: "Password", type: "password" } },
-			authorize: async (credentials) => {
+			credentials: {
+				email: { label: "Email", type: "email" },
+				password: { label: "Password", type: "password" },
+			},
+			async authorize(credentials) {
 				try {
 					if (!credentials?.email || !credentials?.password) return null;
 
@@ -55,11 +59,14 @@ export const authConfig: NextAuthConfig = {
 		}),
 
 		// Phone + Password Login
-		Credentials({
+		CredentialsProvider({
 			id: "phone-password",
 			name: "Phone & Password",
-			credentials: { phone: { label: "Phone", type: "tel" }, password: { label: "Password", type: "password" } },
-			authorize: async (credentials) => {
+			credentials: {
+				phone: { label: "Phone", type: "tel" },
+				password: { label: "Password", type: "password" },
+			},
+			async authorize(credentials) {
 				try {
 					if (!credentials?.phone || !credentials?.password) return null;
 
@@ -87,15 +94,21 @@ export const authConfig: NextAuthConfig = {
 		}),
 
 		// Phone + OTP Login
-		Credentials({
+		CredentialsProvider({
 			id: "phone-otp",
 			name: "Phone & OTP",
-			credentials: { phone: { label: "Phone", type: "tel" }, otp: { label: "OTP", type: "text" } },
-			authorize: async (credentials) => {
+			credentials: {
+				phone: { label: "Phone", type: "tel" },
+				otp: { label: "OTP", type: "text" },
+			},
+			async authorize(credentials) {
 				try {
 					if (!credentials?.phone || !credentials?.otp) return null;
 
-					const auth = await serverAuthService.verifyPhoneOtp(credentials.phone as string, credentials.otp as string);
+					const auth = await serverAuthService.verifyPhoneOtp(
+						credentials.phone as string,
+						credentials.otp as string,
+					);
 					if (!auth?.user) return null;
 
 					return {
@@ -116,15 +129,21 @@ export const authConfig: NextAuthConfig = {
 		}),
 
 		// Email + OTP Login
-		Credentials({
+		CredentialsProvider({
 			id: "email-otp",
 			name: "Email & OTP",
-			credentials: { email: { label: "Email", type: "email" }, otp: { label: "OTP", type: "text" } },
-			authorize: async (credentials) => {
+			credentials: {
+				email: { label: "Email", type: "email" },
+				otp: { label: "OTP", type: "text" },
+			},
+			async authorize(credentials) {
 				try {
 					if (!credentials?.email || !credentials?.otp) return null;
 
-					const auth = await serverAuthService.verifyEmailOtp(credentials.email as string, credentials.otp as string);
+					const auth = await serverAuthService.verifyEmailOtp(
+						credentials.email as string,
+						credentials.otp as string,
+					);
 					if (!auth?.user) return null;
 
 					return {
@@ -149,7 +168,7 @@ export const authConfig: NextAuthConfig = {
 		maxAge: 7 * 24 * 60 * 60, // 7 days (matches refresh token)
 	},
 	callbacks: {
-		async jwt({ token, user, trigger, session }) {
+		async jwt({ token, user, trigger, session }: any) {
 			// Initial sign in
 			if (user) {
 				return {
@@ -176,12 +195,11 @@ export const authConfig: NextAuthConfig = {
 			// Access token has expired, try to refresh it
 			return refreshAccessToken(token);
 		},
-		async session({ session, token }) {
+		async session({ session, token }: any) {
 			// Add custom fields to session
 			if (token && session.user) {
 				session.user.id = token.id || "";
 				session.user.role = token.role || "customer";
-				// @ts-ignore - Type conflict with default emailVerified
 				session.user.emailVerified = Boolean(token.emailVerified);
 				session.accessToken = token.accessToken;
 				session.refreshToken = token.refreshToken;
@@ -193,9 +211,7 @@ export const authConfig: NextAuthConfig = {
 	},
 	pages: {
 		signIn: "/login",
-		// error: "/error", // Custom error page for auth errors
+		error: "/error",
 	},
-	trustHost: true, // For development
+	secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 };
-
-export const { handlers, signIn, signOut, auth } = NextAuth(authConfig);
