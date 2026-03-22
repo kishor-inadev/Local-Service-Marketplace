@@ -10,6 +10,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { Button } from '@/components/ui/Button';
 import { apiClient } from '@/services/api-client';
+import { ErrorState } from "@/components/ui/ErrorState";
 import { Calendar, Clock, Plus, Trash2, Save, AlertCircle } from 'lucide-react';
 
 interface AvailabilitySlot {
@@ -48,23 +49,28 @@ export default function AvailabilityPage() {
   const [hasChanges, setHasChanges] = useState(false);
 
   // Fetch user's provider profile to get current availability
-  const { data: provider, isLoading } = useQuery({
-    queryKey: ['provider-profile', user?.id],
-    queryFn: async () => {
-      try {
-        // First, get the provider record for this user
-        const response = await apiClient.get(`/providers?user_id=${user?.id}`);
-        if (response.data?.data && response.data.data.length > 0) {
-          return response.data.data[0];
-        }
-        return null;
-      } catch (error) {
-        console.error('Error fetching provider:', error);
-        return null;
-      }
-    },
-    enabled: isAuthenticated && user?.role === 'provider' && !!user?.id,
-  });
+  const {
+		data: provider,
+		isLoading,
+		error,
+		refetch,
+	} = useQuery({
+		queryKey: ["provider-profile", user?.id],
+		queryFn: async () => {
+			try {
+				// First, get the provider record for this user
+				const response = await apiClient.get(`/providers?user_id=${user?.id}`);
+				if (response.data?.data && response.data.data.length > 0) {
+					return response.data.data[0];
+				}
+				return null;
+			} catch (error) {
+				console.error("Error fetching provider:", error);
+				return null;
+			}
+		},
+		enabled: isAuthenticated && user?.role === "provider" && !!user?.id,
+	});
 
   // Load existing availability when provider data is fetched
   useEffect(() => {
@@ -153,22 +159,25 @@ export default function AvailabilityPage() {
 
   if (!provider) {
     return (
-      <Layout>
-        <div className="container-custom py-12">
-          <Card>
-            <CardContent className="text-center py-12">
-              <AlertCircle className="h-12 w-12 text-yellow-600 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
-                Provider Profile Not Found
-              </h3>
-              <p className="text-gray-600 dark:text-gray-400">
-                Please complete your provider profile setup first
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    );
+			<Layout>
+				<div className='container-custom py-12'>
+					{error ?
+						<ErrorState
+							title='Failed to load availability'
+							message="We couldn't load your provider data. Please try again."
+							retry={() => refetch()}
+						/>
+					:	<Card>
+							<CardContent className='text-center py-12'>
+								<AlertCircle className='h-12 w-12 text-yellow-600 mx-auto mb-4' />
+								<h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>Provider Profile Not Found</h3>
+								<p className='text-gray-600 dark:text-gray-400'>Please complete your provider profile setup first</p>
+							</CardContent>
+						</Card>
+					}
+				</div>
+			</Layout>
+		);
   }
 
   return (

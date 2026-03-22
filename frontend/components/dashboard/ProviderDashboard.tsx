@@ -8,6 +8,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
+import { ErrorState } from "@/components/ui/ErrorState";
 import { proposalService } from '@/services/proposal-service';
 import { jobService } from '@/services/job-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
@@ -28,17 +29,40 @@ import {
 export default function ProviderDashboard() {
   const { user, isAuthenticated } = useAuth();
 
-  const { data: proposals, isLoading: proposalsLoading } = useQuery({
-    queryKey: ['my-proposals'],
-    queryFn: () => proposalService.getMyProposals(),
-    enabled: isAuthenticated,
-  });
+  const {
+		data: proposals,
+		isLoading: proposalsLoading,
+		error: proposalsError,
+		refetch: refetchProposals,
+	} = useQuery({
+		queryKey: ["my-proposals"],
+		queryFn: () => proposalService.getMyProposals(),
+		enabled: isAuthenticated,
+	});
 
-  const { data: jobs, isLoading: jobsLoading } = useQuery({
-    queryKey: ['provider-jobs'],
-    queryFn: () => jobService.getMyJobs(),
-    enabled: isAuthenticated,
-  });
+  const {
+		data: jobs,
+		isLoading: jobsLoading,
+		error: jobsError,
+		refetch: refetchJobs,
+	} = useQuery({ queryKey: ["provider-jobs"], queryFn: () => jobService.getMyJobs(), enabled: isAuthenticated });
+
+  if (proposalsError || jobsError) {
+		return (
+			<Layout>
+				<div className='container-custom py-12'>
+					<ErrorState
+						title='Failed to load dashboard'
+						message="We couldn't load your dashboard data. Please try again."
+						retry={() => {
+							refetchProposals();
+							refetchJobs();
+						}}
+					/>
+				</div>
+			</Layout>
+		);
+	}
 
   // Calculate earnings from completed jobs
   const totalEarnings =

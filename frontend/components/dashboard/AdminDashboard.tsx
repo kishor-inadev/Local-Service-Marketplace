@@ -8,6 +8,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
+import { ErrorState } from "@/components/ui/ErrorState";
 import { adminService } from '@/services/admin-service';
 import { formatDate } from '@/utils/helpers';
 import Link from 'next/link';
@@ -16,17 +17,44 @@ import { Users, AlertCircle, Settings, FileText, TrendingUp } from 'lucide-react
 export default function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
 
-  const { data: users, isLoading: usersLoading } = useQuery({
-    queryKey: ['admin-users'],
-    queryFn: () => adminService.getUsers(),
-    enabled: isAuthenticated && user?.role === 'admin',
-  });
+  const {
+		data: users,
+		isLoading: usersLoading,
+		error: usersError,
+		refetch: refetchUsers,
+	} = useQuery({
+		queryKey: ["admin-users"],
+		queryFn: () => adminService.getUsers(),
+		enabled: isAuthenticated && user?.role === "admin",
+	});
 
-  const { data: disputes, isLoading: disputesLoading } = useQuery({
-    queryKey: ['admin-disputes'],
-    queryFn: () => adminService.getDisputes(),
-    enabled: isAuthenticated && user?.role === 'admin',
-  });
+  const {
+		data: disputes,
+		isLoading: disputesLoading,
+		error: disputesError,
+		refetch: refetchDisputes,
+	} = useQuery({
+		queryKey: ["admin-disputes"],
+		queryFn: () => adminService.getDisputes(),
+		enabled: isAuthenticated && user?.role === "admin",
+	});
+
+  if (usersError || disputesError) {
+		return (
+			<Layout>
+				<div className='container-custom py-12'>
+					<ErrorState
+						title='Failed to load admin dashboard'
+						message="We couldn't load the admin data. Please try again."
+						retry={() => {
+							refetchUsers();
+							refetchDisputes();
+						}}
+					/>
+				</div>
+			</Layout>
+		);
+	}
 
   const totalUsers = users?.length || 0;
   const activeDisputes = disputes?.filter((d: any) => d.status === 'open').length || 0;

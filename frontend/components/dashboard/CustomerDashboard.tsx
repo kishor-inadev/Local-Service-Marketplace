@@ -9,6 +9,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
+import { ErrorState } from "@/components/ui/ErrorState";
 import { requestService } from '@/services/request-service';
 import { jobService } from '@/services/job-service';
 import { notificationService } from '@/services/notification-service';
@@ -19,23 +20,48 @@ import { Plus, Briefcase, FileText, Bell } from 'lucide-react';
 export default function CustomerDashboard() {
   const { user, isAuthenticated } = useAuth();
 
-  const { data: requests, isLoading: requestsLoading } = useQuery({
-    queryKey: ['my-requests'],
-    queryFn: () => requestService.getMyRequests(),
-    enabled: isAuthenticated,
-  });
+  const {
+		data: requests,
+		isLoading: requestsLoading,
+		error: requestsError,
+		refetch: refetchRequests,
+	} = useQuery({ queryKey: ["my-requests"], queryFn: () => requestService.getMyRequests(), enabled: isAuthenticated });
 
-  const { data: jobs, isLoading: jobsLoading } = useQuery({
-    queryKey: ['my-jobs'],
-    queryFn: () => jobService.getMyJobs(),
-    enabled: isAuthenticated,
-  });
+  const {
+		data: jobs,
+		isLoading: jobsLoading,
+		error: jobsError,
+		refetch: refetchJobs,
+	} = useQuery({ queryKey: ["my-jobs"], queryFn: () => jobService.getMyJobs(), enabled: isAuthenticated });
 
-  const { data: notifications, isLoading: notificationsLoading } = useQuery({
-    queryKey: ['notifications'],
-    queryFn: () => notificationService.getNotifications({ limit: 5 }),
-    enabled: isAuthenticated && isNotificationsEnabled(),
-  });
+  const {
+		data: notifications,
+		isLoading: notificationsLoading,
+		error: notificationsError,
+	} = useQuery({
+		queryKey: ["notifications"],
+		queryFn: () => notificationService.getNotifications({ limit: 5 }),
+		enabled: isAuthenticated && isNotificationsEnabled(),
+	});
+
+  const hasError = requestsError || jobsError;
+
+	if (hasError) {
+		return (
+			<Layout>
+				<div className='container-custom py-12'>
+					<ErrorState
+						title='Failed to load dashboard'
+						message="We couldn't load your dashboard data. Please try again."
+						retry={() => {
+							refetchRequests();
+							refetchJobs();
+						}}
+					/>
+				</div>
+			</Layout>
+		);
+	}
 
   return (
     <Layout>

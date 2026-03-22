@@ -15,6 +15,7 @@ import { Loading } from '@/components/ui/Loading';
 import { getUserProfile, updateUserProfile } from '@/services/user-service';
 import { analytics } from '@/utils/analytics';
 import toast from 'react-hot-toast';
+import { ErrorState } from "@/components/ui/ErrorState";
 import { ArrowLeft, Save } from 'lucide-react';
 
 export default function ProfileEditPage() {
@@ -29,11 +30,12 @@ export default function ProfileEditPage() {
     }
   }, [isAuthenticated, authLoading, router]);
 
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ['user-profile'],
-    queryFn: getUserProfile,
-    enabled: isAuthenticated,
-  });
+  const {
+		data: profile,
+		isLoading,
+		error,
+		refetch,
+	} = useQuery({ queryKey: ["user-profile"], queryFn: getUserProfile, enabled: isAuthenticated });
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     defaultValues: {
@@ -89,6 +91,20 @@ export default function ProfileEditPage() {
       </Layout>
     );
   }
+
+  if (error) {
+		return (
+			<Layout>
+				<div className='container-custom py-8'>
+					<ErrorState
+						title='Failed to load profile'
+						message="We couldn't load your profile data. Please try again."
+						retry={() => refetch()}
+					/>
+				</div>
+			</Layout>
+		);
+	}
 
   return (
     <Layout>
