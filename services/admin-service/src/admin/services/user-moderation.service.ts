@@ -8,10 +8,9 @@ import { NotFoundException } from '../../common/exceptions/http.exceptions';
 export interface User {
   id: string;
   email: string;
-  firstName: string;
-  lastName: string;
+  name: string;
   role: string;
-  suspended: boolean;
+  status: string;
   createdAt: Date;
 }
 
@@ -23,7 +22,7 @@ export class UserModerationService {
     private readonly auditLogRepository: AuditLogRepository,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   async getAllUsers(
     limit: number = 50,
@@ -35,8 +34,9 @@ export class UserModerationService {
     );
 
     const query = `
-      SELECT id, email, first_name as "firstName", last_name as "lastName", role, suspended, created_at as "createdAt"
+      SELECT id, email, name, role, status, created_at as "createdAt"
       FROM users
+      WHERE deleted_at IS NULL
       ORDER BY created_at DESC
       LIMIT $1 OFFSET $2
     `;
@@ -49,9 +49,9 @@ export class UserModerationService {
     this.logger.log(`Fetching user with ID ${id}`, 'UserModerationService');
 
     const query = `
-      SELECT id, email, first_name as "firstName", last_name as "lastName", role, suspended, created_at as "createdAt"
+      SELECT id, email, name, role, status, created_at as "createdAt"
       FROM users
-      WHERE id = $1
+      WHERE id = $1 AND deleted_at IS NULL
     `;
 
     const result = await this.pool.query(query, [id]);
@@ -69,20 +69,22 @@ export class UserModerationService {
     suspended: boolean,
     reason?: string,
   ): Promise<User> {
+    const newStatus = suspended ? 'suspended' : 'active';
+
     this.logger.log(
-      `${suspended ? 'Suspending' : 'Unsuspending'} user ${userId} by admin ${adminId}`,
+      `Setting user ${userId} status to '${newStatus}' by admin ${adminId}`,
       'UserModerationService',
     );
 
-    // Update user suspension status
+    // Update user status using the schema's status column
     const query = `
       UPDATE users
-      SET suspended = $1
-      WHERE id = $2
-      RETURNING id, email, first_name as "firstName", last_name as "lastName", role, suspended, created_at as "createdAt"
+      SET status = $1
+      WHERE id = $2 AND deleted_at IS NULL
+      RETURNING id, email, name, role, status, created_at as "createdAt"
     `;
 
-    const result = await this.pool.query(query, [suspended, userId]);
+    const result = await this.pool.query(query, [newStatus, userId]);
 
     if (!result.rows[0]) {
       throw new NotFoundException('User not found');
@@ -103,11 +105,11 @@ export class UserModerationService {
       suspended ? 'suspend_user' : 'unsuspend_user',
       'user',
       userId,
-      { reason, suspended },
+      { reason, status: newStatus },
     );
 
     this.logger.log(
-      `User ${userId} ${suspended ? 'suspended' : 'unsuspended'} successfully`,
+      `User ${userId} status set to '${newStatus}' successfully`,
       'UserModerationService',
     );
 
@@ -118,9 +120,10 @@ export class UserModerationService {
     this.logger.log(`Searching users with query: ${query}`, 'UserModerationService');
 
     const sql = `
-      SELECT id, email, first_name as "firstName", last_name as "lastName", role, suspended, created_at as "createdAt"
+      SELECT id, email, name, role, status, created_at as "createdAt"
       FROM users
-      WHERE email ILIKE $1 OR first_name ILIKE $1 OR last_name ILIKE $1
+      WHERE deleted_at IS NULL
+        AND (email ILIKE $1 OR name ILIKE $1)
       ORDER BY created_at DESC
       LIMIT 50
     `;
