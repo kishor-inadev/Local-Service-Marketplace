@@ -32,7 +32,7 @@ export class ProviderController {
   constructor(
     private readonly providerService: ProviderService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+  ) { }
 
   @Post()
   @HttpCode(HttpStatus.CREATED)

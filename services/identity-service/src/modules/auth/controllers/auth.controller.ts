@@ -22,7 +22,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+  ) { }
 
   @Post('signup')
   async signup(
@@ -36,10 +36,10 @@ export class AuthController {
       ipAddress,
     });
     const result = await this.authService.signup(signupDto, ipAddress);
-    
+
     // Set tokens as HTTP-only cookies
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    
+
     return result;
   }
 
@@ -55,10 +55,10 @@ export class AuthController {
       ipAddress,
     });
     const result = await this.authService.login(loginDto, ipAddress);
-    
+
     // Set tokens as HTTP-only cookies
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    
+
     return result;
   }
 
@@ -69,10 +69,10 @@ export class AuthController {
   ): Promise<{ message: string }> {
     this.logger.info('POST /auth/logout', { context: 'AuthController' });
     await this.authService.logout(refreshTokenDto.refreshToken);
-    
+
     // Clear cookies
     this.clearAuthCookies(res);
-    
+
     return { message: 'Logged out successfully' };
   }
 
@@ -83,7 +83,7 @@ export class AuthController {
   ): Promise<{ accessToken: string }> {
     this.logger.info('POST /auth/refresh', { context: 'AuthController' });
     const result = await this.authService.refreshAccessToken(refreshTokenDto.refreshToken);
-    
+
     // Update access token cookie
     res.cookie('access_token', result.accessToken, {
       httpOnly: true,
@@ -91,7 +91,7 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: 15 * 60 * 1000, // 15 minutes
     });
-    
+
     return result;
   }
 
@@ -140,7 +140,7 @@ export class AuthController {
     @Ip() ipAddress: string,
   ): Promise<void> {
     const oauthUser = req.user as OAuthUserDto;
-    
+
     this.logger.info('Google OAuth callback', {
       context: 'AuthController',
       email: oauthUser.email,
@@ -152,7 +152,7 @@ export class AuthController {
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const redirectUrl = `${frontendUrl}/auth/callback?token=${authResponse.accessToken}&refresh=${authResponse.refreshToken}`;
-    
+
     res.redirect(redirectUrl);
   }
 
@@ -171,7 +171,7 @@ export class AuthController {
     @Ip() ipAddress: string,
   ): Promise<void> {
     const oauthUser = req.user as OAuthUserDto;
-    
+
     this.logger.info('Facebook OAuth callback', {
       context: 'AuthController',
       email: oauthUser.email,
@@ -183,7 +183,7 @@ export class AuthController {
     // Redirect to frontend with token
     const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
     const redirectUrl = `${frontendUrl}/auth/callback?token=${authResponse.accessToken}&refresh=${authResponse.refreshToken}`;
-    
+
     res.redirect(redirectUrl);
   }
 
@@ -207,10 +207,10 @@ export class AuthController {
       phoneLoginDto.password,
       ipAddress,
     );
-    
+
     // Set tokens as HTTP-only cookies
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    
+
     return result;
   }
 
@@ -241,10 +241,10 @@ export class AuthController {
       phoneOtpVerifyDto.code,
       ipAddress,
     );
-    
+
     // Set tokens as HTTP-only cookies
     this.setAuthCookies(res, result.accessToken, result.refreshToken);
-    
+
     return result;
   }
 
@@ -260,21 +260,21 @@ export class AuthController {
       context: 'AuthController',
       type: checkIdentifierDto.type,
     });
-    
+
     const exists = await this.authService.checkIdentifierExists(
       checkIdentifierDto.identifier,
       checkIdentifierDto.type,
     );
-    
+
     // Check if OTP service is available for this type
     const otpAvailable = this.authService.isOtpServiceAvailable(checkIdentifierDto.type);
-    
+
     // Determine available auth methods
     const availableMethods: ('password' | 'otp')[] = ['password']; // Password always available
     if (otpAvailable && exists) {
       availableMethods.push('otp'); // OTP only if service is enabled AND user exists
     }
-    
+
     return {
       exists,
       type: checkIdentifierDto.type,
@@ -294,7 +294,7 @@ export class AuthController {
   ): Promise<VerifyTokenResponseDto> {
     // Verify this request is from the API Gateway (internal only)
     const expectedSecret = process.env.GATEWAY_INTERNAL_SECRET || 'gateway-internal-secret-change-in-production';
-    
+
     if (gatewaySecret !== expectedSecret) {
       this.logger.warn('Unauthorized token verification attempt', {
         context: 'AuthController',
@@ -305,7 +305,7 @@ export class AuthController {
     this.logger.debug('POST /auth/verify - Gateway token verification', {
       context: 'AuthController',
     });
-    
+
     return this.authService.verifyTokenAndGetUserInfo(verifyTokenDto.token);
   }
 
@@ -315,7 +315,7 @@ export class AuthController {
 
   private setAuthCookies(res: Response, accessToken: string, refreshToken: string): void {
     const isProduction = process.env.NODE_ENV === 'production';
-    
+
     // Set access token cookie (15 minutes)
     res.cookie('access_token', accessToken, {
       httpOnly: true,

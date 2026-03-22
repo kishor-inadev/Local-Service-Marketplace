@@ -23,7 +23,7 @@ export class UserController {
   constructor(
     private readonly userService: UserService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+  ) { }
 
   /**
    * Get current user profile

@@ -23,7 +23,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 export class ProviderPortfolioController {
   constructor(
     private readonly portfolioService: ProviderPortfolioService
-  ) {}
+  ) { }
 
   @Post(':providerId')
   @UseInterceptors(FilesInterceptor('images', 10)) // Max 10 images

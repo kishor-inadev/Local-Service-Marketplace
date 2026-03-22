@@ -21,26 +21,23 @@ async function refreshAccessToken(token: any) {
 }
 
 export const authConfig: NextAuthConfig = {
-  providers: [
-    // Email + Password Login
-    Credentials({
-      id: "credentials",
-      name: "Email & Password",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" }
-      },
-      authorize: async (credentials) => {
-        try {
-          if (!credentials?.email || !credentials?.password) return null;
+	providers: [
+		// Email + Password Login
+		Credentials({
+			id: "credentials",
+			name: "Email & Password",
+			credentials: { email: { label: "Email", type: "email" }, password: { label: "Password", type: "password" } },
+			authorize: async (credentials) => {
+				try {
+					if (!credentials?.email || !credentials?.password) return null;
 
-          const auth = await serverAuthService.loginWithEmail(
+					const auth = await serverAuthService.loginWithEmail(
 						credentials.email as string,
 						credentials.password as string,
 					);
 					if (!auth?.user) return null;
 
-          return {
+					return {
 						id: auth.user.id,
 						email: auth.user.email,
 						name: auth.user.name || auth.user.email.split("@")[0],
@@ -50,32 +47,29 @@ export const authConfig: NextAuthConfig = {
 						accessToken: auth.accessToken,
 						refreshToken: auth.refreshToken,
 					};
-        } catch (error) {
-          console.error('Authentication error:', error);
-          return null;
-        }
-      }
-    }),
+				} catch (error) {
+					console.error("Authentication error:", error);
+					return null;
+				}
+			},
+		}),
 
-    // Phone + Password Login
-    Credentials({
-      id: "phone-password",
-      name: "Phone & Password",
-      credentials: {
-        phone: { label: "Phone", type: "tel" },
-        password: { label: "Password", type: "password" }
-      },
-      authorize: async (credentials) => {
-        try {
-          if (!credentials?.phone || !credentials?.password) return null;
+		// Phone + Password Login
+		Credentials({
+			id: "phone-password",
+			name: "Phone & Password",
+			credentials: { phone: { label: "Phone", type: "tel" }, password: { label: "Password", type: "password" } },
+			authorize: async (credentials) => {
+				try {
+					if (!credentials?.phone || !credentials?.password) return null;
 
-          const auth = await serverAuthService.loginWithPhone(
+					const auth = await serverAuthService.loginWithPhone(
 						credentials.phone as string,
 						credentials.password as string,
 					);
 					if (!auth?.user) return null;
 
-          return {
+					return {
 						id: auth.user.id,
 						email: auth.user.email,
 						name: auth.user.name || "User",
@@ -85,29 +79,26 @@ export const authConfig: NextAuthConfig = {
 						accessToken: auth.accessToken,
 						refreshToken: auth.refreshToken,
 					};
-        } catch (error) {
-          console.error('Phone authentication error:', error);
-          return null;
-        }
-      }
-    }),
+				} catch (error) {
+					console.error("Phone authentication error:", error);
+					return null;
+				}
+			},
+		}),
 
-    // Phone + OTP Login
-    Credentials({
-      id: "phone-otp",
-      name: "Phone & OTP",
-      credentials: {
-        phone: { label: "Phone", type: "tel" },
-        otp: { label: "OTP", type: "text" }
-      },
-      authorize: async (credentials) => {
-        try {
-          if (!credentials?.phone || !credentials?.otp) return null;
+		// Phone + OTP Login
+		Credentials({
+			id: "phone-otp",
+			name: "Phone & OTP",
+			credentials: { phone: { label: "Phone", type: "tel" }, otp: { label: "OTP", type: "text" } },
+			authorize: async (credentials) => {
+				try {
+					if (!credentials?.phone || !credentials?.otp) return null;
 
-          const auth = await serverAuthService.verifyPhoneOtp(credentials.phone as string, credentials.otp as string);
+					const auth = await serverAuthService.verifyPhoneOtp(credentials.phone as string, credentials.otp as string);
 					if (!auth?.user) return null;
 
-          return {
+					return {
 						id: auth.user.id,
 						email: auth.user.email,
 						name: auth.user.name || "User",
@@ -117,29 +108,26 @@ export const authConfig: NextAuthConfig = {
 						accessToken: auth.accessToken,
 						refreshToken: auth.refreshToken,
 					};
-        } catch (error) {
-          console.error('OTP authentication error:', error);
-          return null;
-        }
-      }
-    }),
+				} catch (error) {
+					console.error("OTP authentication error:", error);
+					return null;
+				}
+			},
+		}),
 
-    // Email + OTP Login
-    Credentials({
-      id: "email-otp",
-      name: "Email & OTP",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        otp: { label: "OTP", type: "text" }
-      },
-      authorize: async (credentials) => {
-        try {
-          if (!credentials?.email || !credentials?.otp) return null;
+		// Email + OTP Login
+		Credentials({
+			id: "email-otp",
+			name: "Email & OTP",
+			credentials: { email: { label: "Email", type: "email" }, otp: { label: "OTP", type: "text" } },
+			authorize: async (credentials) => {
+				try {
+					if (!credentials?.email || !credentials?.otp) return null;
 
-          const auth = await serverAuthService.verifyEmailOtp(credentials.email as string, credentials.otp as string);
+					const auth = await serverAuthService.verifyEmailOtp(credentials.email as string, credentials.otp as string);
 					if (!auth?.user) return null;
 
-          return {
+					return {
 						id: auth.user.id,
 						email: auth.user.email,
 						name: auth.user.name || auth.user.email.split("@")[0],
@@ -149,65 +137,65 @@ export const authConfig: NextAuthConfig = {
 						accessToken: auth.accessToken,
 						refreshToken: auth.refreshToken,
 					};
-        } catch (error) {
-          console.error('Email OTP authentication error:', error);
-          return null;
-        }
-      }
-    })
-  ],
-  session: {
-    strategy: "jwt",
-    maxAge: 7 * 24 * 60 * 60, // 7 days (matches refresh token)
-  },
-  callbacks: {
-    async jwt({ token, user, trigger, session }) {
-      // Initial sign in
-      if (user) {
-        return {
-          ...token,
-          id: user.id,
-          role: user.role,
-          emailVerified: typeof user.emailVerified === 'boolean' ? user.emailVerified : false,
-          accessToken: user.accessToken,
-          refreshToken: user.refreshToken,
-          accessTokenExpires: Date.now() + TOKEN_CONFIG.ACCESS_TOKEN_EXPIRATION,
-        };
-      }
+				} catch (error) {
+					console.error("Email OTP authentication error:", error);
+					return null;
+				}
+			},
+		}),
+	],
+	session: {
+		strategy: "jwt",
+		maxAge: 7 * 24 * 60 * 60, // 7 days (matches refresh token)
+	},
+	callbacks: {
+		async jwt({ token, user, trigger, session }) {
+			// Initial sign in
+			if (user) {
+				return {
+					...token,
+					id: user.id,
+					role: user.role,
+					emailVerified: typeof user.emailVerified === "boolean" ? user.emailVerified : false,
+					accessToken: user.accessToken,
+					refreshToken: user.refreshToken,
+					accessTokenExpires: Date.now() + TOKEN_CONFIG.ACCESS_TOKEN_EXPIRATION,
+				};
+			}
 
-      // Handle session updates (e.g., from client-side session.update())
-      if (trigger === "update" && session) {
-        return { ...token, ...session };
-      }
+			// Handle session updates (e.g., from client-side session.update())
+			if (trigger === "update" && session) {
+				return { ...token, ...session };
+			}
 
-      // Return previous token if the access token has not expired yet
-      if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
-        return token;
-      }
+			// Return previous token if the access token has not expired yet
+			if (token.accessTokenExpires && Date.now() < token.accessTokenExpires) {
+				return token;
+			}
 
-      // Access token has expired, try to refresh it
-      return refreshAccessToken(token);
-    },
-    async session({ session, token }) {
-      // Add custom fields to session
-      if (token && session.user) {
-        session.user.id = token.id || '';
-        session.user.role = token.role || 'customer';
-        // @ts-ignore - Type conflict with default emailVerified
-        session.user.emailVerified = Boolean(token.emailVerified);
-        session.accessToken = token.accessToken;
-        session.refreshToken = token.refreshToken;
-        session.accessTokenExpires = token.accessTokenExpires;
-        session.error = token.error;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-    error: "/error", // Custom error page for auth errors
-  },
-  trustHost: true, // For development
+			// Access token has expired, try to refresh it
+			return refreshAccessToken(token);
+		},
+		async session({ session, token }) {
+			// Add custom fields to session
+			if (token && session.user) {
+				session.user.id = token.id || "";
+				session.user.role = token.role || "customer";
+				// @ts-ignore - Type conflict with default emailVerified
+				session.user.emailVerified = Boolean(token.emailVerified);
+				session.accessToken = token.accessToken;
+				session.refreshToken = token.refreshToken;
+				session.accessTokenExpires = token.accessTokenExpires;
+				session.error = token.error;
+			}
+			return session;
+		},
+	},
+	pages: {
+		signIn: "/login",
+		// error: "/error", // Custom error page for auth errors
+	},
+	trustHost: true, // For development
 };
 
 export const { handlers, signIn, signOut, auth } = NextAuth(authConfig);

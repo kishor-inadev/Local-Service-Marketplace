@@ -23,7 +23,7 @@ import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 export class ProviderDocumentController {
   constructor(
     private readonly documentService: ProviderDocumentService
-  ) {}
+  ) { }
 
   @Post('upload/:providerId')
   @UseInterceptors(FileInterceptor('file'))

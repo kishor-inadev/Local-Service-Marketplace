@@ -19,6 +19,7 @@ import {
 } from "@/types/auth-alignment";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3500";
+console.log(API_URL);
 
 // Standardized API Response interface (mirrors api-client.ts)
 interface StandardResponse<T = any> {
@@ -31,7 +32,7 @@ interface StandardResponse<T = any> {
 
 function createServerClient(): AxiosInstance {
 	const client = axios.create({
-		baseURL: `${API_URL}/api/v1`,
+		baseURL: `${API_URL}`,
 		timeout: 30000,
 		headers: { "Content-Type": "application/json" },
 		withCredentials: true,
@@ -76,7 +77,7 @@ class ServerAuthService {
 
 	async loginWithPhone(phone: string, password: string): Promise<BackendAuthResponse | null> {
 		try {
-			const response = await serverClient.post<BackendAuthResponse>("/auth/phone/login", { phone, password });
+			const response = await serverClient.post<BackendAuthResponse>("/user/auth/phone/login", { phone, password });
 			const data = response.data;
 			if (!isValidBackendAuthResponse(data)) {
 				console.error("Invalid backend auth response", data);
@@ -91,7 +92,7 @@ class ServerAuthService {
 
 	async verifyPhoneOtp(phone: string, code: string): Promise<BackendAuthResponse | null> {
 		try {
-			const response = await serverClient.post<BackendAuthResponse>("/auth/phone/otp/verify", { phone, code });
+			const response = await serverClient.post<BackendAuthResponse>("/user/auth/phone/otp/verify", { phone, code });
 			const data = response.data;
 			if (!isValidBackendAuthResponse(data)) {
 				console.error("Invalid backend auth response", data);
@@ -106,7 +107,7 @@ class ServerAuthService {
 
 	async verifyEmailOtp(email: string, code: string): Promise<BackendAuthResponse | null> {
 		try {
-			const response = await serverClient.post<BackendAuthResponse>("/auth/email/otp/verify", { email, code });
+			const response = await serverClient.post<BackendAuthResponse>("/user/auth/email/otp/verify", { email, code });
 			const data = response.data;
 			if (!isValidBackendAuthResponse(data)) {
 				console.error("Invalid backend auth response", data);
