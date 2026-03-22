@@ -273,7 +273,7 @@ NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=<your-google-maps-key>
 Run the environment sync checker to validate all environment variables:
 
 ```powershell
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 ```
 
 This script checks:
@@ -287,7 +287,7 @@ This script checks:
 #### 1. Check docker.env and secrets.env are synchronized
 
 ```powershell
-.\verify-env-vars.ps1
+.\scripts\verify-env-vars.ps1
 ```
 
 #### 2. Verify docker-compose.yml service configurations
@@ -312,7 +312,7 @@ Get-ChildItem -Path services -Recurse -Filter .env.example
 1. **Copy environment files**:
    ```powershell
    # Copy all .env.example to .env
-   .\setup-env-files.ps1
+   .\scripts\setup-env-files.ps1
    ```
 
 2. **Update critical secrets**:
@@ -327,7 +327,7 @@ Get-ChildItem -Path services -Recurse -Filter .env.example
 
 4. **Verify configuration**:
    ```powershell
-   .\verify-env-sync.ps1
+   .\scripts\verify-env-sync.ps1
    ```
 
 ### For Docker Deployment
@@ -338,12 +338,12 @@ Get-ChildItem -Path services -Recurse -Filter .env.example
 
 2. **Verify synchronization**:
    ```powershell
-   .\verify-env-sync.ps1
+   .\scripts\verify-env-sync.ps1
    ```
 
 3. **Start services**:
    ```powershell
-   .\start.ps1
+   .\scripts\start.ps1
    # or
    docker-compose up -d
    ```
@@ -352,7 +352,7 @@ Get-ChildItem -Path services -Recurse -Filter .env.example
 
 1. **Generate secure secrets**:
    ```powershell
-   .\generate-production-secrets.ps1
+   .\scripts\generate-production-secrets.ps1
    ```
 
 2. **Update production-specific values**:
@@ -363,12 +363,12 @@ Get-ChildItem -Path services -Recurse -Filter .env.example
 
 3. **Apply secrets**:
    ```powershell
-   .\apply-secrets.ps1
+   .\scripts\apply-secrets.ps1
    ```
 
 4. **Final verification**:
    ```powershell
-   .\verify-env-sync.ps1
+   .\scripts\verify-env-sync.ps1
    ```
 
 ---
@@ -452,7 +452,7 @@ Follow these conventions when adding new environment variables:
 
 2. **Rotate secrets regularly**:
    ```powershell
-   .\generate-production-secrets.ps1
+   .\scripts\generate-production-secrets.ps1
    ```
 
 3. **Use different secrets for different environments**:
@@ -462,7 +462,7 @@ Follow these conventions when adding new environment variables:
 
 4. **Validate before deployment**:
    ```powershell
-   .\verify-env-sync.ps1
+   .\scripts\verify-env-sync.ps1
    ```
 
 5. **Use environment-specific values**:
@@ -519,7 +519,7 @@ Follow these conventions when adding new environment variables:
 - **Environment Variables Guide**: `docs/ENVIRONMENT_VARIABLES_GUIDE.md`
 - **Quick Start**: `docs/QUICK_START.md`
 - **Troubleshooting**: `docs/TROUBLESHOOTING.md`
-- **Verification Script**: `verify-env-sync.ps1`
+- **Verification Script**: `scripts/verify-env-sync.ps1`
 
 ---
 

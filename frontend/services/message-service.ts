@@ -56,7 +56,7 @@ class MessageService {
   }
 
   async getMessagesByJob(jobId: string): Promise<Message[]> {
-    const response = await apiClient.get(`/jobs/${jobId}/messages`);
+    const response = await apiClient.get(`/messages/jobs/${jobId}`);
     // API client unwraps standardized response
     const data: any = response.data;
     return data?.data || data || [];

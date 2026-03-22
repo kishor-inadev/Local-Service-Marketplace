@@ -32,7 +32,7 @@
 
 ```powershell
 # Run the secrets generator
-.\generate-production-secrets.ps1
+.\scripts\generate-production-secrets.ps1
 ```
 
 This creates:
@@ -147,7 +147,7 @@ services:
 
 1. **Generate New Secrets**
    ```powershell
-   .\generate-production-secrets.ps1
+   .\scripts\generate-production-secrets.ps1
    ```
 
 2. **Deploy New Secrets to Secrets Manager**
@@ -252,7 +252,7 @@ az monitor activity-log list \
 
 2. **Generate New Secrets**
    ```powershell
-   .\generate-production-secrets.ps1
+   .\scripts\generate-production-secrets.ps1
    ```
 
 3. **Deploy Emergency Update**
@@ -283,7 +283,7 @@ az monitor activity-log list \
 
 ```
 Local-Service-Marketplace/
-├── generate-production-secrets.ps1   # ✅ Commit this
+├── scripts/generate-production-secrets.ps1   # ✅ Commit this
 ├── secrets.env                        # ❌ NEVER commit
 ├── secrets.json                       # ❌ NEVER commit
 ├── .gitignore                         # ✅ Must exclude secrets
@@ -304,7 +304,7 @@ Local-Service-Marketplace/
 
 Before deploying to production:
 
-- [ ] All secrets generated using `generate-production-secrets.ps1`
+- [ ] All secrets generated using `scripts/generate-production-secrets.ps1`
 - [ ] Secrets stored in cloud secrets manager (AWS/Azure/GCP)
 - [ ] Stripe keys replaced with real production keys
 - [ ] Twilio token replaced with real production token

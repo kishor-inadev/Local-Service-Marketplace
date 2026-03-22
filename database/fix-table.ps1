@@ -42,7 +42,7 @@ try {
         Write-Host ""
         Write-Host "Success! Table created." -ForegroundColor Green
         Write-Host ""
-        Write-Host "Now run: .\run-seeder.ps1" -ForegroundColor Cyan
+        Write-Host "Now run: .\scripts\run-seeder.ps1" -ForegroundColor Cyan
     }
     else {
         Write-Host ""

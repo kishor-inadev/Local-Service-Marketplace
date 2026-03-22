@@ -308,7 +308,7 @@ Get-ChildItem -Path "docs" -Filter "*.md" -File | Measure-Object
 Get-ChildItem -Path "docs" -Filter "*.md" -Recurse | Select-Object FullName
 
 # Verify environment sync
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 ```
 
 ---
@@ -318,7 +318,7 @@ Get-ChildItem -Path "docs" -Filter "*.md" -Recurse | Select-Object FullName
 ### Recommended Actions:
 1. ✅ Review the new index: `docs/00_DOCUMENTATION_INDEX.md`
 2. ✅ Bookmark key documents for your role
-3. ✅ Run `.\verify-env-sync.ps1` to confirm environment setup
+3. ✅ Run `.\scripts\verify-env-sync.ps1` to confirm environment setup
 4. ✅ Follow the Quick Start guide if setting up for the first time
 
 ---

@@ -80,7 +80,7 @@ All 14 services use unique ports (no conflicts).
 
 ## Enhanced Verification Script
 
-**File**: `verify-env-sync.ps1`
+**File**: `scripts/verify-env-sync.ps1`
 
 ### New Features Added:
 1. **PostgreSQL vs MongoDB Service Detection**
@@ -280,7 +280,7 @@ KAFKA_BROKERS=localhost:9092
 3. ✅ `ENV_SYNC_REPORT.md` - Summary of synchronization work
 
 ### Scripts:
-1. ✅ `verify-env-sync.ps1` - Enhanced validation script
+1. ✅ `scripts/verify-env-sync.ps1` - Enhanced validation script
 
 ### Updated:
 1. ✅ `docker-compose.yml` - Added missing environment variables
@@ -294,28 +294,28 @@ KAFKA_BROKERS=localhost:9092
 ### For Development:
 ```powershell
 # 1. Create .env files from examples
-.\setup-env-files.ps1
+.\scripts\setup-env-files.ps1
 
 # 2. Verify configuration
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 
 # 3. Update service-specific credentials
 # Edit individual service .env files
 
 # 4. Start development
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 ### For Production:
 ```powershell
 # 1. Generate production secrets
-.\generate-production-secrets.ps1
+.\scripts\generate-production-secrets.ps1
 
 # 2. Update production credentials
 # Edit docker.env and secrets.env
 
 # 3. Verify before deployment
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 
 # 4. Deploy
 docker-compose up -d

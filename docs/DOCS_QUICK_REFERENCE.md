@@ -13,7 +13,7 @@
 ### 🚀 Getting Started
 - **[Startup Guide](deployment/STARTUP_GUIDE.md)** - How to start the platform
 - **[Testing Guide](TESTING_GUIDE.md)** - Verify all services work
-- **Run:** `.\start.ps1` then `.\verify-integration.ps1`
+- **Run:** `.\scripts\start.ps1` then `.\scripts\verify-integration.ps1`
 
 ### 🏗️ Architecture
 - **[Architecture Diagram](architecture/ARCHITECTURE_DIAGRAM.md)** - Visual system overview
@@ -64,17 +64,17 @@
 
 ### Start the Platform
 ```powershell
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 ### Verify Everything Works
 ```powershell
-.\verify-integration.ps1
+.\scripts\verify-integration.ps1
 ```
 
 ### Stop the Platform
 ```powershell
-.\stop.ps1
+.\scripts\stop.ps1
 ```
 
 ### View All Documentation

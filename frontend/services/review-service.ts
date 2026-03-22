@@ -45,7 +45,7 @@ export const createReview = async (data: CreateReviewData): Promise<Review> => {
  * Get reviews for a provider
  */
 export const getProviderReviews = async (providerId: string): Promise<ReviewWithDetails[]> => {
-  const response = await apiClient.get<ReviewWithDetails[]>(`/providers/${providerId}/reviews`);
+  const response = await apiClient.get<ReviewWithDetails[]>(`/reviews/provider/${providerId}`);
   // API client unwraps standardized response
   return response.data || [];
 };
@@ -62,7 +62,7 @@ export const getReview = async (reviewId: string): Promise<Review> => {
  * Get reviews for a job
  */
 export const getJobReview = async (jobId: string): Promise<Review | null> => {
-  const response = await apiClient.get<Review>(`/jobs/${jobId}/review`);
+  const response = await apiClient.get<Review>(`/reviews/jobs/${jobId}/review`);
   return response.data;
 };
 

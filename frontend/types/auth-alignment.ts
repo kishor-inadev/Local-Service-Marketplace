@@ -197,14 +197,14 @@ export const JWT_SECRETS = {
  * API Endpoints (must match backend routes)
  */
 export const AUTH_ENDPOINTS = {
-  SIGNUP: '/api/v1/auth/signup',
-  LOGIN: '/api/v1/auth/login',
-  LOGOUT: '/api/v1/auth/logout',
-  REFRESH: '/api/v1/auth/refresh',
-  VERIFY_EMAIL: '/api/v1/auth/verify-email',
-  REQUEST_PASSWORD_RESET: '/api/v1/auth/password-reset/request',
-  CONFIRM_PASSWORD_RESET: '/api/v1/auth/password-reset/confirm',
-  PROFILE: '/api/v1/auth/profile',
+  SIGNUP: '/api/v1/user/auth/signup',
+  LOGIN: '/api/v1/user/auth/login',
+  LOGOUT: '/api/v1/user/auth/logout',
+  REFRESH: '/api/v1/user/auth/refresh',
+  VERIFY_EMAIL: '/api/v1/user/auth/verify-email',
+  REQUEST_PASSWORD_RESET: '/api/v1/user/auth/password-reset/request',
+  CONFIRM_PASSWORD_RESET: '/api/v1/user/auth/password-reset/confirm',
+  PROFILE: '/api/v1/user/auth/profile',
 } as const;
 
 /**
@@ -311,7 +311,7 @@ export function safeTransformUser(backendUser: unknown) {
   }
 
   const user = backendUser as BackendAuthResponse['user'];
-  
+
   if (!user.id || !user.email || !user.role) {
     throw new Error('Missing required user fields');
   }

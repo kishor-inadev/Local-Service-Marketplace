@@ -44,7 +44,7 @@ class PaymentService {
   }
 
   async getPaymentsByJob(jobId: string): Promise<Payment[]> {
-    const response = await apiClient.get<Payment[]>(`/jobs/${jobId}/payments`);
+    const response = await apiClient.get<Payment[]>(`/payments/jobs/${jobId}`);
     // API client unwraps standardized response
     return response.data || [];
   }

@@ -152,7 +152,7 @@ Get-Content secrets.env | ForEach-Object {
 }
 
 # 3. Verify secrets loaded
-./verify-env.ps1
+./scripts/verify-env.ps1
 
 # 4. Restart services to pick up new secrets
 docker-compose down
@@ -171,7 +171,7 @@ docker exec -i marketplace-postgres psql -U postgres -d local_service_marketplac
   -c "SELECT COUNT(*) FROM information_schema.check_constraints WHERE constraint_schema='public';"
 
 # If count < 250, run migration:
-./run-critical-migration.ps1
+./scripts/run-critical-migration.ps1
 
 # Or manually:
 cat database/migrations/011_critical_production_fixes.sql | \
@@ -392,7 +392,7 @@ docker-compose logs postgres
 
 # Rollback and retry
 docker exec marketplace-postgres psql -U postgres -d local_service_marketplace -c "ROLLBACK;"
-./run-critical-migration.ps1
+./scripts/run-critical-migration.ps1
 ```
 
 ### Service Won't Start

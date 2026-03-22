@@ -4,7 +4,7 @@
 
 ### ✅ Step 1: Verify All Files Exist
 ```powershell
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 ```
 
 Expected output: All checks pass ✅
@@ -96,23 +96,23 @@ SMS_API_KEY=your-strong-secret
 
 ### Setup Environment Files
 ```powershell
-.\setup-env-files.ps1
+.\scripts\setup-env-files.ps1
 ```
 
 ### Verify Configuration
 ```powershell
-.\verify-env-sync.ps1
+.\scripts\verify-env-sync.ps1
 ```
 
 ### Generate Production Secrets
 ```powershell
-.\generate-production-secrets.ps1
+.\scripts\generate-production-secrets.ps1
 ```
 
 ### Start Services
 ```powershell
 # Development
-.\start.ps1
+.\scripts\start.ps1
 
 # Docker
 docker-compose up -d
@@ -172,14 +172,14 @@ docker-compose --profile email up -d
 
 ## Production Checklist
 
-- [ ] Generated strong secrets with `.\generate-production-secrets.ps1`
+- [ ] Generated strong secrets with `.\scripts\generate-production-secrets.ps1`
 - [ ] Updated JWT_SECRET everywhere (min 32 chars)
 - [ ] Updated GATEWAY_INTERNAL_SECRET everywhere
 - [ ] Set production DATABASE_PASSWORD
 - [ ] Configured Stripe live keys (`sk_live_`, `pk_live_`)
 - [ ] Set production SMTP credentials
 - [ ] Updated OAuth callback URLs to production domain
-- [ ] Verified with `.\verify-env-sync.ps1`
+- [ ] Verified with `.\scripts\verify-env-sync.ps1`
 - [ ] Set NODE_ENV=production in docker.env
 - [ ] Disabled unnecessary services (analytics, messaging if not needed)
 

@@ -271,7 +271,7 @@ Historical and deprecated documentation (for reference only):
 → **[deployment/STARTUP_GUIDE.md](deployment/STARTUP_GUIDE.md)** or **[QUICK_START.md](QUICK_START.md)**
 
 ### "How do I test if everything works?"
-→ **[TESTING_GUIDE.md](TESTING_GUIDE.md)** + Run `.\verify-integration.ps1`
+→ **[TESTING_GUIDE.md](TESTING_GUIDE.md)** + Run `.\scripts\verify-integration.ps1`
 
 ### "What's the overall platform status?"
 → **[INTEGRATION_STATUS_REPORT.md](INTEGRATION_STATUS_REPORT.md)** ⭐ **MASTER REPORT**
@@ -283,7 +283,7 @@ Historical and deprecated documentation (for reference only):
 → **[guides/EMAIL_SMS_INTEGRATION_GUIDE.md](guides/EMAIL_SMS_INTEGRATION_GUIDE.md)**
 
 ### "How do I populate the database with sample data?"
-→ **[DATABASE_SEEDING.md](DATABASE_SEEDING.md)** + Run `.\seed-database.ps1`
+→ **[DATABASE_SEEDING.md](DATABASE_SEEDING.md)** + Run `.\scripts\seed-database.ps1`
 
 ### "How do I enable real-time chat?"
 → **[guides/WEBSOCKET_IMPLEMENTATION.md](guides/WEBSOCKET_IMPLEMENTATION.md)**
@@ -366,11 +366,11 @@ Historical and deprecated documentation (for reference only):
 
 ### Scripts
 
-- **Startup:** `../start.ps1`
-- **Shutdown:** `../stop.ps1`
-- **Verification:** `../verify-integration.ps1`
-- **Docker Optimization:** `../optimize-docker-images.ps1`
-- **Backup Management:** `../cleanup-backups.ps1`
+- **Startup:** `../scripts/start.ps1`
+- **Shutdown:** `../scripts/stop.ps1`
+- **Verification:** `../scripts/verify-integration.ps1`
+- **Docker Optimization:** `../scripts/optimize-docker-images.ps1`
+- **Backup Management:** `../scripts/cleanup-backups.ps1`
 
 ---
 
@@ -379,7 +379,7 @@ Historical and deprecated documentation (for reference only):
 ### Beginner (Day 1)
 1. Read [README.md](../README.md)
 2. Follow [deployment/STARTUP_GUIDE.md](deployment/STARTUP_GUIDE.md)
-3. Run `.\start.ps1` and `.\verify-integration.ps1`
+3. Run `.\scripts\start.ps1` and `.\scripts\verify-integration.ps1`
 4. Browse [architecture/ARCHITECTURE_DIAGRAM.md](architecture/ARCHITECTURE_DIAGRAM.md)
 
 ### Intermediate (Week 1)
@@ -404,7 +404,7 @@ Historical and deprecated documentation (for reference only):
 → Check [deployment/STARTUP_GUIDE.md](deployment/STARTUP_GUIDE.md) troubleshooting section or [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
 **API errors?**
-→ Run `.\verify-integration.ps1` and check service logs
+→ Run `.\scripts\verify-integration.ps1` and check service logs
 
 **Need to scale?**
 → See [deployment/SCALING_STRATEGY.md](deployment/SCALING_STRATEGY.md) for deployment modes

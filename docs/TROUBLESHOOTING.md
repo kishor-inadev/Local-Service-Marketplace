@@ -32,7 +32,7 @@ docker --version
 # (Open Docker Desktop app)
 
 # 3. Wait for Docker to be ready, then:
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 ---
@@ -78,7 +78,7 @@ taskkill /PID <PID> /F
 # Change: "3500:3000" to "3501:3000"
 
 # 4. Restart services
-.\start.ps1
+.\scripts\start.ps1
 ```
 
 ---
@@ -282,8 +282,8 @@ CREATE DATABASE marketplace;
 \q
 
 # 6. Restart all services
-.\stop.ps1
-.\start.ps1
+.\scripts\stop.ps1
+.\scripts\start.ps1
 ```
 
 ---

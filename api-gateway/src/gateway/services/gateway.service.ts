@@ -15,7 +15,7 @@ export class GatewayService {
     private readonly httpService: HttpService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   /**
    * Forward request to appropriate microservice
@@ -29,7 +29,6 @@ export class GatewayService {
     user?: any,
   ): Promise<AxiosResponse> {
     try {
-      // Determine which service to route to
       const serviceName = this.getServiceName(path);
       const serviceConfig = servicesConfig[serviceName];
 
@@ -42,11 +41,16 @@ export class GatewayService {
       }
 
       // Strip /api/v1 prefix if present (microservices don't have this prefix)
-      const cleanPath = path.startsWith('/api/v1') 
-        ? path.replace('/api/v1', '') 
+      const cleanPath = path.startsWith('/api/v1')
+        ? path.replace('/api/v1', '')
         : path;
 
-      const targetUrl = `${serviceConfig.url}${cleanPath}`;
+      // Apply optional path prefix strip (e.g. /user/auth/* → /auth/*)
+      const rewrittenPath = serviceConfig.stripPrefix
+        ? cleanPath.replace(serviceConfig.stripPrefix, '')
+        : cleanPath;
+
+      const targetUrl = `${serviceConfig.url}${rewrittenPath}`;
 
       this.logger.log(
         `Forwarding ${method} ${path} to ${serviceConfig.name} (${targetUrl})`,
@@ -113,8 +117,8 @@ export class GatewayService {
    */
   private getServiceName(path: string): string {
     // Strip /api/v1 prefix if present (added by global prefix in main.ts)
-    const cleanPath = path.startsWith('/api/v1') 
-      ? path.replace('/api/v1', '') 
+    const cleanPath = path.startsWith('/api/v1')
+      ? path.replace('/api/v1', '')
       : path;
 
     for (const [route, service] of Object.entries(routingConfig)) {
@@ -153,7 +157,7 @@ export class GatewayService {
       sanitized['x-user-id'] = user.userId || user.sub || user.id || '';
       sanitized['x-user-email'] = user.email || '';
       sanitized['x-user-role'] = user.role || 'user';
-      
+
       // Optional: Add other user fields if present
       if (user.name) {
         sanitized['x-user-name'] = user.name;
