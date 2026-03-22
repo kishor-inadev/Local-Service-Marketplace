@@ -85,12 +85,12 @@ services:
       retries: 5
 
   # Microservices
-  auth-service:
+  identity-service:
     build:
-      context: ./services/auth-service
+      context: ./services/identity-service
       dockerfile: Dockerfile
-    image: lsmp-auth-service:latest
-    container_name: auth-service
+    image: lsmp-identity-service:latest
+    container_name: identity-service
     restart: unless-stopped
     ports:
       - "3001:3001"
@@ -105,13 +105,20 @@ services:
       - DATABASE_NAME=marketplace
       - REDIS_URL=redis://redis:6379
       - JWT_SECRET=${JWT_SECRET}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET}
+      - JWT_EXPIRES_IN=15m
+      - JWT_REFRESH_EXPIRATION=7d
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - FACEBOOK_APP_ID=${FACEBOOK_APP_ID:-}
+      - FACEBOOK_APP_SECRET=${FACEBOOK_APP_SECRET:-}
+      - NOTIFICATION_SERVICE_URL=http://comms-service:3007
       - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
       - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - JWT_EXPIRES_IN=7d
       - CACHE_ENABLED=${CACHE_ENABLED:-false}
       - DB_POOL_MAX=${DB_POOL_MAX:-30}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
+    depends_on: [postgres, redis]
     networks:
       - marketplace-network
     # healthcheck:
@@ -121,137 +128,37 @@ services:
       # retries: 3
       # start_period: 40s
 
-  user-service:
+  marketplace-service:
     build:
-      context: ./services/user-service
+      context: ./services/marketplace-service
       dockerfile: Dockerfile
-    image: lsmp-user-service:latest
-    container_name: user-service
-    restart: unless-stopped
-    ports:
-      - "3002:3002"
-    environment:
-      - NODE_ENV=production
-      - PORT=3002
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=marketplace
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
-      - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - CACHE_ENABLED=${CACHE_ENABLED:-false}
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
-    networks:
-      - marketplace-network
-    # healthcheck:
-      # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3002/health"]
-      # interval: 30s
-      # timeout: 10s
-      # retries: 3
-      # start_period: 40s
-
-  request-service:
-    build:
-      context: ./services/request-service
-      dockerfile: Dockerfile
-    image: lsmp-request-service:latest
-    container_name: request-service
+    image: lsmp-marketplace-service:latest
+    container_name: marketplace-service
     restart: unless-stopped
     ports:
       - "3003:3003"
     environment:
       - NODE_ENV=production
       - PORT=3003
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${DATABASE_PASSWORD:-postgres_dev_only}@postgres:5432/marketplace
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres_dev_only}
       - DATABASE_NAME=marketplace
       - REDIS_URL=redis://redis:6379
+      - USER_SERVICE_URL=http://identity-service:3001
+      - NOTIFICATION_SERVICE_URL=http://comms-service:3007
       - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
       - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
       - CACHE_ENABLED=${CACHE_ENABLED:-false}
       - DB_POOL_MAX=${DB_POOL_MAX:-30}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
+    depends_on: [postgres, redis]
     networks:
       - marketplace-network
     # healthcheck:
       # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3003/health"]
-      # interval: 30s
-      # timeout: 10s
-      # retries: 3
-      # start_period: 40s
-
-  proposal-service:
-    build:
-      context: ./services/proposal-service
-      dockerfile: Dockerfile
-    image: lsmp-proposal-service:latest
-    container_name: proposal-service
-    restart: unless-stopped
-    ports:
-      - "3004:3004"
-    environment:
-      - NODE_ENV=production
-      - PORT=3004
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=marketplace
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
-      - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - CACHE_ENABLED=${CACHE_ENABLED:-false}
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
-    networks:
-      - marketplace-network
-    # healthcheck:
-      # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3004/health"]
-      # interval: 30s
-      # timeout: 10s
-      # retries: 3
-      # start_period: 40s
-
-  job-service:
-    build:
-      context: ./services/job-service
-      dockerfile: Dockerfile
-    image: lsmp-job-service:latest
-    container_name: job-service
-    restart: unless-stopped
-    ports:
-      - "3005:3005"
-    environment:
-      - NODE_ENV=production
-      - PORT=3005
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=marketplace
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
-      - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - CACHE_ENABLED=${CACHE_ENABLED:-false}
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
-    networks:
-      - marketplace-network
-    # healthcheck:
-      # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3005/health"]
       # interval: 30s
       # timeout: 10s
       # retries: 3
@@ -292,34 +199,39 @@ services:
       # retries: 3
       # start_period: 40s
 
-  messaging-service:
+  comms-service:
     build:
-      context: ./services/messaging-service
+      context: ./services/comms-service
       dockerfile: Dockerfile
-    image: lsmp-messaging-service:latest
-    container_name: messaging-service
+    image: lsmp-comms-service:latest
+    container_name: comms-service
     restart: unless-stopped
-    profiles:
-      - messaging
-      - full
     ports:
       - "3007:3007"
     environment:
       - NODE_ENV=production
       - PORT=3007
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${DATABASE_PASSWORD:-postgres_dev_only}@postgres:5432/marketplace
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres_dev_only}
       - DATABASE_NAME=marketplace
       - REDIS_URL=redis://redis:6379
       - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
       - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
       - CACHE_ENABLED=${CACHE_ENABLED:-false}
+      - WORKERS_ENABLED=${WORKERS_ENABLED:-false}
+      - EMAIL_SERVICE_URL=http://email-service:3500
+      - EMAIL_ENABLED=${EMAIL_ENABLED:-true}
+      - SMS_SERVICE_URL=http://sms-service:3000
+      - SMS_ENABLED=${SMS_ENABLED:-false}
+      - SMS_API_KEY=${SMS_API_KEY:-}
+      - IN_APP_NOTIFICATIONS_ENABLED=${IN_APP_NOTIFICATIONS_ENABLED:-false}
+      - PUSH_NOTIFICATIONS_ENABLED=${PUSH_NOTIFICATIONS_ENABLED:-false}
       - DB_POOL_MAX=${DB_POOL_MAX:-30}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
+    depends_on: [postgres, redis]
     networks:
       - marketplace-network
     # healthcheck:
@@ -329,108 +241,28 @@ services:
       # retries: 3
       # start_period: 40s
 
-  notification-service:
+  oversight-service:
     build:
-      context: ./services/notification-service
+      context: ./services/oversight-service
       dockerfile: Dockerfile
-    image: lsmp-notification-service:latest
-    container_name: notification-service
-    restart: unless-stopped
-    ports:
-      - "3008:3008"
-    environment:
-      - NODE_ENV=production
-      - PORT=3008
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=marketplace
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
-      - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - CACHE_ENABLED=${CACHE_ENABLED:-false}
-      - WORKERS_ENABLED=${WORKERS_ENABLED:-false}
-      # Notification Channels
-      - EMAIL_SERVICE_URL=http://email-service:3500
-      - EMAIL_ENABLED=${EMAIL_ENABLED:-true}
-      - SMS_SERVICE_URL=http://sms-service:3000
-      - SMS_ENABLED=${SMS_ENABLED:-false}
-      - SMS_API_KEY=${SMS_API_KEY:-change-me-to-a-strong-random-secret}
-      # Feature Flags - Disable for MVP
-      - IN_APP_NOTIFICATIONS_ENABLED=${IN_APP_NOTIFICATIONS_ENABLED:-false}
-      - PUSH_NOTIFICATIONS_ENABLED=${PUSH_NOTIFICATIONS_ENABLED:-false}
-      - NOTIFICATION_PREFERENCES_ENABLED=${NOTIFICATION_PREFERENCES_ENABLED:-false}
-      - DEVICE_TRACKING_ENABLED=${DEVICE_TRACKING_ENABLED:-false}
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
-    networks:
-      - marketplace-network
-    # healthcheck:
-      # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3008/health"]
-      # interval: 30s
-      # timeout: 10s
-      # retries: 3
-      # start_period: 40s
-
-  review-service:
-    build:
-      context: ./services/review-service
-      dockerfile: Dockerfile
-    image: lsmp-review-service:latest
-    container_name: review-service
-    restart: unless-stopped
-    ports:
-      - "3009:3009"
-    environment:
-      - NODE_ENV=production
-      - PORT=3009
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=marketplace
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
-      - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - CACHE_ENABLED=${CACHE_ENABLED:-false}
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
-    networks:
-      - marketplace-network
-    # healthcheck:
-      # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3009/health"]
-      # interval: 30s
-      # timeout: 10s
-      # retries: 3
-      # start_period: 40s
-
-  admin-service:
-    build:
-      context: ./services/admin-service
-      dockerfile: Dockerfile
-    image: lsmp-admin-service:latest
-    container_name: admin-service
+    image: lsmp-oversight-service:latest
+    container_name: oversight-service
     restart: unless-stopped
     ports:
       - "3010:3010"
     environment:
       - NODE_ENV=production
       - PORT=3010
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${DATABASE_PASSWORD:-postgres_dev_only}@postgres:5432/marketplace
       - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD:-postgres_dev_only}
       - DATABASE_NAME=marketplace
-      - REDIS_URL=redis://redis:6379
+      - AUTH_SERVICE_URL=http://identity-service:3001
       - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
       - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - CACHE_ENABLED=${CACHE_ENABLED:-false}
+      - ANALYTICS_ENABLED=${ANALYTICS_ENABLED:-false}
       - DB_POOL_MAX=${DB_POOL_MAX:-30}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
     depends_on: [postgres]
@@ -438,44 +270,6 @@ services:
       - marketplace-network
     # healthcheck:
       # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3010/health"]
-      # interval: 30s
-      # timeout: 10s
-      # retries: 3
-      # start_period: 40s
-
-  analytics-service:
-    build:
-      context: ./services/analytics-service
-      dockerfile: Dockerfile
-    image: lsmp-analytics-service:latest
-    container_name: analytics-service
-    restart: unless-stopped
-    profiles:
-      - analytics
-      - full
-    ports:
-      - "3011:3011"
-    environment:
-      - NODE_ENV=production
-      - PORT=3011
-      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/marketplace
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres
-      - DATABASE_NAME=marketplace
-      - REDIS_URL=redis://redis:6379
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
-      - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
-      - CACHE_ENABLED=${CACHE_ENABLED:-false}
-      - ANALYTICS_ENABLED=${ANALYTICS_ENABLED:-true}
-      - DB_POOL_MAX=${DB_POOL_MAX:-30}
-      - DB_POOL_MIN=${DB_POOL_MIN:-5}
-    depends_on: [postgres]
-    networks:
-      - marketplace-network
-    # healthcheck:
-      # test: ["CMD", "wget", "--spider", "-q", "http://localhost:3011/health"]
       # interval: 30s
       # timeout: 10s
       # retries: 3
@@ -674,17 +468,17 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - JWT_SECRET=${JWT_SECRET}
-      - AUTH_SERVICE_URL=http://auth-service:3001
-      - USER_SERVICE_URL=http://user-service:3002
-      - REQUEST_SERVICE_URL=http://request-service:3003
-      - PROPOSAL_SERVICE_URL=http://proposal-service:3004
-      - JOB_SERVICE_URL=http://job-service:3005
+      - AUTH_SERVICE_URL=http://identity-service:3001
+      - USER_SERVICE_URL=http://identity-service:3001
+      - REQUEST_SERVICE_URL=http://marketplace-service:3003
+      - PROPOSAL_SERVICE_URL=http://marketplace-service:3003
+      - JOB_SERVICE_URL=http://marketplace-service:3003
       - PAYMENT_SERVICE_URL=http://payment-service:3006
-      - MESSAGING_SERVICE_URL=http://messaging-service:3007
-      - NOTIFICATION_SERVICE_URL=http://notification-service:3008
-      - REVIEW_SERVICE_URL=http://review-service:3009
-      - ADMIN_SERVICE_URL=http://admin-service:3010
-      - ANALYTICS_SERVICE_URL=http://analytics-service:3011
+      - MESSAGING_SERVICE_URL=http://comms-service:3007
+      - NOTIFICATION_SERVICE_URL=http://comms-service:3007
+      - REVIEW_SERVICE_URL=http://marketplace-service:3003
+      - ADMIN_SERVICE_URL=http://oversight-service:3010
+      - ANALYTICS_SERVICE_URL=http://oversight-service:3010
       - INFRASTRUCTURE_SERVICE_URL=http://infrastructure-service:3012
       - EMAIL_SERVICE_URL=http://email-service:3500
       - SMS_SERVICE_URL=http://sms-service:3000
@@ -694,16 +488,12 @@ services:
       - ANALYTICS_ENABLED=${ANALYTICS_ENABLED:-false}
       - INFRASTRUCTURE_ENABLED=${INFRASTRUCTURE_ENABLED:-false}
     depends_on:
-      - auth-service
-      - user-service
-      - request-service
-      - proposal-service
-      - job-service
+      - identity-service
+      - marketplace-service
       - payment-service
-      - notification-service
-      - review-service
-      - admin-service
-      # Optional services (messaging, analytics, infrastructure) removed from depends_on
+      - comms-service
+      - oversight-service
+      # Optional services (infrastructure) removed from depends_on
       # They will start independently if their profiles are enabled
     networks:
       - marketplace-network
