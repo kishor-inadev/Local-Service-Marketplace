@@ -1,48 +1,61 @@
 export const servicesConfig = {
-	auth: { url: process.env.AUTH_SERVICE_URL || "http://localhost:3001", name: "identity-service", stripPrefix: "/user" },
-	user: { url: process.env.USER_SERVICE_URL || "http://localhost:3001", name: "identity-service" },
-	request: { url: process.env.REQUEST_SERVICE_URL || "http://localhost:3003", name: "marketplace-service" },
-	proposal: { url: process.env.PROPOSAL_SERVICE_URL || "http://localhost:3003", name: "marketplace-service" },
-	job: { url: process.env.JOB_SERVICE_URL || "http://localhost:3003", name: "marketplace-service" },
-	payment: { url: process.env.PAYMENT_SERVICE_URL || "http://localhost:3006", name: "payment-service" },
-	messaging: { url: process.env.MESSAGING_SERVICE_URL || "http://localhost:3007", name: "comms-service" },
-	notification: { url: process.env.NOTIFICATION_SERVICE_URL || "http://localhost:3007", name: "comms-service" },
-	review: { url: process.env.REVIEW_SERVICE_URL || "http://localhost:3003", name: "marketplace-service" },
-	admin: { url: process.env.ADMIN_SERVICE_URL || "http://localhost:3010", name: "oversight-service" },
-	analytics: { url: process.env.ANALYTICS_SERVICE_URL || "http://localhost:3010", name: "oversight-service" },
-	infrastructure: {
+	"identity-service": {
+		url: process.env.IDENTITY_SERVICE_URL || process.env.AUTH_SERVICE_URL || "http://localhost:3001",
+		name: "identity-service",
+		stripPrefix: "/user",
+	},
+	"marketplace-service": {
+		url: process.env.MARKETPLACE_SERVICE_URL || process.env.REQUEST_SERVICE_URL || "http://localhost:3003",
+		name: "marketplace-service",
+	},
+	"payment-service": { url: process.env.PAYMENT_SERVICE_URL || "http://localhost:3006", name: "payment-service" },
+	"comms-service": {
+		url: process.env.COMMS_SERVICE_URL || process.env.MESSAGING_SERVICE_URL || "http://localhost:3007",
+		name: "comms-service",
+	},
+	"oversight-service": {
+		url: process.env.OVERSIGHT_SERVICE_URL || process.env.ADMIN_SERVICE_URL || "http://localhost:3010",
+		name: "oversight-service",
+	},
+	"infrastructure-service": {
 		url: process.env.INFRASTRUCTURE_SERVICE_URL || "http://localhost:3012",
 		name: "infrastructure-service",
 	},
 };
 
 export const routingConfig = {
-	"/user/auth": "auth",
-	"/users": "user",
-	"/providers": "user",
-	"/provider-documents": "user",
-	"/provider-portfolio": "user",
-	"/favorites": "user",
-	"/requests": "request",
-	"/categories": "request",
-	"/service-categories": "request",
-	"/proposals": "proposal",
-	"/jobs": "job",
-	"/payments": "payment",
-	"/payment-methods": "payment",
-	"/subscriptions": "payment",
-	"/pricing-plans": "payment",
-	"/messages": "messaging",
-	"/notifications": "notification",
-	"/notification-preferences": "notification",
-	"/reviews": "review",
-	"/review-aggregates": "review",
-	"/admin": "admin",
-	"/analytics": "analytics",
-	"/events": "infrastructure",
-	"/background-jobs": "infrastructure",
-	"/rate-limits": "infrastructure",
-	"/feature-flags": "infrastructure",
+	// identity-service (auth + user + providers)
+	"/user/auth": "identity-service",
+	"/users": "identity-service",
+	"/providers": "identity-service",
+	"/provider-documents": "identity-service",
+	"/provider-portfolio": "identity-service",
+	"/favorites": "identity-service",
+	// marketplace-service (requests + proposals + jobs + reviews)
+	"/requests": "marketplace-service",
+	"/categories": "marketplace-service",
+	"/service-categories": "marketplace-service",
+	"/proposals": "marketplace-service",
+	"/jobs": "marketplace-service",
+	"/reviews": "marketplace-service",
+	"/review-aggregates": "marketplace-service",
+	// payment-service
+	"/payments": "payment-service",
+	"/payment-methods": "payment-service",
+	"/subscriptions": "payment-service",
+	"/pricing-plans": "payment-service",
+	// comms-service (messaging + notifications)
+	"/messages": "comms-service",
+	"/notifications": "comms-service",
+	"/notification-preferences": "comms-service",
+	// oversight-service (admin + analytics)
+	"/admin": "oversight-service",
+	"/analytics": "oversight-service",
+	// infrastructure-service
+	"/events": "infrastructure-service",
+	"/background-jobs": "infrastructure-service",
+	"/rate-limits": "infrastructure-service",
+	"/feature-flags": "infrastructure-service",
 };
 
 /**
