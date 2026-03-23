@@ -86,7 +86,7 @@ export default function RequestDetailPage() {
     );
   }
 
-  const isOwner = user?.id === request.customer_id;
+  const isOwner = user?.id === request.user_id;
 
   return (
     <Layout>

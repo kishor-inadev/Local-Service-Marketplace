@@ -56,7 +56,7 @@ class AuthService {
 	async login(data: LoginData): Promise<{ ok: boolean; error?: string }> {
 		const result = await nextAuthSignIn("credentials", { email: data.email, password: data.password, redirect: false });
 
-		return { ok: result?.ok || false, error: result?.error };
+		return { ok: result?.ok || false, error: result?.error ?? undefined };
 	}
 
 	/**

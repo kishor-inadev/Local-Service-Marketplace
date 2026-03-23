@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { Suspense, useEffect, useState } from "react";
 import Link from 'next/link';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/Button';
@@ -170,131 +170,137 @@ const ACTION_CONFIGS = {
 };
 
 export default function AuthErrorPage() {
-  const searchParams = useSearchParams();
-  const router = useRouter();
-  const [isResending, setIsResending] = useState(false);
-  
-  // Get error type from URL query parameter
-  const errorType = (searchParams.get('error') || 'Default') as ErrorType;
-  const config = ERROR_CONFIGS[errorType] || ERROR_CONFIGS.Default;
-  
-  const Icon = config.icon;
+	return (
+		<Suspense
+			fallback={
+				<div className='min-h-screen flex items-center justify-center'>
+					<div className='animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900'></div>
+				</div>
+			}>
+			<AuthErrorContent />
+		</Suspense>
+	);
+}
 
-  // Handle resend verification email
-  const handleResendVerification = async () => {
-    setIsResending(true);
-    try {
-      // TODO: Implement resend verification email API call
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
-      });
-      
-      if (response.ok) {
-        alert('Verification email sent! Please check your inbox.');
-      } else {
-        alert('Failed to send verification email. Please try again.');
-      }
-    } catch (error) {
-      console.error('Resend verification error:', error);
-      alert('An error occurred. Please try again later.');
-    } finally {
-      setIsResending(false);
-    }
-  };
+function AuthErrorContent() {
+	const searchParams = useSearchParams();
+	const router = useRouter();
+	const [isResending, setIsResending] = useState(false);
 
-  // Render action button
-  const renderActionButton = (actionKey: string, index: number) => {
-    const action = ACTION_CONFIGS[actionKey as keyof typeof ACTION_CONFIGS];
-    if (!action) return null;
+	// Get error type from URL query parameter
+	const errorType = (searchParams.get("error") || "Default") as ErrorType;
+	const config = ERROR_CONFIGS[errorType] || ERROR_CONFIGS.Default;
 
-    // Handle custom actions (like resend)
-    if ('action' in action && action.action === 'resend') {
-      return (
-        <Button
-          key={actionKey}
-          onClick={handleResendVerification}
-          variant={action.variant}
-          disabled={isResending}
-          className="w-full sm:w-auto"
-        >
-          {isResending ? (
-            <>
-              <RefreshCw className="h-5 w-5 mr-2 animate-spin" />
-              Sending...
-            </>
-          ) : (
-            action.label
-          )}
-        </Button>
-      );
-    }
+	const Icon = config.icon;
 
-    // Regular link buttons
-    if ('href' in action) {
-      return (
-        <Link key={actionKey} href={action.href} className="w-full sm:w-auto">
-          <Button variant={action.variant} className="w-full">
-            {action.label}
-          </Button>
-        </Link>
-      );
-    }
+	// Handle resend verification email
+	const handleResendVerification = async () => {
+		setIsResending(true);
+		try {
+			// TODO: Implement resend verification email API call
+			const response = await fetch("/api/auth/resend-verification", { method: "POST" });
 
-    return null;
-  };
+			if (response.ok) {
+				alert("Verification email sent! Please check your inbox.");
+			} else {
+				alert("Failed to send verification email. Please try again.");
+			}
+		} catch (error) {
+			console.error("Resend verification error:", error);
+			alert("An error occurred. Please try again later.");
+		} finally {
+			setIsResending(false);
+		}
+	};
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full">
-        {/* Error Card */}
-        <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          {/* Icon Section */}
-          <div className={`${config.bgColor} px-6 py-8 text-center`}>
-            <div className="flex justify-center mb-4">
-              <div className={`rounded-full bg-white p-4 shadow-lg`}>
-                <Icon className={`h-12 w-12 ${config.color}`} />
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-gray-900 mb-2">
-              {config.title}
-            </h1>
-            <p className="text-gray-600 text-sm leading-relaxed">
-              {config.message}
-            </p>
-          </div>
+	// Render action button
+	const renderActionButton = (actionKey: string, index: number) => {
+		const action = ACTION_CONFIGS[actionKey as keyof typeof ACTION_CONFIGS];
+		if (!action) return null;
 
-          {/* Actions Section */}
-          <div className="px-6 py-6 bg-gray-50">
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {config.actions.map((actionKey, index) =>
-                renderActionButton(actionKey, index)
-              )}
-            </div>
-          </div>
+		// Handle custom actions (like resend)
+		if ("action" in action && action.action === "resend") {
+			return (
+				<Button
+					key={actionKey}
+					onClick={handleResendVerification}
+					variant={action.variant}
+					disabled={isResending}
+					className='w-full sm:w-auto'>
+					{isResending ?
+						<>
+							<RefreshCw className='h-5 w-5 mr-2 animate-spin' />
+							Sending...
+						</>
+					:	action.label}
+				</Button>
+			);
+		}
 
-          {/* Additional Help */}
-          <div className="px-6 py-4 bg-white border-t border-gray-100">
-            <p className="text-center text-sm text-gray-500">
-              Need help?{' '}
-              <Link
-                href="/contact"
-                className="text-blue-600 hover:text-blue-700 font-medium underline-offset-2 hover:underline"
-              >
-                Contact support
-              </Link>
-            </p>
-          </div>
-        </div>
+		// Regular link buttons
+		if ("href" in action) {
+			return (
+				<Link
+					key={actionKey}
+					href={action.href}
+					className='w-full sm:w-auto'>
+					<Button
+						variant={action.variant}
+						className='w-full'>
+						{action.label}
+					</Button>
+				</Link>
+			);
+		}
 
-        {/* Debug Info (only in development) */}
-        {process.env.NODE_ENV === 'development' && (
-          <div className="mt-4 p-4 bg-gray-900 text-gray-100 rounded-lg text-xs font-mono">
-            <p className="font-bold mb-2">Debug Info:</p>
-            <p>Error Type: {errorType}</p>
-            <p>All Params: {searchParams.toString()}</p>
-          </div>
-        )}
-      </div>
-    </div>
-  );
+		return null;
+	};
+
+	return (
+		<div className='min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50 px-4 sm:px-6 lg:px-8'>
+			<div className='max-w-md w-full'>
+				{/* Error Card */}
+				<div className='bg-white rounded-2xl shadow-xl overflow-hidden'>
+					{/* Icon Section */}
+					<div className={`${config.bgColor} px-6 py-8 text-center`}>
+						<div className='flex justify-center mb-4'>
+							<div className={`rounded-full bg-white p-4 shadow-lg`}>
+								<Icon className={`h-12 w-12 ${config.color}`} />
+							</div>
+						</div>
+						<h1 className='text-2xl font-bold text-gray-900 mb-2'>{config.title}</h1>
+						<p className='text-gray-600 text-sm leading-relaxed'>{config.message}</p>
+					</div>
+
+					{/* Actions Section */}
+					<div className='px-6 py-6 bg-gray-50'>
+						<div className='flex flex-col sm:flex-row gap-3 justify-center'>
+							{config.actions.map((actionKey, index) => renderActionButton(actionKey, index))}
+						</div>
+					</div>
+
+					{/* Additional Help */}
+					<div className='px-6 py-4 bg-white border-t border-gray-100'>
+						<p className='text-center text-sm text-gray-500'>
+							Need help?{" "}
+							<Link
+								href='/contact'
+								className='text-blue-600 hover:text-blue-700 font-medium underline-offset-2 hover:underline'>
+								Contact support
+							</Link>
+						</p>
+					</div>
+				</div>
+
+				{/* Debug Info (only in development) */}
+				{process.env.NODE_ENV === "development" && (
+					<div className='mt-4 p-4 bg-gray-900 text-gray-100 rounded-lg text-xs font-mono'>
+						<p className='font-bold mb-2'>Debug Info:</p>
+						<p>Error Type: {errorType}</p>
+						<p>All Params: {searchParams.toString()}</p>
+					</div>
+				)}
+			</div>
+		</div>
+	);
 }
