@@ -31,6 +31,7 @@ COPY . .
 # Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
+ENV DOCKER_BUILD true
 
 # Build the application
 RUN pnpm run build
