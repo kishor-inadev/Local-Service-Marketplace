@@ -15,13 +15,13 @@ interface OtpVerifyResponse {
 }
 
 /**
- * SmsClient - HTTP client for sending SMS via notification-service
- * 
- * This client calls the notification-service, which routes to sms-service.
+ * SmsClient - HTTP client for sending SMS via comms-service
+ *
+ * This client calls the comms-service, which routes to sms-service.
  * This architecture centralizes notification management without requiring
  * Redis/Kafka or other event infrastructure.
- * 
- * Flow: auth-service → notification-service → sms-service
+ *
+ * Flow: identity-service → comms-service → sms-service
  */
 @Injectable()
 export class SmsClient {
@@ -63,7 +63,7 @@ export class SmsClient {
     }
 
     try {
-      this.logger.log(`Sending OTP to ${phone} via notification-service (purpose: ${purpose})`);
+      this.logger.log(`Sending OTP to ${phone} via comms-service (purpose: ${purpose})`);
       
       const response = await this.client.post<OtpSendResponse>('/notifications/otp/send', {
         phone,
@@ -89,7 +89,7 @@ export class SmsClient {
     }
 
     try {
-      this.logger.log(`Verifying OTP for ${phone} via notification-service`);
+      this.logger.log(`Verifying OTP for ${phone} via comms-service`);
       
       const response = await this.client.post<OtpVerifyResponse>('/notifications/otp/verify', {
         phone,
