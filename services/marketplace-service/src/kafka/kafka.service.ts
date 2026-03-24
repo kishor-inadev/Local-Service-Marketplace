@@ -17,7 +17,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     
     if (this.isEnabled) {
       const brokers = process.env.KAFKA_BROKERS?.split(',') || ['kafka:29092'];
-      const clientId = process.env.KAFKA_CLIENT_ID || 'request-service';
+      const clientId = process.env.KAFKA_CLIENT_ID || "marketplace-service";
 
       this.kafka = new Kafka({
         clientId,

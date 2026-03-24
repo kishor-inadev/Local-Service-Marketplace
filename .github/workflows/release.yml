@@ -1,0 +1,142 @@
+name: Release – Auto Tag & Production Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: release-main
+  cancel-in-progress: false
+
+jobs:
+  # ─────────────────────────────────────────────
+  # 1. Auto-generate semantic version tag
+  #    Reads commit messages (Conventional Commits):
+  #      feat:           → minor bump  (1.x.0)
+  #      fix: / chore:   → patch bump  (1.0.x)
+  #      BREAKING CHANGE → major bump  (x.0.0)
+  #    Falls back to patch if no pattern matches.
+  # ─────────────────────────────────────────────
+  auto-tag:
+    name: Auto – Generate Version Tag
+    runs-on: ubuntu-latest
+    outputs:
+      new-tag: ${{ steps.tag.outputs.new_tag }}
+      changelog: ${{ steps.tag.outputs.changelog }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # full history needed to find last tag
+
+      - name: Bump version and push tag
+        id: tag
+        uses: mathieudutour/github-tag-action@v6.2
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          default_bump: patch
+          release_branches: main
+          tag_prefix: v
+          # Conventional commit prefixes
+          major_string_token: "BREAKING CHANGE,major:"
+          minor_string_token: "feat:"
+          patch_string_token: "fix:,chore:,refactor:,perf:,style:,docs:,test:,build:,ci:"
+
+      - name: Create GitHub Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.tag.outputs.new_tag }}
+          release_name: Release ${{ steps.tag.outputs.new_tag }}
+          body: ${{ steps.tag.outputs.changelog }}
+          draft: false
+          prerelease: false
+
+  # ─────────────────────────────────────────────
+  # 2. Deploy Frontend → Vercel Production
+  # ─────────────────────────────────────────────
+  vercel-production:
+    name: Vercel – Production Deploy
+    runs-on: ubuntu-latest
+    needs: [auto-tag]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 8
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Pull Vercel project settings
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Build for Vercel (production)
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+      - name: Deploy to Vercel (production)
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        working-directory: frontend
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+
+  # ─────────────────────────────────────────────
+  # 3. Deploy Backend Services → Render
+  #    Each service has its own deploy hook URL
+  #    stored as a GitHub secret.
+  # ─────────────────────────────────────────────
+  render-deploy:
+    name: Render – Deploy (${{ matrix.service }})
+    runs-on: ubuntu-latest
+    needs: [auto-tag]
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: identity-service
+            secret: RENDER_DEPLOY_HOOK_IDENTITY
+          - service: marketplace-service
+            secret: RENDER_DEPLOY_HOOK_MARKETPLACE
+          - service: payment-service
+            secret: RENDER_DEPLOY_HOOK_PAYMENT
+          - service: comms-service
+            secret: RENDER_DEPLOY_HOOK_COMMS
+          - service: oversight-service
+            secret: RENDER_DEPLOY_HOOK_OVERSIGHT
+          - service: infrastructure-service
+            secret: RENDER_DEPLOY_HOOK_INFRASTRUCTURE
+          - service: api-gateway
+            secret: RENDER_DEPLOY_HOOK_API_GATEWAY
+    steps:
+      - name: Trigger Render deploy for ${{ matrix.service }}
+        env:
+          DEPLOY_HOOK_URL: ${{ secrets[matrix.secret] }}
+        run: |
+          if [ -z "$DEPLOY_HOOK_URL" ]; then
+            echo "⚠️  No deploy hook configured for ${{ matrix.service }} (secret: ${{ matrix.secret }}). Skipping."
+            exit 0
+          fi
+          echo "🚀 Triggering deploy for ${{ matrix.service }}..."
+          HTTP_STATUS=$(curl -s -o /tmp/render_response.txt -w "%{http_code}" \
+            -X POST "$DEPLOY_HOOK_URL")
+          cat /tmp/render_response.txt
+          if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
+            echo "✅ Deploy triggered successfully (HTTP $HTTP_STATUS)"
+          else
+            echo "❌ Deploy hook failed (HTTP $HTTP_STATUS)"
+            exit 1
+          fi

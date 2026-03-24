@@ -17,7 +17,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     
     if (this.isEnabled) {
       const brokers = process.env.KAFKA_BROKERS?.split(',') || ['kafka:29092'];
-      const clientId = process.env.KAFKA_CLIENT_ID || 'notification-service';
+      const clientId = process.env.KAFKA_CLIENT_ID || "comms-service";
 
       this.kafka = new Kafka({
         clientId,
@@ -29,7 +29,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       });
 
       this.producer = this.kafka.producer();
-      this.consumer = this.kafka.consumer({ groupId: 'notification-service-group' });
+      this.consumer = this.kafka.consumer({ groupId: "comms-service-group" });
     }
   }
 

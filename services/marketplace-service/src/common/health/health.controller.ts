@@ -5,10 +5,10 @@ export class HealthController {
   @Get()
   check() {
     return {
-      status: 'ok',
-      service: 'request-service',
-      timestamp: new Date().toISOString(),
-      uptime: process.uptime(),
-    };
+			status: "ok",
+			service: "marketplace-service",
+			timestamp: new Date().toISOString(),
+			uptime: process.uptime(),
+		};
   }
 }
