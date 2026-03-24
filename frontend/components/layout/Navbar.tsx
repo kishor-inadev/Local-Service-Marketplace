@@ -2,8 +2,8 @@
 
 import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { usePathname } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 import { useNotifications } from '@/hooks/useNotifications';
 import { isNotificationsEnabled, isMessagingEnabled } from '@/config/features';
 import { ROUTES } from '@/config/constants';
@@ -14,8 +14,7 @@ import { useState } from 'react';
 
 export function Navbar() {
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, isAuthenticated, logout } = useAuthStore();
+  const { user, isAuthenticated, isLoading, logout } = useAuth();
   // Only fetch notifications when user is authenticated
   const { unreadCount } = useNotifications({ enabled: isAuthenticated });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -24,7 +23,6 @@ export function Navbar() {
 
   const handleLogout = async () => {
     await logout();
-    router.push(ROUTES.LOGIN);
   };
 
   // Close user menu when clicking outside

@@ -1,6 +1,6 @@
 import { useOptimisticMutation } from './useOptimisticMutation';
 import { favoriteService } from '@/services/favorite-service';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from "@/hooks/useAuth";
 
 interface ToggleFavoriteVariables {
   providerId: string;
@@ -12,7 +12,7 @@ interface ToggleFavoriteVariables {
  * Immediately updates UI, rollback on error
  */
 export function useFavoriteToggle() {
-  const { user } = useAuthStore();
+  const { user } = useAuth();
 
   return useOptimisticMutation<void, ToggleFavoriteVariables>({
     queryKey: ['favorites', user?.id],

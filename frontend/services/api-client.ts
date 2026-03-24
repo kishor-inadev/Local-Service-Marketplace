@@ -4,6 +4,19 @@ import toast from 'react-hot-toast';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
 
+// Deduplicate concurrent getSession() calls: all requests that fire at the same
+// time share a single in-flight session fetch instead of triggering N refreshes.
+let _sessionPromise: Promise<Awaited<ReturnType<typeof getSession>>> | null = null;
+
+function getSessionOnce() {
+  if (!_sessionPromise) {
+    _sessionPromise = getSession().finally(() => {
+      _sessionPromise = null;
+    });
+  }
+  return _sessionPromise;
+}
+
 // Standardized API Response interface
 interface StandardResponse<T = any> {
   success: boolean;
@@ -51,21 +64,16 @@ class ApiClient {
   private setupInterceptors() {
     // Request interceptor - add Authorization header from NextAuth session
     this.client.interceptors.request.use(
-      async (config) => {
-        // Get the current session
-        const session = await getSession();
-        
-        // Add Authorization header with token from session
-        if (session?.accessToken && config.headers) {
-          config.headers.Authorization = `Bearer ${session.accessToken}`;
-        }
-        
-        return config;
-      },
-      (error) => {
-        return Promise.reject(error);
-      },
-    );
+			async (config) => {
+				// Get the current session (deduplicating concurrent calls)
+				const session = await getSessionOnce();
+				if (session?.accessToken && config.headers) {
+					config.headers.Authorization = `Bearer ${session.accessToken}`;
+				}
+				return config;
+			},
+			(error) => Promise.reject(error),
+		);
 
     // Response interceptor - unwrap standardized response and handle errors
     this.client.interceptors.response.use(
@@ -104,15 +112,15 @@ class ApiClient {
         // Note: Token refresh is handled automatically by NextAuth
         // If we get a 401, the session is invalid or refresh failed
         if (error.response?.status === 401) {
-          // Check if session has expired
-          const session = await getSession();
-          
-          if (!session || session.error === "RefreshAccessTokenError") {
-            // Session is invalid or refresh failed
-            // The useAuth hook will handle logout via useEffect
-            console.error('Session expired or invalid');
-          }
-        }
+					// Check if session has expired (reuse in-flight session fetch)
+					const session = await getSessionOnce();
+
+					if (!session || session.error === "RefreshAccessTokenError") {
+						// Session is invalid or refresh failed
+						// The useAuth hook will handle logout via useEffect
+						console.error("Session expired or invalid");
+					}
+				}
 
         this.handleError(error);
         return Promise.reject(error);

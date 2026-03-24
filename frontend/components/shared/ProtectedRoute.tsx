@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from '@/config/constants';
 import { Loading } from '@/components/ui/Loading';
 
@@ -20,7 +20,7 @@ export function ProtectedRoute({
   redirectTo = ROUTES.LOGIN,
 }: ProtectedRouteProps) {
   const router = useRouter();
-  const { isAuthenticated, user, isLoading } = useAuthStore();
+  const { isAuthenticated, user, isLoading } = useAuth();
   const [isAuthorized, setIsAuthorized] = useState(false);
 
   useEffect(() => {

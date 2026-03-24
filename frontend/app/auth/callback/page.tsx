@@ -2,7 +2,7 @@
 
 import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuthStore } from '@/store/authStore';
+import { signIn } from "next-auth/react";
 import { ROUTES } from '@/config/constants';
 import { Loading } from '@/components/ui/Loading';
 import toast from 'react-hot-toast';
@@ -10,48 +10,43 @@ import toast from 'react-hot-toast';
 function CallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { setToken, checkAuth } = useAuthStore();
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const handleCallback = async () => {
-      try {
-        // Get token from URL parameters
-        const token = searchParams.get('token');
-        const refreshToken = searchParams.get('refresh');
+		const handleCallback = async () => {
+			try {
+				// Get token from URL parameters
+				const token = searchParams.get("token");
+				const refreshToken = searchParams.get("refresh");
 
-        if (!token) {
-          setError('No authentication token received');
-          toast.error('Authentication failed. Please try again.');
-          setTimeout(() => router.push(ROUTES.LOGIN), 2000);
-          return;
-        }
+				if (!token) {
+					setError("No authentication token received");
+					toast.error("Authentication failed. Please try again.");
+					setTimeout(() => router.push(ROUTES.LOGIN), 2000);
+					return;
+				}
 
-        // Store access token
-        setToken(token);
-        
-        // Store refresh token if provided
-        if (refreshToken) {
-          localStorage.setItem('refreshToken', refreshToken);
-        }
+				// Create a NextAuth session from the backend-issued OAuth tokens
+				const result = await signIn("oauth-token", { token, refreshToken: refreshToken || "", redirect: false });
 
-        // Fetch user profile
-        await checkAuth();
+				if (result?.error) {
+					throw new Error("Failed to create session. Please try again.");
+				}
 
-        toast.success('Login successful!');
-        
-        // Redirect to dashboard
-        router.push(ROUTES.DASHBOARD);
-      } catch (error: any) {
-        console.error('OAuth callback error:', error);
-        setError(error.message || 'Authentication failed');
-        toast.error('Authentication failed. Please try again.');
-        setTimeout(() => router.push(ROUTES.LOGIN), 2000);
-      }
-    };
+				toast.success("Login successful!");
 
-    handleCallback();
-  }, [searchParams, router, setToken, checkAuth]);
+				// Redirect to dashboard
+				router.push(ROUTES.DASHBOARD);
+			} catch (error: any) {
+				console.error("OAuth callback error:", error);
+				setError(error.message || "Authentication failed");
+				toast.error("Authentication failed. Please try again.");
+				setTimeout(() => router.push(ROUTES.LOGIN), 2000);
+			}
+		};
+
+		handleCallback();
+	}, [searchParams, router]);
 
   if (error) {
     return (

@@ -6,6 +6,10 @@ import { serverAuthService } from "@/services/server-auth-service";
 
 async function refreshAccessToken(token: any) {
 	try {
+		if (!token?.refreshToken) {
+			console.error("No refresh token available");
+			return { ...token, error: "RefreshAccessTokenError" as const };
+		}
 		const data = await serverAuthService.refreshToken(token.refreshToken);
 		if (!data) throw new Error("Token refresh failed");
 
@@ -27,10 +31,7 @@ export const authOptions = {
 		CredentialsProvider({
 			id: "credentials",
 			name: "Email & Password",
-			credentials: {
-				email: { label: "Email", type: "email" },
-				password: { label: "Password", type: "password" },
-			},
+			credentials: { email: { label: "Email", type: "email" }, password: { label: "Password", type: "password" } },
 			async authorize(credentials) {
 				try {
 					if (!credentials?.email || !credentials?.password) return null;
@@ -62,10 +63,7 @@ export const authOptions = {
 		CredentialsProvider({
 			id: "phone-password",
 			name: "Phone & Password",
-			credentials: {
-				phone: { label: "Phone", type: "tel" },
-				password: { label: "Password", type: "password" },
-			},
+			credentials: { phone: { label: "Phone", type: "tel" }, password: { label: "Password", type: "password" } },
 			async authorize(credentials) {
 				try {
 					if (!credentials?.phone || !credentials?.password) return null;
@@ -97,18 +95,12 @@ export const authOptions = {
 		CredentialsProvider({
 			id: "phone-otp",
 			name: "Phone & OTP",
-			credentials: {
-				phone: { label: "Phone", type: "tel" },
-				otp: { label: "OTP", type: "text" },
-			},
+			credentials: { phone: { label: "Phone", type: "tel" }, otp: { label: "OTP", type: "text" } },
 			async authorize(credentials) {
 				try {
 					if (!credentials?.phone || !credentials?.otp) return null;
 
-					const auth = await serverAuthService.verifyPhoneOtp(
-						credentials.phone as string,
-						credentials.otp as string,
-					);
+					const auth = await serverAuthService.verifyPhoneOtp(credentials.phone as string, credentials.otp as string);
 					if (!auth?.user) return null;
 
 					return {
@@ -132,18 +124,12 @@ export const authOptions = {
 		CredentialsProvider({
 			id: "email-otp",
 			name: "Email & OTP",
-			credentials: {
-				email: { label: "Email", type: "email" },
-				otp: { label: "OTP", type: "text" },
-			},
+			credentials: { email: { label: "Email", type: "email" }, otp: { label: "OTP", type: "text" } },
 			async authorize(credentials) {
 				try {
 					if (!credentials?.email || !credentials?.otp) return null;
 
-					const auth = await serverAuthService.verifyEmailOtp(
-						credentials.email as string,
-						credentials.otp as string,
-					);
+					const auth = await serverAuthService.verifyEmailOtp(credentials.email as string, credentials.otp as string);
 					if (!auth?.user) return null;
 
 					return {
@@ -162,6 +148,39 @@ export const authOptions = {
 				}
 			},
 		}),
+
+		// OAuth Token — used by /auth/callback when backend completes social login
+		// and redirects with token+refresh in query params
+		CredentialsProvider({
+			id: "oauth-token",
+			name: "OAuth Token",
+			credentials: {
+				token: { label: "Access Token", type: "text" },
+				refreshToken: { label: "Refresh Token", type: "text" },
+			},
+			async authorize(credentials) {
+				try {
+					if (!credentials?.token) return null;
+
+					const user = await serverAuthService.getProfileFromToken(credentials.token as string);
+					if (!user) return null;
+
+					return {
+						id: user.id,
+						email: user.email,
+						name: user.name || user.email.split("@")[0],
+						role: user.role,
+						emailVerified: user.email_verified,
+						image: user.profile_picture_url || null,
+						accessToken: credentials.token as string,
+						refreshToken: (credentials.refreshToken as string) || "",
+					};
+				} catch (error) {
+					console.error("OAuth token authentication error:", error);
+					return null;
+				}
+			},
+		}),
 	],
 	session: {
 		strategy: "jwt",
@@ -174,6 +193,9 @@ export const authOptions = {
 				return {
 					...token,
 					id: user.id,
+					email: user.email,
+					name: user.name,
+					image: user.image,
 					role: user.role,
 					emailVerified: typeof user.emailVerified === "boolean" ? user.emailVerified : false,
 					accessToken: user.accessToken,
@@ -199,6 +221,9 @@ export const authOptions = {
 			// Add custom fields to session
 			if (token && session.user) {
 				session.user.id = token.id || "";
+				session.user.email = token.email || session.user.email;
+				session.user.name = token.name || session.user.name;
+				session.user.image = token.image || session.user.image;
 				session.user.role = token.role || "customer";
 				session.user.emailVerified = Boolean(token.emailVerified);
 				session.accessToken = token.accessToken;
@@ -209,9 +234,6 @@ export const authOptions = {
 			return session;
 		},
 	},
-	pages: {
-		signIn: "/login",
-		error: "/error",
-	},
+	pages: { signIn: "/login", error: "/error" },
 	secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
 };

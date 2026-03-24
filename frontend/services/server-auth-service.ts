@@ -134,6 +134,18 @@ class ServerAuthService {
 			return null;
 		}
 	}
+
+	async getProfileFromToken(accessToken: string): Promise<BackendAuthResponse["user"] | null> {
+		try {
+			const response = await serverClient.get<BackendAuthResponse["user"]>(AUTH_ENDPOINTS.PROFILE, {
+				headers: { Authorization: `Bearer ${accessToken}` },
+			});
+			return response.data;
+		} catch (error) {
+			console.error("Get profile from token failed:", (error as AxiosError)?.response?.status);
+			return null;
+		}
+	}
 }
 
 export const serverAuthService = new ServerAuthService();

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Layout } from '@/components/layout/Layout';
 import Link from 'next/link';
-import { useAuthStore } from '@/store/authStore';
+import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from '@/config/constants';
 import { 
   User, 
@@ -20,7 +20,7 @@ import {
 import { Button } from '@/components/ui/Button';
 
 export default function ProfilePage() {
-  const { user, isAuthenticated } = useAuthStore();
+  const { user, isAuthenticated } = useAuth();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
