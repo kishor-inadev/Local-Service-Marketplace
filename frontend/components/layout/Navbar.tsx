@@ -262,21 +262,54 @@ export function Navbar() {
 									className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
 									Dashboard
 								</Link>
-								<Link
-									href={ROUTES.PROVIDERS}
-									className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
-									Providers
-								</Link>
-								<Link
-									href={ROUTES.DASHBOARD_REQUESTS}
-									className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
-									Requests
-								</Link>
-								<Link
-									href={ROUTES.DASHBOARD_JOBS}
-									className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
-									Jobs
-								</Link>
+								{/* Provider-only mobile links */}
+								{user?.role === "provider" && (
+									<>
+										<Link
+											href={ROUTES.DASHBOARD_BROWSE_REQUESTS}
+											className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+											Browse Requests
+										</Link>
+										<Link
+											href={ROUTES.DASHBOARD_MY_PROPOSALS}
+											className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+											My Proposals
+										</Link>
+										<Link
+											href={ROUTES.DASHBOARD_EARNINGS}
+											className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+											Earnings
+										</Link>
+									</>
+								)}
+								{/* Customer-only mobile links */}
+								{user?.role === "customer" && (
+									<>
+										<Link
+											href={ROUTES.DASHBOARD_REQUESTS}
+											className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+											Requests
+										</Link>
+										<Link
+											href={ROUTES.DASHBOARD_JOBS}
+											className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+											Jobs
+										</Link>
+										<Link
+											href={ROUTES.DASHBOARD_FAVORITES}
+											className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+											Favorites
+										</Link>
+									</>
+								)}
+								{/* Admin-only mobile link */}
+								{user?.role === "admin" && (
+									<Link
+										href={ROUTES.DASHBOARD_ADMIN}
+										className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+										Admin
+									</Link>
+								)}
 								{isMessagingEnabled() && (
 									<Link
 										href={ROUTES.DASHBOARD_MESSAGES}
