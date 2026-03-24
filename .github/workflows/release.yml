@@ -1,4 +1,4 @@
-name: Release – Auto Tag & Production Deploy
+﻿name: Release - Auto Tag & Production Deploy
 
 on:
   push:
@@ -9,16 +9,8 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # ─────────────────────────────────────────────
-  # 1. Auto-generate semantic version tag
-  #    Reads commit messages (Conventional Commits):
-  #      feat:           → minor bump  (1.x.0)
-  #      fix: / chore:   → patch bump  (1.0.x)
-  #      BREAKING CHANGE → major bump  (x.0.0)
-  #    Falls back to patch if no pattern matches.
-  # ─────────────────────────────────────────────
   auto-tag:
-    name: Auto – Generate Version Tag
+    name: Auto - Generate Version Tag
     runs-on: ubuntu-latest
     outputs:
       new-tag: ${{ steps.tag.outputs.new_tag }}
@@ -26,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # full history needed to find last tag
+          fetch-depth: 0
 
       - name: Bump version and push tag
         id: tag
@@ -36,7 +28,6 @@ jobs:
           default_bump: patch
           release_branches: main
           tag_prefix: v
-          # Conventional commit prefixes
           major_string_token: "BREAKING CHANGE,major:"
           minor_string_token: "feat:"
           patch_string_token: "fix:,chore:,refactor:,perf:,style:,docs:,test:,build:,ci:"
@@ -52,11 +43,8 @@ jobs:
           draft: false
           prerelease: false
 
-  # ─────────────────────────────────────────────
-  # 2. Deploy Frontend → Vercel Production
-  # ─────────────────────────────────────────────
   vercel-production:
-    name: Vercel – Production Deploy
+    name: Vercel - Production Deploy
     runs-on: ubuntu-latest
     needs: [auto-tag]
     steps:
@@ -94,13 +82,8 @@ jobs:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-  # ─────────────────────────────────────────────
-  # 3. Deploy Backend Services → Render
-  #    Each service has its own deploy hook URL
-  #    stored as a GitHub secret.
-  # ─────────────────────────────────────────────
   render-deploy:
-    name: Render – Deploy (${{ matrix.service }})
+    name: "Render - Deploy (${{ matrix.service }})"
     runs-on: ubuntu-latest
     needs: [auto-tag]
     strategy:
@@ -127,16 +110,16 @@ jobs:
           DEPLOY_HOOK_URL: ${{ secrets[matrix.secret] }}
         run: |
           if [ -z "$DEPLOY_HOOK_URL" ]; then
-            echo "⚠️  No deploy hook configured for ${{ matrix.service }} (secret: ${{ matrix.secret }}). Skipping."
+            echo "No deploy hook configured for ${{ matrix.service }} (secret: ${{ matrix.secret }}). Skipping."
             exit 0
           fi
-          echo "🚀 Triggering deploy for ${{ matrix.service }}..."
+          echo "Triggering deploy for ${{ matrix.service }}..."
           HTTP_STATUS=$(curl -s -o /tmp/render_response.txt -w "%{http_code}" \
             -X POST "$DEPLOY_HOOK_URL")
           cat /tmp/render_response.txt
           if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 300 ]; then
-            echo "✅ Deploy triggered successfully (HTTP $HTTP_STATUS)"
+            echo "Deploy triggered successfully (HTTP $HTTP_STATUS)"
           else
-            echo "❌ Deploy hook failed (HTTP $HTTP_STATUS)"
+            echo "Deploy hook failed (HTTP $HTTP_STATUS)"
             exit 1
           fi
