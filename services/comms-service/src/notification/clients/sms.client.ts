@@ -86,10 +86,7 @@ export class SmsClient {
     try {
       this.logger.log(`Requesting OTP for phone ${phone} (purpose: ${purpose})`, 'SmsClient');
 
-      const response = await this.httpClient.post('/otp/send', {
-        phone,
-        purpose,
-      });
+      const response = await this.httpClient.post("/sms/send-otp", { phone, purpose });
 
       this.logger.log(`OTP sent successfully to ${phone}`, 'SmsClient');
       return response.data;
@@ -119,11 +116,7 @@ export class SmsClient {
     try {
       this.logger.log(`Verifying OTP for phone ${phone} (purpose: ${purpose})`, 'SmsClient');
 
-      const response = await this.httpClient.post('/otp/verify', {
-        phone,
-        code,
-        purpose,
-      });
+      const response = await this.httpClient.post("/sms/verify-otp", { phone, code, purpose });
 
       this.logger.log(`OTP verification result for ${phone}: ${response.data.valid}`, 'SmsClient');
       return response.data;

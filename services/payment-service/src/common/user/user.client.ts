@@ -18,10 +18,7 @@ export class UserClient {
   private readonly enabled: boolean;
 
   constructor(private configService: ConfigService) {
-    this.userServiceUrl = this.configService.get<string>(
-      'USER_SERVICE_URL',
-      'http://user-service:3002',
-    );
+    this.userServiceUrl = this.configService.get<string>("USER_SERVICE_URL", "http://identity-service:3001");
     this.enabled = this.configService.get<boolean>('USER_SERVICE_ENABLED', true);
 
     this.httpClient = axios.create({

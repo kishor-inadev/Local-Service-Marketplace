@@ -13,7 +13,7 @@ export class EmailClient {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
     private readonly configService: ConfigService,
   ) {
-    this.emailServiceUrl = this.configService.get<string>('EMAIL_SERVICE_URL', 'http://email-service:3000');
+    this.emailServiceUrl = this.configService.get<string>("EMAIL_SERVICE_URL", "http://email-service:3500");
     this.emailEnabled = this.configService.get<string>('EMAIL_ENABLED', 'true') === 'true';
 
     this.httpClient = axios.create({
@@ -46,14 +46,14 @@ export class EmailClient {
     try {
       this.logger.log(`Sending email to ${options.to}`, 'EmailClient');
 
-      const response = await this.httpClient.post('/send', {
-        to: options.to,
-        subject: options.subject,
-        text: options.text,
-        html: options.html,
-        template: options.template,
-        variables: options.variables,
-      });
+      const response = await this.httpClient.post("/send-email", {
+				to: options.to,
+				subject: options.subject,
+				text: options.text,
+				html: options.html,
+				template: options.template,
+				variables: options.variables,
+			});
 
       this.logger.log(`Email sent successfully to ${options.to}`, 'EmailClient');
       return { success: true, messageId: response.data?.messageId };
@@ -80,11 +80,7 @@ export class EmailClient {
     try {
       this.logger.log(`Sending template email (${template}) to ${to}`, 'EmailClient');
 
-      const response = await this.httpClient.post('/send', {
-        to,
-        template,
-        variables,
-      });
+      const response = await this.httpClient.post("/send-email", { to, template, variables });
 
       this.logger.log(`Template email sent successfully to ${to}`, 'EmailClient');
       return { success: true, messageId: response.data?.messageId };

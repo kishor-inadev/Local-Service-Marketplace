@@ -144,6 +144,7 @@ CREATE TABLE providers (
   verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'verified', 'rejected')),
   certifications JSONB,
   created_at TIMESTAMP DEFAULT now() NOT NULL,
+  updated_at TIMESTAMP,
   deleted_at TIMESTAMP
 );
 
@@ -422,6 +423,7 @@ CREATE TABLE notifications (
   type TEXT NOT NULL,
   message TEXT NOT NULL,
   read BOOLEAN DEFAULT false NOT NULL,
+  unsubscribed BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
@@ -714,6 +716,10 @@ CREATE TRIGGER update_users_updated_at
   BEFORE UPDATE ON users
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_providers_updated_at 
+  BEFORE UPDATE ON providers
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 CREATE TRIGGER update_service_requests_updated_at 
   BEFORE UPDATE ON service_requests
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
@@ -736,6 +742,10 @@ CREATE TRIGGER update_system_settings_updated_at
 
 CREATE TRIGGER update_contact_messages_updated_at 
   BEFORE UPDATE ON contact_messages
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_notification_preferences_updated_at 
+  BEFORE UPDATE ON notification_preferences
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- =====================================================

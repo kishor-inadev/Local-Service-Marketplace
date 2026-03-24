@@ -17,7 +17,7 @@ export interface SendSmsNotificationOptions {
 /**
  * NotificationClient - Reusable HTTP client for sending notifications
  * 
- * This client calls the notification-service which routes to email/sms services.
+ * All email and SMS communication MUST go through comms-service. No service should call email-service or sms-service directly.
  * Can be used by any microservice to send notifications.
  * 
  * Usage:
@@ -39,7 +39,7 @@ export class NotificationClient {
   constructor(private configService: ConfigService) {
     const notificationServiceUrl = this.configService.get<string>(
       'NOTIFICATION_SERVICE_URL',
-      'http://notification-service:3008',
+      'http://comms-service:3007',
     );
     this.emailEnabled = this.configService.get<string>('EMAIL_ENABLED', 'true') === 'true';
     this.smsEnabled = this.configService.get<string>('SMS_ENABLED', 'false') === 'true';

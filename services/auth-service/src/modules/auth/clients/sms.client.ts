@@ -15,13 +15,12 @@ interface OtpVerifyResponse {
 }
 
 /**
- * SmsClient - HTTP client for sending SMS via notification-service
+ * SmsClient - HTTP client for sending SMS/OTP via comms-service
  * 
- * This client calls the notification-service, which routes to sms-service.
- * This architecture centralizes notification management without requiring
- * Redis/Kafka or other event infrastructure.
+ * All SMS communication is routed through comms-service, which in turn
+ * calls sms-service. No service should call sms-service directly.
  * 
- * Flow: auth-service → notification-service → sms-service
+ * Flow: auth-service → comms-service → sms-service
  */
 @Injectable()
 export class SmsClient {
@@ -31,9 +30,9 @@ export class SmsClient {
 
   constructor(private configService: ConfigService) {
     const notificationServiceUrl = this.configService.get<string>(
-      'NOTIFICATION_SERVICE_URL',
-      'http://notification-service:3008'
-    );
+			"NOTIFICATION_SERVICE_URL",
+			"http://comms-service:3007",
+		);
     this.enabled = this.configService.get<string>('SMS_ENABLED') === 'true';
 
     if (this.enabled && !notificationServiceUrl) {

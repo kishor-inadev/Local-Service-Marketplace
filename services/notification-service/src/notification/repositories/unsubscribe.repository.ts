@@ -13,7 +13,7 @@ export class UnsubscribeRepository {
 
   async create(email: string, userId?: string, reason?: string): Promise<Unsubscribe> {
     const query = `
-      INSERT INTO unsubscribe (email, user_id, reason)
+      INSERT INTO unsubscribes (email, user_id, reason)
       VALUES ($1, $2, $3)
       RETURNING *
     `;
@@ -30,7 +30,7 @@ export class UnsubscribeRepository {
 
   async findByEmail(email: string): Promise<Unsubscribe | null> {
     const query = `
-      SELECT * FROM unsubscribe
+      SELECT * FROM unsubscribes
       WHERE email = $1
       ORDER BY created_at DESC
       LIMIT 1
@@ -47,7 +47,7 @@ export class UnsubscribeRepository {
 
   async delete(email: string): Promise<void> {
     const query = `
-      DELETE FROM unsubscribe
+      DELETE FROM unsubscribes
       WHERE email = $1
     `;
     

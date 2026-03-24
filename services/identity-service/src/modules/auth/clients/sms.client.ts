@@ -32,7 +32,7 @@ export class SmsClient {
   constructor(private configService: ConfigService) {
     const notificationServiceUrl = this.configService.get<string>(
       'NOTIFICATION_SERVICE_URL',
-      'http://notification-service:3008'
+      'http://comms-service:3007'
     );
     this.enabled = this.configService.get<string>('SMS_ENABLED') === 'true';
 

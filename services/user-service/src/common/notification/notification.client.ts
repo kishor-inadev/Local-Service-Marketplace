@@ -24,7 +24,7 @@ export class NotificationClient {
   constructor(private configService: ConfigService) {
     const notificationServiceUrl = this.configService.get<string>(
       'NOTIFICATION_SERVICE_URL',
-      'http://notification-service:3008',
+      'http://comms-service:3007',
     );
     this.emailEnabled = this.configService.get<string>('EMAIL_ENABLED', 'true') === 'true';
     this.smsEnabled = this.configService.get<string>('SMS_ENABLED', 'false') === 'true';

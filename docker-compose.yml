@@ -188,12 +188,15 @@ services:
       - DATABASE_NAME=${DATABASE_NAME}
       - DATABASE_SSL=${DATABASE_SSL:-true}
       - REDIS_URL=redis://redis:6379
+      - USER_SERVICE_URL=http://identity-service:3001
+      - NOTIFICATION_SERVICE_URL=http://comms-service:3007
       - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
       - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
       - CACHE_ENABLED=${CACHE_ENABLED:-false}
       - WORKERS_ENABLED=${WORKERS_ENABLED:-false}
       - DB_POOL_MAX=${DB_POOL_MAX:-30}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
+    depends_on: [identity-service, comms-service]
     networks:
       - marketplace-network
     # healthcheck:
