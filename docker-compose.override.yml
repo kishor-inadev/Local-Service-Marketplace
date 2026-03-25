@@ -1,0 +1,121 @@
+# =============================================================================
+# LOCAL DEVELOPMENT OVERRIDE
+# =============================================================================
+# Docker Compose automatically merges this file with docker-compose.yml
+# when you run `docker compose up` — no extra flags needed.
+#
+# Purpose: Wire every backend service to the LOCAL postgres container
+# instead of a cloud database (Neon, etc.).
+#
+# For production / cloud builds, run WITHOUT this file:
+#   docker compose -f docker-compose.yml up -d
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # identity-service
+  # ---------------------------------------------------------------------------
+  identity-service:
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_dev_only@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_NAME=marketplace
+      - DATABASE_SSL=false
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # marketplace-service
+  # ---------------------------------------------------------------------------
+  marketplace-service:
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_dev_only@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_NAME=marketplace
+      - DATABASE_SSL=false
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity-service:
+        condition: service_started
+
+  # ---------------------------------------------------------------------------
+  # payment-service
+  # ---------------------------------------------------------------------------
+  payment-service:
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_dev_only@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_NAME=marketplace
+      - DATABASE_SSL=false
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+      identity-service:
+        condition: service_started
+      comms-service:
+        condition: service_started
+
+  # ---------------------------------------------------------------------------
+  # comms-service
+  # ---------------------------------------------------------------------------
+  comms-service:
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_dev_only@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_NAME=marketplace
+      - DATABASE_SSL=false
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # oversight-service
+  # ---------------------------------------------------------------------------
+  oversight-service:
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_dev_only@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_NAME=marketplace
+      - DATABASE_SSL=false
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # infrastructure-service
+  # ---------------------------------------------------------------------------
+  infrastructure-service:
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres_dev_only@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_NAME=marketplace
+      - DATABASE_SSL=false
+      - NODE_ENV=development
+    depends_on:
+      postgres:
+        condition: service_healthy

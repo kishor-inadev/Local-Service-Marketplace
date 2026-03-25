@@ -44,7 +44,7 @@ export default function EarningsPage() {
 				endDate = now;
 			}
 
-			return paymentService.getProviderEarnings(startDate, endDate);
+			return paymentService.getProviderEarnings(user!.id, startDate, endDate);
 		},
 		enabled: isAuthenticated && user?.role === "provider",
 	});
@@ -56,7 +56,7 @@ export default function EarningsPage() {
 		error: transactionsError,
 	} = useQuery({
 		queryKey: ["provider-transactions"],
-		queryFn: () => paymentService.getProviderTransactions(50),
+		queryFn: () => paymentService.getProviderTransactions(user!.id, 50),
 		enabled: isAuthenticated && user?.role === "provider",
 	});
 

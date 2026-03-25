@@ -81,6 +81,35 @@ export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   );
 }
 
+/** Stat card skeleton — matches the redesigned dashboard stat cards */
+export function SkeletonStatCard() {
+  return (
+    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 animate-pulse">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2 flex-1">
+          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
+          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mt-3" />
+        </div>
+        <div className="h-12 w-12 rounded-2xl bg-gray-200 dark:bg-gray-700 ml-4 flex-shrink-0" />
+      </div>
+    </div>
+  );
+}
+
+/** Row list-item skeleton */
+export function SkeletonListItem() {
+  return (
+    <div className="flex items-start gap-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg animate-pulse">
+      <div className="flex-1 space-y-2">
+        <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/3" />
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-2/3" />
+        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/4" />
+      </div>
+      <div className="h-6 w-16 bg-gray-200 dark:bg-gray-700 rounded-full flex-shrink-0" />
+    </div>
+  );
+}
+
 export function SkeletonList({ items = 3 }: { items?: number }) {
   return (
     <div className="space-y-4">

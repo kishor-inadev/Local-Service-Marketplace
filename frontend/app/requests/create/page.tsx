@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
@@ -23,40 +23,37 @@ import toast from 'react-hot-toast';
 
 export default function CreateRequestPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
-  const [categories, setCategories] = useState<Array<{ value: string; label: string }>>([]);
-  const [attachments, setAttachments] = useState<File[]>([]);
-  const [location, setLocation] = useState<any>(null);
-  const [guestInfo, setGuestInfo] = useState({ name: '', email: '', phone: '' });
+  const searchParams = useSearchParams();
+	const prefillQuery = searchParams.get("q") || "";
+	const { user, isAuthenticated } = useAuth();
+	const [attachments, setAttachments] = useState<File[]>([]);
+	const [location, setLocation] = useState<any>(null);
+	const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
 
-  const form = useForm({
-    resolver: zodResolver(createRequestSchema),
-    defaultValues: {
-      category_id: '',
-      description: '',
-      budget: 0,
-    },
-  });
+	const form = useForm({
+		resolver: zodResolver(createRequestSchema),
+		defaultValues: { category_id: "", description: "", budget: 0 },
+	});
 
-  const { register, handleSubmit, formState: { errors } } = form;
+	const {
+		register,
+		handleSubmit,
+		formState: { errors },
+	} = form;
+
+	// Fetch categories from API
+	const { data: categoriesData } = useQuery({
+		queryKey: ["service-categories"],
+		queryFn: () => requestService.getCategories(),
+	});
+
+	const categories = (categoriesData ?? []).map((cat: any) => ({ value: cat.id, label: cat.name }));
 
   useEffect(() => {
     analytics.pageview({
       path: '/requests/create',
       title: 'Create Service Request',
     });
-  }, []);
-
-  // TODO: Fetch categories from API
-  useEffect(() => {
-    // Temporary hardcoded categories - replace with API call
-    setCategories([
-      { value: '550e8400-e29b-41d4-a716-446655440001', label: 'Plumbing' },
-      { value: '550e8400-e29b-41d4-a716-446655440002', label: 'Electrical' },
-      { value: '550e8400-e29b-41d4-a716-446655440003', label: 'Carpentry' },
-      { value: '550e8400-e29b-41d4-a716-446655440004', label: 'Cleaning' },
-      { value: '550e8400-e29b-41d4-a716-446655440005', label: 'Painting' },
-    ]);
   }, []);
 
   const createMutation = useMutation({

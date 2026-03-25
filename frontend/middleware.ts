@@ -2,77 +2,81 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
+type Role = "customer" | "provider" | "admin";
+
 /**
- * Middleware Route Protection Configuration
- * 
- * PROTECTED ROUTES (require authentication):
- * - /dashboard and all sub-routes
- * 
- * PUBLIC ROUTES (no authentication required):
- * - Everything else! Including:
- *   - / (home page)
- *   - /login, /signup (auth pages)
- *   - /about, /contact, /terms, /privacy (static pages)
- *   - /services, /providers (public browsing)
- * 
- * AUTO-REDIRECTS:
- * - Logged-in users visiting /login or /signup → /dashboard
- * - Non-logged-in users visiting /dashboard → /login
+ * Role-based route protection.
+ * Checked with prefix matching — the most specific prefix wins.
+ * Routes NOT listed here allow any authenticated user.
  */
+const ROLE_ROUTES: Array<{ prefix: string; roles: Role[] }> = [
+	// Admin-only
+	{ prefix: "/dashboard/admin", roles: ["admin"] },
 
-// Define routes that REQUIRE authentication (everything else is public)
-const protectedRoutes = ['/dashboard'];
+	// Provider-only
+	{ prefix: "/dashboard/provider", roles: ["provider"] },
+	{ prefix: "/dashboard/earnings", roles: ["provider"] },
+	{ prefix: "/dashboard/availability", roles: ["provider"] },
+	{ prefix: "/dashboard/browse-requests", roles: ["provider"] },
+	{ prefix: "/dashboard/my-proposals", roles: ["provider"] },
 
-// Define routes that should redirect to dashboard if already authenticated
-const authRoutes = ['/login', '/signup'];
+	// Customer-only
+	{ prefix: "/dashboard/requests", roles: ["customer"] },
+	{ prefix: "/dashboard/favorites", roles: ["customer"] },
+	{ prefix: "/dashboard/reviews/submit", roles: ["customer"] },
+];
 
-export async function middleware(req: NextRequest) {
-  const { nextUrl } = req;
+/** Routes that require ANY authenticated user */
+const AUTH_REQUIRED_PREFIX = "/dashboard";
 
-  // CRITICAL: Skip middleware for NextAuth API routes
-  if (nextUrl.pathname.startsWith('/api/auth')) {
-    return NextResponse.next();
-  }
+/** Routes that a logged-in user should be bounced away from */
+const AUTH_REDIRECT_ROUTES = ["/login", "/signup"];
 
-  // Get session token using NextAuth v4 getToken
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET,
-  });
-
-  const isLoggedIn = !!token;
-
-  // Check if current route requires authentication
-  const isProtectedRoute = protectedRoutes.some(route =>
-    nextUrl.pathname === route || nextUrl.pathname.startsWith(route)
-  );
-
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-
-  // Redirect logged-in users away from auth pages to dashboard
-  if (isAuthRoute && isLoggedIn) {
-    return NextResponse.redirect(new URL('/dashboard', nextUrl));
-  }
-
-  // Redirect non-logged-in users to login ONLY for protected routes
-  if (isProtectedRoute && !isLoggedIn) {
-    return NextResponse.redirect(new URL('/login', nextUrl));
-  }
-
-  return NextResponse.next();
+function matchRoleRoute(pathname: string) {
+	// Sort by prefix length descending so the most specific match wins
+	const sorted = [...ROLE_ROUTES].sort((a, b) => b.prefix.length - a.prefix.length);
+	return sorted.find((r) => pathname === r.prefix || pathname.startsWith(r.prefix + "/"));
 }
 
-// Configure which routes to run middleware on
-export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api/auth (NextAuth API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public folder
-     */
-    '/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\..*|public).*)',
-  ],
-};
+export async function middleware(req: NextRequest) {
+	const { nextUrl } = req;
+
+	// Skip NextAuth internal API routes
+	if (nextUrl.pathname.startsWith("/api/auth")) {
+		return NextResponse.next();
+	}
+
+	const token = await getToken({ req, secret: process.env.NEXTAUTH_SECRET || process.env.AUTH_SECRET });
+
+	const isLoggedIn = !!token;
+	const userRole = token?.role as Role | undefined;
+	const pathname = nextUrl.pathname;
+
+	// ── 1. Bounce authenticated users away from login/signup ──────────────────
+	if (AUTH_REDIRECT_ROUTES.includes(pathname) && isLoggedIn) {
+		return NextResponse.redirect(new URL("/dashboard", nextUrl));
+	}
+
+	const isProtected = pathname === AUTH_REQUIRED_PREFIX || pathname.startsWith(AUTH_REQUIRED_PREFIX + "/");
+
+	// ── 2. Unauthenticated → /login?callbackUrl=<path> ────────────────────────
+	if (isProtected && !isLoggedIn) {
+		const loginUrl = new URL("/login", nextUrl);
+		loginUrl.searchParams.set("callbackUrl", pathname);
+		return NextResponse.redirect(loginUrl);
+	}
+
+	// ── 3. Wrong role → /403?callbackUrl=<path> ───────────────────────────────
+	if (isProtected && isLoggedIn) {
+		const matched = matchRoleRoute(pathname);
+		if (matched && (!userRole || !matched.roles.includes(userRole))) {
+			const forbiddenUrl = new URL("/403", nextUrl);
+			forbiddenUrl.searchParams.set("callbackUrl", pathname);
+			return NextResponse.redirect(forbiddenUrl);
+		}
+	}
+
+	return NextResponse.next();
+}
+
+export const config = { matcher: ["/((?!api/auth|_next/static|_next/image|favicon.ico|.*\\..*|public).*)"] };

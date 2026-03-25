@@ -3,8 +3,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from "@/hooks/useAuth";
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Loading } from '@/components/ui/Loading';
+import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
 import { adminService } from '@/services/admin-service';
@@ -25,14 +24,6 @@ export default function AdminDisputesPage() {
 		queryFn: () => adminService.getDisputes(),
 		enabled: user?.role === "admin",
 	});
-
-  if (authLoading) {
-    return <Loading />;
-  }
-
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return null;
-  }
 
   return (
 		<ProtectedRoute requiredRoles={["admin"]}>
