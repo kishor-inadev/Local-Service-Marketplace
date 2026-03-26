@@ -14,6 +14,7 @@ import { Heart, Star, MapPin, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/config/constants';
 import { toast } from 'react-hot-toast';
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 export default function FavoritesPage() {
   const { user } = useAuth();
@@ -72,103 +73,104 @@ export default function FavoritesPage() {
   const hasFavorites = favorites && favorites.length > 0;
 
   return (
-    <Layout>
-      <div className="max-w-6xl mx-auto container-custom py-8">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-3 mb-2">
-            <Heart className="h-8 w-8 text-red-500 fill-current" />
-            <h1 className="text-3xl font-bold text-gray-900">
-              Saved Providers
-            </h1>
-          </div>
-          <p className="text-gray-600">
-            {hasFavorites
-              ? `You have ${favorites.length} saved ${
-                  favorites.length === 1 ? 'provider' : 'providers'
-                }`
-              : 'You haven\'t saved any providers yet'}
-          </p>
-        </div>
+		<ProtectedRoute>
+			<Layout>
+				<div className='max-w-6xl mx-auto container-custom py-8'>
+					{/* Header */}
+					<div className='mb-8'>
+						<div className='flex items-center gap-3 mb-2'>
+							<Heart className='h-8 w-8 text-red-500 fill-current' />
+							<h1 className='text-3xl font-bold text-gray-900'>Saved Providers</h1>
+						</div>
+						<p className='text-gray-600'>
+							{hasFavorites ?
+								`You have ${favorites.length} saved ${favorites.length === 1 ? "provider" : "providers"}`
+							:	"You haven't saved any providers yet"}
+						</p>
+					</div>
 
-        {/* Favorites List */}
-        {!hasFavorites ? (
-          <Card>
-            <CardContent className="text-center py-12">
-              <Heart className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                No saved providers yet
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Start saving your favorite service providers to easily find them later
-              </p>
-              <Link href="/providers">
-                <Button>Browse Providers</Button>
-              </Link>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {favorites.map((favorite) => (
-              <Card key={favorite.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between mb-4">
-                    <Avatar name={favorite.provider_name} size="lg" />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-red-500 hover:text-red-600 hover:bg-red-50"
-                      onClick={() => handleRemove(favorite.provider_id)}
-                      disabled={removeFavoriteMutation.isPending}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                    {favorite.provider_name}
-                  </h3>
-                  
-                  {favorite.provider_rating && (
-                    <div className="flex items-center gap-2 mb-3">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold text-gray-900">
-                          {favorite.provider_rating.toFixed(1)}
-                        </span>
-                      </div>
-                      <span className="text-sm text-gray-500">Rating</span>
-                    </div>
-                  )}
-                </CardHeader>
-                
-                <CardContent>
-                  <p className="text-sm text-gray-600 mb-4 line-clamp-2">
-                    {favorite.provider_description || 'No description available'}
-                  </p>
-                  
-                  <div className="flex gap-2">
-                    <Link
-                      href={`/providers/${favorite.provider_id}`}
-                      className="flex-1"
-                    >
-                      <Button variant="outline" className="w-full" size="sm">
-                        View Profile
-                        <ArrowRight className="h-4 w-4 ml-2" />
-                      </Button>
-                    </Link>
-                    <Link href={ROUTES.CREATE_REQUEST} className="flex-1">
-                      <Button className="w-full" size="sm">
-                        Request Service
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
-      </div>
-    </Layout>
-  );
+					{/* Favorites List */}
+					{!hasFavorites ?
+						<Card>
+							<CardContent className='text-center py-12'>
+								<Heart className='h-16 w-16 text-gray-300 mx-auto mb-4' />
+								<h3 className='text-xl font-semibold text-gray-900 mb-2'>No saved providers yet</h3>
+								<p className='text-gray-600 mb-6'>
+									Start saving your favorite service providers to easily find them later
+								</p>
+								<Link href='/providers'>
+									<Button>Browse Providers</Button>
+								</Link>
+							</CardContent>
+						</Card>
+					:	<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'>
+							{favorites.map((favorite) => (
+								<Card
+									key={favorite.id}
+									className='hover:shadow-lg transition-shadow'>
+									<CardHeader>
+										<div className='flex items-start justify-between mb-4'>
+											<Avatar
+												name={favorite.provider_name}
+												size='lg'
+											/>
+											<Button
+												variant='ghost'
+												size='sm'
+												className='text-red-500 hover:text-red-600 hover:bg-red-50'
+												onClick={() => handleRemove(favorite.provider_id)}
+												disabled={removeFavoriteMutation.isPending}>
+												<Trash2 className='h-4 w-4' />
+											</Button>
+										</div>
+
+										<h3 className='text-lg font-semibold text-gray-900 mb-2'>{favorite.provider_name}</h3>
+
+										{favorite.provider_rating && (
+											<div className='flex items-center gap-2 mb-3'>
+												<div className='flex items-center gap-1'>
+													<Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
+													<span className='font-semibold text-gray-900'>{favorite.provider_rating.toFixed(1)}</span>
+												</div>
+												<span className='text-sm text-gray-500'>Rating</span>
+											</div>
+										)}
+									</CardHeader>
+
+									<CardContent>
+										<p className='text-sm text-gray-600 mb-4 line-clamp-2'>
+											{favorite.provider_description || "No description available"}
+										</p>
+
+										<div className='flex gap-2'>
+											<Link
+												href={`/providers/${favorite.provider_id}`}
+												className='flex-1'>
+												<Button
+													variant='outline'
+													className='w-full'
+													size='sm'>
+													View Profile
+													<ArrowRight className='h-4 w-4 ml-2' />
+												</Button>
+											</Link>
+											<Link
+												href={ROUTES.CREATE_REQUEST}
+												className='flex-1'>
+												<Button
+													className='w-full'
+													size='sm'>
+													Request Service
+												</Button>
+											</Link>
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					}
+				</div>
+			</Layout>
+		</ProtectedRoute>
+	);
 }

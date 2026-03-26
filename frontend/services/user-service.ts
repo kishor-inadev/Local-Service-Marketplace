@@ -344,24 +344,50 @@ export const reorderPortfolio = async (
   await apiClient.put(`/provider-portfolio/${providerId}/reorder`, { ordered_ids: orderedIds });
 };
 
+/**
+ * Add a service category to a provider profile
+ */
+export const addProviderCategory = async (
+  providerId: string,
+  categoryId: string
+): Promise<ProviderService> => {
+  const response = await apiClient.post<ProviderService>(
+    `/providers/${providerId}/services`,
+    { category_id: categoryId }
+  );
+  return response.data;
+};
+
+/**
+ * Remove a service category from a provider profile
+ */
+export const removeProviderCategory = async (
+  providerId: string,
+  serviceId: string
+): Promise<void> => {
+  await apiClient.delete(`/providers/${providerId}/services/${serviceId}`);
+};
+
 const userService = {
-  getUserProfile,
-  updateUserProfile,
-  createProviderProfile,
-  updateProviderProfile,
-  getProviderProfile,
-  getProviders,
-  getProviderServices,
-  updateProviderServices,
-  uploadProviderDocument,
-  getProviderDocuments,
-  getDocumentVerificationStatus,
-  deleteProviderDocument,
-  createPortfolioItem,
-  getProviderPortfolio,
-  updatePortfolioItem,
-  deletePortfolioItem,
-  reorderPortfolio,
+	getUserProfile,
+	updateUserProfile,
+	createProviderProfile,
+	updateProviderProfile,
+	getProviderProfile,
+	getProviders,
+	getProviderServices,
+	updateProviderServices,
+	addProviderCategory,
+	removeProviderCategory,
+	uploadProviderDocument,
+	getProviderDocuments,
+	getDocumentVerificationStatus,
+	deleteProviderDocument,
+	createPortfolioItem,
+	getProviderPortfolio,
+	updatePortfolioItem,
+	deletePortfolioItem,
+	reorderPortfolio,
 };
 
 export default userService;

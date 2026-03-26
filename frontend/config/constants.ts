@@ -88,6 +88,7 @@ export const ROUTES = {
 	DASHBOARD_PROVIDER_PORTFOLIO: "/dashboard/provider/portfolio",
 	DASHBOARD_PROVIDER_REVIEWS: "/dashboard/provider/reviews",
 	DASHBOARD_PROVIDER_DOCUMENTS: "/dashboard/provider/documents",
+	DASHBOARD_PROVIDER_SERVICES: "/dashboard/provider/services",
 
 	// Dashboard - Admin
 	DASHBOARD_ADMIN: "/dashboard/admin",

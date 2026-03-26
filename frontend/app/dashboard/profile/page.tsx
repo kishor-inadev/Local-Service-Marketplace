@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatDate } from '@/utils/helpers';
+import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();

@@ -1,39 +1,37 @@
 import { apiClient } from './api-client';
 
 export interface ServiceRequest {
-  id: string;
-  user_id?: string | null;
-  category_id: string;
-  description: string;
-  budget: number;
-  status: 'open' | 'assigned' | 'completed' | 'cancelled';
-  // Guest information for anonymous requests
-  guest_name?: string | null;
-  guest_email?: string | null;
-  guest_phone?: string | null;
-  created_at: string;
-  updated_at: string;
-  category?: {
-    id: string;
-    name: string;
-  };
-  location_id?: string;
-  location?: {
-    id: string;
-    latitude: number;
-    longitude: number;
-    address?: string;
-    city?: string;
-    state?: string;
-    zip_code?: string;
-    country?: string;
-  };
-  images?: any;
-  preferred_date?: string;
-  urgency?: 'low' | 'medium' | 'high' | 'urgent';
-  expiry_date?: string;
-  view_count?: number;
-  deleted_at?: string;
+	id: string;
+	user_id?: string | null;
+	category_id: string;
+	description: string;
+	budget: number;
+	status: "open" | "assigned" | "completed" | "cancelled";
+	// Guest information for anonymous requests
+	guest_name?: string | null;
+	guest_email?: string | null;
+	guest_phone?: string | null;
+	created_at: string;
+	updated_at: string;
+	category?: { id: string; name: string };
+	location_id?: string;
+	location?: {
+		id: string;
+		latitude: number;
+		longitude: number;
+		address?: string;
+		city?: string;
+		state?: string;
+		zip_code?: string;
+		country?: string;
+	};
+	images?: any;
+	preferred_date?: string;
+	urgency?: "low" | "medium" | "high" | "urgent";
+	expiry_date?: string;
+	view_count?: number;
+	proposal_count?: number;
+	deleted_at?: string;
 }
 
 export interface CreateRequestData {

@@ -46,12 +46,6 @@ export default function BrowseRequestsPage() {
 		enabled: isAuthenticated,
 	});
 
-	const { data: categories } = useQuery({
-		queryKey: ["categories"],
-		queryFn: () => requestService.getCategories(),
-		enabled: isAuthenticated,
-	});
-
   // Filter requests locally by search term
   const filteredRequests = requests?.data?.filter((request: any) => {
     if (!searchTerm) return true;

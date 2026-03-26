@@ -360,6 +360,11 @@ export function Navbar() {
 									How It Works
 								</Link>
 								<Link
+									href={ROUTES.PROVIDERS}
+									className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
+									Find Providers
+								</Link>
+								<Link
 									href={ROUTES.HELP}
 									className='block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-700'>
 									Help

@@ -40,12 +40,7 @@ export default function AdminDisputeDetailPage() {
 		refetch,
 	} = useQuery({
 		queryKey: ["admin-dispute", disputeId],
-		queryFn: () =>
-			adminService.getDisputes({ limit: 1 }).then((list) => {
-				const found = list.find((d) => d.id === disputeId);
-				if (!found) throw new Error("Dispute not found");
-				return found;
-			}),
+		queryFn: () => adminService.getDisputeById(disputeId),
 		enabled: !!disputeId && currentUser?.role === "admin",
 	});
 
