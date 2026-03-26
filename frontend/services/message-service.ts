@@ -27,6 +27,14 @@ export interface Attachment {
   created_at: string;
 }
 
+export interface Conversation {
+	job_id: string;
+	last_message?: string;
+	last_message_at?: string;
+	unread_count?: number;
+	participant?: { id: string; name?: string };
+}
+
 export interface SendMessageData {
   job_id: string;
   sender_id: string;
@@ -56,17 +64,13 @@ class MessageService {
   }
 
   async getMessagesByJob(jobId: string): Promise<Message[]> {
-    const response = await apiClient.get(`/messages/jobs/${jobId}`);
-    // API client unwraps standardized response
-    const data: any = response.data;
-    return data?.data || data || [];
+    const response = await apiClient.get<Message[]>(`/messages/jobs/${jobId}`);
+    return response.data ?? [];
   }
 
-  async getConversations(): Promise<any[]> {
-    const response = await apiClient.get('/messages/conversations');
-    // API client unwraps standardized response
-    const data: any = response.data;
-    return data?.data || data || [];
+  async getConversations(): Promise<Conversation[]> {
+    const response = await apiClient.get<Conversation[]>('/messages/conversations');
+    return response.data ?? [];
   }
 
   async markAsRead(messageId: string): Promise<void> {

@@ -2,6 +2,11 @@ export const servicesConfig = {
 	"identity-service": {
 		url: process.env.IDENTITY_SERVICE_URL || process.env.AUTH_SERVICE_URL || "http://localhost:3001",
 		name: "identity-service",
+		// No stripPrefix for general identity routes (/users, /providers, etc.)
+	},
+	"identity-service-auth": {
+		url: process.env.IDENTITY_SERVICE_URL || process.env.AUTH_SERVICE_URL || "http://localhost:3001",
+		name: "identity-service",
 		stripPrefix: "/user",
 	},
 	"marketplace-service": {
@@ -25,7 +30,7 @@ export const servicesConfig = {
 
 export const routingConfig = {
 	// identity-service (auth + user + providers)
-	"/user/auth": "identity-service",
+	"/user/auth": "identity-service-auth",
 	"/users": "identity-service",
 	"/providers": "identity-service",
 	"/provider-documents": "identity-service",
@@ -80,6 +85,7 @@ export const publicRoutes = [
 	"/api/v1/user/auth/password-reset/confirm", // Confirm password reset
 	"/api/v1/user/auth/email/verify", // Verify email address
 	"/api/v1/user/auth/check-identifier", // Check if email/phone exists
+	"/api/v1/user/auth/verify", // Internal token verification (gateway only)
 
 	// ============================================
 	// OAuth Endpoints
@@ -110,7 +116,7 @@ export const publicRoutes = [
 	// ============================================
 	// Public Information Endpoints
 	// ============================================
-	"/api/v1/admin/contact", // Contact form submission
+	"/api/v1/admin/contact", // Contact form submission (public)
 	"/api/v1/categories", // List service categories (public browsing)
 	"/api/v1/service-categories", // Alias for categories (backward compat)
 

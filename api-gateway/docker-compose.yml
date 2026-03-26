@@ -7,7 +7,7 @@ services:
       dockerfile: Dockerfile
     container_name: api-gateway
     ports:
-      - "3500:3500"
+      - "3700:3500"
     environment:
       - NODE_ENV=production
       - PORT=3500

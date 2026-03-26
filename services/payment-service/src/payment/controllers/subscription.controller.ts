@@ -8,12 +8,16 @@ import {
   Request,
   ParseUUIDPipe,
   Query,
-  UseGuards
+  UseGuards,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
 import { SubscriptionService } from '../services/subscription.service';
 import { CreateSubscriptionDto } from '../dto/create-subscription.dto';
 import { UpgradeSubscriptionDto } from '../dto/upgrade-subscription.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('subscriptions')
@@ -23,6 +27,7 @@ export class SubscriptionController {
   ) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async createSubscription(
     @Body() data: CreateSubscriptionDto,
     @Request() req: any
@@ -41,6 +46,7 @@ export class SubscriptionController {
   }
 
   @Post(':subscriptionId/activate')
+  @HttpCode(HttpStatus.OK)
   async activateSubscription(
     @Param('subscriptionId', ParseUUIDPipe) subscriptionId: string,
     @Request() req: any
@@ -107,6 +113,7 @@ export class SubscriptionController {
   }
 
   @Post('provider/:providerId/upgrade')
+  @HttpCode(HttpStatus.OK)
   async upgradeSubscription(
     @Param('providerId', ParseUUIDPipe) providerId: string,
     @Body() upgradeData: UpgradeSubscriptionDto,
@@ -125,12 +132,13 @@ export class SubscriptionController {
     };
   }
 
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Get('expiring')
   async getExpiringSubscriptions(
     @Request() req: any,
     @Query('days') days?: string
   ) {
-    // Admin only
     const daysAhead = days ? parseInt(days) : 7;
     const subscriptions = await this.subscriptionService.getExpiringSubscriptions(
       daysAhead

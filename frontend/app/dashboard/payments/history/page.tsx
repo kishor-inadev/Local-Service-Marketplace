@@ -19,7 +19,7 @@ import { DollarSign, Download } from 'lucide-react';
 
 export default function PaymentHistoryPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -33,8 +33,8 @@ export default function PaymentHistoryPage() {
 		refetch,
 	} = useQuery({
 		queryKey: ["payment-history"],
-		queryFn: () => paymentService.getMyPayments(),
-		enabled: isAuthenticated,
+		queryFn: () => paymentService.getMyPayments(user!.id),
+		enabled: isAuthenticated && !!user?.id,
 	});
 
   useEffect(() => {

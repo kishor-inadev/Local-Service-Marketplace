@@ -282,7 +282,7 @@ JWT_EXPIRATION=15m                    # Access token: 15 minutes
 JWT_REFRESH_EXPIRATION=7d             # Refresh token: 7 days
 
 # Frontend (.env)
-NEXT_PUBLIC_API_URL=http://localhost:3500
+NEXT_PUBLIC_API_URL=http://localhost:3700
 AUTH_SECRET=your_nextauth_secret_here
 NEXTAUTH_URL=http://localhost:3000
 ```

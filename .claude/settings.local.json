@@ -1,0 +1,28 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(find . -type f -name *.ts -not -path */node_modules/*)",
+      "Bash(python3:*)",
+      "Bash(powershell.exe -Command \"Get-Content 'docs/Local-Service-Marketplace.postman_collection.json' -TotalCount 300\")",
+      "Bash(powershell.exe -Command \"Get-Content 'docs/Local-Service-Marketplace.postman_collection.json' -TotalCount 5397 | Select-Object -Index 300..1200\")",
+      "Bash(powershell.exe -Command \"Get-Content 'docs/Local-Service-Marketplace.postman_collection.json' | Select-Object -Skip 300 -First 1000\")",
+      "Bash(find services:*)",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'payments/webhook' -Context 0,3\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Contact Message|contact' | Select-String -NotMatch 'contact-message' | Select-Object -First 20\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'webhook' | Select-Object -First 10\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Verify Email' -Context 0,10 | Select-Object -First 30\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'service-categories' | Select-Object -First 10\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Verify Document' -Context 0,15 | Select-String -Pattern 'raw' | Select-Object -First 5\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'provider-documents/verify' | Select-Object -First 5\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Reorder Portfolio' -Context 0,15 | Select-String -Pattern 'raw' | Select-Object -First 1\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Reorder Portfolio' -Context 0,10 | Select-String -Pattern 'Reorder'\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Reorder Portfolio Items' -Context 0,20 | Select-String -Pattern 'raw' | Select-Object -First 1\")",
+      "Bash(powershell.exe -Command \"$content = Get-Content 'docs/Local-Service-Marketplace.postman_collection.json'; $start=1643-10; $end=1643+30; $content[$start..$end]\")",
+      "Bash(powershell.exe -Command \"$lines = Get-Content 'docs/Local-Service-Marketplace.postman_collection.json'; $lines[1630..1660]\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Reorder Portfolio Items' -Context 0,25 | ForEach-Object { $_.Context.PostContext }\")",
+      "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'reorder' | Select-Object -First 5\")",
+      "Bash(git show:*)",
+      "Bash(grep -B3 \"@HttpCode\\(HttpStatus.CREATED\\)\" services/identity-service/src/modules/user/controllers/*.controller.ts services/marketplace-service/src/modules/**/controllers/*.controller.ts services/infrastructure-service/src/infrastructure/controllers/*.controller.ts services/oversight-service/src/analytics/controllers/*.controller.ts)"
+    ]
+  }
+}

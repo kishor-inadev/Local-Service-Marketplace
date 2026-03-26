@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { apiClient } from '@/services/api-client';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Calendar, Clock, Plus, Trash2, Save, AlertCircle } from 'lucide-react';
+import toast from "react-hot-toast";
 
 interface AvailabilitySlot {
   day_of_week: number;
@@ -93,11 +94,11 @@ export default function AvailabilityPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['provider-profile'] });
       setHasChanges(false);
-      alert('Availability updated successfully!');
+      toast.success("Availability updated successfully!");
     },
     onError: (error) => {
       console.error('Error updating availability:', error);
-      alert('Failed to update availability. Please try again.');
+      toast.error("Failed to update availability. Please try again.");
     },
   });
 
@@ -122,7 +123,7 @@ export default function AvailabilityPage() {
     // Validate slots
     for (const slot of slots) {
       if (slot.start_time >= slot.end_time) {
-        alert('End time must be after start time');
+        toast.error("End time must be after start time");
         return;
       }
     }

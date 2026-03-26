@@ -3,14 +3,16 @@
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from "@/hooks/useAuth";
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Loading } from '@/components/ui/Loading';
+import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
 import { adminService } from '@/services/admin-service';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { formatDate } from '@/utils/helpers';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import Link from "next/link";
+import { Loading } from "@/components/ui";
+
 
 export default function AdminDisputesPage() {
   const { user } = useAuth();
@@ -25,14 +27,6 @@ export default function AdminDisputesPage() {
 		queryFn: () => adminService.getDisputes(),
 		enabled: user?.role === "admin",
 	});
-
-  if (authLoading) {
-    return <Loading />;
-  }
-
-  if (!isAuthenticated || user?.role !== 'admin') {
-    return null;
-  }
 
   return (
 		<ProtectedRoute requiredRoles={["admin"]}>
@@ -82,11 +76,13 @@ export default function AdminDisputesPage() {
 												<p className='text-xs text-gray-500 dark:text-gray-400'>
 													Filed {formatDate(dispute.created_at)}
 												</p>
-												<Button
-													variant='outline'
-													size='sm'>
-													Review Dispute
-												</Button>
+												<Link href={`/dashboard/admin/disputes/${dispute.id}`}>
+													<Button
+														variant='outline'
+														size='sm'>
+														Review Dispute
+													</Button>
+												</Link>
 											</div>
 										</div>
 									))}

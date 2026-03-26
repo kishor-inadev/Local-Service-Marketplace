@@ -134,6 +134,7 @@ export class NotificationController {
 	 */
 	@Post("send")
 	@Throttle({ default: { limit: 20, ttl: 60000 } })
+	@HttpCode(HttpStatus.OK)
 	async sendNotification(@Body() dto: SendNotificationDto) {
 		this.logger.log(
 			`POST /notifications/send - Sending ${dto.channel} notification to ${dto.recipient}`,
@@ -149,6 +150,7 @@ export class NotificationController {
 	 */
 	@Post("email/send")
 	@Throttle({ email: { limit: 10, ttl: 60000 } })
+	@HttpCode(HttpStatus.OK)
 	async sendEmail(@Body() dto: SendEmailDto) {
 		this.logger.log(`POST /notifications/email/send - Sending email to ${dto.to}`, "NotificationController");
 		const result = await this.notificationService.sendEmailDirect(dto);
@@ -161,6 +163,7 @@ export class NotificationController {
 	 */
 	@Post("sms/send")
 	@Throttle({ sms: { limit: 5, ttl: 3600000 } })
+	@HttpCode(HttpStatus.OK)
 	async sendSms(@Body() dto: SendSmsDto) {
 		this.logger.log(`POST /notifications/sms/send - Sending SMS to ${dto.phone}`, "NotificationController");
 		const result = await this.notificationService.sendSmsDirect(dto);
@@ -173,6 +176,7 @@ export class NotificationController {
 	 */
 	@Post("otp/send")
 	@Throttle({ sms: { limit: 5, ttl: 3600000 } })
+	@HttpCode(HttpStatus.OK)
 	async sendOtp(@Body() dto: SendOtpDto) {
 		this.logger.log(`POST /notifications/otp/send - Sending OTP to ${dto.phone}`, "NotificationController");
 		const result = await this.notificationService.sendOtp(dto.phone, dto.purpose);
@@ -183,6 +187,7 @@ export class NotificationController {
 	 * Verify OTP
 	 */
 	@Post("otp/verify")
+	@HttpCode(HttpStatus.OK)
 	async verifyOtp(@Body() dto: VerifyOtpDto) {
 		this.logger.log(`POST /notifications/otp/verify - Verifying OTP for ${dto.phone}`, "NotificationController");
 		const result = await this.notificationService.verifyOtp(dto.phone, dto.code, dto.purpose);
@@ -192,6 +197,7 @@ export class NotificationController {
 	// ========== Worker endpoints (for background job scheduler) ==========
 
 	@Post("workers/process-emails")
+	@HttpCode(HttpStatus.OK)
 	async processEmails() {
 		this.logger.log("POST /notifications/workers/process-emails - Process email queue", "NotificationController");
 		await this.emailWorker.processPendingEmails();
@@ -199,6 +205,7 @@ export class NotificationController {
 	}
 
 	@Post("workers/process-push")
+	@HttpCode(HttpStatus.OK)
 	async processPush() {
 		// Feature flag check: Push notifications
 		if (!this.featureFlags.pushNotificationsEnabled) {
@@ -241,6 +248,7 @@ export class NotificationController {
 	 * Check if email is unsubscribed
 	 */
 	@Post("unsubscribe/check")
+	@HttpCode(HttpStatus.OK)
 	async checkUnsubscribe(@Body() dto: CheckUnsubscribeDto) {
 		this.logger.log(`POST /notifications/unsubscribe/check - Check ${dto.email}`, "NotificationController");
 
@@ -253,6 +261,7 @@ export class NotificationController {
 	 * Resubscribe to email notifications
 	 */
 	@Post("resubscribe")
+	@HttpCode(HttpStatus.OK)
 	async resubscribe(@Body() dto: CheckUnsubscribeDto) {
 		this.logger.log(`POST /notifications/resubscribe - Resubscribe ${dto.email}`, "NotificationController");
 

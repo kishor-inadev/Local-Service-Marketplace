@@ -9,7 +9,7 @@ export interface Payment {
   payment_method?: string;
   transaction_id?: string;
   created_at: string;
-  updated_at: string;
+  paid_at?: string;
   user_id: string;
   provider_id?: string;
   platform_fee?: number;
@@ -33,144 +33,126 @@ export interface RefundData {
 }
 
 class PaymentService {
-  async createPayment(data: CreatePaymentData): Promise<Payment> {
-    const response = await apiClient.post<Payment>('/payments', data);
-    return response.data;
-  }
+	async createPayment(data: CreatePaymentData): Promise<Payment> {
+		const response = await apiClient.post<Payment>("/payments", data);
+		return response.data;
+	}
 
-  async getPaymentById(id: string): Promise<Payment> {
-    const response = await apiClient.get<Payment>(`/payments/${id}`);
-    return response.data;
-  }
+	async getPaymentById(id: string): Promise<Payment> {
+		const response = await apiClient.get<Payment>(`/payments/${id}`);
+		return response.data;
+	}
 
-  async getPaymentsByJob(jobId: string): Promise<Payment[]> {
-    const response = await apiClient.get<Payment[]>(`/payments/jobs/${jobId}`);
-    // API client unwraps standardized response
-    return response.data || [];
-  }
+	async getPaymentsByJob(jobId: string): Promise<Payment[]> {
+		const response = await apiClient.get<Payment[]>(`/payments/jobs/${jobId}`);
+		// API client unwraps standardized response
+		return response.data || [];
+	}
 
-  async requestRefund(paymentId: string, data: RefundData): Promise<Payment> {
-    const response = await apiClient.post<Payment>(`/payments/${paymentId}/refund`, data);
-    return response.data;
-  }
+	async requestRefund(paymentId: string, data: RefundData): Promise<Payment> {
+		const response = await apiClient.post<Payment>(`/payments/${paymentId}/refund`, data);
+		return response.data;
+	}
 
-  async getMyPayments(): Promise<Payment[]> {
-    const authState = JSON.parse(localStorage.getItem('auth-storage') || '{}');
-    const userId = authState?.state?.user?.id;
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
-    const response = await apiClient.get<Payment[]>(`/payments/my?user_id=${userId}`);
-    // API client unwraps standardized response
-    return response.data || [];
-  }
+	async getMyPayments(userId: string): Promise<Payment[]> {
+		if (!userId) {
+			throw new Error("User not authenticated");
+		}
+		const response = await apiClient.get<Payment[]>(`/payments/my?user_id=${userId}`);
+		// API client unwraps standardized response
+		return response.data || [];
+	}
 
-  async getPaymentStatus(id: string): Promise<Payment> {
-    const response = await apiClient.get<Payment>(`/payments/${id}/status`);
-    return response.data;
-  }
+	async getPaymentStatus(id: string): Promise<Payment> {
+		const response = await apiClient.get<Payment>(`/payments/${id}/status`);
+		return response.data;
+	}
 
-  // ------------------ Payment Methods ------------------
+	// ------------------ Payment Methods ------------------
 
-  async getPaymentMethods(): Promise<SavedPaymentMethod[]> {
-    const response = await apiClient.get<SavedPaymentMethod[]>('/payment-methods');
-    // API client unwraps standardized response
-    return response.data || [];
-  }
+	async getPaymentMethods(): Promise<SavedPaymentMethod[]> {
+		const response = await apiClient.get<SavedPaymentMethod[]>("/payment-methods");
+		// API client unwraps standardized response
+		return response.data || [];
+	}
 
-  async setDefaultPaymentMethod(methodId: string): Promise<void> {
-    await apiClient.put(`/payment-methods/${methodId}/set-default`);
-  }
+	async setDefaultPaymentMethod(methodId: string): Promise<void> {
+		await apiClient.put(`/payment-methods/${methodId}/set-default`);
+	}
 
-  async deletePaymentMethod(methodId: string): Promise<void> {
-    await apiClient.delete(`/payment-methods/${methodId}`);
-  }
+	async deletePaymentMethod(methodId: string): Promise<void> {
+		await apiClient.delete(`/payment-methods/${methodId}`);
+	}
 
-  // ------------------ Subscriptions ------------------
+	// ------------------ Subscriptions ------------------
 
-  async getProviderSubscriptions(providerId: string): Promise<Subscription[]> {
-    const response = await apiClient.get<Subscription[]>(`/subscriptions/provider/${providerId}`);
-    // API client unwraps standardized response
-    return response.data || [];
-  }
+	async getProviderSubscriptions(providerId: string): Promise<Subscription[]> {
+		const response = await apiClient.get<Subscription[]>(`/subscriptions/provider/${providerId}`);
+		// API client unwraps standardized response
+		return response.data || [];
+	}
 
-  async getActiveSubscription(providerId: string): Promise<Subscription | null> {
-    const response = await apiClient.get<Subscription | null>(
-      `/subscriptions/provider/${providerId}/active`
-    );
-    return response.data;
-  }
+	async getActiveSubscription(providerId: string): Promise<Subscription | null> {
+		const response = await apiClient.get<Subscription | null>(`/subscriptions/provider/${providerId}/active`);
+		return response.data;
+	}
 
-  async cancelSubscription(subscriptionId: string): Promise<Subscription> {
-    const response = await apiClient.put<Subscription>(`/subscriptions/${subscriptionId}/cancel`);
-    return response.data;
-  }
+	async cancelSubscription(subscriptionId: string): Promise<Subscription> {
+		const response = await apiClient.put<Subscription>(`/subscriptions/${subscriptionId}/cancel`);
+		return response.data;
+	}
 
-  // ------------------ Pricing Plans ------------------
+	// ------------------ Pricing Plans ------------------
 
-  async getActivePricingPlans(): Promise<PricingPlan[]> {
-    const response = await apiClient.get<PricingPlan[]>('/pricing-plans/active');
-    // API client unwraps standardized response
-    return response.data || [];
-  }
+	async getActivePricingPlans(): Promise<PricingPlan[]> {
+		const response = await apiClient.get<PricingPlan[]>("/pricing-plans/active");
+		// API client unwraps standardized response
+		return response.data || [];
+	}
 
-  // ------------------ Provider Earnings ------------------
+	// ------------------ Provider Earnings ------------------
 
-  async getProviderEarnings(
-    startDate?: Date,
-    endDate?: Date
-  ): Promise<ProviderEarnings> {
-    const authState = JSON.parse(localStorage.getItem('auth-storage') || '{}');
-    const userId = authState?.state?.user?.id;
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
+	async getProviderEarnings(providerId: string, startDate?: Date, endDate?: Date): Promise<ProviderEarnings> {
+		if (!providerId) {
+			throw new Error("User not authenticated");
+		}
 
-    const params: any = {};
-    if (startDate) params.start_date = startDate.toISOString();
-    if (endDate) params.end_date = endDate.toISOString();
+		const params: any = {};
+		if (startDate) params.start_date = startDate.toISOString();
+		if (endDate) params.end_date = endDate.toISOString();
 
-    const response = await apiClient.get<ProviderEarnings>(
-      `/payments/provider/${userId}/earnings`,
-      { params }
-    );
-    return response.data;
-  }
+		const response = await apiClient.get<ProviderEarnings>(`/payments/provider/${providerId}/earnings`, { params });
+		return response.data;
+	}
 
-  async getProviderTransactions(
-    limit: number = 20,
-    cursor?: string,
-    status?: string
-  ): Promise<PaginatedTransactions> {
-    const authState = JSON.parse(localStorage.getItem('auth-storage') || '{}');
-    const userId = authState?.state?.user?.id;
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
+	async getProviderTransactions(
+		providerId: string,
+		limit: number = 20,
+		cursor?: string,
+		status?: string,
+	): Promise<PaginatedTransactions> {
+		if (!providerId) {
+			throw new Error("User not authenticated");
+		}
 
-    const params: any = { limit };
-    if (cursor) params.cursor = cursor;
-    if (status) params.status = status;
+		const params: any = { limit };
+		if (cursor) params.cursor = cursor;
+		if (status) params.status = status;
 
-    const response = await apiClient.get<PaginatedTransactions>(
-      `/payments/provider/${userId}/transactions`,
-      { params }
-    );
-    return response.data;
-  }
+		const response = await apiClient.get<PaginatedTransactions>(`/payments/provider/${providerId}/transactions`, {
+			params,
+		});
+		return response.data;
+	}
 
-  async getProviderPayouts(): Promise<Payout[]> {
-    const authState = JSON.parse(localStorage.getItem('auth-storage') || '{}');
-    const userId = authState?.state?.user?.id;
-    if (!userId) {
-      throw new Error('User not authenticated');
-    }
+	async getProviderPayouts(providerId: string): Promise<Payout[]> {
+		if (!providerId) {
+			throw new Error("User not authenticated");
+		}
 
-    const response = await apiClient.get<Payout[]>(
-      `/payments/provider/${userId}/payouts`
-    );
-    return response.data || [];
-  }
+		const response = await apiClient.get<Payout[]>(`/payments/provider/${providerId}/payouts`);
+		return response.data || [];
+	}
 }
 
 export interface SavedPaymentMethod {

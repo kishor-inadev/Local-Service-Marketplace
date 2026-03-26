@@ -30,6 +30,7 @@ export class PaymentController {
 	 */
 	@Post()
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.CREATED)
 	async createPayment(@Body() createPaymentDto: CreatePaymentDto, @Request() req: any) {
 		const payment = await this.paymentService.createPayment(
 			createPaymentDto.job_id,
@@ -40,7 +41,7 @@ export class PaymentController {
 			createPaymentDto.coupon_code,
 		);
 
-		return { success: true, data: payment, message: "Payment created successfully" };
+		return payment;
 	}
 
 	/**
@@ -52,7 +53,7 @@ export class PaymentController {
 	async getPaymentById(@Param("id", ParseUUIDPipe) id: string) {
 		const payment = await this.paymentService.getPaymentById(id);
 
-		return { success: true, data: payment };
+		return payment;
 	}
 
 	/**
@@ -69,14 +70,7 @@ export class PaymentController {
 		const endIndex = startIndex + limit;
 		const paginatedPayments = payments.slice(startIndex, endIndex);
 
-		return {
-			success: true,
-			data: paginatedPayments,
-			total: payments.length,
-			page: Number(page),
-			limit: Number(limit),
-			hasMore: endIndex < payments.length,
-		};
+		return { data: paginatedPayments, total: payments.length, page: Number(page), limit: Number(limit) };
 	}
 
 	/**
@@ -88,7 +82,7 @@ export class PaymentController {
 	async getPaymentsByJob(@Param("jobId", ParseUUIDPipe) jobId: string) {
 		const payments = await this.paymentService.getPaymentsByJobId(jobId);
 
-		return { success: true, data: payments };
+		return payments;
 	}
 
 	/**
@@ -101,16 +95,13 @@ export class PaymentController {
 		const payment = await this.paymentService.getPaymentById(id);
 
 		return {
-			success: true,
-			data: {
-				id: payment.id,
-				status: payment.status,
-				amount: payment.amount,
-				currency: payment.currency,
-				transaction_id: payment.transaction_id,
-				created_at: payment.created_at,
-				paid_at: payment.paid_at,
-			},
+			id: payment.id,
+			status: payment.status,
+			amount: payment.amount,
+			currency: payment.currency,
+			transaction_id: payment.transaction_id,
+			created_at: payment.created_at,
+			paid_at: payment.paid_at,
 		};
 	}
 
@@ -120,7 +111,7 @@ export class PaymentController {
 	 */
 	@Post(":id/refund")
 	@UseGuards(JwtAuthGuard)
-	@HttpCode(HttpStatus.OK)
+	@HttpCode(HttpStatus.CREATED)
 	async requestRefund(
 		@Param("id", ParseUUIDPipe) id: string,
 		@Body() requestRefundDto: RequestRefundDto,
@@ -128,7 +119,7 @@ export class PaymentController {
 	) {
 		const refund = await this.refundService.createRefund(id, requestRefundDto.amount);
 
-		return { success: true, data: refund, message: "Refund request submitted successfully" };
+		return refund;
 	}
 
 	/**
@@ -147,7 +138,7 @@ export class PaymentController {
 
 		const earnings = await this.paymentService.getProviderEarnings(providerId, start, end);
 
-		return { success: true, data: earnings };
+		return earnings;
 	}
 
 	/**
@@ -165,6 +156,6 @@ export class PaymentController {
 	) {
 		const transactions = await this.paymentService.getProviderTransactions(providerId, limit, cursor, status);
 
-		return { success: true, ...transactions };
+		return transactions;
 	}
 }

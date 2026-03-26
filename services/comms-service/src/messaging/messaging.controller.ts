@@ -10,6 +10,8 @@ import {
 	ParseIntPipe,
 	ParseUUIDPipe,
 	UseGuards,
+	HttpCode,
+	HttpStatus
 } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { MessageService } from "./services/message.service";
@@ -28,6 +30,7 @@ export class MessagingController {
 	) {}
 
 	@Post()
+	@HttpCode(HttpStatus.CREATED)
 	async createMessage(@Body() createMessageDto: CreateMessageDto) {
 		this.logger.log("POST /messages - Create message", "MessagingController");
 		const message = await this.messageService.createMessage(
@@ -64,6 +67,7 @@ export class MessagingController {
 	}
 
 	@Post("attachments")
+	@HttpCode(HttpStatus.CREATED)
 	async createAttachment(@Body() createAttachmentDto: CreateAttachmentDto) {
 		this.logger.log("POST /messages/attachments - Create attachment", "MessagingController");
 		const attachment = await this.attachmentService.createAttachment(

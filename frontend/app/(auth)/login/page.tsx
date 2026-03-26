@@ -260,12 +260,13 @@ function LoginContent() {
 		setFocus("identifier");
 	}, [setFocus]);
 
-	// Redirect to dashboard if already authenticated
+	// Redirect to dashboard (or callbackUrl) if already authenticated
 	useEffect(() => {
 		if (isAuthenticated) {
-			router.push(ROUTES.DASHBOARD);
+			const callbackUrl = searchParams.get("callbackUrl");
+			router.push(callbackUrl || ROUTES.DASHBOARD);
 		}
-	}, [isAuthenticated, router]);
+	}, [isAuthenticated, router, searchParams]);
 
 	// Show message if redirected from signup
 	useEffect(() => {
@@ -333,7 +334,8 @@ function LoginContent() {
 			}
 
 			toast.success("Welcome back!");
-			router.push(ROUTES.DASHBOARD);
+			const callbackUrl = searchParams.get("callbackUrl");
+			router.push(callbackUrl || ROUTES.DASHBOARD);
 		} catch (error: any) {
 			toast.error(error.message || "Login failed. Please try again.");
 			setFocus("password");

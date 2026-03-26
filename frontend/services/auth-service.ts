@@ -48,6 +48,24 @@ export interface PasswordResetConfirm {
 	newPassword: string;
 }
 
+export interface TwoFAStatus {
+	enabled: boolean;
+}
+
+export interface TwoFASetup {
+	qr_code_url: string;
+	secret: string;
+}
+
+export interface Session {
+	id: string;
+	user_agent?: string;
+	ip_address?: string;
+	created_at: string;
+	last_active_at?: string;
+	is_current?: boolean;
+}
+
 class AuthService {
 	/**
 	 * Login using NextAuth - credentials are handled by NextAuth
@@ -137,6 +155,41 @@ class AuthService {
 	removeToken(): void {
 		// No-op: NextAuth manages tokens
 		console.warn("removeToken is deprecated with NextAuth");
+	}
+
+	async changePassword(currentPassword: string, newPassword: string): Promise<void> {
+		await apiClient.post<void>("/user/auth/change-password", { currentPassword, newPassword });
+	}
+
+	async get2FAStatus(): Promise<TwoFAStatus> {
+		const response = await apiClient.get<TwoFAStatus>("/user/auth/2fa/status");
+		return response.data;
+	}
+
+	async setup2FA(): Promise<TwoFASetup> {
+		const response = await apiClient.post<TwoFASetup>("/user/auth/2fa/setup", {});
+		return response.data;
+	}
+
+	async enable2FA(token: string): Promise<void> {
+		await apiClient.post<void>("/user/auth/2fa/enable", { token });
+	}
+
+	async disable2FA(token: string): Promise<void> {
+		await apiClient.post<void>("/user/auth/2fa/disable", { token });
+	}
+
+	async getSessions(): Promise<Session[]> {
+		const response = await apiClient.get<Session[]>("/user/auth/sessions");
+		return response.data ?? [];
+	}
+
+	async revokeSession(sessionId: string): Promise<void> {
+		await apiClient.delete<void>(`/user/auth/sessions/${sessionId}`);
+	}
+
+	async revokeAllSessions(): Promise<void> {
+		await apiClient.delete<void>("/user/auth/sessions");
 	}
 }
 

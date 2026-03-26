@@ -50,26 +50,21 @@ function errorHandler(error, req, res, next) {
   // Build error response
   const errorResponse = {
     success: false,
-    error: appError.errorCode || 'INTERNAL_ERROR',
+    statusCode: appError.statusCode || 500,
     message: appError.isOperational || isDevelopment ? appError.message : 'Something went wrong',
-    requestId,
-    timestamp: new Date().toISOString()
+    error: {
+      code: appError.errorCode || 'INTERNAL_ERROR',
+      details: appError.details
+        ? Array.isArray(appError.details)
+          ? appError.details
+          : [appError.details]
+        : []
+    }
   };
-
-  // Add details for validation errors
-  if (appError.details) {
-    errorResponse.details = appError.details;
-  }
 
   // Add retry-after header for rate limit errors
   if (appError.retryAfter) {
     res.setHeader('Retry-After', appError.retryAfter);
-    errorResponse.retryAfter = appError.retryAfter;
-  }
-
-  // Add stack trace in development
-  if (isDevelopment && !appError.isOperational) {
-    errorResponse.stack = appError.stack;
   }
 
   res.status(appError.statusCode || 500).json(errorResponse);
@@ -89,11 +84,12 @@ function notFoundHandler(req, res) {
 
   res.status(404).json({
     success: false,
-    error: 'NOT_FOUND',
+    statusCode: 404,
     message: 'The requested resource was not found',
-    path: req.path,
-    requestId,
-    timestamp: new Date().toISOString()
+    error: {
+      code: 'NOT_FOUND',
+      details: []
+    }
   });
 }
 

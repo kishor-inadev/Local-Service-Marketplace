@@ -20,112 +20,116 @@ export const APP_CONFIG = {
 } as const;
 
 export const ROUTES = {
-  // Public
-  HOME: '/',
-  ABOUT: '/about',
-  HOW_IT_WORKS: '/how-it-works',
-  HELP: '/help',
-  CONTACT: '/contact',
-  FAQ: '/faq',
-  CAREERS: '/careers',
-  PRICING: '/pricing',
-  
-  // Auth
-  LOGIN: '/login',
-  SIGNUP: '/signup',
-  PHONE_LOGIN: '/phone-login',
-  FORGOT_PASSWORD: '/forgot-password',
-  RESET_PASSWORD: '/reset-password',
-  VERIFY_EMAIL: '/auth/verify-email',
-  CALLBACK: '/auth/callback',
-  ERROR: '/error', // Auth error page
-  
-  // Dashboard - Main
-  DASHBOARD: '/dashboard',
-  
-  // Dashboard - Profile
-  DASHBOARD_PROFILE: '/dashboard/profile',
-  DASHBOARD_PROFILE_EDIT: '/dashboard/profile/edit',
-  
-  // Dashboard - Settings
-  DASHBOARD_SETTINGS: '/dashboard/settings',
-  DASHBOARD_SETTINGS_NOTIFICATIONS: '/dashboard/settings/notifications',
-  DASHBOARD_SETTINGS_PASSWORD: '/dashboard/settings/password',
-  DASHBOARD_SETTINGS_PAYMENT_METHODS: '/dashboard/settings/payment-methods',
-  DASHBOARD_SETTINGS_SUBSCRIPTION: '/dashboard/settings/subscription',
-  
-  // Dashboard - Requests
-  DASHBOARD_REQUESTS: '/dashboard/requests',
-  DASHBOARD_REQUEST_DETAIL: (id: string) => `/dashboard/requests/${id}`,
-  
-  // Dashboard - Jobs
-  DASHBOARD_JOBS: '/dashboard/jobs',
-  DASHBOARD_JOB_DETAIL: (id: string) => `/dashboard/jobs/${id}`,
-  
-  // Dashboard - Messages
-  DASHBOARD_MESSAGES: '/dashboard/messages',
-  
-  // Dashboard - Notifications
-  DASHBOARD_NOTIFICATIONS: '/dashboard/notifications',
-  
-  // Dashboard - Favorites
-  DASHBOARD_FAVORITES: '/dashboard/favorites',
-  
-  // Dashboard - Payments
-  DASHBOARD_PAYMENT_HISTORY: '/dashboard/payments/history',
-  
-  // Dashboard - Reviews
-  DASHBOARD_REVIEW_SUBMIT: '/dashboard/reviews/submit',
-  
-  // Dashboard - Provider Specific
-  DASHBOARD_BROWSE_REQUESTS: '/dashboard/browse-requests',
-  DASHBOARD_MY_PROPOSALS: '/dashboard/my-proposals',
-  DASHBOARD_EARNINGS: '/dashboard/earnings',
-  DASHBOARD_AVAILABILITY: '/dashboard/availability',
-  
-  // Dashboard - Provider Profile Management
-  DASHBOARD_PROVIDER_OVERVIEW: '/dashboard/provider',
-  DASHBOARD_PROVIDER_PORTFOLIO: '/dashboard/provider/portfolio',
-  DASHBOARD_PROVIDER_REVIEWS: '/dashboard/provider/reviews',
-  DASHBOARD_PROVIDER_DOCUMENTS: '/dashboard/provider/documents',
-  
-  // Dashboard - Admin
-  DASHBOARD_ADMIN: '/dashboard/admin',
-  DASHBOARD_ADMIN_USERS: '/dashboard/admin/users',
-  DASHBOARD_ADMIN_DISPUTES: '/dashboard/admin/disputes',
-  DASHBOARD_ADMIN_SETTINGS: '/dashboard/admin/settings',
-  
-  // Public Requests (only create is public - viewing requires authentication)
-  CREATE_REQUEST: '/requests/create',
-  REQUEST_DETAIL: (id: string) => `/dashboard/requests/${id}`, // Requires authentication
-  
-  // Providers (Public - accessible before login)
-  PROVIDERS: '/providers',
-  PROVIDER_DETAIL: (id: string) => `/providers/${id}`,
-  
-  // Admin (Legacy - redirects to dashboard/admin)
-  ADMIN: '/dashboard/admin',
-  ADMIN_USERS: '/dashboard/admin/users',
-  ADMIN_DISPUTES: '/dashboard/admin/disputes',
-  ADMIN_SETTINGS: '/dashboard/admin/settings',
-  
-  // Legal
-  PRIVACY: '/privacy',
-  TERMS: '/terms',
-  COOKIES: '/cookies',
-  
-  // Legacy routes (for backward compatibility - redirects)
-  PROFILE: '/dashboard/profile',
-  PROFILE_EDIT: '/dashboard/profile/edit',
-  SETTINGS: '/dashboard/settings',
-  REQUESTS: '/dashboard/requests', // Requires authentication - view all requests
-  JOBS: '/dashboard/jobs',
-  JOB_DETAIL: (id: string) => `/dashboard/jobs/${id}`,
-  MESSAGES: '/dashboard/messages',
-  NOTIFICATIONS: '/dashboard/notifications',
-  PAYMENT_HISTORY: '/dashboard/payments/history',
-  REVIEW_SUBMIT: '/dashboard/reviews/submit',
-  DASHBOARD_CREATE_REQUEST: '/requests/create', // Public route - unauthenticated users can create requests
+	// Public
+	HOME: "/",
+	ABOUT: "/about",
+	HOW_IT_WORKS: "/how-it-works",
+	HELP: "/help",
+	CONTACT: "/contact",
+	FAQ: "/faq",
+	CAREERS: "/careers",
+	PRICING: "/pricing",
+
+	// Auth
+	LOGIN: "/login",
+	SIGNUP: "/signup",
+	PHONE_LOGIN: "/phone-login",
+	FORGOT_PASSWORD: "/forgot-password",
+	RESET_PASSWORD: "/reset-password",
+	VERIFY_EMAIL: "/auth/verify-email",
+	CALLBACK: "/auth/callback",
+	ERROR: "/error", // Auth error page
+
+	// Dashboard - Main
+	DASHBOARD: "/dashboard",
+
+	// Dashboard - Profile
+	DASHBOARD_PROFILE: "/dashboard/profile",
+	DASHBOARD_PROFILE_EDIT: "/dashboard/profile/edit",
+
+	// Dashboard - Settings
+	DASHBOARD_SETTINGS: "/dashboard/settings",
+	DASHBOARD_SETTINGS_NOTIFICATIONS: "/dashboard/settings/notifications",
+	DASHBOARD_SETTINGS_PASSWORD: "/dashboard/settings/password",
+	DASHBOARD_SETTINGS_PAYMENT_METHODS: "/dashboard/settings/payment-methods",
+	DASHBOARD_SETTINGS_SUBSCRIPTION: "/dashboard/settings/subscription",
+
+	// Dashboard - Requests
+	DASHBOARD_REQUESTS: "/dashboard/requests",
+	DASHBOARD_REQUEST_DETAIL: (id: string) => `/dashboard/requests/${id}`,
+
+	// Dashboard - Jobs
+	DASHBOARD_JOBS: "/dashboard/jobs",
+	DASHBOARD_JOB_DETAIL: (id: string) => `/dashboard/jobs/${id}`,
+
+	// Dashboard - Messages
+	DASHBOARD_MESSAGES: "/dashboard/messages",
+
+	// Dashboard - Notifications
+	DASHBOARD_NOTIFICATIONS: "/dashboard/notifications",
+
+	// Dashboard - Favorites
+	DASHBOARD_FAVORITES: "/dashboard/favorites",
+
+	// Dashboard - Payments
+	DASHBOARD_PAYMENT_HISTORY: "/dashboard/payments/history",
+
+	// Dashboard - Reviews
+	DASHBOARD_REVIEW_SUBMIT: "/dashboard/reviews/submit",
+
+	// Dashboard - Provider Specific
+	DASHBOARD_BROWSE_REQUESTS: "/dashboard/browse-requests",
+	DASHBOARD_MY_PROPOSALS: "/dashboard/my-proposals",
+	DASHBOARD_EARNINGS: "/dashboard/earnings",
+	DASHBOARD_AVAILABILITY: "/dashboard/availability",
+
+	// Dashboard - Provider Profile Management
+	DASHBOARD_PROVIDER_OVERVIEW: "/dashboard/provider",
+	DASHBOARD_PROVIDER_PORTFOLIO: "/dashboard/provider/portfolio",
+	DASHBOARD_PROVIDER_REVIEWS: "/dashboard/provider/reviews",
+	DASHBOARD_PROVIDER_DOCUMENTS: "/dashboard/provider/documents",
+	DASHBOARD_PROVIDER_SERVICES: "/dashboard/provider/services",
+
+	// Dashboard - Admin
+	DASHBOARD_ADMIN: "/dashboard/admin",
+	DASHBOARD_ADMIN_USERS: "/dashboard/admin/users",
+	DASHBOARD_ADMIN_DISPUTES: "/dashboard/admin/disputes",
+	DASHBOARD_ADMIN_SETTINGS: "/dashboard/admin/settings",
+
+	// Public Requests (only create is public - viewing requires authentication)
+	CREATE_REQUEST: "/requests/create",
+	REQUEST_DETAIL: (id: string) => `/dashboard/requests/${id}`, // Requires authentication
+
+	// Checkout
+	CHECKOUT: "/checkout",
+
+	// Providers (Public - accessible before login)
+	PROVIDERS: "/providers",
+	PROVIDER_DETAIL: (id: string) => `/providers/${id}`,
+
+	// Admin (Legacy - redirects to dashboard/admin)
+	ADMIN: "/dashboard/admin",
+	ADMIN_USERS: "/dashboard/admin/users",
+	ADMIN_DISPUTES: "/dashboard/admin/disputes",
+	ADMIN_SETTINGS: "/dashboard/admin/settings",
+
+	// Legal
+	PRIVACY: "/privacy",
+	TERMS: "/terms",
+	COOKIES: "/cookies",
+
+	// Legacy routes (for backward compatibility - redirects)
+	PROFILE: "/dashboard/profile",
+	PROFILE_EDIT: "/dashboard/profile/edit",
+	SETTINGS: "/dashboard/settings",
+	REQUESTS: "/dashboard/requests", // Requires authentication - view all requests
+	JOBS: "/dashboard/jobs",
+	JOB_DETAIL: (id: string) => `/dashboard/jobs/${id}`,
+	MESSAGES: "/dashboard/messages",
+	NOTIFICATIONS: "/dashboard/notifications",
+	PAYMENT_HISTORY: "/dashboard/payments/history",
+	REVIEW_SUBMIT: "/dashboard/reviews/submit",
+	DASHBOARD_CREATE_REQUEST: "/requests/create", // Public route - unauthenticated users can create requests
 } as const;
 
 export const API_ENDPOINTS = {

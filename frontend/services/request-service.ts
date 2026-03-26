@@ -1,39 +1,46 @@
 import { apiClient } from './api-client';
 
-export interface ServiceRequest {
+export interface ServiceCategory {
   id: string;
-  user_id?: string | null;
-  category_id: string;
-  description: string;
-  budget: number;
-  status: 'open' | 'assigned' | 'completed' | 'cancelled';
-  // Guest information for anonymous requests
-  guest_name?: string | null;
-  guest_email?: string | null;
-  guest_phone?: string | null;
+  name: string;
+  description?: string;
+  icon?: string;
+  active: boolean;
   created_at: string;
-  updated_at: string;
-  category?: {
-    id: string;
-    name: string;
-  };
-  location_id?: string;
-  location?: {
-    id: string;
-    latitude: number;
-    longitude: number;
-    address?: string;
-    city?: string;
-    state?: string;
-    zip_code?: string;
-    country?: string;
-  };
-  images?: any;
-  preferred_date?: string;
-  urgency?: 'low' | 'medium' | 'high' | 'urgent';
-  expiry_date?: string;
-  view_count?: number;
-  deleted_at?: string;
+}
+
+export interface ServiceRequest {
+	id: string;
+	user_id?: string | null;
+	category_id: string;
+	description: string;
+	budget: number;
+	status: "open" | "assigned" | "completed" | "cancelled";
+	// Guest information for anonymous requests
+	guest_name?: string | null;
+	guest_email?: string | null;
+	guest_phone?: string | null;
+	created_at: string;
+	updated_at: string;
+	category?: { id: string; name: string };
+	location_id?: string;
+	location?: {
+		id: string;
+		latitude: number;
+		longitude: number;
+		address?: string;
+		city?: string;
+		state?: string;
+		zip_code?: string;
+		country?: string;
+	};
+	images?: string[];
+	preferred_date?: string;
+	urgency?: "low" | "medium" | "high" | "urgent";
+	expiry_date?: string;
+	view_count?: number;
+	proposal_count?: number;
+	deleted_at?: string;
 }
 
 export interface CreateRequestData {
@@ -142,8 +149,8 @@ class RequestService {
     return response.data || [];
   }
 
-  async getCategories(): Promise<any[]> {
-    const response = await apiClient.get<any>('/categories');
+  async getCategories(): Promise<ServiceCategory[]> {
+    const response = await apiClient.get<ServiceCategory[]>('/categories');
     // For array responses, unwrapped to { data, total } or just the array
     return response.data || [];
   }

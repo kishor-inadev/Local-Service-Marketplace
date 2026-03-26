@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useAuth } from "@/hooks/useAuth";
 import { Layout } from '@/components/layout/Layout';
@@ -6,9 +6,13 @@ import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from '@/components/ui/Button';
 import { Settings, Database, Mail, Shield } from 'lucide-react';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import toast from "react-hot-toast";
 
 export default function AdminSettingsPage() {
   useAuth();
+
+  const comingSoon = (label: string) => () =>
+		toast(`${label} configuration is managed via environment variables.`, { icon: "ℹ️" });
 
   return (
 		<ProtectedRoute requiredRoles={["admin"]}>
@@ -37,7 +41,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<Button
 											variant='outline'
-											size='sm'>
+											size='sm'
+											onClick={comingSoon("Platform name")}>
 											Edit
 										</Button>
 									</div>
@@ -48,7 +53,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<Button
 											variant='outline'
-											size='sm'>
+											size='sm'
+											onClick={comingSoon("Maintenance mode")}>
 											Configure
 										</Button>
 									</div>
@@ -73,7 +79,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<Button
 											variant='outline'
-											size='sm'>
+											size='sm'
+											onClick={comingSoon("SMTP")}>
 											Configure
 										</Button>
 									</div>
@@ -98,7 +105,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<Button
 											variant='outline'
-											size='sm'>
+											size='sm'
+											onClick={comingSoon("Password policy")}>
 											Configure
 										</Button>
 									</div>
@@ -109,7 +117,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<Button
 											variant='outline'
-											size='sm'>
+											size='sm'
+											onClick={comingSoon("Two-factor authentication")}>
 											Configure
 										</Button>
 									</div>
@@ -134,7 +143,8 @@ export default function AdminSettingsPage() {
 										</div>
 										<Button
 											variant='outline'
-											size='sm'>
+											size='sm'
+											onClick={comingSoon("Database backup")}>
 											Backup Now
 										</Button>
 									</div>

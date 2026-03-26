@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosRequestConfig, AxiosError } from 'axios';
 import { getSession } from 'next-auth/react';
 import toast from 'react-hot-toast';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3500';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
 
 // Deduplicate concurrent getSession() calls: all requests that fire at the same
 // time share a single in-flight session fetch instead of triggering N refreshes.

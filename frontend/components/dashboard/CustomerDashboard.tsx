@@ -5,8 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/config/constants';
 import { isNotificationsEnabled } from '@/config/features';
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Loading } from '@/components/ui/Loading';
+import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from '@/components/ui/Button';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -16,6 +15,8 @@ import { notificationService } from '@/services/notification-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
 import Link from 'next/link';
 import { Plus, Briefcase, FileText, Bell } from 'lucide-react';
+import { SkeletonStatCard, SkeletonListItem } from "@/components/ui/Skeleton";
+import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function CustomerDashboard() {
   const { user, isAuthenticated } = useAuth();
@@ -64,226 +65,252 @@ export default function CustomerDashboard() {
 	}
 
   return (
-    <Layout>
-      <div className="container-custom py-12">
-        {/* Welcome Section */}
-        <div className="mb-12">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-3">
-            Welcome back, {user?.name || user?.email}!
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Here's what's happening with your service requests
-          </p>
-        </div>
+		<Layout>
+			<div className='container-custom py-12'>
+				{/* Welcome Section */}
+				<div className='mb-12'>
+					<h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-3'>
+						Welcome back, {user?.name || user?.email}!
+					</h1>
+					<p className='text-lg text-gray-600 dark:text-gray-400'>Here's what's happening with your service requests</p>
+				</div>
 
-        {/* Quick Stats */}
-        <div className={`grid grid-cols-1 ${isNotificationsEnabled() ? 'md:grid-cols-3' : 'md:grid-cols-2'} gap-6 mb-12`}>
-          <Card hover>
-            <CardContent className="flex items-center justify-between p-6">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                  Active Requests
-                </p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  {requests?.filter((r) => r.status === 'open').length || 0}
-                </p>
-              </div>
-              <FileText className="h-8 w-8 text-primary-600" />
-            </CardContent>
-          </Card>
+				{/* Quick Stats */}
+				<div
+					className={`grid grid-cols-1 ${isNotificationsEnabled() ? "md:grid-cols-3" : "md:grid-cols-2"} gap-6 mb-10`}>
+					{requestsLoading ?
+						<SkeletonStatCard />
+					:	<Card
+							hover
+							className='animate-fade-in'>
+							<CardContent className='flex items-center justify-between p-6'>
+								<div>
+									<p className='text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400'>
+										Active Requests
+									</p>
+									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>
+										{requests?.filter((r) => r.status === "open").length ?? 0}
+									</p>
+								</div>
+								<div className='h-12 w-12 rounded-2xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0'>
+									<FileText className='h-6 w-6 text-primary-600 dark:text-primary-400' />
+								</div>
+							</CardContent>
+						</Card>
+					}
 
-          <Card hover>
-            <CardContent className="flex items-center justify-between p-6">
-              <div>
-                <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Active Jobs</p>
-                <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                  {jobs?.filter((j) => j.status === 'in_progress').length || 0}
-                </p>
-              </div>
-              <Briefcase className="h-8 w-8 text-green-600" />
-            </CardContent>
-          </Card>
+					{jobsLoading ?
+						<SkeletonStatCard />
+					:	<Card
+							hover
+							className='animate-fade-in'>
+							<CardContent className='flex items-center justify-between p-6'>
+								<div>
+									<p className='text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400'>
+										Active Jobs
+									</p>
+									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>
+										{jobs?.filter((j) => j.status === "in_progress").length ?? 0}
+									</p>
+								</div>
+								<div className='h-12 w-12 rounded-2xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0'>
+									<Briefcase className='h-6 w-6 text-green-600 dark:text-green-400' />
+								</div>
+							</CardContent>
+						</Card>
+					}
 
-          {isNotificationsEnabled() && (
-            <Card hover>
-              <CardContent className="flex items-center justify-between p-6">
-                <div>
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                    Notifications
-                  </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white mt-2">
-                    {notifications?.filter((n) => !n.read).length || 0}
-                  </p>
-                </div>
-                <Bell className="h-8 w-8 text-yellow-600" />
-              </CardContent>
-            </Card>
-          )}
-        </div>
+					{isNotificationsEnabled() &&
+						(notificationsLoading ?
+							<SkeletonStatCard />
+						:	<Card
+								hover
+								className='animate-fade-in'>
+								<CardContent className='flex items-center justify-between p-6'>
+									<div>
+										<p className='text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400'>
+											Unread Notifications
+										</p>
+										<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>
+											{notifications?.filter((n) => !n.read).length ?? 0}
+										</p>
+									</div>
+									<div className='h-12 w-12 rounded-2xl bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0'>
+										<Bell className='h-6 w-6 text-yellow-600 dark:text-yellow-400' />
+									</div>
+								</CardContent>
+							</Card>)}
+				</div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Recent Requests */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Recent Requests
-                </h2>
-                <Link href={ROUTES.CREATE_REQUEST}>
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-1" />
-                    New Request
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {requestsLoading ? (
-                <Loading size="sm" />
-              ) : requests && requests.length > 0 ? (
-                <div className="space-y-4">
-                  {requests.slice(0, 5).map((request) => (
-                    <Link
-                      key={request.id}
-                      href={`/requests/${request.id}`}
-                      className="block p-4 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            Request #{request.id.substring(0, 8)}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                            {request.description}
-                          </p>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                            <span>{formatCurrency(request.budget)}</span>
-                            <span>•</span>
-                            <span>{formatDate(request.created_at)}</span>
-                          </div>
-                        </div>
-                        <StatusBadge status={request.status} />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <p>No requests yet</p>
-                  <Link href={ROUTES.CREATE_REQUEST}>
-                    <Button variant="outline" size="sm" className="mt-4">
-                      Create Your First Request
-                    </Button>
-                  </Link>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+				<div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
+					{/* Recent Requests */}
+					<Card>
+						<CardHeader>
+							<div className='flex items-center justify-between'>
+								<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Recent Requests</h2>
+								<Link href={ROUTES.CREATE_REQUEST}>
+									<Button size='sm'>
+										<Plus className='h-4 w-4 mr-1' />
+										New Request
+									</Button>
+								</Link>
+							</div>
+						</CardHeader>
+						<CardContent>
+							{requestsLoading ?
+								<div className='space-y-3'>
+									{[...Array(3)].map((_, i) => (
+										<SkeletonListItem key={i} />
+									))}
+								</div>
+							: requests && requests.length > 0 ?
+								<div className='space-y-3'>
+									{requests.slice(0, 5).map((request) => (
+										<Link
+											key={request.id}
+											href={`/requests/${request.id}`}
+											className='block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-primary-200 dark:hover:border-primary-700 transition-all'>
+											<div className='flex items-start justify-between gap-3'>
+												<div className='flex-1 min-w-0'>
+													<h3 className='font-medium text-gray-900 dark:text-white truncate'>
+														Request #{request.id.substring(0, 8)}
+													</h3>
+													<p className='text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1'>
+														{request.description}
+													</p>
+													<p className='text-xs text-gray-400 dark:text-gray-500 mt-1.5'>
+														{formatCurrency(request.budget)} &bull; {formatDate(request.created_at)}
+													</p>
+												</div>
+												<StatusBadge status={request.status} />
+											</div>
+										</Link>
+									))}
+								</div>
+							:	<EmptyState
+									title='No requests yet'
+									description='Post your first service request to get proposals from local professionals.'
+									icon='file'
+									action={{ label: "Create Request", onClick: () => {} }}
+								/>
+							}
+						</CardContent>
+					</Card>
 
-          {/* Active Jobs */}
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Active Jobs
-                </h2>
-                <Link href={ROUTES.DASHBOARD_JOBS}>
-                  <Button variant="outline" size="sm">
-                    View All
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {jobsLoading ? (
-                <Loading size="sm" />
-              ) : jobs && jobs.length > 0 ? (
-                <div className="space-y-4">
-                  {jobs.slice(0, 5).map((job) => (
-                    <Link
-                      key={job.id}
-                      href={`/jobs/${job.id}`}
-                      className="block p-4 border border-gray-200 dark:border-gray-700 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition"
-                    >
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h3 className="font-medium text-gray-900 dark:text-white">
-                            Job #{job.id.slice(0, 8)}
-                          </h3>
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                            {job.provider?.name || 'Provider'}
-                          </p>
-                          <div className="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
-                            <span>{formatDate(job.created_at)}</span>
-                          </div>
-                        </div>
-                        <StatusBadge status={job.status} />
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <p>No active jobs</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+					{/* Active Jobs */}
+					<Card>
+						<CardHeader>
+							<div className='flex items-center justify-between'>
+								<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Active Jobs</h2>
+								<Link href={ROUTES.DASHBOARD_JOBS}>
+									<Button
+										variant='outline'
+										size='sm'>
+										View All
+									</Button>
+								</Link>
+							</div>
+						</CardHeader>
+						<CardContent>
+							{jobsLoading ?
+								<div className='space-y-3'>
+									{[...Array(3)].map((_, i) => (
+										<SkeletonListItem key={i} />
+									))}
+								</div>
+							: jobs && jobs.length > 0 ?
+								<div className='space-y-3'>
+									{jobs.slice(0, 5).map((job) => (
+										<Link
+											key={job.id}
+											href={`/jobs/${job.id}`}
+											className='block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-green-200 dark:hover:border-green-700 transition-all'>
+											<div className='flex items-start justify-between gap-3'>
+												<div className='flex-1 min-w-0'>
+													<h3 className='font-medium text-gray-900 dark:text-white truncate'>
+														Job #{job.id.slice(0, 8)}
+													</h3>
+													<p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+														{job.provider?.name || "Provider"}
+													</p>
+													<p className='text-xs text-gray-400 dark:text-gray-500 mt-1.5'>
+														{formatDate(job.created_at)}
+													</p>
+												</div>
+												<StatusBadge status={job.status} />
+											</div>
+										</Link>
+									))}
+								</div>
+							:	<EmptyState
+									title='No active jobs'
+									description='Your accepted service requests will appear here.'
+									icon='inbox'
+								/>
+							}
+						</CardContent>
+					</Card>
+				</div>
 
-        {/* Recent Notifications */}
-        {isNotificationsEnabled() && (
-          <Card className="mt-8">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                  Recent Notifications
-                </h2>
-                <Link href={ROUTES.DASHBOARD_NOTIFICATIONS}>
-                  <Button variant="outline" size="sm">
-                    View All
-                  </Button>
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {notificationsLoading ? (
-                <Loading size="sm" />
-              ) : notifications && notifications.length > 0 ? (
-                <div className="space-y-3">
-                  {notifications.map((notification) => (
-                    <div
-                      key={notification.id}
-                      className={`p-3 rounded-md ${
-                        notification.read ? 'bg-gray-50 dark:bg-gray-700' : 'bg-blue-50 dark:bg-blue-900/20'
-                      }`}
-                    >
-                      <div className="flex items-start justify-between">
-                        <h4 className="font-medium text-gray-900 dark:text-white capitalize">
-                          {notification.type.replace(/_/g, ' ')}
-                        </h4>
-                        {!notification.read && (
-                          <span className="inline-block w-2 h-2 bg-blue-500 rounded-full"></span>
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                        {notification.message}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        {formatDate(notification.created_at)}
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  <p>No notifications</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        )}
-      </div>
-    </Layout>
-  );
+				{/* Recent Notifications */}
+				{isNotificationsEnabled() && (
+					<Card className='mt-8'>
+						<CardHeader>
+							<div className='flex items-center justify-between'>
+								<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Recent Notifications</h2>
+								<Link href={ROUTES.DASHBOARD_NOTIFICATIONS}>
+									<Button
+										variant='outline'
+										size='sm'>
+										View All
+									</Button>
+								</Link>
+							</div>
+						</CardHeader>
+						<CardContent>
+							{notificationsLoading ?
+								<div className='space-y-2'>
+									{[...Array(3)].map((_, i) => (
+										<div
+											key={i}
+											className='h-16 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse'
+										/>
+									))}
+								</div>
+							: notifications && notifications.length > 0 ?
+								<div className='space-y-2'>
+									{notifications.map((notification) => (
+										<div
+											key={notification.id}
+											className={`p-3 rounded-lg border-l-4 ${
+												notification.read ?
+													"bg-gray-50 dark:bg-gray-800 border-gray-200 dark:border-gray-700"
+												:	"bg-primary-50 dark:bg-primary-900/20 border-primary-500"
+											}`}>
+											<div className='flex items-start justify-between gap-2'>
+												<h4 className='font-medium text-gray-900 dark:text-white capitalize text-sm'>
+													{notification.type.replace(/_/g, " ")}
+												</h4>
+												{!notification.read && (
+													<span className='inline-block w-2 h-2 mt-1.5 bg-primary-500 rounded-full flex-shrink-0' />
+												)}
+											</div>
+											<p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>{notification.message}</p>
+											<p className='text-xs text-gray-400 dark:text-gray-500 mt-1.5'>
+												{formatDate(notification.created_at)}
+											</p>
+										</div>
+									))}
+								</div>
+							:	<EmptyState
+									title='No notifications'
+									icon='inbox'
+								/>
+							}
+						</CardContent>
+					</Card>
+				)}
+			</div>
+		</Layout>
+	);
 }

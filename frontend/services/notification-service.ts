@@ -6,6 +6,7 @@ export interface Notification {
   type: string;
   message: string;
   read: boolean;
+  unsubscribed?: boolean;
   created_at: string;
 }
 

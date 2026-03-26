@@ -40,6 +40,12 @@ export default function BrowseRequestsPage() {
 		enabled: isAuthenticated && user?.role === "provider",
 	});
 
+  const { data: categories } = useQuery({
+		queryKey: ["categories"],
+		queryFn: () => requestService.getCategories(),
+		enabled: isAuthenticated,
+	});
+
   // Filter requests locally by search term
   const filteredRequests = requests?.data?.filter((request: any) => {
     if (!searchTerm) return true;
@@ -106,7 +112,13 @@ export default function BrowseRequestsPage() {
 												value={selectedCategory}
 												onChange={(e) => setSelectedCategory(e.target.value)}>
 												<option value=''>All Categories</option>
-												{/* Categories would be loaded from API */}
+												{categories?.map((cat: any) => (
+													<option
+														key={cat.id}
+														value={cat.id}>
+														{cat.name}
+													</option>
+												))}
 											</select>
 										</div>
 									</div>

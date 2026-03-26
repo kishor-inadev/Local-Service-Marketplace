@@ -11,7 +11,9 @@ import {
   UploadedFiles,
   UseInterceptors,
   BadRequestException,
-  ParseUUIDPipe
+  ParseUUIDPipe,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProviderPortfolioService } from '../services/provider-portfolio.service';
@@ -27,6 +29,7 @@ export class ProviderPortfolioController {
 
   @Post(':providerId')
   @UseInterceptors(FilesInterceptor('images', 10)) // Max 10 images
+  @HttpCode(HttpStatus.CREATED)
   async createPortfolioItem(
     @Param('providerId', ParseUUIDPipe) providerId: string,
     @Body() dto: CreatePortfolioDto,

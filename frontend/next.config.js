@@ -5,7 +5,7 @@ const nextConfig = {
 	reactStrictMode: true,
 
 	// Environment variables
-	env: { NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3500" },
+	env: { NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700" },
 
 	// Image optimization
 	images: {
@@ -39,14 +39,18 @@ const nextConfig = {
 
 	// API rewrites
 	async rewrites() {
-		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3500";
+		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
 		return [{ source: "/api/v1/:path*", destination: `${apiUrl}/v1/:path*` }];
 	},
 
 	// Webpack optimization
-	webpack: (config, { isServer }) => {
+	webpack: (config, { isServer, dev }) => {
 		if (!isServer) {
 			config.resolve.fallback = { ...config.resolve.fallback, fs: false, net: false, tls: false };
+		}
+		// Enable polling for file watching on Windows (fixes HMR not reflecting changes)
+		if (dev) {
+			config.watchOptions = { poll: 1000, aggregateTimeout: 300 };
 		}
 		return config;
 	},

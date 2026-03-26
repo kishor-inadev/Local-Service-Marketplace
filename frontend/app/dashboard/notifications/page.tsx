@@ -15,6 +15,7 @@ import { notificationService } from '@/services/notification-service';
 import { useNotificationStore } from '@/store/notificationStore';
 import { formatRelativeTime } from '@/utils/helpers';
 import { Check, Bell } from 'lucide-react';
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 export default function NotificationsPage() {
   const router = useRouter();
@@ -68,81 +69,85 @@ export default function NotificationsPage() {
   }
 
   return (
-		<Layout>
-			<div className='container-custom py-8'>
-				{error ?
-					<ErrorState
-						title='Failed to load notifications'
-						message="We couldn't load your notifications. Please try again."
-						retry={() => refetch()}
-					/>
-				:	<>
-						<div className='flex items-center justify-between mb-8'>
-							<div>
-								<h1 className='text-3xl font-bold text-gray-900'>Notifications</h1>
-								<p className='mt-2 text-gray-600'>Stay updated with your latest activities</p>
+		<ProtectedRoute>
+			<Layout>
+				<div className='container-custom py-8'>
+					{error ?
+						<ErrorState
+							title='Failed to load notifications'
+							message="We couldn't load your notifications. Please try again."
+							retry={() => refetch()}
+						/>
+					:	<>
+							<div className='flex items-center justify-between mb-8'>
+								<div>
+									<h1 className='text-3xl font-bold text-gray-900'>Notifications</h1>
+									<p className='mt-2 text-gray-600'>Stay updated with your latest activities</p>
+								</div>
+								{notifications && notifications.some((n) => !n.read) && (
+									<Button
+										variant='outline'
+										size='sm'
+										onClick={() => markAllAsReadMutation.mutate()}
+										isLoading={markAllAsReadMutation.isPending}>
+										<Check className='h-4 w-4 mr-2' />
+										Mark All as Read
+									</Button>
+								)}
 							</div>
-							{notifications && notifications.some((n) => !n.read) && (
-								<Button
-									variant='outline'
-									size='sm'
-									onClick={() => markAllAsReadMutation.mutate()}
-									isLoading={markAllAsReadMutation.isPending}>
-									<Check className='h-4 w-4 mr-2' />
-									Mark All as Read
-								</Button>
-							)}
-						</div>
 
-						{isLoading ?
-							<Loading />
-						: notifications && notifications.length > 0 ?
-							<Card>
-								<CardContent>
-									<div className='divide-y'>
-										{notifications.map((notification) => (
-											<div
-												key={notification.id}
-												className={`py-4 ${notification.read ? "opacity-60" : "bg-blue-50"}`}>
-												<div className='flex items-start gap-4'>
-													<div className='flex-shrink-0'>
-														<div
-															className={`w-10 h-10 rounded-full flex items-center justify-center ${
-																notification.read ? "bg-gray-200" : "bg-primary-100"
-															}`}>
-															<Bell className='h-5 w-5 text-primary-600' />
+							{isLoading ?
+								<Loading />
+							: notifications && notifications.length > 0 ?
+								<Card>
+									<CardContent>
+										<div className='divide-y'>
+											{notifications.map((notification) => (
+												<div
+													key={notification.id}
+													className={`py-4 ${notification.read ? "opacity-60" : "bg-blue-50"}`}>
+													<div className='flex items-start gap-4'>
+														<div className='flex-shrink-0'>
+															<div
+																className={`w-10 h-10 rounded-full flex items-center justify-center ${
+																	notification.read ? "bg-gray-200" : "bg-primary-100"
+																}`}>
+																<Bell className='h-5 w-5 text-primary-600' />
+															</div>
 														</div>
+														<div className='flex-1 min-w-0'>
+															<p className='text-sm text-gray-900'>{notification.message}</p>
+															<p className='text-xs text-gray-500 mt-2'>
+																{formatRelativeTime(notification.created_at)}
+															</p>
+														</div>
+														{!notification.read && (
+															<Button
+																variant='outline'
+																size='sm'
+																onClick={() => markAsReadMutation.mutate(notification.id)}>
+																Mark as Read
+															</Button>
+														)}
 													</div>
-													<div className='flex-1 min-w-0'>
-														<p className='text-sm text-gray-900'>{notification.message}</p>
-														<p className='text-xs text-gray-500 mt-2'>{formatRelativeTime(notification.created_at)}</p>
-													</div>
-													{!notification.read && (
-														<Button
-															variant='outline'
-															size='sm'
-															onClick={() => markAsReadMutation.mutate(notification.id)}>
-															Mark as Read
-														</Button>
-													)}
 												</div>
-											</div>
-										))}
-									</div>
-								</CardContent>
-							</Card>
-						:	<Card>
-								<CardContent>
-									<div className='text-center py-12'>
-										<Bell className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-										<p className='text-gray-500'>No notifications</p>
-									</div>
-								</CardContent>
-							</Card>
-						}
-					</>
-				}
-			</div>
-		</Layout>
+											))}
+										</div>
+									</CardContent>
+								</Card>
+							:	<Card>
+									<CardContent>
+										<div className='text-center py-12'>
+											<Bell className='h-12 w-12 text-gray-400 mx-auto mb-4' />
+											<p className='text-gray-500'>No notifications</p>
+										</div>
+									</CardContent>
+								</Card>
+							}
+						</>
+					}
+				</div>
+			</Layout>
+		</ProtectedRoute>
 	);
 }

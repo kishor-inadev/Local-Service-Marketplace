@@ -10,7 +10,7 @@ import { apiClient } from '@/services/api-client';
 import { ErrorState } from "@/components/ui/ErrorState";
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, ImageIcon, Star, FileText, Calendar, Briefcase } from 'lucide-react';
+import { LayoutDashboard, ImageIcon, Star, FileText, Calendar, Briefcase, Tag } from "lucide-react";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 export default function ProviderOverviewPage() {
@@ -39,6 +39,7 @@ export default function ProviderOverviewPage() {
 		{ href: ROUTES.DASHBOARD_PROVIDER_PORTFOLIO, label: "Portfolio", icon: ImageIcon },
 		{ href: ROUTES.DASHBOARD_PROVIDER_REVIEWS, label: "Reviews", icon: Star },
 		{ href: ROUTES.DASHBOARD_PROVIDER_DOCUMENTS, label: "Documents", icon: FileText },
+		{ href: ROUTES.DASHBOARD_PROVIDER_SERVICES, label: "Services", icon: Tag },
 		{ href: ROUTES.DASHBOARD_AVAILABILITY, label: "Availability", icon: Calendar },
 		{ href: ROUTES.DASHBOARD_BROWSE_REQUESTS, label: "Browse Jobs", icon: Briefcase },
 	];

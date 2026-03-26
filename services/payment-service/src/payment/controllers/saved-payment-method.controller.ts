@@ -8,7 +8,9 @@ import {
   Request,
   ParseUUIDPipe,
   Put,
-  UseGuards
+  UseGuards,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
 import { SavedPaymentMethodService } from '../services/saved-payment-method.service';
 import { SavePaymentMethodDto } from '../dto/save-payment-method.dto';
@@ -22,6 +24,7 @@ export class SavedPaymentMethodController {
   ) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async savePaymentMethod(
     @Body() dto: SavePaymentMethodDto,
     @Request() req: any

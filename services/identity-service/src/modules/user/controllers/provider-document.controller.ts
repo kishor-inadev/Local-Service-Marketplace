@@ -10,13 +10,17 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
-  ParseUUIDPipe
+  ParseUUIDPipe,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ProviderDocumentService } from '../services/provider-document.service';
 import { UploadDocumentDto } from '../dto/upload-document.dto';
 import { VerifyDocumentDto } from '../dto/verify-document.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from '../../../common/guards/roles.guard';
+import { Roles } from '../../../common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('provider-documents')
@@ -27,6 +31,7 @@ export class ProviderDocumentController {
 
   @Post('upload/:providerId')
   @UseInterceptors(FileInterceptor('file'))
+  @HttpCode(HttpStatus.CREATED)
   async uploadDocument(
     @Param('providerId', ParseUUIDPipe) providerId: string,
     @Body() dto: UploadDocumentDto,
@@ -55,13 +60,15 @@ export class ProviderDocumentController {
     };
   }
 
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Post('verify/:documentId')
+  @HttpCode(HttpStatus.OK)
   async verifyDocument(
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @Body() dto: VerifyDocumentDto,
     @Request() req: any
   ) {
-    // TODO: Add admin guard
     const document = await this.documentService.verifyDocument(
       documentId,
       req.user.id,
@@ -89,9 +96,10 @@ export class ProviderDocumentController {
     };
   }
 
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Get('pending')
   async getPendingDocuments(@Request() req: any) {
-    // TODO: Add admin guard
     const documents = await this.documentService.getPendingDocuments();
 
     return {
@@ -101,9 +109,10 @@ export class ProviderDocumentController {
     };
   }
 
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Get('expiring')
   async getExpiringDocuments(@Request() req: any) {
-    // TODO: Add admin guard
     const documents = await this.documentService.getExpiringDocuments(30);
 
     return {

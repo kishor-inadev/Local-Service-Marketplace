@@ -217,7 +217,8 @@ export default function ProviderDetailPage() {
 									</Link>
 									<Button
 										variant='outline'
-										className='w-full'>
+										className='w-full'
+										onClick={() => router.push(ROUTES.DASHBOARD_MESSAGES)}>
 										Send Message
 									</Button>
 									<Button

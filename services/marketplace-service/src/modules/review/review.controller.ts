@@ -27,6 +27,7 @@ export class ReviewController {
 	) {}
 
 	@Post()
+	@HttpCode(HttpStatus.CREATED)
 	async createReview(@Body() createReviewDto: CreateReviewDto) {
 		const review = await this.reviewService.createReview(createReviewDto);
 		return { success: true, data: review, message: "Review submitted successfully" };

@@ -28,7 +28,7 @@ type ReviewFormData = z.infer<typeof reviewSchema>;
 function SubmitReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const jobId = searchParams.get('jobId');
   const providerId = searchParams.get('providerId');
   
@@ -62,30 +62,25 @@ function SubmitReviewContent() {
   }, [jobId, providerId, router]);
 
   const submitMutation = useMutation({
-    mutationFn: (data: ReviewFormData) => 
-      createReview({
-        job_id: jobId!,
-        user_id: '', // TODO: Get from user context
-        provider_id: providerId!,
-        rating: data.rating,
-        comment: data.comment,
-      }),
-    onSuccess: () => {
-      toast.success('Review submitted successfully!');
-      analytics.event({
-        action: 'review_submitted',
-        category: 'engagement',
-        label: 'Job Review',
-        value: rating,
-      });
-      router.push(`/jobs/${jobId}`);
-    },
-    onError: (error: any) => {
-      const errorMessage = error.response?.data?.message || 'Failed to submit review';
-      toast.error(errorMessage);
-      analytics.trackError(errorMessage, 'ReviewSubmit');
-    },
-  });
+		mutationFn: (data: ReviewFormData) =>
+			createReview({
+				job_id: jobId!,
+				user_id: user?.id ?? "",
+				provider_id: providerId!,
+				rating: data.rating,
+				comment: data.comment,
+			}),
+		onSuccess: () => {
+			toast.success("Review submitted successfully!");
+			analytics.event({ action: "review_submitted", category: "engagement", label: "Job Review", value: rating });
+			router.push(`/jobs/${jobId}`);
+		},
+		onError: (error: any) => {
+			const errorMessage = error.response?.data?.message || "Failed to submit review";
+			toast.error(errorMessage);
+			analytics.trackError(errorMessage, "ReviewSubmit");
+		},
+	});
 
   const handleRatingClick = (value: number) => {
     setRating(value);

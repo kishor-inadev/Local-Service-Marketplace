@@ -8,12 +8,16 @@ import {
   Request,
   ParseUUIDPipe,
   Query,
-  UseGuards
+  UseGuards,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
 import { PricingPlanService } from '../services/pricing-plan.service';
 import { CreatePricingPlanDto } from '../dto/create-pricing-plan.dto';
 import { UpdatePricingPlanDto } from '../dto/update-pricing-plan.dto';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from '@/common/guards/roles.guard';
+import { Roles } from '@/common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard)
 @Controller('pricing-plans')
@@ -22,12 +26,14 @@ export class PricingPlanController {
     private readonly pricingPlanService: PricingPlanService
   ) {}
 
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async createPlan(
     @Body() planData: CreatePricingPlanDto,
     @Request() req: any
   ) {
-    // TODO: Add admin guard
     const plan = await this.pricingPlanService.createPlan(planData);
 
     return {
@@ -83,13 +89,14 @@ export class PricingPlanController {
     };
   }
 
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Put(':planId')
   async updatePlan(
     @Param('planId', ParseUUIDPipe) planId: string,
     @Body() updateData: UpdatePricingPlanDto,
     @Request() req: any
   ) {
-    // TODO: Add admin guard
     const plan = await this.pricingPlanService.updatePlan(planId, updateData);
 
     return {
@@ -99,12 +106,13 @@ export class PricingPlanController {
     };
   }
 
+  @Roles('admin')
+  @UseGuards(RolesGuard)
   @Put(':planId/deactivate')
   async deactivatePlan(
     @Param('planId', ParseUUIDPipe) planId: string,
     @Request() req: any
   ) {
-    // TODO: Add admin guard
     const plan = await this.pricingPlanService.deactivatePlan(planId);
 
     return {

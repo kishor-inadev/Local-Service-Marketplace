@@ -36,8 +36,8 @@ export default function AdminDashboardPage() {
 	});
 
   const totalUsers = users?.length || 0;
-  const activeDisputes = disputes?.filter((d: any) => d.status === 'open').length || 0;
-  const totalDisputes = disputes?.length || 0;
+  const activeDisputes = disputes?.filter((d: any) => d.status === "open").length || 0;
+	const totalDisputes = disputes?.length || 0;
 
   return (
 		<ProtectedRoute requiredRoles={["admin"]}>

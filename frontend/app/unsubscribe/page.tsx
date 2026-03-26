@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense, useState, useEffect } from "react";
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from "next/navigation";
 import { CheckCircle, XCircle, Mail, Home } from 'lucide-react';
 import Link from 'next/link';
 import { notificationService } from '@/services/notification-service';
@@ -20,6 +20,7 @@ export default function UnsubscribePage() {
 }
 
 function UnsubscribeContent() {
+	const router = useRouter();
 	const searchParams = useSearchParams();
 	const [status, setStatus] = useState<"loading" | "success" | "error" | "already">("loading");
 	const [email, setEmail] = useState("");
@@ -61,8 +62,7 @@ function UnsubscribeContent() {
 	};
 
 	const handleResubscribe = () => {
-		// TODO: Implement resubscribe functionality
-		alert("Resubscribe functionality coming soon. Please contact support to resubscribe.");
+		router.push("/dashboard/settings/notifications");
 	};
 
 	return (
