@@ -1,5 +1,14 @@
 import { apiClient } from './api-client';
 
+export interface ServiceCategory {
+  id: string;
+  name: string;
+  description?: string;
+  icon?: string;
+  active: boolean;
+  created_at: string;
+}
+
 export interface ServiceRequest {
 	id: string;
 	user_id?: string | null;
@@ -25,7 +34,7 @@ export interface ServiceRequest {
 		zip_code?: string;
 		country?: string;
 	};
-	images?: any;
+	images?: string[];
 	preferred_date?: string;
 	urgency?: "low" | "medium" | "high" | "urgent";
 	expiry_date?: string;
@@ -140,8 +149,8 @@ class RequestService {
     return response.data || [];
   }
 
-  async getCategories(): Promise<any[]> {
-    const response = await apiClient.get<any>('/categories');
+  async getCategories(): Promise<ServiceCategory[]> {
+    const response = await apiClient.get<ServiceCategory[]>('/categories');
     // For array responses, unwrapped to { data, total } or just the array
     return response.data || [];
   }

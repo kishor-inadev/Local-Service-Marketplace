@@ -10,7 +10,6 @@ export interface Review {
   rating: number;
   comment: string;
   created_at: string;
-  updated_at?: string;
   response?: string;
   response_at?: string;
   helpful_count?: number;

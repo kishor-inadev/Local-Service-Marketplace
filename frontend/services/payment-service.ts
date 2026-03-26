@@ -9,7 +9,7 @@ export interface Payment {
   payment_method?: string;
   transaction_id?: string;
   created_at: string;
-  updated_at: string;
+  paid_at?: string;
   user_id: string;
   provider_id?: string;
   platform_fee?: number;

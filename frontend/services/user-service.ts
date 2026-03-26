@@ -63,15 +63,11 @@ export interface ProviderService {
   id: string;
   provider_id: string;
   category_id: string;
-  service_name?: string;
-  description?: string;
 }
 
 export interface UpdateProviderServicesData {
   services: Array<{
     category_id: string;
-    service_name?: string;
-    description?: string;
   }>;
 }
 

@@ -327,44 +327,18 @@ services:
       # retries: 3
       # start_period: 40s
 
-  # MongoDB for Email Service
-  mongo-email:
-    image: mongo:7-jammy
-    container_name: mongo-email
+  # Shared MongoDB for all services
+  mongo:
+    image: bitnami/mongodb
+    container_name: mongo
     restart: unless-stopped
-    profiles:
-      - email
     ports:
-      - "27018:27017"
+      - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: emailadmin
-      MONGO_INITDB_ROOT_PASSWORD: emailpass123
-      MONGO_INITDB_DATABASE: email_service
+      MONGO_INITDB_ROOT_USERNAME: mongoadmin
+      MONGO_INITDB_ROOT_PASSWORD: mongopass123
     volumes:
-      - mongo_email_data:/data/db
-    networks:
-      - marketplace-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # MongoDB for SMS Service
-  mongo-sms:
-    image: mongo:7-jammy
-    container_name: mongo-sms
-    restart: unless-stopped
-    profiles:
-      - sms
-    ports:
-      - "27019:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: smsadmin
-      MONGO_INITDB_ROOT_PASSWORD: smspass123
-      MONGO_INITDB_DATABASE: sms_service
-    volumes:
-      - mongo_sms_data:/data/db
+      - mongo_data:/data/db
     networks:
       - marketplace-network
     healthcheck:
@@ -392,7 +366,7 @@ services:
       - ENABLE_LOGGING=true
       - ENABLE_FILE_LOGS=false
       - CORS_ORIGIN=*
-      - MONGO_URL=mongodb://emailadmin:emailpass123@mongo-email:27017/email_service?authSource=admin
+      - MONGO_URL=mongodb://mongoadmin:mongopass123@mongo:27017/email_service?authSource=admin
       - MONGO_MAX_POOL_SIZE=50
       - MONGO_MIN_POOL_SIZE=10
       - ENABLE_KAFKA=${EVENT_BUS_ENABLED:-false}
@@ -410,7 +384,7 @@ services:
       - EMAIL_USER=${EMAIL_USER}
       - EMAIL_PASS=${EMAIL_PASS}
     depends_on:
-      - mongo-email
+      - mongo
     networks:
       - marketplace-network
 
@@ -433,7 +407,7 @@ services:
       - TENANCY_ENABLED=false
       - DEFAULT_TENANT_ID=marketplace
       - API_KEY=${SMS_API_KEY:-change-me-to-a-strong-random-secret}
-      - MONGODB_URI=mongodb://smsadmin:smspass123@mongo-sms:27017/sms_service?authSource=admin
+      - MONGODB_URI=mongodb://mongoadmin:mongopass123@mongo:27017/sms_service?authSource=admin
       - SMS_PROVIDER=${SMS_PROVIDER:-mock}
       - SMS_FALLBACK_PROVIDER=${SMS_FALLBACK_PROVIDER:-}
       - OTP_LENGTH=6
@@ -455,7 +429,7 @@ services:
       - VONAGE_API_SECRET=${VONAGE_API_SECRET:-}
       - VONAGE_FROM_NUMBER=${VONAGE_FROM_NUMBER:-}
     depends_on:
-      - mongo-sms
+      - mongo
     networks:
       - marketplace-network
 
@@ -547,9 +521,7 @@ volumes:
     driver: local
   redis_data:
     driver: local
-  mongo_email_data:
-    driver: local
-  mongo_sms_data:
+  mongo_data:
     driver: local
 
 networks:
