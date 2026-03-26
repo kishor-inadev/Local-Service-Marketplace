@@ -749,27 +749,30 @@ class DatabaseSeeder {
       const id = uuid();
       const customerId = randomPick(this.customerIds);
       const providerId = randomPick(this.providerRecordIds);
+      const providerUserId = randomPick(this.providerIds);
       const status = randomPick(statuses);
       const createdAt = randomDate(new Date(2024, 0, 1), new Date());
+      const startedAt = status !== "scheduled" ? randomDate(createdAt, new Date()) : null;
+			const completedAt = status === "completed" && startedAt ? randomDate(startedAt, new Date()) : null;
 
       const success = await safeInsert(
-        `INSERT INTO jobs (id, request_id, provider_id, customer_id, proposal_id, actual_amount, cancelled_by, cancellation_reason, status, started_at, completed_at, created_at) 
+				`INSERT INTO jobs (id, request_id, provider_id, customer_id, proposal_id, actual_amount, cancelled_by, cancellation_reason, status, started_at, completed_at, created_at) 
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
-        [
-          id,
-          randomPick(this.requestIds),
-          providerId,
-          customerId,
-          null,
-          randomInt(50, 5000) * 100,
-          status === 'cancelled' ? randomPick([customerId, providerId]) : null,
-          status === 'cancelled' ? faker.lorem.sentence() : null,
-          status,
-          status !== 'scheduled' ? randomDate(createdAt, new Date()) : null,
-          status === 'completed' ? randomDate(createdAt, new Date()) : null,
-          createdAt,
-        ]
-      );
+				[
+					id,
+					randomPick(this.requestIds),
+					providerId,
+					customerId,
+					null,
+					randomInt(50, 5000) * 100,
+					status === "cancelled" ? randomPick([customerId, providerUserId]) : null,
+					status === "cancelled" ? faker.lorem.sentence() : null,
+					status,
+					startedAt,
+					completedAt,
+					createdAt,
+				],
+			);
 
       if (success) {
         this.jobIds.push(id);
