@@ -9,17 +9,19 @@ import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { Request, Response } from 'express';
 
+export interface PaginationMeta {
+	page: number;
+	limit: number;
+	total: number;
+	totalPages: number;
+}
+
 export interface StandardResponse<T = any> {
-  success: boolean;
-  statusCode: number;
-  message: string;
-  data?: T;
-  total?: number;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
+	success: boolean;
+	statusCode: number;
+	message: string;
+	data: T;
+	meta: PaginationMeta | null;
 }
 
 @Injectable()
@@ -41,45 +43,48 @@ export class ResponseTransformInterceptor<T>
         const path = request.path;
 
         // Determine if response is already wrapped
-        if (data && typeof data === 'object' && 'success' in data && 'statusCode' in data) {
-          return data as StandardResponse<T>;
-        }
+        if (data && typeof data === "object" && "success" in data && "statusCode" in data && "meta" in data) {
+					return data as StandardResponse<T>;
+				}
 
         // Extract data and metadata
-        let responseData = data;
-        let total: number | undefined;
-        let message = this.generateMessage(method, statusCode, path);
+        let responseData: any = data;
+				let meta: PaginationMeta | null = null;
+				const message = this.generateMessage(method, statusCode, path);
 
         // Handle paginated responses
         if (data && typeof data === 'object') {
-          if ('data' in data && 'nextCursor' in data) {
-            // Paginated response from services
-            responseData = data.data;
-            total = data.data?.length;
-          } else if ('items' in data && 'total' in data) {
-            // Alternative pagination format
-            responseData = data.items;
-            total = data.total;
-          } else if (Array.isArray(data)) {
-            // Plain array response
-            total = data.length;
-          }
+          const query = request.query || {};
+					const page = parseInt(query.page as string) || 1;
+					const limit = parseInt(query.limit as string) || 20;
+
+					if ("data" in data && "total" in data) {
+						// Offset-based pagination: { data, total, page?, limit? }
+						responseData = (data as any).data;
+						const total = (data as any).total as number;
+						const currentPage = (data as any).page ? parseInt((data as any).page) : page;
+						const currentLimit = (data as any).limit ? parseInt((data as any).limit) : limit;
+						meta = { page: currentPage, limit: currentLimit, total, totalPages: Math.ceil(total / currentLimit) };
+					} else if ("items" in data && "total" in data) {
+						// Alternative pagination format: { items, total }
+						responseData = (data as any).items;
+						const total = (data as any).total as number;
+						const currentPage = (data as any).page ? parseInt((data as any).page) : page;
+						const currentLimit = (data as any).limit ? parseInt((data as any).limit) : limit;
+						meta = { page: currentPage, limit: currentLimit, total, totalPages: Math.ceil(total / currentLimit) };
+					} else if ("data" in data && "nextCursor" in data) {
+						// Cursor-based pagination — no numeric meta
+						responseData = (data as any).data;
+					}
         }
 
-        // Build standardized response
-        const standardResponse: StandardResponse<T> = {
-          success: statusCode >= 200 && statusCode < 300,
-          statusCode,
-          message,
-          data: responseData,
-        };
-
-        // Add total count for list responses
-        if (total !== undefined) {
-          standardResponse.total = total;
-        }
-
-        return standardResponse;
+        return {
+					success: statusCode >= 200 && statusCode < 300,
+					statusCode,
+					message,
+					data: responseData,
+					meta,
+				} as StandardResponse<T>;
       }),
     );
   }

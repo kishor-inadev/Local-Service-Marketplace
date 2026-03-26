@@ -45,9 +45,10 @@ async function prepareEmailRequest(req, res) {
       });
       res.status(202).json({
         success: true,
+        statusCode: 202,
         message: 'Email already processed',
-        idempotencyKey: emailPayload.idempotencyKey,
-        requestId
+        data: { idempotencyKey: emailPayload.idempotencyKey },
+        meta: null
       });
       return null; // signal caller to stop
     }
@@ -87,9 +88,10 @@ async function finalizeSentEmail(res, emailPayload, result, mode) {
 
   res.status(200).json({
     success: true,
+    statusCode: 200,
     message: 'Email sent successfully',
-    messageId: result.messageId,
-    requestId
+    data: { messageId: result.messageId },
+    meta: null
   });
 }
 
@@ -115,8 +117,10 @@ async function sendEmail(req, res) {
 
     res.status(202).json({
       success: true,
+      statusCode: 202,
       message: 'Email queued for processing',
-      requestId: emailPayload.requestId
+      data: { requestId: emailPayload.requestId },
+      meta: null
     });
   } else {
     const result = await emailService.sendEmail(emailPayload);
@@ -154,7 +158,13 @@ async function getMetrics(req, res) {
     }
   }
 
-  res.status(200).json(metricsData);
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Metrics retrieved successfully',
+    data: metricsData,
+    meta: null
+  });
 }
 
 /**
@@ -184,7 +194,21 @@ async function getEmailLogs(req, res) {
   };
 
   const result = await mongoService.getEmailLogs(filters, options);
-  res.status(200).json({ success: true, ...result });
+  const logs = result.logs || result.data || result;
+  const total = result.total || (Array.isArray(logs) ? logs.length : 0);
+  const page = options.skip ? Math.floor(options.skip / options.limit) + 1 : 1;
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Email logs retrieved successfully',
+    data: logs,
+    meta: {
+      page,
+      limit: options.limit,
+      total,
+      totalPages: Math.ceil(total / options.limit)
+    }
+  });
 }
 
 /**
@@ -201,13 +225,22 @@ async function getEmailLog(req, res) {
   if (!log) {
     return res.status(404).json({
       success: false,
-      error: 'NOT_FOUND',
+      statusCode: 404,
       message: 'Email log not found',
-      requestId
+      error: {
+        code: 'NOT_FOUND',
+        details: []
+      }
     });
   }
 
-  res.status(200).json({ success: true, data: log });
+  res.status(200).json({
+    success: true,
+    statusCode: 200,
+    message: 'Email log retrieved successfully',
+    data: log,
+    meta: null
+  });
 }
 
 module.exports = {

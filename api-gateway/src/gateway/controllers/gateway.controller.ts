@@ -78,15 +78,14 @@ export class GatewayController {
         error.response?.message || error.message || 'Internal server error';
 
       // Send standardized error response
-      res.status(status).json({
-        success: false,
-        statusCode: status,
-        message: message,
-        error: {
-          code: this.getErrorCode(status),
-          message: message,
-        },
-      });
+      res
+				.status(status)
+				.json({
+					success: false,
+					statusCode: status,
+					message: message,
+					error: { code: this.getErrorCode(status), details: [] },
+				});
     }
   }
 

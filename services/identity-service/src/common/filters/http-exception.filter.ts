@@ -11,13 +11,12 @@ import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 
 export interface StandardErrorResponse {
-  success: boolean;
+  success: false;
   statusCode: number;
   message: string;
   error: {
     code: string;
-    message: string;
-    details?: any;
+    details: any[];
   };
 }
 
@@ -34,7 +33,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
-    let errorDetails: any = undefined;
+    let details: any[] = [];
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -43,26 +42,31 @@ export class HttpExceptionFilter implements ExceptionFilter {
       if (typeof exceptionResponse === 'string') {
         message = exceptionResponse;
       } else if (typeof exceptionResponse === 'object') {
-        message = (exceptionResponse as any).message || exception.message;
-        errorDetails = exceptionResponse;
+        const res = exceptionResponse as any;
+        message = Array.isArray(res.message)
+          ? res.message[0]
+          : res.message || exception.message;
+        if (Array.isArray(res.message)) {
+          details = res.message;
+        } else if (res.details) {
+          details = Array.isArray(res.details) ? res.details : [res.details];
+        }
       }
     } else if (exception instanceof Error) {
       message = exception.message;
-      errorDetails = {
-        name: exception.name,
-        stack: process.env.NODE_ENV === 'development' ? exception.stack : undefined,
-      };
+      if (process.env.NODE_ENV === 'development') {
+        details = [{ name: exception.name, stack: exception.stack }];
+      }
     }
 
     // Build standardized error response
     const errorResponse: StandardErrorResponse = {
       success: false,
       statusCode: status,
-      message: message,
+      message,
       error: {
         code: this.getErrorCode(status),
-        message: message,
-        details: process.env.NODE_ENV === 'development' ? errorDetails : undefined,
+        details,
       },
     };
 
