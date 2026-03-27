@@ -46,7 +46,7 @@ export class ProviderPortfolioController {
 
     const portfolioItem = await this.portfolioService.createPortfolioItem(
       providerId,
-      req.user.id,
+      req.user.userId,
       dto,
       imageUrls
     );
@@ -84,7 +84,7 @@ export class ProviderPortfolioController {
   ) {
     const item = await this.portfolioService.getPortfolioItemById(
       itemId,
-      req.user?.id
+      req.user?.userId
     );
 
     // Transform image_url to images array for frontend compatibility
@@ -107,7 +107,7 @@ export class ProviderPortfolioController {
   ) {
     const item = await this.portfolioService.updatePortfolioItem(
       itemId,
-      req.user.id,
+      req.user.userId,
       updateData
     );
 
@@ -126,7 +126,7 @@ export class ProviderPortfolioController {
   ) {
     const portfolio = await this.portfolioService.reorderPortfolio(
       providerId,
-      req.user.id,
+      req.user.userId,
       orderedIds
     );
 
@@ -142,7 +142,7 @@ export class ProviderPortfolioController {
     @Param('itemId', ParseUUIDPipe) itemId: string,
     @Request() req: any
   ) {
-    await this.portfolioService.deletePortfolioItem(itemId, req.user.id);
+    await this.portfolioService.deletePortfolioItem(itemId, req.user.userId);
 
     return {
       success: true,

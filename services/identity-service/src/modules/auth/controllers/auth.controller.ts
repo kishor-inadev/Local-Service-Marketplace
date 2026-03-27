@@ -91,7 +91,7 @@ export class AuthController {
 		// Clear cookies
 		this.clearAuthCookies(res);
 
-		return { message: "Logged out successfully" };
+		return { result: "Logged out successfully" };
 	}
 
 	@Post("refresh")
@@ -120,14 +120,14 @@ export class AuthController {
 			email: passwordResetRequestDto.email,
 		});
 		await this.authService.requestPasswordReset(passwordResetRequestDto.email);
-		return { message: "Password reset email sent if account exists" };
+		return { result: "Password reset email sent if account exists" };
 	}
 
 	@Post("password-reset/confirm")
 	async confirmPasswordReset(@Body() passwordResetConfirmDto: PasswordResetConfirmDto): Promise<{ message: string }> {
 		this.logger.info("POST /auth/password-reset/confirm", { context: "AuthController" });
 		await this.authService.confirmPasswordReset(passwordResetConfirmDto.token, passwordResetConfirmDto.newPassword);
-		return { message: "Password reset successful" };
+		return { result: "Password reset successful" };
 	}
 
 	// ==========================================
@@ -200,9 +200,10 @@ export class AuthController {
 	}
 
 	@Post("phone/otp/request")
-	async requestPhoneOtp(@Body() phoneOtpRequestDto: PhoneOtpRequestDto): Promise<{ message: string }> {
+	async requestPhoneOtp(@Body() phoneOtpRequestDto: PhoneOtpRequestDto): Promise<{ result: string }> {
 		this.logger.info("POST /auth/phone/otp/request", { context: "AuthController", phone: phoneOtpRequestDto.phone });
-		return this.authService.requestPhoneOtp(phoneOtpRequestDto.phone);
+		await this.authService.requestPhoneOtp(phoneOtpRequestDto.phone);
+		return { result: "OTP sent successfully" };
 	}
 
 	@Post("phone/otp/verify")
@@ -259,7 +260,7 @@ export class AuthController {
 		await this.authService.verifyEmail(token);
 		// Optionally, could redirect to frontend with success message
 		// For now, return JSON response
-		return { message: "Email verified successfully" };
+		return { result: "Email verified successfully" };
 	}
 
 	// ==========================================
@@ -306,7 +307,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	async verify2FA(@Body() dto: { code: string }, @Req() req: Request): Promise<{ message: string }> {
 		await this.authService.verify2FA(req.user["sub"], dto.code);
-		return { message: "2FA enabled successfully" };
+		return { result: "2FA enabled successfully" };
 	}
 
 	@Post("2fa/disable")
@@ -316,7 +317,7 @@ export class AuthController {
 		@Req() req: Request,
 	): Promise<{ message: string }> {
 		await this.authService.disable2FA(req.user["sub"], dto.password, dto.code);
-		return { message: "2FA disabled successfully" };
+		return { result: "2FA disabled successfully" };
 	}
 
 	@Post("2fa/backup-codes/generate")
@@ -344,14 +345,14 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	async revokeSession(@Req() req: Request, @Param("sessionId") sessionId: string): Promise<{ message: string }> {
 		await this.authService.revokeSession(req.user["sub"], sessionId);
-		return { message: "Session revoked" };
+		return { result: "Session revoked" };
 	}
 
 	@Delete("sessions/all")
 	@UseGuards(JwtAuthGuard)
 	async revokeAllSessions(@Req() req: Request): Promise<{ message: string }> {
 		await this.authService.revokeAllSessions(req.user["sub"]);
-		return { message: "All sessions revoked" };
+		return { result: "All sessions revoked" };
 	}
 
 	@Get("devices")
@@ -364,7 +365,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	async removeDevice(@Req() req: Request, @Param("deviceId") deviceId: string): Promise<{ message: string }> {
 		await this.authService.removeDevice(req.user["sub"], deviceId);
-		return { message: "Device removed" };
+		return { result: "Device removed" };
 	}
 
 	// ACCOUNT MANAGEMENT
@@ -375,13 +376,13 @@ export class AuthController {
 		@Req() req: Request,
 	): Promise<{ message: string }> {
 		await this.authService.changePassword(req.user["sub"], dto.currentPassword, dto.newPassword);
-		return { message: "Password changed successfully" };
+		return { result: "Password changed successfully" };
 	}
 
 	@Post("email/resend-verification")
 	async resendVerificationEmail(@Body() dto: { email: string }): Promise<{ message: string }> {
 		await this.authService.resendVerificationEmail(dto.email);
-		return { message: "Verification email sent if email is registered and not verified" };
+		return { result: "Verification email sent if email is registered and not verified" };
 	}
 
 	@Post("account/deactivate")
@@ -391,7 +392,7 @@ export class AuthController {
 		@Req() req: Request,
 	): Promise<{ message: string }> {
 		await this.authService.deactivateAccount(req.user["sub"], dto.password, dto.reason);
-		return { message: "Account deactivated" };
+		return { result: "Account deactivated" };
 	}
 
 	@Delete("account")
@@ -401,14 +402,14 @@ export class AuthController {
 		@Req() req: Request,
 	): Promise<{ message: string }> {
 		await this.authService.requestAccountDeletion(req.user["sub"], dto.password, dto.reason);
-		return { message: "Account deletion requested. You have 30 days to cancel." };
+		return { result: "Account deletion requested. You have 30 days to cancel." };
 	}
 
 	@Post("account/cancel-deletion")
 	@UseGuards(JwtAuthGuard)
 	async cancelAccountDeletion(@Body() dto: { password: string }, @Req() req: Request): Promise<{ message: string }> {
 		await this.authService.cancelAccountDeletion(req.user["sub"], dto.password);
-		return { message: "Account deletion cancelled" };
+		return { result: "Account deletion cancelled" };
 	}
 
 	@Get("login-history")
@@ -449,20 +450,21 @@ export class AuthController {
 			providerUserId,
 			dto.idToken || dto.accessToken!,
 		);
-		return { message: `${provider} account linked successfully` };
+		return { result: `${provider} account linked successfully` };
 	}
 
 	@Delete("social/unlink/:provider")
 	@UseGuards(JwtAuthGuard)
 	async unlinkSocialAccount(@Req() req: Request, @Param("provider") provider: string): Promise<{ message: string }> {
 		await this.authService.unlinkSocialAccount(req.user["sub"], provider);
-		return { message: `${provider} account unlinked` };
+		return { result: `${provider} account unlinked` };
 	}
 
 	// MAGIC LINK (PASSWORDLESS)
 	@Post("magic-link/request")
-	async requestMagicLink(@Body() dto: { email: string; redirectUrl?: string }): Promise<{ message: string }> {
-		return this.authService.requestMagicLink(dto.email, dto.redirectUrl);
+	async requestMagicLink(@Body() dto: { email: string; redirectUrl?: string }): Promise<{ result: string }> {
+		await this.authService.requestMagicLink(dto.email, dto.redirectUrl);
+		return { result: "Magic link sent if email is registered" };
 	}
 
 	@Get("magic-link/verify")

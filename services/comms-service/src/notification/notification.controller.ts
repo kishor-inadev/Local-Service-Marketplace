@@ -79,7 +79,7 @@ export class NotificationController {
 	async getUnreadCount(@Headers("x-user-id") userId: string) {
 		this.logger.log(`GET /notifications/unread-count for user ${userId}`, "NotificationController");
 		const count = await this.notificationService.getUnreadCount(userId);
-		return { count };
+		return { data: { count } };
 	}
 
 	@Patch("read-all")
@@ -87,7 +87,7 @@ export class NotificationController {
 	async markAllAsRead(@Headers("x-user-id") userId: string) {
 		this.logger.log(`PATCH /notifications/read-all for user ${userId}`, "NotificationController");
 		await this.notificationService.markAllAsRead(userId);
-		return { success: true, message: "All notifications marked as read" };
+		return {};
 	}
 
 	@Get(":id")
@@ -101,7 +101,7 @@ export class NotificationController {
 
 		this.logger.log(`GET /notifications/${id} - Get notification`, "NotificationController");
 		const notification = await this.notificationService.getNotificationById(id);
-		return { notification };
+		return notification;
 	}
 
 	@Patch(":id/read")
@@ -115,7 +115,7 @@ export class NotificationController {
 
 		this.logger.log(`PATCH /notifications/${id}/read - Mark as read`, "NotificationController");
 		const notification = await this.notificationService.markAsRead(id);
-		return { notification };
+		return notification;
 	}
 
 	@Delete(":id")
@@ -201,7 +201,7 @@ export class NotificationController {
 	async processEmails() {
 		this.logger.log("POST /notifications/workers/process-emails - Process email queue", "NotificationController");
 		await this.emailWorker.processPendingEmails();
-		return { message: "Email processing completed" };
+		return {};
 	}
 
 	@Post("workers/process-push")
@@ -216,7 +216,7 @@ export class NotificationController {
 
 		this.logger.log("POST /notifications/workers/process-push - Process push queue", "NotificationController");
 		await this.pushWorker.processPendingPushNotifications();
-		return { message: "Push notification processing completed" };
+		return {};
 	}
 
 	// ========== Unsubscribe endpoints ==========
@@ -231,17 +231,12 @@ export class NotificationController {
 		// Check if already unsubscribed
 		const existing = await this.unsubscribeRepo.findByEmail(dto.email);
 		if (existing) {
-			return { message: "Email already unsubscribed", unsubscribed: true, unsubscribed_at: existing.unsubscribed_at };
+			return { unsubscribed: true, unsubscribed_at: existing.unsubscribed_at };
 		}
 
-		// Create unsubscribe record
 		const record = await this.unsubscribeRepo.create(dto.email, undefined, dto.reason);
 
-		return {
-			message: "Successfully unsubscribed from email notifications",
-			unsubscribed: true,
-			unsubscribed_at: record.unsubscribed_at,
-		};
+		return { unsubscribed: true, unsubscribed_at: record.unsubscribed_at };
 	}
 
 	/**
@@ -267,6 +262,6 @@ export class NotificationController {
 
 		await this.unsubscribeRepo.delete(dto.email);
 
-		return { message: "Successfully resubscribed to email notifications", unsubscribed: false };
+		return { unsubscribed: false };
 	}
 }

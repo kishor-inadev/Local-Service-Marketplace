@@ -30,13 +30,13 @@ export class ReviewController {
 	@HttpCode(HttpStatus.CREATED)
 	async createReview(@Body() createReviewDto: CreateReviewDto) {
 		const review = await this.reviewService.createReview(createReviewDto);
-		return { success: true, data: review, message: "Review submitted successfully" };
+		return review;
 	}
 
 	@Get(":id")
 	async getReviewById(@Param("id") id: string) {
 		const review = await this.reviewService.getReviewById(id);
-		return { success: true, data: review };
+		return review;
 	}
 
 	/**
@@ -48,10 +48,10 @@ export class ReviewController {
 		const review = await this.reviewRepository.getReviewByJobId(jobId);
 
 		if (!review) {
-			return { success: true, data: null, message: "No review found for this job" };
+			return null;
 		}
 
-		return { success: true, data: review };
+		return review;
 	}
 
 	/**
@@ -63,7 +63,7 @@ export class ReviewController {
 	async respondToReview(@Param("id") id: string, @Body() respondReviewDto: RespondReviewDto, @Request() req: any) {
 		const review = await this.reviewRepository.respondToReview(id, respondReviewDto.response, req.user.id);
 
-		return { success: true, data: review, message: "Response added successfully" };
+		return review;
 	}
 
 	/**
@@ -75,7 +75,7 @@ export class ReviewController {
 	async markHelpful(@Param("id") id: string, @Request() req: any) {
 		const review = await this.reviewRepository.incrementHelpfulCount(id);
 
-		return { success: true, data: review, message: "Marked as helpful" };
+		return review;
 	}
 	/**
 	 * Get reviews for a provider

@@ -1,16 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  Inject,
-  LoggerService,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Inject, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { CreateFeatureFlagDto } from '../dto/create-feature-flag.dto';
@@ -33,11 +21,7 @@ export class FeatureFlagController {
 
     const flag = await this.featureFlagService.createFeatureFlag(createFlagDto);
 
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Feature flag created successfully',
-      data: flag,
-    };
+    return flag;
   }
 
   @Get()
@@ -49,11 +33,7 @@ export class FeatureFlagController {
 
     const data = await this.featureFlagService.getAllFeatureFlags();
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Feature flags retrieved successfully',
-      data,
-    };
+    return data;
   }
 
   @Get(':key')
@@ -65,11 +45,7 @@ export class FeatureFlagController {
 
     const flag = await this.featureFlagService.getFeatureFlagByKey(key);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Feature flag retrieved successfully',
-      data: flag,
-    };
+    return flag;
   }
 
   @Get(':key/enabled')
@@ -84,11 +60,7 @@ export class FeatureFlagController {
 
     const enabled = await this.featureFlagService.isFeatureEnabled(key, userId);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Feature flag status retrieved successfully',
-      data: { enabled },
-    };
+    return { enabled };
   }
 
   @Patch(':key')
@@ -106,11 +78,7 @@ export class FeatureFlagController {
       updateFlagDto,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Feature flag updated successfully',
-      data: flag,
-    };
+    return flag;
   }
 
   @Delete(':key')
@@ -122,9 +90,6 @@ export class FeatureFlagController {
 
     await this.featureFlagService.deleteFeatureFlag(key);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Feature flag deleted successfully',
-    };
+    return { result: "Feature flag deleted successfully" };
   }
 }

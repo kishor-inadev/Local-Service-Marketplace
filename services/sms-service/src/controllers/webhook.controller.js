@@ -15,10 +15,20 @@ function _makeHandler(providerName, signatureHeader) {
         `${req.protocol}://${req.get('host')}${req.originalUrl}`,
       );
       // Always respond 200 to webhooks to prevent provider retries on our end
-      res.status(200).json({ received: true, ...result });
+      res
+				.status(200)
+				.json({
+					success: true,
+					statusCode: 200,
+					message: "Webhook received",
+					data: { received: true, ...result },
+					meta: null,
+				});
     } catch (err) {
       logger.error({ provider: providerName, err: err.message }, 'Webhook handler error');
-      res.status(200).json({ received: true });
+      res
+				.status(200)
+				.json({ success: true, statusCode: 200, message: "Webhook received", data: { received: true }, meta: null });
     }
   };
 }

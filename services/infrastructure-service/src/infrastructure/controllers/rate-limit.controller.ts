@@ -1,13 +1,4 @@
-import {
-  Controller,
-  Post,
-  Delete,
-  Body,
-  Param,
-  Inject,
-  LoggerService,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Post, Delete, Body, Param, Inject, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { RateLimitService } from '../services/rate-limit.service';
 import { CheckRateLimitDto } from '../dto/check-rate-limit.dto';
@@ -31,11 +22,7 @@ export class RateLimitController {
       checkRateLimitDto.key,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Rate limit checked successfully',
-      data: result,
-    };
+    return result;
   }
 
   @Delete(':key')
@@ -47,10 +34,7 @@ export class RateLimitController {
 
     await this.rateLimitService.resetRateLimit(key);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Rate limit reset successfully',
-    };
+    return { result: "Rate limit reset successfully" };
   }
 
   @Post('cleanup')
@@ -62,9 +46,6 @@ export class RateLimitController {
 
     await this.rateLimitService.cleanupExpiredLimits();
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Expired rate limits cleaned up successfully',
-    };
+    return { result: "Expired rate limits cleaned up successfully" };
   }
 }

@@ -15,7 +15,9 @@ async function create(req, res, next) {
       tenantId: req.tenantId,
       variables,
     });
-    res.status(201).json({ success: true, data: template });
+    res
+			.status(201)
+			.json({ success: true, statusCode: 201, message: "Template created successfully", data: template, meta: null });
   } catch (err) { next(err); }
 }
 
@@ -28,7 +30,13 @@ async function list(req, res, next) {
       SmsTemplate.find(filter).sort({ createdAt: -1 }).skip(skip).limit(Number(limit)).lean(),
       SmsTemplate.countDocuments(filter),
     ]);
-    res.json({ success: true, data: docs, pagination: { total, page: Number(page), limit: Number(limit), pages: Math.ceil(total / limit) } });
+    res.json({
+			success: true,
+			statusCode: 200,
+			message: "Templates retrieved successfully",
+			data: docs,
+			meta: { total, page: Number(page), limit: Number(limit), totalPages: Math.ceil(total / limit) },
+		});
   } catch (err) { next(err); }
 }
 
@@ -36,7 +44,7 @@ async function getById(req, res, next) {
   try {
     const tpl = await SmsTemplate.findOne({ _id: req.params.templateId, tenantId: req.tenantId, isDeleted: { $ne: true } }).lean();
     if (!tpl) throw new AppError('Template not found', 404);
-    res.json({ success: true, data: tpl });
+    res.json({ success: true, statusCode: 200, message: "Template retrieved successfully", data: tpl, meta: null });
   } catch (err) { next(err); }
 }
 
@@ -50,7 +58,7 @@ async function update(req, res, next) {
       { new: true, runValidators: true },
     );
     if (!tpl) throw new AppError('Template not found', 404);
-    res.json({ success: true, data: tpl });
+    res.json({ success: true, statusCode: 200, message: "Template updated successfully", data: tpl, meta: null });
   } catch (err) { next(err); }
 }
 
@@ -62,7 +70,13 @@ async function remove(req, res, next) {
       { new: true }
     );
     if (!tpl) throw new AppError('Template not found', 404);
-    res.json({ success: true, data: { deleted: true } });
+    res.json({
+			success: true,
+			statusCode: 200,
+			message: "Template deleted successfully",
+			data: { deleted: true },
+			meta: null,
+		});
   } catch (err) { next(err); }
 }
 

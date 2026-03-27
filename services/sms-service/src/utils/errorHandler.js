@@ -29,19 +29,30 @@ function errorHandler(err, req, res, next) { // eslint-disable-line no-unused-va
   }
 
   res.status(statusCode).json({
-    success: false,
-    errorCode: err.errorCode || ERROR_CODES.INTERNAL_ERROR,
-    message: isOperational ? err.message : 'An unexpected error occurred',
-    ...(err.details && { details: err.details }),
-  });
+		success: false,
+		statusCode,
+		message: isOperational ? err.message : "An unexpected error occurred",
+		error: {
+			code: err.errorCode || ERROR_CODES.INTERNAL_ERROR,
+			details:
+				err.details ?
+					Array.isArray(err.details) ?
+						err.details
+					:	[err.details]
+				:	[],
+		},
+	});
 }
 
 function notFoundHandler(req, res) {
-  res.status(404).json({
-    success: false,
-    errorCode: ERROR_CODES.NOT_FOUND,
-    message: `Route not found: ${req.method} ${req.originalUrl}`,
-  });
+  res
+		.status(404)
+		.json({
+			success: false,
+			statusCode: 404,
+			message: `Route not found: ${req.method} ${req.originalUrl}`,
+			error: { code: ERROR_CODES.NOT_FOUND, details: [] },
+		});
 }
 
 module.exports = { AppError, errorHandler, notFoundHandler };

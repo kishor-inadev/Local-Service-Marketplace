@@ -33,8 +33,8 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getCurrentUser(@Req() req: Request): Promise<UserResponseDto> {
-    // Extract user ID from JWT token (added by JwtAuthGuard)
-    const userId = (req as any).user?.id || (req as any).user?.sub;
+    // Extract user ID from gateway-injected header (set by JwtAuthGuard)
+    const userId = (req as any).user?.userId;
 
     this.logger.info('GET /users/me', {
       context: 'UserController',
@@ -74,8 +74,8 @@ export class UserController {
     @Req() req: Request,
     @Body() updateUserDto: UpdateUserDto,
   ): Promise<UserResponseDto> {
-    // Extract user ID from JWT token
-    const userId = (req as any).user?.id || (req as any).user?.sub;
+    // Extract user ID from gateway-injected header
+    const userId = (req as any).user?.userId;
 
     this.logger.info('PATCH /users/me', {
       context: 'UserController',
