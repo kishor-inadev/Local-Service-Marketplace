@@ -75,7 +75,7 @@ export class AdminController {
 	async suspendUser(
 		@Param("id") id: string,
 		@Body() body: { reason?: string },
-		@Headers("x-admin-id") adminId: string,
+		@Headers("x-user-id") adminId: string,
 	) {
 		return this.userModerationService.suspendUser(id, adminId, true, body.reason);
 	}
@@ -83,7 +83,7 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("users/:id/activate")
-	async activateUser(@Param("id") id: string, @Headers("x-admin-id") adminId: string) {
+	async activateUser(@Param("id") id: string, @Headers("x-user-id") adminId: string) {
 		return this.userModerationService.activateUser(id, adminId);
 	}
 
@@ -98,7 +98,7 @@ export class AdminController {
 	) {
 		if (status) {
 			const disputes = await this.disputeService.getDisputesByStatus(status);
-			return { disputes, total: disputes.length };
+			return { data: disputes, total: disputes.length };
 		}
 		return this.disputeService.getAllDisputes(limit, offset);
 	}
@@ -116,7 +116,7 @@ export class AdminController {
 	async updateDispute(
 		@Param("id") id: string,
 		@Body() updateDisputeDto: UpdateDisputeDto,
-		@Headers("x-admin-id") adminId: string,
+		@Headers("x-user-id") adminId: string,
 	) {
 		return this.disputeService.updateDispute(id, adminId, updateDisputeDto.status, updateDisputeDto.resolution);
 	}
@@ -132,7 +132,7 @@ export class AdminController {
 	) {
 		if (userId) {
 			const logs = await this.auditLogService.getAuditLogsByUserId(userId);
-			return { logs, total: logs.length };
+			return { data: logs, total: logs.length };
 		}
 		return this.auditLogService.getAuditLogs(limit, offset);
 	}
@@ -165,7 +165,7 @@ export class AdminController {
 	async updateSetting(
 		@Param("key") key: string,
 		@Body() updateSettingDto: UpdateSystemSettingDto,
-		@Headers("x-admin-id") adminId: string,
+		@Headers("x-user-id") adminId: string,
 	) {
 		return this.systemSettingService.updateSetting(key, updateSettingDto.value, adminId);
 	}
@@ -223,7 +223,7 @@ export class AdminController {
 	async updateContactMessage(
 		@Param("id") id: string,
 		@Body() updateContactMessageDto: UpdateContactMessageDto,
-		@Headers("x-admin-id") adminId: string,
+		@Headers("x-user-id") adminId: string,
 	) {
 		return this.contactMessageService.updateContactMessage(id, updateContactMessageDto, adminId);
 	}
@@ -231,7 +231,7 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Delete("contact/:id")
-	async deleteContactMessage(@Param("id") id: string, @Headers("x-admin-id") adminId: string) {
+	async deleteContactMessage(@Param("id") id: string, @Headers("x-user-id") adminId: string) {
 		return this.contactMessageService.deleteContactMessage(id, adminId);
 	}
 }

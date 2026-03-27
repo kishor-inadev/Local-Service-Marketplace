@@ -1,15 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Query,
-  Param,
-  Inject,
-  LoggerService,
-  HttpStatus,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Query, Param, Inject, LoggerService, UseGuards } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AnalyticsService } from '../services/analytics.service';
 import { MetricsAggregationService } from '../services/metrics-aggregation.service';
@@ -35,11 +24,7 @@ export class AnalyticsController {
 
     const activity = await this.analyticsService.trackActivity(trackActivityDto);
 
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Activity tracked successfully',
-      data: activity,
-    };
+    return activity;
   }
 
   @Get('user-activity')
@@ -60,16 +45,7 @@ export class AnalyticsController {
       parsedOffset,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Activity logs retrieved successfully',
-      data: result.data,
-      pagination: {
-        limit: parsedLimit,
-        offset: parsedOffset,
-        total: result.total,
-      },
-    };
+    return { data: result.data, total: result.total };
   }
 
   @Get('user-activity/:userId')
@@ -92,16 +68,7 @@ export class AnalyticsController {
       parsedOffset,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'User activity retrieved successfully',
-      data: result.data,
-      pagination: {
-        limit: parsedLimit,
-        offset: parsedOffset,
-        total: result.total,
-      },
-    };
+    return { data: result.data, total: result.total };
   }
 
   @Get('user-activity/action/:action')
@@ -117,11 +84,7 @@ export class AnalyticsController {
     const parsedLimit = limit ? parseInt(limit) : 100;
     const data = await this.analyticsService.getActivityByAction(action, parsedLimit);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Activity logs retrieved successfully',
-      data,
-    };
+    return data;
   }
 
   @Get('metrics')
@@ -142,11 +105,7 @@ export class AnalyticsController {
       parsedLimit,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Daily metrics retrieved successfully',
-      data,
-    };
+    return data;
   }
 
   @Get('metrics/:date')
@@ -158,11 +117,7 @@ export class AnalyticsController {
 
     const data = await this.analyticsService.getMetricByDate(date);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Metric retrieved successfully',
-      data,
-    };
+    return data;
   }
 
   // Worker endpoints for background job processing
@@ -175,11 +130,7 @@ export class AnalyticsController {
 
     const metric = await this.metricsAggregationService.aggregateTodayMetrics();
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Today metrics aggregated successfully',
-      data: metric,
-    };
+    return metric;
   }
 
   @Post('workers/aggregate-yesterday')
@@ -191,11 +142,7 @@ export class AnalyticsController {
 
     const metric = await this.metricsAggregationService.aggregateYesterdayMetrics();
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Yesterday metrics aggregated successfully',
-      data: metric,
-    };
+    return metric;
   }
 
   @Post('workers/aggregate/:date')
@@ -207,11 +154,7 @@ export class AnalyticsController {
 
     const metric = await this.metricsAggregationService.aggregateMetricsForDate(date);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: `Metrics aggregated successfully for ${date}`,
-      data: metric,
-    };
+    return metric;
   }
 
   @Post('workers/backfill')
@@ -228,10 +171,6 @@ export class AnalyticsController {
       body.endDate,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: `Backfilled ${metrics.length} days of metrics`,
-      data: metrics,
-    };
+    return metrics;
   }
 }

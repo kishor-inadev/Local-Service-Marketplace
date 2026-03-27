@@ -1,4 +1,4 @@
-﻿# ============================================
+# ============================================
 # Email Service - Node.js (JavaScript)
 # ============================================
 # This is a plain Node.js service (not TypeScript)
@@ -10,7 +10,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN OPENSSL_CONF=/dev/null npm install -g pnpm
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

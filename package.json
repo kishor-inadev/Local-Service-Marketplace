@@ -6,11 +6,17 @@
   "scripts": {
     "install:all": "pnpm install",
     "build:all": "pnpm -r build",
-    "start:dev": "pnpm -r --parallel start:dev"
+    "start:dev": "pnpm -r --parallel start:dev",
+    "test:api": "pnpm newman run docs/Local-Service-Marketplace.postman_collection.json --environment newman/newman.env.json --reporters cli,html,json --reporter-html-export test-reports/report.html --reporter-json-export test-reports/report.json",
+    "test:api:verbose": "pnpm newman run docs/Local-Service-Marketplace.postman_collection.json --environment newman/newman.env.json --reporters cli,html,json --reporter-html-export test-reports/report.html --reporter-json-export test-reports/report.json --verbose",
+    "test:services": "powershell -ExecutionPolicy Bypass -File scripts/test-all-services.ps1"
   },
   "engines": {
     "node": ">=18.0.0",
     "pnpm": ">=8.0.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "newman": "^5.3.2",
+    "newman-reporter-html": "^1.1.6"
+  }
 }

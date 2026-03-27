@@ -26,6 +26,9 @@ redis_data/
 coverage/
 *.lcov
 
+# Newman/Postman test reports (generated)
+test-reports/
+
 # IDE and editors
 .vscode/
 .idea/

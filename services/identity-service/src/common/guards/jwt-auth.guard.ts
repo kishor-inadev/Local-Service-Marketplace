@@ -1,46 +1,40 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
 
+/**
+ * JWT Auth Guard for identity-service user endpoints.
+ *
+ * Extracts user context from headers injected by the API Gateway after JWT validation.
+ * The Gateway validates the token and forwards:
+ *   - x-user-id:    User's unique identifier
+ *   - x-user-email: User's email
+ *   - x-user-role:  User's role (customer, provider, admin)
+ *   - x-user-name:  User's name (optional)
+ *   - x-user-phone: User's phone (optional)
+ *   - x-provider-id: Provider ID if user is a provider (optional)
+ */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
 
-    if (!authHeader) {
-      throw new UnauthorizedException('No authorization header');
+    const userId = request.headers['x-user-id'];
+    const userEmail = request.headers['x-user-email'];
+    const userRole = request.headers['x-user-role'];
+
+    if (!userId || !userEmail) {
+      throw new UnauthorizedException('Authentication required. Request must come through API Gateway.');
     }
 
-    const [bearer, token] = authHeader.split(' ');
+    // Attach user info to request object for use in controllers/services
+    request.user = {
+      userId,
+      email: userEmail,
+      role: userRole || 'customer',
+      name: request.headers['x-user-name'],
+      phone: request.headers['x-user-phone'],
+      providerId: request.headers['x-provider-id'],
+    };
 
-    if (bearer !== 'Bearer' || !token) {
-      throw new UnauthorizedException('Invalid authorization header format');
-    }
-
-    try {
-      // Decode JWT token (Base64 decode the payload)
-      // JWT format: header.payload.signature
-      const parts = token.split('.');
-      if (parts.length !== 3) {
-        throw new UnauthorizedException('Invalid token format');
-      }
-
-      // Decode the payload (second part)
-      const payload = JSON.parse(
-        Buffer.from(parts[1], 'base64').toString('utf-8')
-      );
-
-      // Attach user info to request
-      // The payload should contain: { sub: userId, email, role, iat, exp }
-      request.user = {
-        id: payload.sub || payload.id || payload.user_id,
-        email: payload.email,
-        role: payload.role,
-        sub: payload.sub,
-      };
-
-      return true;
-    } catch (error) {
-      throw new UnauthorizedException('Invalid token');
-    }
+    return true;
   }
 }

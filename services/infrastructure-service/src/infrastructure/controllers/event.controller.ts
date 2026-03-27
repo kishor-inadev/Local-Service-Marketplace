@@ -1,14 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  Query,
-  Inject,
-  LoggerService,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Inject, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { EventService } from '../services/event.service';
 import { CreateEventDto } from '../dto/create-event.dto';
@@ -30,11 +20,7 @@ export class EventController {
 
     const event = await this.eventService.createEvent(createEventDto);
 
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Event created successfully',
-      data: event,
-    };
+    return event;
   }
 
   @Get()
@@ -55,16 +41,7 @@ export class EventController {
       parsedOffset,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Events retrieved successfully',
-      data: result.data,
-      pagination: {
-        limit: parsedLimit,
-        offset: parsedOffset,
-        total: result.total,
-      },
-    };
+    return { data: result.data, total: result.total };
   }
 
   @Get(':id')
@@ -76,11 +53,7 @@ export class EventController {
 
     const event = await this.eventService.getEventById(id);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Event retrieved successfully',
-      data: event,
-    };
+    return event;
   }
 
   @Get('type/:eventType')
@@ -96,10 +69,6 @@ export class EventController {
     const parsedLimit = limit ? parseInt(limit) : 100;
     const data = await this.eventService.getEventsByType(eventType, parsedLimit);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Events retrieved successfully',
-      data,
-    };
+    return data;
   }
 }

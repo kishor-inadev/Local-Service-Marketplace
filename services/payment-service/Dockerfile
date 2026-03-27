@@ -4,7 +4,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN OPENSSL_CONF=/dev/null npm install -g pnpm
 
 COPY package*.json pnpm-lock.yaml* ./
 
@@ -25,7 +25,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN OPENSSL_CONF=/dev/null npm install -g pnpm
 
 COPY package*.json pnpm-lock.yaml* ./
 

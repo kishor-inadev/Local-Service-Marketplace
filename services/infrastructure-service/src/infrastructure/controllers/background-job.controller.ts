@@ -1,16 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  Inject,
-  LoggerService,
-  HttpStatus,
-} from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Inject, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { BackgroundJobService } from '../services/background-job.service';
 import { CreateBackgroundJobDto } from '../dto/create-background-job.dto';
@@ -33,11 +21,7 @@ export class BackgroundJobController {
 
     const job = await this.backgroundJobService.createJob(createJobDto);
 
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'Background job created successfully',
-      data: job,
-    };
+    return job;
   }
 
   @Get()
@@ -58,16 +42,7 @@ export class BackgroundJobController {
       parsedOffset,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Background jobs retrieved successfully',
-      data: result.data,
-      pagination: {
-        limit: parsedLimit,
-        offset: parsedOffset,
-        total: result.total,
-      },
-    };
+    return { data: result.data, total: result.total };
   }
 
   @Get('status/:status')
@@ -79,11 +54,7 @@ export class BackgroundJobController {
 
     const data = await this.backgroundJobService.getJobsByStatus(status);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Background jobs retrieved successfully',
-      data,
-    };
+    return data;
   }
 
   @Get('stats')
@@ -95,11 +66,7 @@ export class BackgroundJobController {
 
     const stats = await this.backgroundJobService.getQueueStats();
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Queue statistics retrieved successfully',
-      data: stats,
-    };
+    return stats;
   }
 
   @Get(':id')
@@ -111,11 +78,7 @@ export class BackgroundJobController {
 
     const job = await this.backgroundJobService.getJobById(id);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Background job retrieved successfully',
-      data: job,
-    };
+    return job;
   }
 
   @Patch(':id/status')
@@ -133,11 +96,7 @@ export class BackgroundJobController {
       updateJobStatusDto.status,
     );
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Job status updated successfully',
-      data: job,
-    };
+    return job;
   }
 
   @Delete(':id')
@@ -149,9 +108,6 @@ export class BackgroundJobController {
 
     await this.backgroundJobService.deleteJob(id);
 
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Background job deleted successfully',
-    };
+    return { result: "Background job deleted successfully" };
   }
 }

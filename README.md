@@ -195,6 +195,44 @@ Kafka is **optional** — all services work without it using direct HTTP calls.
 
 ---
 
+## Automated Testing
+
+The platform includes comprehensive API tests using **Postman** and **Newman**.
+
+### Quick Test Run
+
+```powershell
+# Start all services and run full test suite
+.\scripts\test-all-services.ps1
+
+# Or, if services are already running:
+pnpm test:api
+```
+
+Tests cover all 8 services including health checks, authentication, CRUD operations, error handling, and critical business flows.
+
+### Test Reports
+
+After running tests:
+
+- **CLI output** - Real-time pass/fail indicators
+- **HTML report** - Interactive detailed report in `test-reports/`
+- **JSON report** - Machine-readable results for CI/CD
+
+See [docs/TESTING.md](docs/TESTING.md) for complete documentation.
+
+### Collection
+
+All API endpoints are documented in:
+
+```
+docs/Local-Service-Marketplace.postman_collection.json
+```
+
+Import into Postman for manual testing or use Newman for automation.
+
+---
+
 ## Database
 
 - Single PostgreSQL instance shared across services

@@ -48,7 +48,7 @@ export class ProviderDocumentController {
 
     const document = await this.documentService.uploadDocument(
       providerId,
-      req.user.id,
+      req.user.userId,
       dto,
       fileUrl
     );
@@ -71,7 +71,7 @@ export class ProviderDocumentController {
   ) {
     const document = await this.documentService.verifyDocument(
       documentId,
-      req.user.id,
+      req.user.userId,
       dto
     );
 
@@ -139,7 +139,7 @@ export class ProviderDocumentController {
     @Param('documentId', ParseUUIDPipe) documentId: string,
     @Request() req: any
   ) {
-    await this.documentService.deleteDocument(documentId, req.user.id);
+    await this.documentService.deleteDocument(documentId, req.user.userId);
 
     return {
       success: true,
