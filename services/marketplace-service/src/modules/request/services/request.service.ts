@@ -5,7 +5,7 @@ import { CategoryRepository } from '../repositories/category.repository';
 import { LocationRepository } from '../repositories/location.repository';
 import { CreateRequestDto } from '../dto/create-request.dto';
 import { UpdateRequestDto } from '../dto/update-request.dto';
-import { RequestQueryDto } from '../dto/request-query.dto';
+import { RequestQueryDto, RequestSortBy, SortOrder } from "../dto/request-query.dto";
 import { RequestResponseDto, PaginatedRequestResponseDto } from '../dto/request-response.dto';
 import { NotFoundException, BadRequestException, ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { KafkaService } from '../../../kafka/kafka.service';
@@ -135,6 +135,26 @@ export class RequestService {
 			queryDto.min_budget > queryDto.max_budget
 		) {
 			throw new BadRequestException("min_budget cannot be greater than max_budget");
+		}
+
+		if (queryDto.created_from && queryDto.created_to) {
+			const from = new Date(queryDto.created_from).getTime();
+			const to = new Date(queryDto.created_to).getTime();
+			if (from > to) {
+				throw new BadRequestException("created_from cannot be greater than created_to");
+			}
+		}
+
+		if (queryDto.cursor && queryDto.page) {
+			throw new BadRequestException("Use either cursor or page, not both");
+		}
+
+		if (queryDto.cursor && queryDto.sortBy && queryDto.sortBy !== RequestSortBy.CREATED_AT) {
+			throw new BadRequestException("Cursor pagination supports sortBy=created_at only");
+		}
+
+		if (queryDto.cursor && queryDto.sortOrder && queryDto.sortOrder !== SortOrder.DESC) {
+			throw new BadRequestException("Cursor pagination supports sortOrder=desc only");
 		}
 
 		const limit = queryDto.limit || 20;

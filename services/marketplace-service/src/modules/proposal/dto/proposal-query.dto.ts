@@ -12,6 +12,13 @@ export enum SortOrder {
 	DESC = "desc",
 }
 
+export enum ProposalStatus {
+	PENDING = "pending",
+	ACCEPTED = "accepted",
+	REJECTED = "rejected",
+	WITHDRAWN = "withdrawn",
+}
+
 export class ProposalQueryDto {
 	@IsOptional()
 	@IsUUID()
@@ -22,8 +29,8 @@ export class ProposalQueryDto {
 	provider_id?: string;
 
 	@IsOptional()
-	@IsString()
-	status?: string;
+	@IsEnum(ProposalStatus)
+	status?: ProposalStatus;
 
 	@IsOptional()
 	@IsNumber()

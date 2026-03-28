@@ -301,17 +301,17 @@ export class RequestRepository {
     // Add location if exists
     if (row.loc_id) {
       request.location = {
-        id: row.loc_id,
-        user_id: row.user_id,
-        latitude: parseFloat(row.latitude),
-        longitude: parseFloat(row.longitude),
-        address: row.address,
-        city: row.city,
-        state: row.zip_code,
-        zip_code: row.zip_code,
-        country: row.country,
-        created_at: row.loc_created_at,
-      } as LocationEntity;
+				id: row.loc_id,
+				user_id: row.user_id,
+				latitude: parseFloat(row.latitude),
+				longitude: parseFloat(row.longitude),
+				address: row.address,
+				city: row.city,
+				state: row.state,
+				zip_code: row.zip_code,
+				country: row.country,
+				created_at: row.loc_created_at,
+			} as LocationEntity;
     }
 
     return request;

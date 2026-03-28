@@ -12,6 +12,20 @@ export enum SortOrder {
 	DESC = "desc",
 }
 
+export enum RequestStatus {
+	OPEN = "open",
+	ASSIGNED = "assigned",
+	COMPLETED = "completed",
+	CANCELLED = "cancelled",
+}
+
+export enum RequestUrgency {
+	LOW = "low",
+	MEDIUM = "medium",
+	HIGH = "high",
+	URGENT = "urgent",
+}
+
 export class RequestQueryDto {
 	@IsOptional()
 	@IsUUID()
@@ -22,8 +36,8 @@ export class RequestQueryDto {
 	category_id?: string;
 
 	@IsOptional()
-	@IsString()
-	status?: string;
+	@IsEnum(RequestStatus)
+	status?: RequestStatus;
 
 	@IsOptional()
 	@IsNumber()
@@ -55,8 +69,8 @@ export class RequestQueryDto {
 	max_budget?: number;
 
 	@IsOptional()
-	@IsString()
-	urgency?: string;
+	@IsEnum(RequestUrgency)
+	urgency?: RequestUrgency;
 
 	@IsOptional()
 	@IsDateString()

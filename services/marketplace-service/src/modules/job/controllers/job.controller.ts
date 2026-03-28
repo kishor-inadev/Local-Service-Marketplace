@@ -26,7 +26,8 @@ export class JobController {
 		// Get jobs where user is either customer or provider
 		const customerJobs = await this.jobService.getJobsByCustomer(userId);
 		const providerJobs = await this.jobService.getJobsByProviderUser(userId);
-		const data = [...customerJobs.data, ...providerJobs.data];
+		const merged = [...customerJobs.data, ...providerJobs.data];
+		const data = Array.from(new Map(merged.map((job) => [job.id, job])).values());
 		return { data, total: data.length };
 	}
 
@@ -36,24 +37,24 @@ export class JobController {
 		return this.jobService.getJobs(queryDto);
 	}
 
-	@Get(":id")
+	@Get(":id([0-9a-fA-F-]{36})")
 	@HttpCode(HttpStatus.OK)
-	async getJobById(@Param("id") id: string): Promise<JobResponseDto> {
+	async getJobById(@Param("id", ParseUUIDPipe) id: string): Promise<JobResponseDto> {
 		return this.jobService.getJobById(id);
 	}
 
-	@Patch(":id/status")
+	@Patch(":id([0-9a-fA-F-]{36})/status")
 	@HttpCode(HttpStatus.OK)
 	async updateJobStatus(
-		@Param("id") id: string,
+		@Param("id", ParseUUIDPipe) id: string,
 		@Body() updateJobStatusDto: UpdateJobStatusDto,
 	): Promise<JobResponseDto> {
 		return this.jobService.updateJobStatus(id, updateJobStatusDto);
 	}
 
-	@Post(":id/complete")
+	@Post(":id([0-9a-fA-F-]{36})/complete")
 	@HttpCode(HttpStatus.OK)
-	async completeJob(@Param("id") id: string): Promise<JobResponseDto> {
+	async completeJob(@Param("id", ParseUUIDPipe) id: string): Promise<JobResponseDto> {
 		return this.jobService.completeJob(id);
 	}
 

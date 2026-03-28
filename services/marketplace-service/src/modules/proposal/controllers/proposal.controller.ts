@@ -41,21 +41,21 @@ export class ProposalController {
 		return this.proposalService.getProposalsForRequest(requestId);
 	}
 
-	@Post("proposals/:id/accept")
+	@Post("proposals/:id([0-9a-fA-F-]{36})/accept")
 	@HttpCode(HttpStatus.OK)
-	async acceptProposal(@Param("id") id: string): Promise<ProposalResponseDto> {
+	async acceptProposal(@Param("id", ParseUUIDPipe) id: string): Promise<ProposalResponseDto> {
 		return this.proposalService.acceptProposal(id);
 	}
 
-	@Post("proposals/:id/reject")
+	@Post("proposals/:id([0-9a-fA-F-]{36})/reject")
 	@HttpCode(HttpStatus.OK)
-	async rejectProposal(@Param("id") id: string): Promise<ProposalResponseDto> {
+	async rejectProposal(@Param("id", ParseUUIDPipe) id: string): Promise<ProposalResponseDto> {
 		return this.proposalService.rejectProposal(id);
 	}
 
-	@Get("proposals/:id")
+	@Get("proposals/:id([0-9a-fA-F-]{36})")
 	@HttpCode(HttpStatus.OK)
-	async getProposalById(@Param("id") id: string): Promise<ProposalResponseDto> {
+	async getProposalById(@Param("id", ParseUUIDPipe) id: string): Promise<ProposalResponseDto> {
 		return this.proposalService.getProposalById(id);
 	}
 }

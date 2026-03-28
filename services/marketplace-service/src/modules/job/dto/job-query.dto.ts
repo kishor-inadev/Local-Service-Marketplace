@@ -12,6 +12,15 @@ export enum SortOrder {
 	DESC = "desc",
 }
 
+export enum JobStatusQuery {
+	SCHEDULED = "scheduled",
+	IN_PROGRESS = "in_progress",
+	COMPLETED = "completed",
+	CANCELLED = "cancelled",
+	DISPUTED = "disputed",
+	PENDING = "pending",
+}
+
 export class JobQueryDto {
 	@IsOptional()
 	@IsUUID()
@@ -26,8 +35,8 @@ export class JobQueryDto {
 	request_id?: string;
 
 	@IsOptional()
-	@IsString()
-	status?: string;
+	@IsEnum(JobStatusQuery)
+	status?: JobStatusQuery;
 
 	@IsOptional()
 	@IsDateString()

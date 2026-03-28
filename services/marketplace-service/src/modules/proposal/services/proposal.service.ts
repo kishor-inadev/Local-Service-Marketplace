@@ -2,7 +2,7 @@ import { Injectable, Inject, LoggerService } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { ProposalRepository } from '../repositories/proposal.repository';
 import { CreateProposalDto } from '../dto/create-proposal.dto';
-import { ProposalQueryDto } from '../dto/proposal-query.dto';
+import { ProposalQueryDto, ProposalSortBy, SortOrder } from "../dto/proposal-query.dto";
 import { ProposalResponseDto, PaginatedProposalResponseDto } from '../dto/proposal-response.dto';
 import { NotFoundException, BadRequestException, ConflictException } from '../../../common/exceptions/http.exceptions';
 import { KafkaService } from '../../../kafka/kafka.service';
@@ -211,6 +211,26 @@ export class ProposalService {
 			throw new BadRequestException("min_price cannot be greater than max_price");
 		}
 
+		if (queryDto.created_from && queryDto.created_to) {
+			const from = new Date(queryDto.created_from).getTime();
+			const to = new Date(queryDto.created_to).getTime();
+			if (from > to) {
+				throw new BadRequestException("created_from cannot be greater than created_to");
+			}
+		}
+
+		if (queryDto.cursor && queryDto.page) {
+			throw new BadRequestException("Use either cursor or page, not both");
+		}
+
+		if (queryDto.cursor && queryDto.sortBy && queryDto.sortBy !== ProposalSortBy.CREATED_AT) {
+			throw new BadRequestException("Cursor pagination supports sortBy=created_at only");
+		}
+
+		if (queryDto.cursor && queryDto.sortOrder && queryDto.sortOrder !== SortOrder.DESC) {
+			throw new BadRequestException("Cursor pagination supports sortOrder=desc only");
+		}
+
 		const limit = queryDto.limit || 20;
 
 		if (queryDto.cursor) {
@@ -240,9 +260,10 @@ export class ProposalService {
 
 		// Combine and sort by created_at
 		const allProposals = [...customerProposals, ...providerProposals];
-		allProposals.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+		const uniqueProposals = Array.from(new Map(allProposals.map((proposal) => [proposal.id, proposal])).values());
+		uniqueProposals.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-		const data = allProposals.map(ProposalResponseDto.fromEntity);
+		const data = uniqueProposals.map(ProposalResponseDto.fromEntity);
 		return { data, total: data.length };
 	}
 }

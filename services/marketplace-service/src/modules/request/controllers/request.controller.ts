@@ -43,9 +43,9 @@ export class RequestController {
 
 	// Public — anyone can browse a single request
 	@UseGuards(JwtAuthGuard)
-	@Get(":id")
+	@Get(":id([0-9a-fA-F-]{36})")
 	@HttpCode(HttpStatus.OK)
-	async getRequestById(@Param("id") id: string): Promise<RequestResponseDto> {
+	async getRequestById(@Param("id", ParseUUIDPipe) id: string): Promise<RequestResponseDto> {
 		return this.requestService.getRequestById(id);
 	}
 
@@ -53,16 +53,16 @@ export class RequestController {
 	@UseGuards(JwtAuthGuard)
 	@Get("my")
 	@HttpCode(HttpStatus.OK)
-	async getMyRequests(@Req() req: any): Promise<RequestResponseDto[]> {
+	async getMyRequests(@Req() req: any): Promise<{ data: RequestResponseDto[]; total: number }> {
 		return this.requestService.getRequestsByUser(req.user.userId);
 	}
 
 	// Authenticated — owner can update their own request
 	@UseGuards(JwtAuthGuard)
-	@Patch(":id")
+	@Patch(":id([0-9a-fA-F-]{36})")
 	@HttpCode(HttpStatus.OK)
 	async updateRequest(
-		@Param("id") id: string,
+		@Param("id", ParseUUIDPipe) id: string,
 		@Body() updateRequestDto: UpdateRequestDto,
 		@Req() req: any,
 	): Promise<RequestResponseDto> {
@@ -72,9 +72,9 @@ export class RequestController {
 	// Admin only — hard delete
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
-	@Delete(":id")
+	@Delete(":id([0-9a-fA-F-]{36})")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	async deleteRequest(@Param("id") id: string): Promise<void> {
+	async deleteRequest(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
 		return this.requestService.deleteRequest(id);
 	}
 
@@ -82,7 +82,9 @@ export class RequestController {
 	@UseGuards(JwtAuthGuard)
 	@Get("user/:userId")
 	@HttpCode(HttpStatus.OK)
-	async getRequestsByUser(@Param("userId", ParseUUIDPipe) userId: string): Promise<RequestResponseDto[]> {
+	async getRequestsByUser(
+		@Param("userId", ParseUUIDPipe) userId: string,
+	): Promise<{ data: RequestResponseDto[]; total: number }> {
 		return this.requestService.getRequestsByUser(userId);
 	}
 }

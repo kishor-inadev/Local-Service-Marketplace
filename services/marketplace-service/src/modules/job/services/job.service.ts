@@ -4,7 +4,7 @@ import { JobRepository } from '../repositories/job.repository';
 import { CreateJobDto } from '../dto/create-job.dto';
 import { UpdateJobStatusDto, JobStatus } from '../dto/update-job-status.dto';
 import { JobResponseDto, PaginatedJobResponseDto } from "../dto/job-response.dto";
-import { JobQueryDto } from "../dto/job-query.dto";
+import { JobQueryDto, JobSortBy, SortOrder } from "../dto/job-query.dto";
 import { NotFoundException, BadRequestException, ConflictException } from '../../../common/exceptions/http.exceptions';
 import { KafkaService } from '../../../kafka/kafka.service';
 import { RedisService } from '../../../redis/redis.service';
@@ -214,6 +214,34 @@ export class JobService {
 
 	async getJobs(queryDto: JobQueryDto): Promise<PaginatedJobResponseDto> {
 		this.logger.log(`Fetching jobs with filters: ${JSON.stringify(queryDto)}`, JobService.name);
+
+		if (queryDto.started_from && queryDto.started_to) {
+			const from = new Date(queryDto.started_from).getTime();
+			const to = new Date(queryDto.started_to).getTime();
+			if (from > to) {
+				throw new BadRequestException("started_from cannot be greater than started_to");
+			}
+		}
+
+		if (queryDto.completed_from && queryDto.completed_to) {
+			const from = new Date(queryDto.completed_from).getTime();
+			const to = new Date(queryDto.completed_to).getTime();
+			if (from > to) {
+				throw new BadRequestException("completed_from cannot be greater than completed_to");
+			}
+		}
+
+		if (queryDto.cursor && queryDto.page) {
+			throw new BadRequestException("Use either cursor or page, not both");
+		}
+
+		if (queryDto.cursor && queryDto.sortBy && queryDto.sortBy !== JobSortBy.STARTED_AT) {
+			throw new BadRequestException("Cursor pagination supports sortBy=started_at only");
+		}
+
+		if (queryDto.cursor && queryDto.sortOrder && queryDto.sortOrder !== SortOrder.DESC) {
+			throw new BadRequestException("Cursor pagination supports sortOrder=desc only");
+		}
 
 		const limit = queryDto.limit || 20;
 
