@@ -58,7 +58,7 @@ export class ResponseTransformInterceptor<T>
 						success: partial.success,
 						statusCode: partial.statusCode || statusCode,
 						message: typeof partial.message === "string" ? partial.message : this.generateMessage(method, statusCode),
-						data: partial.data,
+						data: partial.data ?? null,
 						meta: partial.meta ?? null,
 					} as StandardResponse<T>;
 				}
@@ -106,7 +106,7 @@ export class ResponseTransformInterceptor<T>
 					success: statusCode >= 200 && statusCode < 300,
 					statusCode,
 					message: customMessage ?? this.generateMessage(method, statusCode),
-					data: responseData,
+					data: responseData ?? null,
 					meta,
 				} as StandardResponse<T>;
 			}),

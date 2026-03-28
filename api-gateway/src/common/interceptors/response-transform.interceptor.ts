@@ -38,54 +38,81 @@ export class ResponseTransformInterceptor<T>
 
     return next.handle().pipe(
       map((data) => {
-        const statusCode = response.statusCode;
-        const method = request.method;
-        const path = request.path;
+				const statusCode = response.statusCode;
+				const method = request.method;
+				const path = request.path;
 
-        // Determine if response is already wrapped
-        if (data && typeof data === "object" && "success" in data && "statusCode" in data && "meta" in data) {
+				// If response is already in standardized format, return as is
+				if (data && typeof data === "object" && "success" in data && "statusCode" in data && "meta" in data) {
 					return data as StandardResponse<T>;
 				}
 
-        // Extract data and metadata
-        let responseData: any = data;
-				let meta: PaginationMeta | null = null;
-				const message = this.generateMessage(method, statusCode, path);
+				// If controller returned { success, data, message? } partial format, unwrap it
+				if (
+					data &&
+					typeof data === "object" &&
+					"success" in data &&
+					typeof (data as any).success === "boolean" &&
+					"data" in data
+				) {
+					const partial = data as any;
+					return {
+						success: partial.success,
+						statusCode: partial.statusCode || statusCode,
+						message:
+							typeof partial.message === "string" ? partial.message : this.generateMessage(method, statusCode, path),
+						data: partial.data ?? null,
+						meta: partial.meta ?? null,
+					} as StandardResponse<T>;
+				}
 
-        // Handle paginated responses
-        if (data && typeof data === 'object') {
-          const query = request.query || {};
+				// Extract custom message if provided by controller
+				let customMessage: string | undefined;
+				let rawData: any = data;
+				if (rawData && typeof rawData === "object" && typeof rawData.message === "string") {
+					customMessage = rawData.message;
+					const { message: _msg, ...rest } = rawData;
+					rawData = rest;
+				}
+
+				// Extract data and metadata
+				let responseData: any = rawData;
+				let meta: PaginationMeta | null = null;
+
+				// Handle paginated responses
+				if (rawData && typeof rawData === "object") {
+					const query = request.query || {};
 					const page = parseInt(query.page as string) || 1;
 					const limit = parseInt(query.limit as string) || 20;
 
-					if ("data" in data && "total" in data) {
+					if ("data" in rawData && "total" in rawData) {
 						// Offset-based pagination: { data, total, page?, limit? }
-						responseData = (data as any).data;
-						const total = (data as any).total as number;
-						const currentPage = (data as any).page ? parseInt((data as any).page) : page;
-						const currentLimit = (data as any).limit ? parseInt((data as any).limit) : limit;
+						responseData = (rawData as any).data;
+						const total = (rawData as any).total as number;
+						const currentPage = (rawData as any).page ? parseInt((rawData as any).page) : page;
+						const currentLimit = (rawData as any).limit ? parseInt((rawData as any).limit) : limit;
 						meta = { page: currentPage, limit: currentLimit, total, totalPages: Math.ceil(total / currentLimit) };
-					} else if ("items" in data && "total" in data) {
+					} else if ("items" in rawData && "total" in rawData) {
 						// Alternative pagination format: { items, total }
-						responseData = (data as any).items;
-						const total = (data as any).total as number;
-						const currentPage = (data as any).page ? parseInt((data as any).page) : page;
-						const currentLimit = (data as any).limit ? parseInt((data as any).limit) : limit;
+						responseData = (rawData as any).items;
+						const total = (rawData as any).total as number;
+						const currentPage = (rawData as any).page ? parseInt((rawData as any).page) : page;
+						const currentLimit = (rawData as any).limit ? parseInt((rawData as any).limit) : limit;
 						meta = { page: currentPage, limit: currentLimit, total, totalPages: Math.ceil(total / currentLimit) };
-					} else if ("data" in data && "nextCursor" in data) {
+					} else if ("data" in rawData && "nextCursor" in rawData) {
 						// Cursor-based pagination — no numeric meta
-						responseData = (data as any).data;
+						responseData = (rawData as any).data;
 					}
-        }
+				}
 
-        return {
+				return {
 					success: statusCode >= 200 && statusCode < 300,
 					statusCode,
-					message,
-					data: responseData,
+					message: customMessage ?? this.generateMessage(method, statusCode, path),
+					data: responseData ?? null,
 					meta,
 				} as StandardResponse<T>;
-      }),
+			}),
     );
   }
 
