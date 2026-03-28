@@ -26,11 +26,12 @@ export class ProposalController {
 	@HttpCode(HttpStatus.OK)
 	async getMyProposals(
 		@Query("user_id", ParseUUIDPipe) userId: string,
-	): Promise<{ data: ProposalResponseDto[]; total: number }> {
+	): Promise<{ data: ProposalResponseDto[]; total: number; page: number; limit: number }> {
 		if (!userId) {
 			throw new Error("User ID is required");
 		}
-		return this.proposalService.getMyProposals(userId);
+		const result = await this.proposalService.getMyProposals(userId);
+		return { ...result, page: 1, limit: result.data.length || 1 };
 	}
 
 	@Get("requests/:requestId/proposals")

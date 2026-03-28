@@ -19,7 +19,9 @@ export class JobController {
 
 	@Get("my")
 	@HttpCode(HttpStatus.OK)
-	async getMyJobs(@Query("user_id", ParseUUIDPipe) userId: string): Promise<{ data: JobResponseDto[]; total: number }> {
+	async getMyJobs(
+		@Query("user_id", ParseUUIDPipe) userId: string,
+	): Promise<{ data: JobResponseDto[]; total: number; page: number; limit: number }> {
 		if (!userId) {
 			throw new Error("User ID is required");
 		}
@@ -28,7 +30,7 @@ export class JobController {
 		const providerJobs = await this.jobService.getJobsByProviderUser(userId);
 		const merged = [...customerJobs.data, ...providerJobs.data];
 		const data = Array.from(new Map(merged.map((job) => [job.id, job])).values());
-		return { data, total: data.length };
+		return { data, total: data.length, page: 1, limit: data.length || 1 };
 	}
 
 	@Get()
@@ -62,13 +64,17 @@ export class JobController {
 	@HttpCode(HttpStatus.OK)
 	async getJobsByProvider(
 		@Param("providerId", ParseUUIDPipe) providerId: string,
-	): Promise<{ data: JobResponseDto[]; total: number }> {
-		return this.jobService.getJobsByProvider(providerId);
+	): Promise<{ data: JobResponseDto[]; total: number; page: number; limit: number }> {
+		const result = await this.jobService.getJobsByProvider(providerId);
+		return { ...result, page: 1, limit: result.data.length || 1 };
 	}
 
 	@Get("status/:status")
 	@HttpCode(HttpStatus.OK)
-	async getJobsByStatus(@Param("status") status: string): Promise<{ data: JobResponseDto[]; total: number }> {
-		return this.jobService.getJobsByStatus(status);
+	async getJobsByStatus(
+		@Param("status") status: string,
+	): Promise<{ data: JobResponseDto[]; total: number; page: number; limit: number }> {
+		const result = await this.jobService.getJobsByStatus(status);
+		return { ...result, page: 1, limit: result.data.length || 1 };
 	}
 }

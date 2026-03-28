@@ -82,6 +82,8 @@ export class TransactionDto {
 export class PaginatedTransactionResponseDto {
 	data: TransactionDto[];
 	total?: number;
+	page?: number;
+	limit?: number;
 	nextCursor?: string;
 	hasMore?: boolean;
 }

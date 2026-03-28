@@ -160,7 +160,7 @@ export class PaymentService {
 			this.paymentRepository.countPaymentsByUser(userId, queryDto),
 		]);
 
-		return { data: data as any, total };
+		return { data: data as any, total, page: queryDto.page || 1, limit };
 	}
 
 	async getProviderEarnings(providerId: string, startDate?: Date, endDate?: Date): Promise<any> {
@@ -208,28 +208,30 @@ export class PaymentService {
 			SortOrder.DESC,
 		);
 
-		const result = await this.paymentRepository.getProviderTransactions(providerId, queryDto);
+		const limit = queryDto.limit || 20;
 
-		return {
-			data: result.data.map((t: any) => ({
-				id: t.id,
-				job_id: t.job_id,
-				customer_id: t.user_id,
-				provider_amount: parseFloat(t.provider_amount) || 0,
-				platform_fee: parseFloat(t.platform_fee) || 0,
-				total_amount: parseFloat(t.amount) || 0,
-				status: t.status,
-				payment_method: t.payment_method || "card",
-				transaction_id: t.transaction_id || "",
-				currency: t.currency || "USD",
-				created_at: t.created_at,
-				paid_at: t.paid_at || null,
-				customer_name: t.customer_name || "Unknown",
-			})),
-			...(queryDto.cursor ? {} : { total: result.total }),
-			nextCursor: result.nextCursor,
-			hasMore: result.hasMore,
-		};
+		const result = await this.paymentRepository.getProviderTransactions(providerId, queryDto);
+		const data = result.data.map((t: any) => ({
+			id: t.id,
+			job_id: t.job_id,
+			customer_id: t.user_id,
+			provider_amount: parseFloat(t.provider_amount) || 0,
+			platform_fee: parseFloat(t.platform_fee) || 0,
+			total_amount: parseFloat(t.amount) || 0,
+			status: t.status,
+			payment_method: t.payment_method || "card",
+			transaction_id: t.transaction_id || "",
+			currency: t.currency || "USD",
+			created_at: t.created_at,
+			paid_at: t.paid_at || null,
+			customer_name: t.customer_name || "Unknown",
+		}));
+
+		if (queryDto.cursor) {
+			return { data, nextCursor: result.nextCursor, hasMore: result.hasMore };
+		}
+
+		return { data, total: result.total, page: queryDto.page || 1, limit };
 	}
 
 	async getProviderPayouts(providerId: string): Promise<any[]> {

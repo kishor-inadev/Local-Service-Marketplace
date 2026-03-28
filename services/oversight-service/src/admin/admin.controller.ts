@@ -126,7 +126,8 @@ export class AdminController {
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("audit-logs/entity/:entity/:entityId")
 	async getAuditLogsByEntity(@Param("entity") entity: string, @Param("entityId", ParseUUIDPipe) entityId: string) {
-		return this.auditLogService.getAuditLogsByEntity(entity, entityId);
+		const logs = await this.auditLogService.getAuditLogsByEntity(entity, entityId);
+		return { data: logs, total: logs.length, page: 1, limit: logs.length || 1 };
 	}
 
 	// System Settings Endpoints

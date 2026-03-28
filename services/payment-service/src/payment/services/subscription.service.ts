@@ -100,7 +100,7 @@ export class SubscriptionService {
 			this.subscriptionRepository.findByProviderPaginated(providerId, queryDto),
 			this.subscriptionRepository.countByProvider(providerId, queryDto),
 		]);
-		return { data, total };
+		return { data, total, page: queryDto.page || 1, limit };
 	}
 
 	async getActiveSubscription(providerId: string): Promise<Subscription | null> {
@@ -185,11 +185,12 @@ export class SubscriptionService {
 
 	async getExpiringSubscriptionsPaginated(queryDto: SubscriptionQueryDto) {
 		const days = queryDto.days || 7;
+		const limit = queryDto.limit || 20;
 		const [data, total] = await Promise.all([
 			this.subscriptionRepository.getExpiringSubscriptionsPaginated(days, queryDto),
 			this.subscriptionRepository.countExpiringSubscriptions(days, queryDto),
 		]);
-		return { data, total };
+		return { data, total, page: queryDto.page || 1, limit };
 	}
 
 	async expireOldSubscriptions(): Promise<number> {

@@ -53,8 +53,11 @@ export class RequestController {
 	@UseGuards(JwtAuthGuard)
 	@Get("my")
 	@HttpCode(HttpStatus.OK)
-	async getMyRequests(@Req() req: any): Promise<{ data: RequestResponseDto[]; total: number }> {
-		return this.requestService.getRequestsByUser(req.user.userId);
+	async getMyRequests(
+		@Req() req: any,
+	): Promise<{ data: RequestResponseDto[]; total: number; page: number; limit: number }> {
+		const result = await this.requestService.getRequestsByUser(req.user.userId);
+		return { ...result, page: 1, limit: result.data.length || 1 };
 	}
 
 	// Authenticated — owner can update their own request
@@ -84,7 +87,8 @@ export class RequestController {
 	@HttpCode(HttpStatus.OK)
 	async getRequestsByUser(
 		@Param("userId", ParseUUIDPipe) userId: string,
-	): Promise<{ data: RequestResponseDto[]; total: number }> {
-		return this.requestService.getRequestsByUser(userId);
+	): Promise<{ data: RequestResponseDto[]; total: number; page: number; limit: number }> {
+		const result = await this.requestService.getRequestsByUser(userId);
+		return { ...result, page: 1, limit: result.data.length || 1 };
 	}
 }

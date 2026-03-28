@@ -46,7 +46,12 @@ export class AnalyticsController {
       parsedOffset,
     );
 
-    return { data: result.data, total: result.total };
+    return {
+      data: result.data,
+      total: result.total,
+      page: Math.floor(parsedOffset / parsedLimit) + 1,
+      limit: parsedLimit,
+    };
   }
 
   @Get('user-activity/:userId')
@@ -69,7 +74,12 @@ export class AnalyticsController {
       parsedOffset,
     );
 
-    return { data: result.data, total: result.total };
+    return {
+      data: result.data,
+      total: result.total,
+      page: Math.floor(parsedOffset / parsedLimit) + 1,
+      limit: parsedLimit,
+    };
   }
 
   @Get('user-activity/action/:action')
@@ -85,7 +95,7 @@ export class AnalyticsController {
     const parsedLimit = limit ? parseInt(limit) : 100;
     const data = await this.analyticsService.getActivityByAction(action, parsedLimit);
 
-    return { data, total: data.length };
+    return { data, total: data.length, page: 1, limit: parsedLimit };
   }
 
   @Get('metrics')
@@ -106,7 +116,7 @@ export class AnalyticsController {
       parsedLimit,
     );
 
-    return { data, total: data.length };
+    return { data, total: data.length, page: 1, limit: parsedLimit };
   }
 
   @Get('metrics/:date')
