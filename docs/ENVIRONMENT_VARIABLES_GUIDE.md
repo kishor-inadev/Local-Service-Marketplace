@@ -246,6 +246,13 @@ DATABASE_PASSWORD=postgres
 DATABASE_NAME=marketplace
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/marketplace
 
+# Preferred pool controls
+DATABASE_POOL_MAX=20
+DATABASE_IDLE_TIMEOUT_MS=30000
+DATABASE_CONNECTION_TIMEOUT_MS=10000
+DATABASE_QUERY_TIMEOUT_MS=30000
+
+# Legacy pool controls (still supported for max pool size)
 DB_POOL_MAX=30
 DB_POOL_MIN=5
 ```

@@ -4,7 +4,7 @@ import { Pool } from 'pg';
 const databasePoolFactory = async () => {
   const connectionString = process.env.DATABASE_URL;
 	const sslEnabled = process.env.DATABASE_SSL === "true";
-  const poolMax = parseInt(process.env.DATABASE_POOL_MAX || "20", 10);
+  const poolMax = parseInt(process.env.DATABASE_POOL_MAX || process.env.DB_POOL_MAX || "20", 10);
   const idleTimeoutMs = parseInt(process.env.DATABASE_IDLE_TIMEOUT_MS || "30000", 10);
   const connectionTimeoutMs = parseInt(process.env.DATABASE_CONNECTION_TIMEOUT_MS || "10000", 10);
   const queryTimeoutMs = parseInt(process.env.DATABASE_QUERY_TIMEOUT_MS || "30000", 10);
