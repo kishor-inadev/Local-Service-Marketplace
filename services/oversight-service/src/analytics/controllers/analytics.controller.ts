@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Query, Param, Inject, LoggerService, UseGuards } from "@nestjs/common";
+import { Controller, Get, Post, Body, Query, Param, Inject, LoggerService, UseGuards, HttpCode, HttpStatus } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AnalyticsService } from '../services/analytics.service';
 import { MetricsAggregationService } from '../services/metrics-aggregation.service';
@@ -16,6 +16,7 @@ export class AnalyticsController {
   ) {}
 
   @Post('activity')
+  @HttpCode(HttpStatus.OK)
   async trackActivity(@Body() trackActivityDto: TrackActivityDto) {
     this.logger.log(
       `POST /analytics/activity - Track activity for user ${trackActivityDto.user_id}`,
@@ -122,6 +123,7 @@ export class AnalyticsController {
 
   // Worker endpoints for background job processing
   @Post('workers/aggregate-today')
+  @HttpCode(HttpStatus.OK)
   async aggregateTodayMetrics() {
     this.logger.log(
       `POST /analytics/workers/aggregate-today - Trigger today metrics aggregation`,
@@ -134,6 +136,7 @@ export class AnalyticsController {
   }
 
   @Post('workers/aggregate-yesterday')
+  @HttpCode(HttpStatus.OK)
   async aggregateYesterdayMetrics() {
     this.logger.log(
       `POST /analytics/workers/aggregate-yesterday - Trigger yesterday metrics aggregation`,
@@ -146,6 +149,7 @@ export class AnalyticsController {
   }
 
   @Post('workers/aggregate/:date')
+  @HttpCode(HttpStatus.OK)
   async aggregateMetricsForDate(@Param('date') date: string) {
     this.logger.log(
       `POST /analytics/workers/aggregate/${date} - Trigger metrics aggregation for date`,
@@ -158,6 +162,7 @@ export class AnalyticsController {
   }
 
   @Post('workers/backfill')
+  @HttpCode(HttpStatus.OK)
   async backfillMetrics(
     @Body() body: { startDate: string; endDate: string },
   ) {

@@ -14,6 +14,8 @@ import {
 	Param,
 	Query,
 	BadRequestException,
+	HttpCode,
+	HttpStatus,
 } from "@nestjs/common";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
@@ -66,6 +68,7 @@ export class AuthController {
 	}
 
 	@Post("login")
+	@HttpCode(HttpStatus.OK)
 	async login(
 		@Body() loginDto: LoginDto,
 		@Ip() ipAddress: string,
@@ -81,6 +84,7 @@ export class AuthController {
 	}
 
 	@Post("logout")
+	@HttpCode(HttpStatus.OK)
 	async logout(
 		@Body() refreshTokenDto: RefreshTokenDto,
 		@Res({ passthrough: true }) res: Response,
@@ -95,6 +99,7 @@ export class AuthController {
 	}
 
 	@Post("refresh")
+	@HttpCode(HttpStatus.OK)
 	async refresh(
 		@Body() refreshTokenDto: RefreshTokenDto,
 		@Res({ passthrough: true }) res: Response,
@@ -114,6 +119,7 @@ export class AuthController {
 	}
 
 	@Post("password-reset/request")
+	@HttpCode(HttpStatus.OK)
 	async requestPasswordReset(@Body() passwordResetRequestDto: PasswordResetRequestDto): Promise<{ result: string }> {
 		this.logger.info("POST /auth/password-reset/request", {
 			context: "AuthController",
@@ -124,6 +130,7 @@ export class AuthController {
 	}
 
 	@Post("password-reset/confirm")
+	@HttpCode(HttpStatus.OK)
 	async confirmPasswordReset(@Body() passwordResetConfirmDto: PasswordResetConfirmDto): Promise<{ result: string }> {
 		this.logger.info("POST /auth/password-reset/confirm", { context: "AuthController" });
 		await this.authService.confirmPasswordReset(passwordResetConfirmDto.token, passwordResetConfirmDto.newPassword);
@@ -185,6 +192,7 @@ export class AuthController {
 	// ==========================================
 
 	@Post("phone/login")
+	@HttpCode(HttpStatus.OK)
 	async phoneLogin(
 		@Body() phoneLoginDto: PhoneLoginDto,
 		@Ip() ipAddress: string,
@@ -200,6 +208,7 @@ export class AuthController {
 	}
 
 	@Post("phone/otp/request")
+	@HttpCode(HttpStatus.OK)
 	async requestPhoneOtp(@Body() phoneOtpRequestDto: PhoneOtpRequestDto): Promise<{ result: string }> {
 		this.logger.info("POST /auth/phone/otp/request", { context: "AuthController", phone: phoneOtpRequestDto.phone });
 		await this.authService.requestPhoneOtp(phoneOtpRequestDto.phone);
@@ -207,6 +216,7 @@ export class AuthController {
 	}
 
 	@Post("phone/otp/verify")
+	@HttpCode(HttpStatus.OK)
 	async verifyPhoneOtp(
 		@Body() phoneOtpVerifyDto: PhoneOtpVerifyDto,
 		@Ip() ipAddress: string,
@@ -230,6 +240,7 @@ export class AuthController {
 	// ==========================================
 
 	@Post("check-identifier")
+	@HttpCode(HttpStatus.OK)
 	async checkIdentifier(@Body() checkIdentifierDto: CheckIdentifierDto): Promise<CheckIdentifierResponseDto> {
 		this.logger.info("POST /auth/check-identifier", { context: "AuthController", type: checkIdentifierDto.type });
 
@@ -268,6 +279,7 @@ export class AuthController {
 	// ==========================================
 
 	@Post("verify")
+	@HttpCode(HttpStatus.OK)
 	async verifyToken(
 		@Body() verifyTokenDto: VerifyTokenDto,
 		@Headers("x-gateway-secret") gatewaySecret: string,
@@ -292,6 +304,7 @@ export class AuthController {
 	// TWO-FACTOR AUTHENTICATION (2FA)
 	@Post("2fa/enable")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async enable2FA(@Req() req: Request): Promise<{ secret: string; qrCodeUrl: string }> {
 		return this.authService.enable2FA(req.user["sub"]);
 	}
@@ -305,6 +318,7 @@ export class AuthController {
 
 	@Post("2fa/verify")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async verify2FA(@Body() dto: { code: string }, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.verify2FA(req.user["sub"], dto.code);
 		return { result: "2FA enabled successfully" };
@@ -312,6 +326,7 @@ export class AuthController {
 
 	@Post("2fa/disable")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async disable2FA(
 		@Body() dto: { password: string; code?: string },
 		@Req() req: Request,
@@ -322,6 +337,7 @@ export class AuthController {
 
 	@Post("2fa/backup-codes/generate")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async generateBackupCodes(@Req() req: Request): Promise<{ codes: string[] }> {
 		const codes = await this.authService.generateBackupCodes(req.user["sub"]);
 		return { codes };
@@ -329,6 +345,7 @@ export class AuthController {
 
 	@Post("2fa/backup-codes/verify")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async useBackupCode(@Body() dto: { backupCode: string }, @Req() req: Request): Promise<{ success: boolean }> {
 		const valid = await this.authService.useBackupCode(req.user["sub"], dto.backupCode);
 		return { success: valid };
@@ -371,6 +388,7 @@ export class AuthController {
 	// ACCOUNT MANAGEMENT
 	@Post("change-password")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async changePassword(
 		@Body() dto: { currentPassword: string; newPassword: string },
 		@Req() req: Request,
@@ -380,6 +398,7 @@ export class AuthController {
 	}
 
 	@Post("email/resend-verification")
+	@HttpCode(HttpStatus.OK)
 	async resendVerificationEmail(@Body() dto: { email: string }): Promise<{ result: string }> {
 		await this.authService.resendVerificationEmail(dto.email);
 		return { result: "Verification email sent if email is registered and not verified" };
@@ -387,6 +406,7 @@ export class AuthController {
 
 	@Post("account/deactivate")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async deactivateAccount(
 		@Body() dto: { password: string; reason?: string },
 		@Req() req: Request,
@@ -397,6 +417,7 @@ export class AuthController {
 
 	@Delete("account")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async requestAccountDeletion(
 		@Body() dto: { password: string; reason?: string },
 		@Req() req: Request,
@@ -407,6 +428,7 @@ export class AuthController {
 
 	@Post("account/cancel-deletion")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async cancelAccountDeletion(@Body() dto: { password: string }, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.cancelAccountDeletion(req.user["sub"], dto.password);
 		return { result: "Account deletion cancelled" };
@@ -435,6 +457,7 @@ export class AuthController {
 
 	@Post("social/link/:provider")
 	@UseGuards(JwtAuthGuard)
+	@HttpCode(HttpStatus.OK)
 	async linkSocialAccount(
 		@Req() req: Request,
 		@Param("provider") provider: string,
@@ -462,6 +485,7 @@ export class AuthController {
 
 	// MAGIC LINK (PASSWORDLESS)
 	@Post("magic-link/request")
+	@HttpCode(HttpStatus.OK)
 	async requestMagicLink(@Body() dto: { email: string; redirectUrl?: string }): Promise<{ result: string }> {
 		await this.authService.requestMagicLink(dto.email, dto.redirectUrl);
 		return { result: "Magic link sent if email is registered" };
@@ -501,6 +525,7 @@ export class AuthController {
 	}
 
 	@Post("apple/mobile")
+	@HttpCode(HttpStatus.OK)
 	async appleMobileSignIn(
 		@Body() dto: { identityToken: string; authorizationCode?: string; fullName?: string },
 		@Ip() ipAddress: string,

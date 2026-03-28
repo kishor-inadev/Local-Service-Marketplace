@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, Inject, LoggerService } from "@nestjs/common";
+import { Controller, Get, Post, Body, Param, Query, Inject, LoggerService, HttpCode, HttpStatus } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { EventService } from '../services/event.service';
 import { CreateEventDto } from '../dto/create-event.dto';
@@ -12,6 +12,7 @@ export class EventController {
   ) {}
 
   @Post()
+  @HttpCode(HttpStatus.CREATED)
   async createEvent(@Body() createEventDto: CreateEventDto) {
     this.logger.log(
       `POST /events - Create event: ${createEventDto.eventType}`,

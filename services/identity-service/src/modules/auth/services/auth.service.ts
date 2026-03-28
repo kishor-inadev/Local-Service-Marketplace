@@ -53,7 +53,7 @@ export class AuthService {
 	}
 
 	async signup(signupDto: SignupDto, ipAddress?: string): Promise<AuthResponseDto> {
-		const { email, password, role, phone, name, timezone, language } = signupDto;
+		const { email, password, role = "customer", phone, name, timezone, language } = signupDto;
 
 		this.logger.info("Signup attempt", { context: "AuthService", email, role, name });
 

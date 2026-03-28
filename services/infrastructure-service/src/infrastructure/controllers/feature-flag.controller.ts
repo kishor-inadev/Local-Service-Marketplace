@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Inject, LoggerService } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Inject, LoggerService, HttpCode, HttpStatus } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { FeatureFlagService } from '../services/feature-flag.service';
 import { CreateFeatureFlagDto } from '../dto/create-feature-flag.dto';
@@ -64,6 +64,7 @@ export class FeatureFlagController {
   }
 
   @Patch(':key')
+  @HttpCode(HttpStatus.OK)
   async updateFeatureFlag(
     @Param('key') key: string,
     @Body() updateFlagDto: UpdateFeatureFlagDto,
@@ -82,6 +83,7 @@ export class FeatureFlagController {
   }
 
   @Delete(':key')
+  @HttpCode(HttpStatus.OK)
   async deleteFeatureFlag(@Param('key') key: string) {
     this.logger.log(
       `DELETE /feature-flags/${key} - Delete feature flag`,
