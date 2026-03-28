@@ -18,6 +18,7 @@ import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 export default function EarningsPage() {
 	const { user, isAuthenticated } = useAuth();
 	const [dateRange, setDateRange] = useState<string>("all");
+	const router = useRouter();
 
 	// Fetch provider's earnings from payment service
 	const {

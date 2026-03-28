@@ -22,7 +22,8 @@
       "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'Reorder Portfolio Items' -Context 0,25 | ForEach-Object { $_.Context.PostContext }\")",
       "Bash(powershell.exe -Command \"Select-String -Path 'docs/Local-Service-Marketplace.postman_collection.json' -Pattern 'reorder' | Select-Object -First 5\")",
       "Bash(git show:*)",
-      "Bash(grep -B3 \"@HttpCode\\(HttpStatus.CREATED\\)\" services/identity-service/src/modules/user/controllers/*.controller.ts services/marketplace-service/src/modules/**/controllers/*.controller.ts services/infrastructure-service/src/infrastructure/controllers/*.controller.ts services/oversight-service/src/analytics/controllers/*.controller.ts)"
+      "Bash(grep -B3 \"@HttpCode\\(HttpStatus.CREATED\\)\" services/identity-service/src/modules/user/controllers/*.controller.ts services/marketplace-service/src/modules/**/controllers/*.controller.ts services/infrastructure-service/src/infrastructure/controllers/*.controller.ts services/oversight-service/src/analytics/controllers/*.controller.ts)",
+      "Bash(curl:*)"
     ]
   }
 }

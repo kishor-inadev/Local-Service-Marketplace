@@ -13,7 +13,7 @@ export interface Job {
 	updated_at: string;
 	request?: { id?: string; description?: string };
 	proposal?: { id?: string; message?: string };
-	provider?: { id?: string; business_name?: string; rating?: number; user?: { name?: string } };
+	provider?: { id?: string; name?: string; business_name?: string; rating?: number; user?: { name?: string } };
 	customer?: { id?: string; name?: string; email?: string };
 	actual_amount?: number;
 	cancelled_by?: string;
