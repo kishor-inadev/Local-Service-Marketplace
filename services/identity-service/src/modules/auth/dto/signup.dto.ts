@@ -7,29 +7,30 @@ export enum UserRole {
 }
 
 export class SignupDto {
-  @IsEmail()
-  email: string;
+	@IsEmail()
+	email: string;
 
-  @IsString()
-  @MinLength(8, { message: 'Password must be at least 8 characters long' })
-  password: string;
+	@IsString()
+	@MinLength(8, { message: "Password must be at least 8 characters long" })
+	password: string;
 
-  @IsOptional()
-  @IsString()
-  name?: string;
+	@IsOptional()
+	@IsString()
+	name?: string;
 
-  @IsEnum(UserRole, { message: 'Role must be either customer, provider, or admin' })
-  role: UserRole;
+	@IsEnum(UserRole, { message: "Role must be either customer, provider, or admin" })
+	@IsOptional()
+	role?: UserRole;
 
-  @IsOptional()
-  @IsString()
-  phone?: string;
+	@IsOptional()
+	@IsString()
+	phone?: string;
 
-  @IsOptional()  // ✅ NEW
-  @IsString()
-  timezone?: string;
+	@IsOptional() // ✅ NEW
+	@IsString()
+	timezone?: string;
 
-  @IsOptional()  // ✅ NEW
-  @IsString()
-  language?: string;
+	@IsOptional() // ✅ NEW
+	@IsString()
+	language?: string;
 }
