@@ -19,16 +19,12 @@ function getSessionOnce() {
 
 // Standardized API Response interface
 interface StandardResponse<T = any> {
-  success: boolean;
-  statusCode: number;
-  message: string;
-  data?: T;
-  total?: number;
-  error?: {
-    code: string;
-    message: string;
-    details?: any;
-  };
+	success: boolean;
+	statusCode: number;
+	message: string;
+	data?: T;
+	meta?: { page: number; limit: number; total: number; totalPages: number } | null;
+	error?: { code: string; message: string; details?: any };
 }
 
 // Legacy API Error Response interface (for backward compatibility)
@@ -84,18 +80,21 @@ class ApiClient {
           
           // For successful responses, unwrap the data field
           if (standardResponse.success) {
-            // If there's a total count (for paginated/array responses), preserve it
-            if (standardResponse.total !== undefined) {
-              // For paginated responses, return object with data and total
-              response.data = {
-                data: standardResponse.data,
-                total: standardResponse.total
-              };
-            } else {
-              // For non-paginated responses, just return the data
-              response.data = standardResponse.data;
-            }
-          } else {
+						// If there's pagination metadata, preserve it alongside data
+						if (standardResponse.meta != null) {
+							// For paginated responses, return object with data and meta fields
+							response.data = {
+								data: standardResponse.data,
+								total: standardResponse.meta.total,
+								page: standardResponse.meta.page,
+								limit: standardResponse.meta.limit,
+								totalPages: standardResponse.meta.totalPages,
+							};
+						} else {
+							// For non-paginated responses, just return the data
+							response.data = standardResponse.data;
+						}
+					} else {
             // Error response in standardized format
             return Promise.reject({
               response: {

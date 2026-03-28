@@ -107,14 +107,15 @@ function VerifyEmailContent() {
 
 export default function VerifyEmailPage() {
 	return (
-		<Suspense fallback={
-			<div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4'>
-				<div className='max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center'>
-					<Loader2 className='mx-auto h-16 w-16 text-primary-600 animate-spin mb-4' />
-					<h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>Loading…</h1>
+		<Suspense
+			fallback={
+				<div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4'>
+					<div className='max-w-md w-full bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center'>
+						<Loader2 className='mx-auto h-16 w-16 text-primary-600 animate-spin mb-4' />
+						<h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>Loading…</h1>
+					</div>
 				</div>
-			</div>
-		)}>
+			}>
 			<VerifyEmailContent />
 		</Suspense>
 	);
