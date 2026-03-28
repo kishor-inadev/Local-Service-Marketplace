@@ -59,7 +59,7 @@ export class PaymentController {
 	@UseGuards(JwtAuthGuard)
 	async getPaymentsByJob(@Param("jobId", ParseUUIDPipe) jobId: string) {
 		const payments = await this.paymentService.getPaymentsByJobId(jobId);
-		return { data: payments, total: payments.length };
+		return { data: payments, total: payments.length, page: 1, limit: payments.length || 1 };
 	}
 
 	@Get("provider/:providerId/summary")

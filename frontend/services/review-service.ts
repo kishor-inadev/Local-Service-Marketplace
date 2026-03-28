@@ -1,5 +1,12 @@
 import { apiClient } from './api-client';
 
+// Helper: Safely extract list from various response shapes
+function extractList<T>(payload: any): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && Array.isArray(payload.data)) return payload.data as T[];
+  return [];
+}
+
 // ------------------ Types ------------------
 
 export interface Review {
@@ -45,8 +52,8 @@ export const createReview = async (data: CreateReviewData): Promise<Review> => {
  */
 export const getProviderReviews = async (providerId: string): Promise<ReviewWithDetails[]> => {
   const response = await apiClient.get<ReviewWithDetails[]>(`/reviews/provider/${providerId}`);
-  // API client unwraps standardized response
-  return response.data || [];
+  // Use defensive extraction: handles both array and nested object formats
+  return extractList<ReviewWithDetails>(response.data);
 };
 
 /**

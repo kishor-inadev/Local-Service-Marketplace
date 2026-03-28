@@ -5,7 +5,7 @@ export interface SignupData {
 	email: string;
 	password: string;
 	name?: string;
-	role: 'customer' | 'provider' | 'admin';
+	userType: 'customer' | 'provider' | 'admin';
 	phone?: string;
 	timezone?: string;
 	language?: string;
@@ -120,7 +120,7 @@ class AuthService {
 	}
 
 	async verifyEmail(token: string): Promise<void> {
-		const response = await apiClient.post<void>("/user/auth/verify-email", { token });
+		const response = await apiClient.get<void>(`/user/auth/email/verify?token=${encodeURIComponent(token)}`);
 		return response.data;
 	}
 

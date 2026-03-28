@@ -31,9 +31,25 @@ class NotificationService {
     const response = await apiClient.get<{ notifications: Notification[]; unreadCount: number }>(
       `/notifications?${params.toString()}`,
     );
-    // API client unwraps standardized response to { data, total } or just data
-    const unwrapped = response.data;
-    return unwrapped.notifications || unwrapped || [];
+    const payload: any = response.data;
+
+		if (Array.isArray(payload)) {
+			return payload as Notification[];
+		}
+
+		if (payload?.notifications && Array.isArray(payload.notifications)) {
+			return payload.notifications as Notification[];
+		}
+
+		if (payload?.data?.notifications && Array.isArray(payload.data.notifications)) {
+			return payload.data.notifications as Notification[];
+		}
+
+		if (payload?.data && Array.isArray(payload.data)) {
+			return payload.data as Notification[];
+		}
+
+		return [];
   }
 
   async markAsRead(id: string): Promise<void> {

@@ -31,7 +31,7 @@ export default function SignupPage() {
       email: '',
       password: '',
       name: '',
-      role: 'customer',
+      userType: 'customer',
       phone: '',
     },
   });
@@ -196,19 +196,19 @@ export default function SignupPage() {
               )}
             </div>
 
-            {/* Role Field */}
+            {/* User Type Field */}
             <div>
-              <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="userType" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 I am a <span className="text-red-500">*</span>
               </label>
               <select
-                id="role"
-                {...register('role')}
-                aria-invalid={errors.role ? 'true' : 'false'}
-                aria-describedby={errors.role ? 'role-error' : undefined}
+                id="userType"
+                {...register('userType')}
+                aria-invalid={errors.userType ? 'true' : 'false'}
+                aria-describedby={errors.userType ? 'userType-error' : undefined}
                 disabled={isLoading}
                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
-                  errors.role
+                  errors.userType
                     ? 'border-red-500 focus:ring-red-500'
                     : 'border-gray-300 dark:border-gray-600'
                 }`}
@@ -216,9 +216,9 @@ export default function SignupPage() {
                 <option value="customer">Customer (Looking for services)</option>
                 <option value="provider">Provider (Offering services)</option>
               </select>
-              {errors.role && (
-                <p id="role-error" className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
-                  {errors.role.message}
+              {errors.userType && (
+                <p id="userType-error" className="mt-1 text-sm text-red-600 dark:text-red-400" role="alert">
+                  {errors.userType.message}
                 </p>
               )}
             </div>

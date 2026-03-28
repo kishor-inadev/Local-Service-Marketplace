@@ -1,5 +1,11 @@
 import { apiClient } from './api-client';
 
+function extractList<T>(payload: any): T[] {
+	if (Array.isArray(payload)) return payload as T[];
+	if (payload && Array.isArray(payload.data)) return payload.data as T[];
+	return [];
+}
+
 export interface Payment {
   id: string;
   job_id: string;
@@ -45,8 +51,7 @@ class PaymentService {
 
 	async getPaymentsByJob(jobId: string): Promise<Payment[]> {
 		const response = await apiClient.get<Payment[]>(`/payments/jobs/${jobId}`);
-		// API client unwraps standardized response
-		return response.data || [];
+		return extractList<Payment>(response.data);
 	}
 
 	async requestRefund(paymentId: string, data: RefundData): Promise<Payment> {
@@ -59,8 +64,7 @@ class PaymentService {
 			throw new Error("User not authenticated");
 		}
 		const response = await apiClient.get<Payment[]>(`/payments/my?user_id=${userId}`);
-		// API client unwraps standardized response
-		return response.data || [];
+		return extractList<Payment>(response.data);
 	}
 
 	async getPaymentStatus(id: string): Promise<Payment> {
@@ -72,8 +76,7 @@ class PaymentService {
 
 	async getPaymentMethods(): Promise<SavedPaymentMethod[]> {
 		const response = await apiClient.get<SavedPaymentMethod[]>("/payment-methods");
-		// API client unwraps standardized response
-		return response.data || [];
+		return extractList<SavedPaymentMethod>(response.data);
 	}
 
 	async setDefaultPaymentMethod(methodId: string): Promise<void> {
@@ -88,8 +91,7 @@ class PaymentService {
 
 	async getProviderSubscriptions(providerId: string): Promise<Subscription[]> {
 		const response = await apiClient.get<Subscription[]>(`/subscriptions/provider/${providerId}`);
-		// API client unwraps standardized response
-		return response.data || [];
+		return extractList<Subscription>(response.data);
 	}
 
 	async getActiveSubscription(providerId: string): Promise<Subscription | null> {
@@ -106,8 +108,7 @@ class PaymentService {
 
 	async getActivePricingPlans(): Promise<PricingPlan[]> {
 		const response = await apiClient.get<PricingPlan[]>("/pricing-plans/active");
-		// API client unwraps standardized response
-		return response.data || [];
+		return extractList<PricingPlan>(response.data);
 	}
 
 	// ------------------ Provider Earnings ------------------
@@ -121,7 +122,7 @@ class PaymentService {
 		if (startDate) params.start_date = startDate.toISOString();
 		if (endDate) params.end_date = endDate.toISOString();
 
-		const response = await apiClient.get<ProviderEarnings>(`/payments/provider/${providerId}/earnings`, { params });
+		const response = await apiClient.get<ProviderEarnings>(`/payments/provider/${providerId}/summary`, { params });
 		return response.data;
 	}
 
@@ -142,7 +143,14 @@ class PaymentService {
 		const response = await apiClient.get<PaginatedTransactions>(`/payments/provider/${providerId}/transactions`, {
 			params,
 		});
-		return response.data;
+		const payload: any = response.data;
+		if (payload && Array.isArray(payload.data)) {
+			return payload as PaginatedTransactions;
+		}
+		if (Array.isArray(payload)) {
+			return { data: payload as Transaction[], total: payload.length };
+		}
+		return { data: [], total: 0 };
 	}
 
 	async getProviderPayouts(providerId: string): Promise<Payout[]> {
@@ -151,7 +159,7 @@ class PaymentService {
 		}
 
 		const response = await apiClient.get<Payout[]>(`/payments/provider/${providerId}/payouts`);
-		return response.data || [];
+		return extractList<Payout>(response.data);
 	}
 }
 

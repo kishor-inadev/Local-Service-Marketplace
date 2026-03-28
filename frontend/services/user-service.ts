@@ -132,10 +132,7 @@ export const updateProviderServices = async (
   providerId: string,
   data: UpdateProviderServicesData
 ): Promise<ProviderService[]> => {
-  const response = await apiClient.put<ProviderService[]>(
-    `/providers/${providerId}/services`,
-    data
-  );
+  const response = await apiClient.patch<ProviderService[]>(`/providers/${providerId}/services`, data);
   // API client unwraps standardized response
   return response.data || [];
 };

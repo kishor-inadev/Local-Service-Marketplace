@@ -1,5 +1,11 @@
 import { apiClient } from './api-client';
 
+function extractList<T>(payload: any): T[] {
+	if (Array.isArray(payload)) return payload as T[];
+	if (payload && Array.isArray(payload.data)) return payload.data as T[];
+	return [];
+}
+
 export interface Message {
   id: string;
   job_id: string;
@@ -39,7 +45,6 @@ export interface SendMessageData {
   job_id: string;
   sender_id: string;
   message: string;
-  attachments?: File[];
 }
 
 class MessageService {
@@ -48,12 +53,6 @@ class MessageService {
     formData.append('job_id', data.job_id);
     formData.append('sender_id', data.sender_id);
     formData.append('message', data.message);
-
-    if (data.attachments) {
-      data.attachments.forEach((file) => {
-        formData.append('attachments', file);
-      });
-    }
 
     const response = await apiClient.post<Message>('/messages', formData, {
       headers: {
@@ -65,12 +64,12 @@ class MessageService {
 
   async getMessagesByJob(jobId: string): Promise<Message[]> {
     const response = await apiClient.get<Message[]>(`/messages/jobs/${jobId}`);
-    return response.data ?? [];
+    return extractList<Message>(response.data);
   }
 
   async getConversations(): Promise<Conversation[]> {
     const response = await apiClient.get<Conversation[]>('/messages/conversations');
-    return response.data ?? [];
+    return extractList<Conversation>(response.data);
   }
 
   async markAsRead(messageId: string): Promise<void> {

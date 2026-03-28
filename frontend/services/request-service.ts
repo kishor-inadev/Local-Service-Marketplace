@@ -1,5 +1,12 @@
 import { apiClient } from './api-client';
 
+// Helper: Safely extract list from various response shapes
+function extractList<T>(payload: any): T[] {
+  if (Array.isArray(payload)) return payload as T[];
+  if (payload && Array.isArray(payload.data)) return payload.data as T[];
+  return [];
+}
+
 export interface ServiceCategory {
   id: string;
   name: string;
@@ -53,7 +60,7 @@ export interface CreateRequestData {
     address?: string;
     city?: string;
     state?: string;
-    zip_code?: string;
+    zipCode?: string;
     country?: string;
   };
   images?: string[];
@@ -151,8 +158,8 @@ class RequestService {
 
   async getCategories(): Promise<ServiceCategory[]> {
     const response = await apiClient.get<ServiceCategory[]>('/categories');
-    // For array responses, unwrapped to { data, total } or just the array
-    return response.data || [];
+    // Use defensive extraction: handles both array and paginated object formats
+    return extractList<ServiceCategory>(response.data);
   }
 }
 
