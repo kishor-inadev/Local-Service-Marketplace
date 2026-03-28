@@ -65,7 +65,7 @@ export default function RequestsPage() {
   }
 
   return (
-		<ProtectedRoute>
+		<ProtectedRoute requiredRoles={["customer"]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					{error ?

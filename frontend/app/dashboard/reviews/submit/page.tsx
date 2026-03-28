@@ -17,6 +17,7 @@ import { createReview } from '@/services/review-service';
 import { analytics } from '@/utils/analytics';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Star } from 'lucide-react';
+import { ProtectedRoute } from "@/components/shared";
 
 const reviewSchema = z.object({
   rating: z.number().min(1, 'Please select a rating').max(5),
@@ -104,116 +105,103 @@ function SubmitReviewContent() {
   }
 
   return (
-    <Layout>
-      <div className="container-custom py-8">
-        <div className="max-w-2xl mx-auto">
-          {/* Back Button */}
-          <div className="mb-6">
-            <Button variant="ghost" onClick={() => router.back()}>
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </div>
+		<ProtectedRoute requiredRoles={["customer"]}>
+			<Layout>
+				<div className='container-custom py-8'>
+					<div className='max-w-2xl mx-auto'>
+						{/* Back Button */}
+						<div className='mb-6'>
+							<Button
+								variant='ghost'
+								onClick={() => router.back()}>
+								<ArrowLeft className='h-4 w-4 mr-2' />
+								Back
+							</Button>
+						</div>
 
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8">
-            Submit Review
-          </h1>
+						<h1 className='text-3xl font-bold text-gray-900 dark:text-gray-100 mb-8'>Submit Review</h1>
 
-          <Card>
-            <CardHeader>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Rate Your Experience
-              </h2>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Help others by sharing your feedback
-              </p>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-                {/* Star Rating */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-                    Rating *
-                  </label>
-                  <div className="flex items-center gap-2">
-                    {[1, 2, 3, 4, 5].map((value) => (
-                      <button
-                        key={value}
-                        type="button"
-                        onClick={() => handleRatingClick(value)}
-                        onMouseEnter={() => setHoverRating(value)}
-                        onMouseLeave={() => setHoverRating(0)}
-                        className="focus:outline-none focus:ring-2 focus:ring-primary-500 rounded"
-                        aria-label={`Rate ${value} stars`}
-                      >
-                        <Star
-                          className={`h-10 w-10 transition-colors ${
-                            value <= (hoverRating || rating)
-                              ? 'fill-yellow-400 text-yellow-400'
-                              : 'text-gray-300 dark:text-gray-600'
-                          }`}
-                        />
-                      </button>
-                    ))}
-                  </div>
-                  {errors.rating && (
-                    <p className="mt-2 text-sm text-red-600">{errors.rating.message}</p>
-                  )}
-                </div>
+						<Card>
+							<CardHeader>
+								<h2 className='text-xl font-semibold text-gray-900 dark:text-gray-100'>Rate Your Experience</h2>
+								<p className='text-sm text-gray-600 dark:text-gray-400 mt-1'>Help others by sharing your feedback</p>
+							</CardHeader>
+							<CardContent>
+								<form
+									onSubmit={handleSubmit(onSubmit)}
+									className='space-y-6'>
+									{/* Star Rating */}
+									<div>
+										<label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3'>Rating *</label>
+										<div className='flex items-center gap-2'>
+											{[1, 2, 3, 4, 5].map((value) => (
+												<button
+													key={value}
+													type='button'
+													onClick={() => handleRatingClick(value)}
+													onMouseEnter={() => setHoverRating(value)}
+													onMouseLeave={() => setHoverRating(0)}
+													className='focus:outline-none focus:ring-2 focus:ring-primary-500 rounded'
+													aria-label={`Rate ${value} stars`}>
+													<Star
+														className={`h-10 w-10 transition-colors ${
+															value <= (hoverRating || rating) ?
+																"fill-yellow-400 text-yellow-400"
+															:	"text-gray-300 dark:text-gray-600"
+														}`}
+													/>
+												</button>
+											))}
+										</div>
+										{errors.rating && <p className='mt-2 text-sm text-red-600'>{errors.rating.message}</p>}
+									</div>
 
-                {/* Comment */}
-                <div>
-                  <Textarea
-                    label="Your Review *"
-                    {...register('comment')}
-                    rows={6}
-                    placeholder="Share your experience with this provider. What did you like? What could be improved?"
-                  />
-                  {errors.comment && (
-                    <p className="mt-1 text-sm text-red-600">{errors.comment.message}</p>
-                  )}
-                  <p className="mt-1 text-sm text-gray-500">
-                    Minimum 10 characters
-                  </p>
-                </div>
+									{/* Comment */}
+									<div>
+										<Textarea
+											label='Your Review *'
+											{...register("comment")}
+											rows={6}
+											placeholder='Share your experience with this provider. What did you like? What could be improved?'
+										/>
+										{errors.comment && <p className='mt-1 text-sm text-red-600'>{errors.comment.message}</p>}
+										<p className='mt-1 text-sm text-gray-500'>Minimum 10 characters</p>
+									</div>
 
-                {/* Guidelines */}
-                <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
-                  <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-2">
-                    Review Guidelines:
-                  </h3>
-                  <ul className="text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside">
-                    <li>Be honest and specific about your experience</li>
-                    <li>Focus on the provider's professionalism and service quality</li>
-                    <li>Avoid personal attacks or inappropriate language</li>
-                    <li>Reviews cannot be edited once submitted</li>
-                  </ul>
-                </div>
+									{/* Guidelines */}
+									<div className='bg-gray-50 dark:bg-gray-800 rounded-lg p-4'>
+										<h3 className='text-sm font-medium text-gray-900 dark:text-gray-100 mb-2'>Review Guidelines:</h3>
+										<ul className='text-sm text-gray-600 dark:text-gray-400 space-y-1 list-disc list-inside'>
+											<li>Be honest and specific about your experience</li>
+											<li>Focus on the provider's professionalism and service quality</li>
+											<li>Avoid personal attacks or inappropriate language</li>
+											<li>Reviews cannot be edited once submitted</li>
+										</ul>
+									</div>
 
-                {/* Submit */}
-                <div className="flex gap-4 pt-4">
-                  <Button
-                    type="submit"
-                    isLoading={submitMutation.isPending}
-                    disabled={submitMutation.isPending || rating === 0}
-                  >
-                    Submit Review
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    onClick={() => router.back()}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    </Layout>
-  );
+									{/* Submit */}
+									<div className='flex gap-4 pt-4'>
+										<Button
+											type='submit'
+											isLoading={submitMutation.isPending}
+											disabled={submitMutation.isPending || rating === 0}>
+											Submit Review
+										</Button>
+										<Button
+											type='button'
+											variant='outline'
+											onClick={() => router.back()}>
+											Cancel
+										</Button>
+									</div>
+								</form>
+							</CardContent>
+						</Card>
+					</div>
+				</div>
+			</Layout>
+		</ProtectedRoute>
+	);
 }
 
 export default function SubmitReviewPage() {

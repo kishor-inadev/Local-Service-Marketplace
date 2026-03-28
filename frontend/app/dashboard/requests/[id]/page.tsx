@@ -90,7 +90,7 @@ export default function RequestDetailPage() {
   const isOwner = user?.id === request.user_id;
 
   return (
-		<ProtectedRoute>
+		<ProtectedRoute requiredRoles={["customer"]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					<div className='mb-6'>

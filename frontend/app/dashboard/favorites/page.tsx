@@ -73,7 +73,7 @@ export default function FavoritesPage() {
   const hasFavorites = favorites && favorites.length > 0;
 
   return (
-		<ProtectedRoute>
+		<ProtectedRoute requiredRoles={["customer"]}>
 			<Layout>
 				<div className='max-w-6xl mx-auto container-custom py-8'>
 					{/* Header */}

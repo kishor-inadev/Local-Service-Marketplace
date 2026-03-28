@@ -13,6 +13,7 @@ import { apiClient } from '@/services/api-client';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Calendar, Clock, Plus, Trash2, Save, AlertCircle } from 'lucide-react';
 import toast from "react-hot-toast";
+import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 interface AvailabilitySlot {
   day_of_week: number;
@@ -182,17 +183,18 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <Layout>
-      <div className="container-custom py-12">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
-            Availability Schedule
-          </h1>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
-            Set your working hours to let customers know when you're available
-          </p>
-        </div>
+    <ProtectedRoute requiredRoles={["provider"]}>
+      <Layout>
+        <div className="container-custom py-12">
+          {/* Header */}
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
+              Availability Schedule
+            </h1>
+            <p className="text-lg text-gray-600 dark:text-gray-400">
+              Set your working hours to let customers know when you're available
+            </p>
+          </div>
 
         {/* Quick Schedule Templates */}
         <Card className="mb-6">
@@ -376,5 +378,6 @@ export default function AvailabilityPage() {
         )}
       </div>
     </Layout>
+  </ProtectedRoute>
   );
 }
