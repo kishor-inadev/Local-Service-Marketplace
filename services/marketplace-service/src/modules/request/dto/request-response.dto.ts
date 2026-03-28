@@ -45,13 +45,15 @@ export class RequestResponseDto {
 }
 
 export class PaginatedRequestResponseDto {
-  data: RequestResponseDto[];
-  nextCursor?: string;
-  hasMore: boolean;
+	data: RequestResponseDto[];
+	total?: number;
+	nextCursor?: string;
+	hasMore?: boolean;
 
-  constructor(data: RequestResponseDto[], nextCursor?: string, hasMore = false) {
-    this.data = data;
-    this.nextCursor = nextCursor;
-    this.hasMore = hasMore;
-  }
+	constructor(data: RequestResponseDto[], nextCursor?: string, hasMore = false, total?: number) {
+		this.data = data;
+		this.total = total;
+		this.nextCursor = nextCursor;
+		this.hasMore = hasMore;
+	}
 }

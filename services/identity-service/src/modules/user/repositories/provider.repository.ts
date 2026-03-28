@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Pool } from 'pg';
 import { DATABASE_POOL } from '@/common/database/database.module';
 import { Provider } from '../entities/provider.entity';
+import { ProviderSortBy, SortOrder, ProviderVerificationStatus } from "../dto/provider-query.dto";
 
 @Injectable()
 export class ProviderRepository {
@@ -70,8 +71,13 @@ export class ProviderRepository {
 		search?: string,
 		locationId?: string,
 		offset?: number,
+		sortBy: ProviderSortBy = ProviderSortBy.CREATED_AT,
+		sortOrder: SortOrder = SortOrder.DESC,
+		verificationStatus?: ProviderVerificationStatus,
+		minRating?: number,
+		maxRating?: number,
 	): Promise<Provider[]> {
-		const conditions: string[] = [];
+		const conditions: string[] = ["providers.deleted_at IS NULL"];
 		const values: any[] = [];
 		let paramCount = 1;
 
@@ -100,7 +106,33 @@ export class ProviderRepository {
 			paramCount++;
 		}
 
+		if (verificationStatus) {
+			conditions.push(`providers.verification_status = $${paramCount}`);
+			values.push(verificationStatus);
+			paramCount++;
+		}
+
+		if (minRating !== undefined) {
+			conditions.push(`COALESCE(providers.rating, 0) >= $${paramCount}`);
+			values.push(minRating);
+			paramCount++;
+		}
+
+		if (maxRating !== undefined) {
+			conditions.push(`COALESCE(providers.rating, 0) <= $${paramCount}`);
+			values.push(maxRating);
+			paramCount++;
+		}
+
 		const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(" AND ")}` : "";
+		const safeSortBy: Record<ProviderSortBy, string> = {
+			[ProviderSortBy.CREATED_AT]: "providers.created_at",
+			[ProviderSortBy.RATING]: "providers.rating",
+			[ProviderSortBy.BUSINESS_NAME]: "providers.business_name",
+			[ProviderSortBy.TOTAL_JOBS_COMPLETED]: "providers.total_jobs_completed",
+		};
+		const orderColumn = safeSortBy[sortBy] ?? "providers.created_at";
+		const orderDirection = sortOrder === SortOrder.ASC ? "ASC" : "DESC";
 
 		values.push(limit);
 		const limitParam = paramCount++;
@@ -112,7 +144,7 @@ export class ProviderRepository {
         SELECT DISTINCT providers.*
         FROM providers
         ${whereClause}
-        ORDER BY providers.created_at DESC
+				ORDER BY ${orderColumn} ${orderDirection}, providers.id DESC
         LIMIT $${limitParam} OFFSET $${paramCount}
       `;
 		} else {
@@ -120,7 +152,7 @@ export class ProviderRepository {
       SELECT DISTINCT providers.*
       FROM providers
       ${whereClause}
-      ORDER BY providers.created_at DESC
+			ORDER BY ${orderColumn} ${orderDirection}, providers.id DESC
         LIMIT $${limitParam}
       `;
 		}
@@ -129,8 +161,15 @@ export class ProviderRepository {
 		return result.rows;
 	}
 
-	async countProviders(categoryId?: string, search?: string, locationId?: string): Promise<number> {
-		const conditions: string[] = [];
+	async countProviders(
+		categoryId?: string,
+		search?: string,
+		locationId?: string,
+		verificationStatus?: ProviderVerificationStatus,
+		minRating?: number,
+		maxRating?: number,
+	): Promise<number> {
+		const conditions: string[] = ["providers.deleted_at IS NULL"];
 		const values: any[] = [];
 		let paramCount = 1;
 
@@ -150,6 +189,24 @@ export class ProviderRepository {
         OR providers.description ILIKE $${paramCount}
       )`);
 			values.push(`%${search}%`);
+			paramCount++;
+		}
+
+		if (verificationStatus) {
+			conditions.push(`providers.verification_status = $${paramCount}`);
+			values.push(verificationStatus);
+			paramCount++;
+		}
+
+		if (minRating !== undefined) {
+			conditions.push(`COALESCE(providers.rating, 0) >= $${paramCount}`);
+			values.push(minRating);
+			paramCount++;
+		}
+
+		if (maxRating !== undefined) {
+			conditions.push(`COALESCE(providers.rating, 0) <= $${paramCount}`);
+			values.push(maxRating);
 			paramCount++;
 		}
 

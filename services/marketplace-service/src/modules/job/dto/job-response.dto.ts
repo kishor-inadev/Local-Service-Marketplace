@@ -19,3 +19,17 @@ export class JobResponseDto {
     };
   }
 }
+
+export class PaginatedJobResponseDto {
+	data: JobResponseDto[];
+	total?: number;
+	nextCursor?: string;
+	hasMore?: boolean;
+
+	constructor(data: JobResponseDto[], nextCursor?: string, hasMore = false, total?: number) {
+		this.data = data;
+		this.total = total;
+		this.nextCursor = nextCursor;
+		this.hasMore = hasMore;
+	}
+}

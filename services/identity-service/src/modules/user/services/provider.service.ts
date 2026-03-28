@@ -218,12 +218,26 @@ export class ProviderService {
       throw new BadRequestException(`Limit cannot exceed ${maxLimit}`);
     }
 
-    this.logger.info('Fetching providers', {
-      context: 'ProviderService',
-      limit,
-      cursor: queryDto.cursor,
-      category_id: queryDto.category_id,
-    });
+    if (
+			queryDto.min_rating !== undefined &&
+			queryDto.max_rating !== undefined &&
+			queryDto.min_rating > queryDto.max_rating
+		) {
+			throw new BadRequestException("min_rating cannot be greater than max_rating");
+		}
+
+    this.logger.info("Fetching providers", {
+			context: "ProviderService",
+			limit,
+			cursor: queryDto.cursor,
+			page: queryDto.page,
+			category_id: queryDto.category_id,
+			sortBy: queryDto.sortBy,
+			sortOrder: queryDto.sortOrder,
+			verification_status: queryDto.verification_status,
+			min_rating: queryDto.min_rating,
+			max_rating: queryDto.max_rating,
+		});
 
     // Use cursor mode only when cursor param is explicitly provided
     if (queryDto.cursor) {
@@ -234,6 +248,12 @@ export class ProviderService {
 				queryDto.category_id,
 				queryDto.search,
 				queryDto.location_id,
+				undefined,
+				queryDto.sortBy,
+				queryDto.sortOrder,
+				queryDto.verification_status,
+				queryDto.min_rating,
+				queryDto.max_rating,
 			);
 
 			const hasMore = providers.length > limit;
@@ -256,8 +276,20 @@ export class ProviderService {
 				queryDto.search,
 				queryDto.location_id,
 				offset,
+				queryDto.sortBy,
+				queryDto.sortOrder,
+				queryDto.verification_status,
+				queryDto.min_rating,
+				queryDto.max_rating,
 			),
-			this.providerRepo.countProviders(queryDto.category_id, queryDto.search, queryDto.location_id),
+			this.providerRepo.countProviders(
+				queryDto.category_id,
+				queryDto.search,
+				queryDto.location_id,
+				queryDto.verification_status,
+				queryDto.min_rating,
+				queryDto.max_rating,
+			),
 		]);
 
     const providerResponses = await this.buildProviderResponses(providers);

@@ -3,7 +3,8 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { JobRepository } from '../repositories/job.repository';
 import { CreateJobDto } from '../dto/create-job.dto';
 import { UpdateJobStatusDto, JobStatus } from '../dto/update-job-status.dto';
-import { JobResponseDto } from '../dto/job-response.dto';
+import { JobResponseDto, PaginatedJobResponseDto } from "../dto/job-response.dto";
+import { JobQueryDto } from "../dto/job-query.dto";
 import { NotFoundException, BadRequestException, ConflictException } from '../../../common/exceptions/http.exceptions';
 import { KafkaService } from '../../../kafka/kafka.service';
 import { RedisService } from '../../../redis/redis.service';
@@ -209,5 +210,27 @@ export class JobService {
 		const data = jobs.map(JobResponseDto.fromEntity);
 
 		return { data, total: data.length };
+	}
+
+	async getJobs(queryDto: JobQueryDto): Promise<PaginatedJobResponseDto> {
+		this.logger.log(`Fetching jobs with filters: ${JSON.stringify(queryDto)}`, JobService.name);
+
+		const limit = queryDto.limit || 20;
+
+		if (queryDto.cursor) {
+			const jobs = await this.jobRepository.getJobsPaginated(queryDto);
+			const hasMore = jobs.length > limit;
+			const data = jobs.slice(0, limit);
+			const nextCursor = hasMore ? data[data.length - 1].id : undefined;
+			const response = data.map(JobResponseDto.fromEntity);
+			return new PaginatedJobResponseDto(response, nextCursor, hasMore);
+		}
+
+		const [jobs, total] = await Promise.all([
+			this.jobRepository.getJobsPaginated(queryDto),
+			this.jobRepository.countJobs(queryDto),
+		]);
+		const response = jobs.map(JobResponseDto.fromEntity);
+		return new PaginatedJobResponseDto(response, undefined, false, total);
 	}
 }

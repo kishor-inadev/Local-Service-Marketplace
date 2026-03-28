@@ -4,7 +4,7 @@ import { ServiceRequest } from '../entities/service-request.entity';
 import { Location as LocationEntity } from '../entities/location.entity';
 import { CreateRequestDto } from '../dto/create-request.dto';
 import { UpdateRequestDto } from '../dto/update-request.dto';
-import { RequestQueryDto } from '../dto/request-query.dto';
+import { RequestQueryDto, RequestSortBy, SortOrder } from "../dto/request-query.dto";
 
 @Injectable()
 export class RequestRepository {
@@ -62,7 +62,21 @@ export class RequestRepository {
   }
 
   async getRequestsPaginated(queryDto: RequestQueryDto): Promise<ServiceRequest[]> {
-    const { user_id, category_id, status, limit = 20, cursor } = queryDto;
+    const {
+      user_id,
+      category_id,
+      status,
+      limit = 20,
+      cursor,
+      page,
+      min_budget,
+      max_budget,
+      urgency,
+      created_from,
+      created_to,
+      sortBy = RequestSortBy.CREATED_AT,
+      sortOrder = SortOrder.DESC,
+    } = queryDto;
 
     let query = `
       SELECT 
@@ -94,13 +108,56 @@ export class RequestRepository {
       values.push(status);
     }
 
-    if (cursor) {
-      query += ` AND r.created_at < (SELECT created_at FROM service_requests WHERE id = $${paramIndex++})`;
-      values.push(cursor);
-    }
+    const usingOffset = page !== undefined && page > 0;
 
-    query += ` ORDER BY r.created_at DESC LIMIT $${paramIndex++}`;
-    values.push(limit + 1);
+		if (cursor && !usingOffset) {
+			query += ` AND r.created_at < (SELECT created_at FROM service_requests WHERE id = $${paramIndex++})`;
+			values.push(cursor);
+		}
+
+    if (min_budget !== undefined) {
+			query += ` AND r.budget >= $${paramIndex++}`;
+			values.push(min_budget);
+		}
+
+		if (max_budget !== undefined) {
+			query += ` AND r.budget <= $${paramIndex++}`;
+			values.push(max_budget);
+		}
+
+		if (urgency) {
+			query += ` AND r.urgency = $${paramIndex++}`;
+			values.push(urgency);
+		}
+
+		if (created_from) {
+			query += ` AND r.created_at >= $${paramIndex++}`;
+			values.push(created_from);
+		}
+
+		if (created_to) {
+			query += ` AND r.created_at <= $${paramIndex++}`;
+			values.push(created_to);
+		}
+
+		const sortMap: Record<RequestSortBy, string> = {
+			[RequestSortBy.CREATED_AT]: "r.created_at",
+			[RequestSortBy.BUDGET]: "r.budget",
+			[RequestSortBy.PREFERRED_DATE]: "r.preferred_date",
+		};
+		const safeSortColumn = sortMap[sortBy] || "r.created_at";
+		const safeSortOrder = sortOrder === SortOrder.ASC ? "ASC" : "DESC";
+
+		query += ` ORDER BY ${safeSortColumn} ${safeSortOrder}, r.id DESC`;
+
+		if (usingOffset) {
+			const offset = ((page || 1) - 1) * limit;
+			query += ` LIMIT $${paramIndex++} OFFSET $${paramIndex++}`;
+			values.push(limit, offset);
+		} else {
+			query += ` LIMIT $${paramIndex++}`;
+			values.push(limit + 1);
+		}
 
     const result = await this.pool.query(query, values);
     return result.rows.map(row => {
@@ -139,6 +196,71 @@ export class RequestRepository {
 
       return request;
     });
+  }
+
+  async countRequests(queryDto: RequestQueryDto): Promise<number> {
+    const {
+      user_id,
+      category_id,
+      status,
+      min_budget,
+      max_budget,
+      urgency,
+      created_from,
+      created_to,
+    } = queryDto;
+
+    let query = `
+      SELECT COUNT(*)::int AS total
+      FROM service_requests r
+      WHERE r.deleted_at IS NULL
+    `;
+
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (user_id) {
+      query += ` AND r.user_id = $${paramIndex++}`;
+      values.push(user_id);
+    }
+
+    if (category_id) {
+      query += ` AND r.category_id = $${paramIndex++}`;
+      values.push(category_id);
+    }
+
+    if (status) {
+      query += ` AND r.status = $${paramIndex++}`;
+      values.push(status);
+    }
+
+    if (min_budget !== undefined) {
+      query += ` AND r.budget >= $${paramIndex++}`;
+      values.push(min_budget);
+    }
+
+    if (max_budget !== undefined) {
+      query += ` AND r.budget <= $${paramIndex++}`;
+      values.push(max_budget);
+    }
+
+    if (urgency) {
+      query += ` AND r.urgency = $${paramIndex++}`;
+      values.push(urgency);
+    }
+
+    if (created_from) {
+      query += ` AND r.created_at >= $${paramIndex++}`;
+      values.push(created_from);
+    }
+
+    if (created_to) {
+      query += ` AND r.created_at <= $${paramIndex++}`;
+      values.push(created_to);
+    }
+
+    const result = await this.pool.query(query, values);
+    return result.rows[0].total;
   }
 
   async getRequestById(id: string): Promise<ServiceRequest | null> {

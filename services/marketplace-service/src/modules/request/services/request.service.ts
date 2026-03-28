@@ -129,16 +129,32 @@ export class RequestService {
 	async getRequests(queryDto: RequestQueryDto): Promise<PaginatedRequestResponseDto> {
 		this.logger.log(`Fetching requests with filters: ${JSON.stringify(queryDto)}`, RequestService.name);
 
+		if (
+			queryDto.min_budget !== undefined &&
+			queryDto.max_budget !== undefined &&
+			queryDto.min_budget > queryDto.max_budget
+		) {
+			throw new BadRequestException("min_budget cannot be greater than max_budget");
+		}
+
 		const limit = queryDto.limit || 20;
-		const requests = await this.requestRepository.getRequestsPaginated(queryDto);
 
-		const hasMore = requests.length > limit;
-		const data = requests.slice(0, limit);
-		const nextCursor = hasMore ? data[data.length - 1].id : undefined;
+		if (queryDto.cursor) {
+			const requests = await this.requestRepository.getRequestsPaginated(queryDto);
+			const hasMore = requests.length > limit;
+			const data = requests.slice(0, limit);
+			const nextCursor = hasMore ? data[data.length - 1].id : undefined;
+			const response = data.map(RequestResponseDto.fromEntity);
+			return new PaginatedRequestResponseDto(response, nextCursor, hasMore);
+		}
 
-		const response = data.map(RequestResponseDto.fromEntity);
+		const [requests, total] = await Promise.all([
+			this.requestRepository.getRequestsPaginated(queryDto),
+			this.requestRepository.countRequests(queryDto),
+		]);
 
-		return new PaginatedRequestResponseDto(response, nextCursor, hasMore);
+		const response = requests.map(RequestResponseDto.fromEntity);
+		return new PaginatedRequestResponseDto(response, undefined, false, total);
 	}
 
 	async getRequestById(id: string): Promise<RequestResponseDto> {
