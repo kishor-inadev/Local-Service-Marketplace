@@ -1,4 +1,4 @@
-import { Controller, Post, Delete, Body, Param, Inject, LoggerService } from "@nestjs/common";
+import { Controller, Post, Delete, Body, Param, Inject, LoggerService, HttpCode, HttpStatus } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { RateLimitService } from '../services/rate-limit.service';
 import { CheckRateLimitDto } from '../dto/check-rate-limit.dto';
@@ -12,6 +12,7 @@ export class RateLimitController {
   ) {}
 
   @Post('check')
+  @HttpCode(HttpStatus.OK)
   async checkRateLimit(@Body() checkRateLimitDto: CheckRateLimitDto) {
     this.logger.log(
       `POST /rate-limits/check - Check rate limit for key: ${checkRateLimitDto.key}`,
@@ -38,6 +39,7 @@ export class RateLimitController {
   }
 
   @Post('cleanup')
+  @HttpCode(HttpStatus.OK)
   async cleanupExpiredLimits() {
     this.logger.log(
       'POST /rate-limits/cleanup - Cleanup expired rate limits',

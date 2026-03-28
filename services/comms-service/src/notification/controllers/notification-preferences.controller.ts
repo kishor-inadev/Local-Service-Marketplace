@@ -6,7 +6,9 @@ import {
   Request,
   ParseUUIDPipe,
   BadRequestException,
-  UseGuards
+  UseGuards,
+  HttpCode,
+  HttpStatus
 } from '@nestjs/common';
 import { NotificationPreferencesService } from '../services/notification-preferences.service';
 import { FeatureFlagService } from '../services/feature-flag.service';
@@ -37,6 +39,7 @@ export class NotificationPreferencesController {
   }
 
   @Put()
+  @HttpCode(HttpStatus.OK)
   async updatePreferences(
     @Body() dto: UpdateNotificationPreferencesDto,
     @Request() req: any
@@ -59,6 +62,7 @@ export class NotificationPreferencesController {
   }
 
   @Put('disable-all')
+  @HttpCode(HttpStatus.OK)
   async disableAll(@Request() req: any) {
     // Feature flag check: Notification preferences
     if (!this.featureFlags.notificationPreferencesEnabled) {
@@ -77,6 +81,7 @@ export class NotificationPreferencesController {
   }
 
   @Put('enable-all')
+  @HttpCode(HttpStatus.OK)
   async enableAll(@Request() req: any) {
     // Feature flag check: Notification preferences
     if (!this.featureFlags.notificationPreferencesEnabled) {

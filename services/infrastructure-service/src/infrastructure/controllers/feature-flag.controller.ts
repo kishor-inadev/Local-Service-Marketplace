@@ -64,6 +64,7 @@ export class FeatureFlagController {
   }
 
   @Patch(':key')
+  @HttpCode(HttpStatus.OK)
   async updateFeatureFlag(
     @Param('key') key: string,
     @Body() updateFlagDto: UpdateFeatureFlagDto,
@@ -82,6 +83,7 @@ export class FeatureFlagController {
   }
 
   @Delete(':key')
+  @HttpCode(HttpStatus.OK)
   async deleteFeatureFlag(@Param('key') key: string) {
     this.logger.log(
       `DELETE /feature-flags/${key} - Delete feature flag`,

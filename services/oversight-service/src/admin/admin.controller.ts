@@ -220,6 +220,7 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("contact/:id")
+	@HttpCode(HttpStatus.OK)
 	async updateContactMessage(
 		@Param("id") id: string,
 		@Body() updateContactMessageDto: UpdateContactMessageDto,
@@ -231,6 +232,7 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Delete("contact/:id")
+	@HttpCode(HttpStatus.OK)
 	async deleteContactMessage(@Param("id") id: string, @Headers("x-user-id") adminId: string) {
 		return this.contactMessageService.deleteContactMessage(id, adminId);
 	}

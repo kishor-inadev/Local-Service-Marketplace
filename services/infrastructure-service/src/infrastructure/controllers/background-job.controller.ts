@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Inject, LoggerService } from "@nestjs/common";
+import { Controller, Get, Post, Patch, Delete, Body, Param, Query, Inject, LoggerService, HttpCode, HttpStatus } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { BackgroundJobService } from '../services/background-job.service';
 import { CreateBackgroundJobDto } from '../dto/create-background-job.dto';
@@ -82,6 +82,7 @@ export class BackgroundJobController {
   }
 
   @Patch(':id/status')
+  @HttpCode(HttpStatus.OK)
   async updateJobStatus(
     @Param('id') id: string,
     @Body() updateJobStatusDto: UpdateJobStatusDto,
@@ -100,6 +101,7 @@ export class BackgroundJobController {
   }
 
   @Delete(':id')
+  @HttpCode(HttpStatus.OK)
   async deleteJob(@Param('id') id: string) {
     this.logger.log(
       `DELETE /background-jobs/${id} - Delete job`,
