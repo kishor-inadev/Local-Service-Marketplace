@@ -2,178 +2,203 @@ import { Injectable, NotFoundException, BadRequestException, ForbiddenException 
 import { SubscriptionRepository } from '../repositories/subscription.repository';
 import { PricingPlanRepository } from '../repositories/pricing-plan.repository';
 import { Subscription } from '../entities/subscription.entity';
+import { SubscriptionQueryDto, SubscriptionSortBy, SortOrder } from "../dto/transaction-query.dto";
+import { validateCursorMode } from "../../common/pagination/list-query-validation.util";
 
 @Injectable()
 export class SubscriptionService {
-  constructor(
-    private readonly subscriptionRepository: SubscriptionRepository,
-    private readonly pricingPlanRepository: PricingPlanRepository
-  ) {}
+	constructor(
+		private readonly subscriptionRepository: SubscriptionRepository,
+		private readonly pricingPlanRepository: PricingPlanRepository,
+	) {}
 
-  async createSubscription(
-    providerId: string,
-    planId: string,
-    userId: string
-  ): Promise<Subscription> {
-    // Verify plan exists and is active
-    const plan = await this.pricingPlanRepository.findById(planId);
+	async createSubscription(providerId: string, planId: string, userId: string): Promise<Subscription> {
+		// Verify plan exists and is active
+		const plan = await this.pricingPlanRepository.findById(planId);
 
-    if (!plan) {
-      throw new NotFoundException('Pricing plan not found');
-    }
+		if (!plan) {
+			throw new NotFoundException("Pricing plan not found");
+		}
 
-    if (!plan.active) {
-      throw new BadRequestException('This pricing plan is no longer available');
-    }
+		if (!plan.active) {
+			throw new BadRequestException("This pricing plan is no longer available");
+		}
 
-    // Check if provider already has an active subscription
-    const activeSubscription = await this.subscriptionRepository.findActiveByProvider(providerId);
+		// Check if provider already has an active subscription
+		const activeSubscription = await this.subscriptionRepository.findActiveByProvider(providerId);
 
-    if (activeSubscription) {
-      throw new BadRequestException(
-        'Provider already has an active subscription. Cancel or upgrade instead.'
-      );
-    }
+		if (activeSubscription) {
+			throw new BadRequestException("Provider already has an active subscription. Cancel or upgrade instead.");
+		}
 
-    // Authorization: verify user owns this provider profile
-    // This should be handled at controller level
+		// Authorization: verify user owns this provider profile
+		// This should be handled at controller level
 
-    // Calculate expiry date based on billing period
-    const startDate = new Date();
-    const expiryDate = new Date(startDate);
+		// Calculate expiry date based on billing period
+		const startDate = new Date();
+		const expiryDate = new Date(startDate);
 
-    if (plan.billing_period === 'monthly') {
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
-    } else if (plan.billing_period === 'yearly') {
-      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    }
+		if (plan.billing_period === "monthly") {
+			expiryDate.setMonth(expiryDate.getMonth() + 1);
+		} else if (plan.billing_period === "yearly") {
+			expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+		}
 
-    // Create subscription in 'pending' status
-    // Payment processing would happen separately and update status to 'active'
-    const subscription = await this.subscriptionRepository.create({
-      provider_id: providerId,
-      plan_id: planId,
-      status: 'pending',
-      started_at: startDate,
-      expires_at: expiryDate
-    });
+		// Create subscription in 'pending' status
+		// Payment processing would happen separately and update status to 'active'
+		const subscription = await this.subscriptionRepository.create({
+			provider_id: providerId,
+			plan_id: planId,
+			status: "pending",
+			started_at: startDate,
+			expires_at: expiryDate,
+		});
 
-    return subscription;
-  }
+		return subscription;
+	}
 
-  async activateSubscription(subscriptionId: string): Promise<Subscription> {
-    // Called after successful payment
-    const subscription = await this.subscriptionRepository.findById(subscriptionId);
+	async activateSubscription(subscriptionId: string): Promise<Subscription> {
+		// Called after successful payment
+		const subscription = await this.subscriptionRepository.findById(subscriptionId);
 
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
+		if (!subscription) {
+			throw new NotFoundException("Subscription not found");
+		}
 
-    if (subscription.status === 'active') {
-      throw new BadRequestException('Subscription is already active');
-    }
+		if (subscription.status === "active") {
+			throw new BadRequestException("Subscription is already active");
+		}
 
-    return this.subscriptionRepository.updateStatus(subscriptionId, 'active');
-  }
+		return this.subscriptionRepository.updateStatus(subscriptionId, "active");
+	}
 
-  async getProviderSubscriptions(providerId: string): Promise<Subscription[]> {
-    return this.subscriptionRepository.findByProvider(providerId);
-  }
+	async getProviderSubscriptions(providerId: string): Promise<Subscription[]> {
+		return this.subscriptionRepository.findByProvider(providerId);
+	}
 
-  async getActiveSubscription(providerId: string): Promise<Subscription | null> {
-    return this.subscriptionRepository.findActiveByProvider(providerId);
-  }
+	async getProviderSubscriptionsPaginated(providerId: string, queryDto: SubscriptionQueryDto) {
+		validateCursorMode(
+			queryDto.cursor,
+			queryDto.page,
+			queryDto.sortBy,
+			queryDto.sortOrder,
+			SubscriptionSortBy.CREATED_AT,
+			SortOrder.DESC,
+		);
 
-  async cancelSubscription(
-    subscriptionId: string,
-    userId: string
-  ): Promise<Subscription> {
-    const subscription = await this.subscriptionRepository.findById(subscriptionId);
+		const limit = queryDto.limit || 20;
 
-    if (!subscription) {
-      throw new NotFoundException('Subscription not found');
-    }
+		if (queryDto.cursor) {
+			const subscriptions = await this.subscriptionRepository.findByProviderPaginated(providerId, queryDto);
+			const hasMore = subscriptions.length > limit;
+			const data = subscriptions.slice(0, limit);
+			const nextCursor = hasMore && data.length > 0 ? data[data.length - 1].created_at : undefined;
+			return { data, nextCursor, hasMore };
+		}
 
-    // Authorization: verify user owns the provider
-    // This should be handled at controller level
+		const [data, total] = await Promise.all([
+			this.subscriptionRepository.findByProviderPaginated(providerId, queryDto),
+			this.subscriptionRepository.countByProvider(providerId, queryDto),
+		]);
+		return { data, total };
+	}
 
-    if (subscription.status === 'cancelled') {
-      throw new BadRequestException('Subscription is already cancelled');
-    }
+	async getActiveSubscription(providerId: string): Promise<Subscription | null> {
+		return this.subscriptionRepository.findActiveByProvider(providerId);
+	}
 
-    if (subscription.status === 'expired') {
-      throw new BadRequestException('Cannot cancel an expired subscription');
-    }
+	async cancelSubscription(subscriptionId: string, userId: string): Promise<Subscription> {
+		const subscription = await this.subscriptionRepository.findById(subscriptionId);
 
-    // Cancel subscription (remains active until expiry date)
-    return this.subscriptionRepository.cancel(subscriptionId);
-  }
+		if (!subscription) {
+			throw new NotFoundException("Subscription not found");
+		}
 
-  async upgradeSubscription(
-    providerId: string,
-    newPlanId: string,
-    userId: string
-  ): Promise<Subscription> {
-    // Get current subscription
-    const currentSubscription = await this.subscriptionRepository.findActiveByProvider(providerId);
+		// Authorization: verify user owns the provider
+		// This should be handled at controller level
 
-    if (!currentSubscription) {
-      throw new BadRequestException('No active subscription found. Create a new subscription instead.');
-    }
+		if (subscription.status === "cancelled") {
+			throw new BadRequestException("Subscription is already cancelled");
+		}
 
-    // Get new plan
-    const newPlan = await this.pricingPlanRepository.findById(newPlanId);
+		if (subscription.status === "expired") {
+			throw new BadRequestException("Cannot cancel an expired subscription");
+		}
 
-    if (!newPlan || !newPlan.active) {
-      throw new NotFoundException('New pricing plan not found or inactive');
-    }
+		// Cancel subscription (remains active until expiry date)
+		return this.subscriptionRepository.cancel(subscriptionId);
+	}
 
-    // Get current plan for comparison
-    const currentPlan = await this.pricingPlanRepository.findById(currentSubscription.plan_id);
+	async upgradeSubscription(providerId: string, newPlanId: string, userId: string): Promise<Subscription> {
+		// Get current subscription
+		const currentSubscription = await this.subscriptionRepository.findActiveByProvider(providerId);
 
-    if (!currentPlan) {
-      throw new NotFoundException('Current pricing plan not found');
-    }
+		if (!currentSubscription) {
+			throw new BadRequestException("No active subscription found. Create a new subscription instead.");
+		}
 
-    // Validate upgrade (new plan should be more expensive or different period)
-    if (newPlan.price <= currentPlan.price && newPlan.billing_period === currentPlan.billing_period) {
-      throw new BadRequestException('New plan must be an upgrade (higher price or different period)');
-    }
+		// Get new plan
+		const newPlan = await this.pricingPlanRepository.findById(newPlanId);
 
-    // Cancel current subscription
-    await this.subscriptionRepository.cancel(currentSubscription.id);
+		if (!newPlan || !newPlan.active) {
+			throw new NotFoundException("New pricing plan not found or inactive");
+		}
 
-    // Create new subscription
-    const startDate = new Date();
-    const expiryDate = new Date(startDate);
+		// Get current plan for comparison
+		const currentPlan = await this.pricingPlanRepository.findById(currentSubscription.plan_id);
 
-    if (newPlan.billing_period === 'monthly') {
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
-    } else {
-      expiryDate.setFullYear(expiryDate.getFullYear() + 1);
-    }
+		if (!currentPlan) {
+			throw new NotFoundException("Current pricing plan not found");
+		}
 
-    return this.subscriptionRepository.create({
-      provider_id: providerId,
-      plan_id: newPlanId,
-      status: 'pending', // Requires payment
-      started_at: startDate,
-      expires_at: expiryDate
-    });
-  }
+		// Validate upgrade (new plan should be more expensive or different period)
+		if (newPlan.price <= currentPlan.price && newPlan.billing_period === currentPlan.billing_period) {
+			throw new BadRequestException("New plan must be an upgrade (higher price or different period)");
+		}
 
-  async getExpiringSubscriptions(days: number = 7): Promise<Subscription[]> {
-    // Admin/system use - for sending renewal reminders
-    return this.subscriptionRepository.getExpiringSubscriptions(days);
-  }
+		// Cancel current subscription
+		await this.subscriptionRepository.cancel(currentSubscription.id);
 
-  async expireOldSubscriptions(): Promise<number> {
-    // Background job - run daily to expire old subscriptions
-    return this.subscriptionRepository.expireOldSubscriptions();
-  }
+		// Create new subscription
+		const startDate = new Date();
+		const expiryDate = new Date(startDate);
 
-  async checkProviderHasActiveSubscription(providerId: string): Promise<boolean> {
-    const subscription = await this.subscriptionRepository.findActiveByProvider(providerId);
-    return !!subscription;
-  }
+		if (newPlan.billing_period === "monthly") {
+			expiryDate.setMonth(expiryDate.getMonth() + 1);
+		} else {
+			expiryDate.setFullYear(expiryDate.getFullYear() + 1);
+		}
+
+		return this.subscriptionRepository.create({
+			provider_id: providerId,
+			plan_id: newPlanId,
+			status: "pending", // Requires payment
+			started_at: startDate,
+			expires_at: expiryDate,
+		});
+	}
+
+	async getExpiringSubscriptions(days: number = 7): Promise<Subscription[]> {
+		// Admin/system use - for sending renewal reminders
+		return this.subscriptionRepository.getExpiringSubscriptions(days);
+	}
+
+	async getExpiringSubscriptionsPaginated(queryDto: SubscriptionQueryDto) {
+		const days = queryDto.days || 7;
+		const [data, total] = await Promise.all([
+			this.subscriptionRepository.getExpiringSubscriptionsPaginated(days, queryDto),
+			this.subscriptionRepository.countExpiringSubscriptions(days, queryDto),
+		]);
+		return { data, total };
+	}
+
+	async expireOldSubscriptions(): Promise<number> {
+		// Background job - run daily to expire old subscriptions
+		return this.subscriptionRepository.expireOldSubscriptions();
+	}
+
+	async checkProviderHasActiveSubscription(providerId: string): Promise<boolean> {
+		const subscription = await this.subscriptionRepository.findActiveByProvider(providerId);
+		return !!subscription;
+	}
 }

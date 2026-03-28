@@ -6,7 +6,7 @@ This directory contains incremental database migration scripts. These migrations
 
 ## Current Status: ✅ ALL MIGRATIONS INTEGRATED
 
-**As of March 14, 2026**, all migration scripts in this directory have been **fully integrated** into the main `database/schema.sql` file.
+**As of March 28, 2026**, all migration scripts in this directory have been **fully integrated** into the main `database/schema.sql` file.
 
 ### Integrated Migrations
 
@@ -15,6 +15,7 @@ This directory contains incremental database migration scripts. These migrations
 | `001_add_user_name.sql` | Add name column to users table | ✅ Integrated into schema.sql |
 | `002_production_readiness_fixes.sql` | Production readiness improvements (47 fixes) | ✅ Integrated into schema.sql |
 | `006_create_unsubscribe_table.sql` | Create unsubscribes table for email preferences | ✅ Integrated into schema.sql |
+| `014_list_query_performance_indexes.sql` | Composite indexes for request/proposal/job list APIs | ✅ Integrated into schema.sql |
 
 ## For New Deployments
 
@@ -75,6 +76,16 @@ If you have an **existing database** created from an older schema version, you c
   - Created `unsubscribes` table
   - Added indexes for fast lookups
   - Supports both user-based and email-based unsubscribes
+
+### 014_list_query_performance_indexes.sql
+- **Date**: March 28, 2026
+- **Purpose**: Optimize new list filtering, sorting, and pagination queries
+- **Impact**: Reduces scan cost for request, proposal, and job list APIs after adding richer backend filters
+- **Changes**:
+  - Added composite indexes for service request status/category/urgency + created_at queries
+  - Added proposal indexes for request/provider/status + created_at queries
+  - Added job indexes for provider/customer/status + started_at and completed_at queries
+  - Refreshed planner statistics with `ANALYZE`
 
 ## Notes
 

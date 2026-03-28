@@ -5,6 +5,11 @@ import { CreateProposalDto } from '../dto/create-proposal.dto';
 import { ProposalQueryDto, ProposalSortBy, SortOrder } from "../dto/proposal-query.dto";
 import { ProposalResponseDto, PaginatedProposalResponseDto } from '../dto/proposal-response.dto';
 import { NotFoundException, BadRequestException, ConflictException } from '../../../common/exceptions/http.exceptions';
+import {
+	validateCursorMode,
+	validateDateRange,
+	validateMinMaxRange,
+} from "../../../common/pagination/list-query-validation.util";
 import { KafkaService } from '../../../kafka/kafka.service';
 import { NotificationClient } from '../../../common/notification/notification.client';
 import { UserClient } from '../../../common/user/user.client';
@@ -203,33 +208,16 @@ export class ProposalService {
 	async getProposals(queryDto: ProposalQueryDto): Promise<PaginatedProposalResponseDto> {
 		this.logger.log(`Fetching proposals with filters: ${JSON.stringify(queryDto)}`, ProposalService.name);
 
-		if (
-			queryDto.min_price !== undefined &&
-			queryDto.max_price !== undefined &&
-			queryDto.min_price > queryDto.max_price
-		) {
-			throw new BadRequestException("min_price cannot be greater than max_price");
-		}
-
-		if (queryDto.created_from && queryDto.created_to) {
-			const from = new Date(queryDto.created_from).getTime();
-			const to = new Date(queryDto.created_to).getTime();
-			if (from > to) {
-				throw new BadRequestException("created_from cannot be greater than created_to");
-			}
-		}
-
-		if (queryDto.cursor && queryDto.page) {
-			throw new BadRequestException("Use either cursor or page, not both");
-		}
-
-		if (queryDto.cursor && queryDto.sortBy && queryDto.sortBy !== ProposalSortBy.CREATED_AT) {
-			throw new BadRequestException("Cursor pagination supports sortBy=created_at only");
-		}
-
-		if (queryDto.cursor && queryDto.sortOrder && queryDto.sortOrder !== SortOrder.DESC) {
-			throw new BadRequestException("Cursor pagination supports sortOrder=desc only");
-		}
+		validateMinMaxRange(queryDto.min_price, queryDto.max_price, "min_price", "max_price");
+		validateDateRange(queryDto.created_from, queryDto.created_to, "created_from", "created_to");
+		validateCursorMode(
+			queryDto.cursor,
+			queryDto.page,
+			queryDto.sortBy,
+			queryDto.sortOrder,
+			ProposalSortBy.CREATED_AT,
+			SortOrder.DESC,
+		);
 
 		const limit = queryDto.limit || 20;
 

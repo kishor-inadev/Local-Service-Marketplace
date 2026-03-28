@@ -65,6 +65,7 @@ export class JobQueryDto {
 	@IsNumber()
 	@Type(() => Number)
 	@Min(1)
+	@Max(1000)
 	page?: number;
 
 	@IsOptional()

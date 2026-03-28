@@ -8,13 +8,12 @@ import {
 	Param,
 	Query,
 	Headers,
-	ParseIntPipe,
-	DefaultValuePipe,
+	ParseUUIDPipe,
 	Ip,
 	Req,
 	UseGuards,
 	HttpCode,
-	HttpStatus
+	HttpStatus,
 } from "@nestjs/common";
 import { Request } from "express";
 import { UserModerationService } from "./services/user-moderation.service";
@@ -26,6 +25,11 @@ import { UpdateDisputeDto } from "./dto/update-dispute.dto";
 import { UpdateSystemSettingDto } from "./dto/update-system-setting.dto";
 import { CreateContactMessageDto } from "./dto/create-contact-message.dto";
 import { UpdateContactMessageDto } from "./dto/update-contact-message.dto";
+import { UserListQueryDto } from "./dto/user-list-query.dto";
+import { DisputeListQueryDto } from "./dto/dispute-list-query.dto";
+import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
+import { ContactMessageListQueryDto } from "./dto/contact-message-list-query.dto";
+import { SystemSettingQueryDto } from "./dto/system-setting-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
@@ -51,21 +55,18 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("users")
-	async getUsers(
-		@Query("limit", new DefaultValuePipe(50), ParseIntPipe) limit: number,
-		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@Query("search") search?: string,
-	) {
-		if (search) {
-			return this.userModerationService.searchUsers(search);
+	async getUsers(@Query() queryDto: UserListQueryDto) {
+		if (queryDto.search) {
+			return this.userModerationService.searchUsers(queryDto);
 		}
-		return this.userModerationService.getAllUsers(limit, offset);
+
+		return this.userModerationService.getAllUsers(queryDto);
 	}
 
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("users/:id")
-	async getUserById(@Param("id") id: string) {
+	async getUserById(@Param("id", ParseUUIDPipe) id: string) {
 		return this.userModerationService.getUserById(id);
 	}
 
@@ -73,7 +74,7 @@ export class AdminController {
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("users/:id/suspend")
 	async suspendUser(
-		@Param("id") id: string,
+		@Param("id", ParseUUIDPipe) id: string,
 		@Body() body: { reason?: string },
 		@Headers("x-user-id") adminId: string,
 	) {
@@ -83,7 +84,7 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("users/:id/activate")
-	async activateUser(@Param("id") id: string, @Headers("x-user-id") adminId: string) {
+	async activateUser(@Param("id", ParseUUIDPipe) id: string, @Headers("x-user-id") adminId: string) {
 		return this.userModerationService.activateUser(id, adminId);
 	}
 
@@ -91,22 +92,14 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes")
-	async getDisputes(
-		@Query("limit", new DefaultValuePipe(50), ParseIntPipe) limit: number,
-		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@Query("status") status?: string,
-	) {
-		if (status) {
-			const disputes = await this.disputeService.getDisputesByStatus(status);
-			return { data: disputes, total: disputes.length };
-		}
-		return this.disputeService.getAllDisputes(limit, offset);
+	async getDisputes(@Query() queryDto: DisputeListQueryDto) {
+		return this.disputeService.getAllDisputes(queryDto);
 	}
 
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes/:id")
-	async getDisputeById(@Param("id") id: string) {
+	async getDisputeById(@Param("id", ParseUUIDPipe) id: string) {
 		return this.disputeService.getDisputeById(id);
 	}
 
@@ -114,7 +107,7 @@ export class AdminController {
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("disputes/:id")
 	async updateDispute(
-		@Param("id") id: string,
+		@Param("id", ParseUUIDPipe) id: string,
 		@Body() updateDisputeDto: UpdateDisputeDto,
 		@Headers("x-user-id") adminId: string,
 	) {
@@ -125,22 +118,14 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("audit-logs")
-	async getAuditLogs(
-		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
-		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@Query("userId") userId?: string,
-	) {
-		if (userId) {
-			const logs = await this.auditLogService.getAuditLogsByUserId(userId);
-			return { data: logs, total: logs.length };
-		}
-		return this.auditLogService.getAuditLogs(limit, offset);
+	async getAuditLogs(@Query() queryDto: AuditLogQueryDto) {
+		return this.auditLogService.getAuditLogs(queryDto);
 	}
 
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("audit-logs/entity/:entity/:entityId")
-	async getAuditLogsByEntity(@Param("entity") entity: string, @Param("entityId") entityId: string) {
+	async getAuditLogsByEntity(@Param("entity") entity: string, @Param("entityId", ParseUUIDPipe) entityId: string) {
 		return this.auditLogService.getAuditLogsByEntity(entity, entityId);
 	}
 
@@ -148,8 +133,8 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("settings")
-	async getSettings() {
-		return this.systemSettingService.getAllSettings();
+	async getSettings(@Query() queryDto: SystemSettingQueryDto) {
+		return this.systemSettingService.getAllSettings(queryDto);
 	}
 
 	@Roles("admin")
@@ -188,19 +173,8 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("contact")
-	async getContactMessages(
-		@Query("limit", new DefaultValuePipe(50), ParseIntPipe) limit: number,
-		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
-		@Query("status") status?: string,
-	) {
-		return this.contactMessageService.getAllContactMessages(limit, offset, status);
-	}
-
-	@Roles("admin")
-	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Get("contact/:id")
-	async getContactMessageById(@Param("id") id: string) {
-		return this.contactMessageService.getContactMessageById(id);
+	async getContactMessages(@Query() queryDto: ContactMessageListQueryDto) {
+		return this.contactMessageService.getAllContactMessages(queryDto);
 	}
 
 	@Roles("admin")
@@ -213,8 +187,15 @@ export class AdminController {
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("contact/user/:userId")
-	async getContactMessagesByUserId(@Param("userId") userId: string) {
+	async getContactMessagesByUserId(@Param("userId", ParseUUIDPipe) userId: string) {
 		return this.contactMessageService.getContactMessagesByUserId(userId);
+	}
+
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Get("contact/:id")
+	async getContactMessageById(@Param("id", ParseUUIDPipe) id: string) {
+		return this.contactMessageService.getContactMessageById(id);
 	}
 
 	@Roles("admin")
@@ -222,7 +203,7 @@ export class AdminController {
 	@Patch("contact/:id")
 	@HttpCode(HttpStatus.OK)
 	async updateContactMessage(
-		@Param("id") id: string,
+		@Param("id", ParseUUIDPipe) id: string,
 		@Body() updateContactMessageDto: UpdateContactMessageDto,
 		@Headers("x-user-id") adminId: string,
 	) {
@@ -233,7 +214,7 @@ export class AdminController {
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Delete("contact/:id")
 	@HttpCode(HttpStatus.OK)
-	async deleteContactMessage(@Param("id") id: string, @Headers("x-user-id") adminId: string) {
+	async deleteContactMessage(@Param("id", ParseUUIDPipe) id: string, @Headers("x-user-id") adminId: string) {
 		return this.contactMessageService.deleteContactMessage(id, adminId);
 	}
 }

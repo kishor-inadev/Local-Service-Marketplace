@@ -4,6 +4,8 @@ import { SystemSettingRepository } from '../repositories/system-setting.reposito
 import { AuditLogRepository } from '../repositories/audit-log.repository';
 import { SystemSetting } from '../entities/system-setting.entity';
 import { NotFoundException } from '../../common/exceptions/http.exceptions';
+import { SystemSettingQueryDto } from "../dto/system-setting-query.dto";
+import { resolvePagination } from "../../common/pagination/list-query-validation.util";
 
 @Injectable()
 export class SystemSettingService {
@@ -14,11 +16,21 @@ export class SystemSettingService {
 		private readonly logger: LoggerService,
 	) {}
 
-	async getAllSettings(): Promise<{ data: SystemSetting[]; total: number }> {
-		this.logger.log("Fetching all system settings", "SystemSettingService");
+	async getAllSettings(
+		queryDto: SystemSettingQueryDto,
+	): Promise<{ data: SystemSetting[]; total: number; page: number; limit: number }> {
+		const pagination = resolvePagination(queryDto, { page: 1, limit: 50 });
+		this.logger.log(
+			`Fetching system settings (page: ${pagination.page}, limit: ${pagination.limit}, offset: ${pagination.offset})`,
+			"SystemSettingService",
+		);
 
-		const data = await this.systemSettingRepository.getAllSettings();
-		return { data, total: data.length };
+		const [data, total] = await Promise.all([
+			this.systemSettingRepository.findSettings(queryDto, pagination),
+			this.systemSettingRepository.countSettings(queryDto),
+		]);
+
+		return { data, total, page: pagination.page, limit: pagination.limit };
 	}
 
 	async getSettingByKey(key: string): Promise<SystemSetting> {

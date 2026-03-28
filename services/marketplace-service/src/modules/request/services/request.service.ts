@@ -8,6 +8,11 @@ import { UpdateRequestDto } from '../dto/update-request.dto';
 import { RequestQueryDto, RequestSortBy, SortOrder } from "../dto/request-query.dto";
 import { RequestResponseDto, PaginatedRequestResponseDto } from '../dto/request-response.dto';
 import { NotFoundException, BadRequestException, ForbiddenException } from "../../../common/exceptions/http.exceptions";
+import {
+	validateCursorMode,
+	validateDateRange,
+	validateMinMaxRange,
+} from "../../../common/pagination/list-query-validation.util";
 import { KafkaService } from '../../../kafka/kafka.service';
 import { RedisService } from '../../../redis/redis.service';
 import { NotificationClient } from '../../../common/notification/notification.client';
@@ -129,33 +134,16 @@ export class RequestService {
 	async getRequests(queryDto: RequestQueryDto): Promise<PaginatedRequestResponseDto> {
 		this.logger.log(`Fetching requests with filters: ${JSON.stringify(queryDto)}`, RequestService.name);
 
-		if (
-			queryDto.min_budget !== undefined &&
-			queryDto.max_budget !== undefined &&
-			queryDto.min_budget > queryDto.max_budget
-		) {
-			throw new BadRequestException("min_budget cannot be greater than max_budget");
-		}
-
-		if (queryDto.created_from && queryDto.created_to) {
-			const from = new Date(queryDto.created_from).getTime();
-			const to = new Date(queryDto.created_to).getTime();
-			if (from > to) {
-				throw new BadRequestException("created_from cannot be greater than created_to");
-			}
-		}
-
-		if (queryDto.cursor && queryDto.page) {
-			throw new BadRequestException("Use either cursor or page, not both");
-		}
-
-		if (queryDto.cursor && queryDto.sortBy && queryDto.sortBy !== RequestSortBy.CREATED_AT) {
-			throw new BadRequestException("Cursor pagination supports sortBy=created_at only");
-		}
-
-		if (queryDto.cursor && queryDto.sortOrder && queryDto.sortOrder !== SortOrder.DESC) {
-			throw new BadRequestException("Cursor pagination supports sortOrder=desc only");
-		}
+		validateMinMaxRange(queryDto.min_budget, queryDto.max_budget, "min_budget", "max_budget");
+		validateDateRange(queryDto.created_from, queryDto.created_to, "created_from", "created_to");
+		validateCursorMode(
+			queryDto.cursor,
+			queryDto.page,
+			queryDto.sortBy,
+			queryDto.sortOrder,
+			RequestSortBy.CREATED_AT,
+			SortOrder.DESC,
+		);
 
 		const limit = queryDto.limit || 20;
 

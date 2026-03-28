@@ -252,6 +252,9 @@ CREATE INDEX idx_service_requests_deleted_at ON service_requests(deleted_at) WHE
 CREATE INDEX idx_service_requests_urgency ON service_requests(urgency);
 CREATE INDEX idx_service_requests_expiry ON service_requests(expiry_date) WHERE expiry_date IS NOT NULL;
 CREATE INDEX idx_service_requests_guest_email ON service_requests(guest_email) WHERE guest_email IS NOT NULL;
+CREATE INDEX idx_service_requests_status_created_at ON service_requests(status, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_service_requests_category_status_created_at ON service_requests(category_id, status, created_at DESC) WHERE deleted_at IS NULL;
+CREATE INDEX idx_service_requests_urgency_created_at ON service_requests(urgency, created_at DESC) WHERE deleted_at IS NULL;
 
 -- =====================================================
 -- PROPOSALS
@@ -278,6 +281,9 @@ CREATE INDEX idx_proposals_status ON proposals(status);
 CREATE INDEX idx_proposals_created_at ON proposals(created_at DESC);
 CREATE INDEX idx_proposals_request_status ON proposals(request_id, status);
 CREATE UNIQUE INDEX idx_proposals_provider_request_unique ON proposals(provider_id, request_id) WHERE status NOT IN ('withdrawn', 'rejected');
+CREATE INDEX idx_proposals_request_created_at ON proposals(request_id, created_at DESC);
+CREATE INDEX idx_proposals_provider_status_created_at ON proposals(provider_id, status, created_at DESC);
+CREATE INDEX idx_proposals_status_created_at ON proposals(status, created_at DESC);
 
 -- =====================================================
 -- JOBS
@@ -306,6 +312,10 @@ CREATE INDEX idx_jobs_proposal_id ON jobs(proposal_id);
 CREATE INDEX idx_jobs_status ON jobs(status);
 CREATE INDEX idx_jobs_provider_status ON jobs(provider_id, status);
 CREATE UNIQUE INDEX idx_jobs_request_unique ON jobs(request_id) WHERE status NOT IN ('cancelled', 'disputed');
+CREATE INDEX idx_jobs_provider_started_at ON jobs(provider_id, started_at DESC);
+CREATE INDEX idx_jobs_customer_started_at ON jobs(customer_id, started_at DESC);
+CREATE INDEX idx_jobs_status_started_at ON jobs(status, started_at DESC);
+CREATE INDEX idx_jobs_completed_at ON jobs(completed_at DESC) WHERE completed_at IS NOT NULL;
 
 -- =====================================================
 -- PAYMENTS

@@ -5,7 +5,9 @@ import { AuditLogRepository } from '../repositories/audit-log.repository';
 import { ContactMessage } from '../entities/contact-message.entity';
 import { CreateContactMessageDto } from '../dto/create-contact-message.dto';
 import { UpdateContactMessageDto } from '../dto/update-contact-message.dto';
+import { ContactMessageListQueryDto } from "../dto/contact-message-list-query.dto";
 import { NotFoundException } from '../../common/exceptions/http.exceptions';
+import { resolvePagination, validateDateRange } from "../../common/pagination/list-query-validation.util";
 
 @Injectable()
 export class ContactMessageService {
@@ -34,19 +36,22 @@ export class ContactMessageService {
 	}
 
 	async getAllContactMessages(
-		limit: number = 50,
-		offset: number = 0,
-		status?: string,
-	): Promise<{ data: ContactMessage[]; total: number }> {
+		queryDto: ContactMessageListQueryDto,
+	): Promise<{ data: ContactMessage[]; total: number; page: number; limit: number }> {
+		validateDateRange(queryDto.createdFrom, queryDto.createdTo, "createdAt");
+		const pagination = resolvePagination(queryDto, { page: 1, limit: 50 });
+
 		this.logger.log(
-			`Fetching contact messages (limit: ${limit}, offset: ${offset}, status: ${status || "all"})`,
+			`Fetching contact messages (page: ${pagination.page}, limit: ${pagination.limit}, offset: ${pagination.offset})`,
 			"ContactMessageService",
 		);
 
-		const messages = await this.contactMessageRepository.getAllContactMessages(limit, offset, status);
-		const total = await this.contactMessageRepository.getContactMessageCount(status);
+		const [messages, total] = await Promise.all([
+			this.contactMessageRepository.findContactMessages(queryDto, pagination),
+			this.contactMessageRepository.countContactMessagesByQuery(queryDto),
+		]);
 
-		return { data: messages, total };
+		return { data: messages, total, page: pagination.page, limit: pagination.limit };
 	}
 
 	async getContactMessageById(id: string): Promise<ContactMessage> {

@@ -30,6 +30,7 @@ export class ProviderQueryDto {
 	@IsOptional()
 	@IsNumber()
 	@Min(1)
+	@Max(1000)
 	@Type(() => Number)
 	page?: number;
 

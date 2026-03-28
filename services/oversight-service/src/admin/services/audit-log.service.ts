@@ -2,6 +2,8 @@ import { Injectable, Inject, LoggerService } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AuditLogRepository } from '../repositories/audit-log.repository';
 import { AuditLog } from '../entities/audit-log.entity';
+import { AuditLogQueryDto } from "../dto/audit-log-query.dto";
+import { resolvePagination, validateDateRange } from "../../common/pagination/list-query-validation.util";
 
 @Injectable()
 export class AuditLogService {
@@ -11,13 +13,23 @@ export class AuditLogService {
 		private readonly logger: LoggerService,
 	) {}
 
-	async getAuditLogs(limit: number = 100, offset: number = 0): Promise<{ data: AuditLog[]; total: number }> {
-		this.logger.log(`Fetching audit logs (limit: ${limit}, offset: ${offset})`, "AuditLogService");
+	async getAuditLogs(
+		queryDto: AuditLogQueryDto,
+	): Promise<{ data: AuditLog[]; total: number; page: number; limit: number }> {
+		validateDateRange(queryDto.createdFrom, queryDto.createdTo, "createdAt");
 
-		const logs = await this.auditLogRepository.getAuditLogs(limit, offset);
-		const total = await this.auditLogRepository.getAuditLogCount();
+		const pagination = resolvePagination(queryDto, { page: 1, limit: 100 });
+		this.logger.log(
+			`Fetching audit logs (page: ${pagination.page}, limit: ${pagination.limit}, offset: ${pagination.offset})`,
+			"AuditLogService",
+		);
 
-		return { data: logs, total };
+		const [logs, total] = await Promise.all([
+			this.auditLogRepository.findAuditLogs(queryDto, pagination),
+			this.auditLogRepository.countAuditLogs(queryDto),
+		]);
+
+		return { data: logs, total, page: pagination.page, limit: pagination.limit };
 	}
 
 	async getAuditLogsByUserId(userId: string): Promise<AuditLog[]> {
