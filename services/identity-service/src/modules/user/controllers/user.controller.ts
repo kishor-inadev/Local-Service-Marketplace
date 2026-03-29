@@ -3,6 +3,7 @@ import {
 	Get,
 	Patch,
 	Post,
+	Delete,
 	Body,
 	Param,
 	Query,
@@ -137,6 +138,20 @@ export class UserController {
 	}
 
 	/**
+	 * Admin: restore deleted user
+	 * PATCH /users/:id/restore
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id/restore")
+	@HttpCode(HttpStatus.OK)
+	async restoreUser(@Param("id", ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+		this.logger.info("PATCH /users/:id/restore", { context: "UserController", user_id: id });
+
+		return this.userService.restoreUser(id);
+	}
+
+	/**
 	 * Admin: update user by ID
 	 * PATCH /users/:id
 	 */
@@ -151,5 +166,19 @@ export class UserController {
 		this.logger.info("PATCH /users/:id", { context: "UserController", user_id: id });
 
 		return this.userService.updateUser(id, updateUserDto);
+	}
+
+	/**
+	 * Admin: soft-delete user
+	 * DELETE /users/:id
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Delete(":id")
+	@HttpCode(HttpStatus.OK)
+	async deleteUser(@Param("id", ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+		this.logger.info("DELETE /users/:id", { context: "UserController", user_id: id });
+
+		return this.userService.deleteUser(id);
 	}
 }

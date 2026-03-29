@@ -211,6 +211,30 @@ export class UserRepository {
 		return result.rows[0] || null;
 	}
 
+	async softDelete(userId: string): Promise<User | null> {
+		const query = `
+      UPDATE users
+      SET status = 'deleted', deleted_at = now(), updated_at = now()
+      WHERE id = $1 AND deleted_at IS NULL
+      RETURNING *
+    `;
+
+		const result = await this.pool.query(query, [userId]);
+		return result.rows[0] || null;
+	}
+
+	async restore(userId: string): Promise<User | null> {
+		const query = `
+      UPDATE users
+      SET status = 'active', deleted_at = NULL, updated_at = now()
+      WHERE id = $1 AND deleted_at IS NOT NULL
+      RETURNING *
+    `;
+
+		const result = await this.pool.query(query, [userId]);
+		return result.rows[0] || null;
+	}
+
 	async getAdminUserStats(): Promise<{ total: number; active: number; suspended: number; providers: number }> {
 		const query = `
       SELECT

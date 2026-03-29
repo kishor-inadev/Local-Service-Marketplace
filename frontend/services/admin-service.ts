@@ -91,10 +91,17 @@ class AdminService {
 	}
 
 	async resetUserPassword(id: string, newPassword: string, reason?: string): Promise<{ success: true }> {
-		const response = await apiClient.patch<{ success: true }>(`/users/${id}/reset-password`, {
-			newPassword,
-			reason,
-		});
+		const response = await apiClient.patch<{ success: true }>(`/users/${id}/reset-password`, { newPassword, reason });
+		return response.data;
+	}
+
+	async deleteUser(id: string): Promise<User> {
+		const response = await apiClient.delete<User>(`/users/${id}`);
+		return response.data;
+	}
+
+	async restoreUser(id: string): Promise<User> {
+		const response = await apiClient.patch<User>(`/users/${id}/restore`, {});
 		return response.data;
 	}
 

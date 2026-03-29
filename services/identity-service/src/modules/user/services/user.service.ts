@@ -81,6 +81,24 @@ export class UserService {
 		return { success: true };
 	}
 
+	async deleteUser(userId: string): Promise<UserResponseDto> {
+		const deleted = await this.userRepository.softDelete(userId);
+		if (!deleted) {
+			throw new NotFoundException(`User with ID ${userId} not found`);
+		}
+
+		return this.mapToDto(deleted);
+	}
+
+	async restoreUser(userId: string): Promise<UserResponseDto> {
+		const restored = await this.userRepository.restore(userId);
+		if (!restored) {
+			throw new NotFoundException(`Deleted user with ID ${userId} not found`);
+		}
+
+		return this.mapToDto(restored);
+	}
+
 	async getAdminUserStats(): Promise<{ total: number; active: number; suspended: number; providers: number }> {
 		return this.userRepository.getAdminUserStats();
 	}
