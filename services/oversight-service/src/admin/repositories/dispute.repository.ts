@@ -66,6 +66,32 @@ export class DisputeRepository {
 		return parseInt(result.rows[0].count) || 0;
 	}
 
+	async getDisputeStats(): Promise<{
+		total: number;
+		byStatus: { open: number; investigating: number; resolved: number; closed: number };
+	}> {
+		const query = `
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE status = 'open')::int AS open,
+        COUNT(*) FILTER (WHERE status = 'investigating')::int AS investigating,
+        COUNT(*) FILTER (WHERE status = 'resolved')::int AS resolved,
+        COUNT(*) FILTER (WHERE status = 'closed')::int AS closed
+      FROM disputes
+    `;
+		const result = await this.pool.query(query);
+		const row = result.rows[0];
+		return {
+			total: row.total || 0,
+			byStatus: {
+				open: row.open || 0,
+				investigating: row.investigating || 0,
+				resolved: row.resolved || 0,
+				closed: row.closed || 0,
+			},
+		};
+	}
+
 	async findDisputes(queryDto: DisputeListQueryDto, pagination: ResolvedPagination): Promise<Dispute[]> {
 		const { whereClause, values, nextIndex } = this.buildWhereClause(queryDto);
 		const sortColumn = this.getSortColumn(queryDto.sortBy);

@@ -44,6 +44,13 @@ export class AdminController {
 	// Dispute Management Endpoints
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Get("disputes/stats")
+	async getDisputeStats() {
+		return this.disputeService.getDisputeStats();
+	}
+
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes")
 	async getDisputes(@Query() queryDto: DisputeListQueryDto) {
 		return this.disputeService.getAllDisputes(queryDto);

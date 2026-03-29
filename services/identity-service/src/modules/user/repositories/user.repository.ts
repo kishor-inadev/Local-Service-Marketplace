@@ -235,13 +235,19 @@ export class UserRepository {
 		return result.rows[0] || null;
 	}
 
-	async getAdminUserStats(): Promise<{ total: number; active: number; suspended: number; providers: number }> {
+	async getAdminUserStats(): Promise<{
+		total: number;
+		byStatus: { active: number; suspended: number };
+		byRole: { customer: number; provider: number; admin: number };
+	}> {
 		const query = `
       SELECT
         COUNT(*) FILTER (WHERE deleted_at IS NULL) AS total,
         COUNT(*) FILTER (WHERE status = 'active' AND deleted_at IS NULL) AS active,
         COUNT(*) FILTER (WHERE status = 'suspended' AND deleted_at IS NULL) AS suspended,
-        COUNT(*) FILTER (WHERE role = 'provider' AND deleted_at IS NULL) AS providers
+        COUNT(*) FILTER (WHERE role = 'customer' AND deleted_at IS NULL) AS customers,
+        COUNT(*) FILTER (WHERE role = 'provider' AND deleted_at IS NULL) AS providers,
+        COUNT(*) FILTER (WHERE role = 'admin' AND deleted_at IS NULL) AS admins
       FROM users
     `;
 
@@ -250,9 +256,12 @@ export class UserRepository {
 
 		return {
 			total: parseInt(row.total, 10) || 0,
-			active: parseInt(row.active, 10) || 0,
-			suspended: parseInt(row.suspended, 10) || 0,
-			providers: parseInt(row.providers, 10) || 0,
+			byStatus: { active: parseInt(row.active, 10) || 0, suspended: parseInt(row.suspended, 10) || 0 },
+			byRole: {
+				customer: parseInt(row.customers, 10) || 0,
+				provider: parseInt(row.providers, 10) || 0,
+				admin: parseInt(row.admins, 10) || 0,
+			},
 		};
 	}
 }

@@ -70,26 +70,8 @@ export default function AdminDisputesPage() {
 	const disputeList: DisputeRow[] = disputes?.data || [];
 
 	const { data: disputeStats } = useQuery({
-		queryKey: ["admin-disputes-stats-by-status"],
-		queryFn: async () => {
-			const [allDisputes, openDisputes, investigatingDisputes, resolvedDisputes, closedDisputes] = await Promise.all([
-				adminService.getDisputes({ page: 1, limit: 1 }),
-				adminService.getDisputes({ page: 1, limit: 1, status: "open" }),
-				adminService.getDisputes({ page: 1, limit: 1, status: "investigating" }),
-				adminService.getDisputes({ page: 1, limit: 1, status: "resolved" }),
-				adminService.getDisputes({ page: 1, limit: 1, status: "closed" }),
-			]);
-
-			return {
-				total: allDisputes.total || 0,
-				status: {
-					open: openDisputes.total || 0,
-					investigating: investigatingDisputes.total || 0,
-					resolved: resolvedDisputes.total || 0,
-					closed: closedDisputes.total || 0,
-				},
-			};
-		},
+		queryKey: ["admin-disputes-stats"],
+		queryFn: () => adminService.getDisputeStats(),
 		enabled: user?.role === "admin",
 		staleTime: 60_000,
 	});
@@ -116,7 +98,7 @@ export default function AdminDisputesPage() {
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Open</p>
 								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
-									{disputeStats?.status.open ?? 0}
+									{disputeStats?.byStatus.open ?? 0}
 								</p>
 							</CardContent>
 						</Card>
@@ -124,7 +106,7 @@ export default function AdminDisputesPage() {
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Investigating</p>
 								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
-									{disputeStats?.status.investigating ?? 0}
+									{disputeStats?.byStatus.investigating ?? 0}
 								</p>
 							</CardContent>
 						</Card>
@@ -132,7 +114,7 @@ export default function AdminDisputesPage() {
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Resolved</p>
 								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
-									{disputeStats?.status.resolved ?? 0}
+									{disputeStats?.byStatus.resolved ?? 0}
 								</p>
 							</CardContent>
 						</Card>
@@ -140,7 +122,7 @@ export default function AdminDisputesPage() {
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Closed</p>
 								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
-									{disputeStats?.status.closed ?? 0}
+									{disputeStats?.byStatus.closed ?? 0}
 								</p>
 							</CardContent>
 						</Card>
@@ -188,7 +170,8 @@ export default function AdminDisputesPage() {
 													<option
 														key={status}
 														value={status}>
-														{DISPUTE_STATUS_LABELS[status]} ({disputeStats?.status[status] ?? 0})
+														{DISPUTE_STATUS_LABELS[status]} (
+														{disputeStats?.byStatus[status as keyof typeof disputeStats.byStatus] ?? 0})
 													</option>
 												))}
 											</select>

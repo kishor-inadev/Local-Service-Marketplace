@@ -39,15 +39,23 @@ export default function AdminDashboardPage() {
 		enabled: user?.role === "admin",
 	});
 
-	const { data: openDisputesData } = useQuery({
-		queryKey: ["admin-disputes-open-count"],
-		queryFn: () => adminService.getDisputes({ page: 1, limit: 1, status: "open" }),
+	const { data: userStats } = useQuery({
+		queryKey: ["admin-users-stats"],
+		queryFn: () => adminService.getSystemStats(),
 		enabled: user?.role === "admin",
+		staleTime: 60_000,
 	});
 
-  const totalUsers = users?.total || 0;
-  const activeDisputes = openDisputesData?.total || 0;
-	const totalDisputes = disputes?.total || 0;
+	const { data: disputeStats } = useQuery({
+		queryKey: ["admin-disputes-stats"],
+		queryFn: () => adminService.getDisputeStats(),
+		enabled: user?.role === "admin",
+		staleTime: 60_000,
+	});
+
+	const totalUsers = userStats?.total || 0;
+	const activeDisputes = disputeStats?.byStatus.open || 0;
+	const totalDisputes = disputeStats?.total || 0;
 
   return (
 		<ProtectedRoute requiredRoles={["admin"]}>

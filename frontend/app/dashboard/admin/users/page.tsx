@@ -94,23 +94,8 @@ export default function AdminUsersPage() {
 	const tableUsers: UserRow[] = useMemo(() => users?.data || [], [users?.data]);
 
 	const { data: userStats } = useQuery({
-		queryKey: ["admin-users-stats-by-role-status"],
-		queryFn: async () => {
-			const [allUsers, activeUsers, suspendedUsers, customerUsers, providerUsers, adminUsers] = await Promise.all([
-				adminService.getUsers({ page: 1, limit: 1 }),
-				adminService.getUsers({ page: 1, limit: 1, status: "active" }),
-				adminService.getUsers({ page: 1, limit: 1, status: "suspended" }),
-				adminService.getUsers({ page: 1, limit: 1, role: "customer" }),
-				adminService.getUsers({ page: 1, limit: 1, role: "provider" }),
-				adminService.getUsers({ page: 1, limit: 1, role: "admin" }),
-			]);
-
-			return {
-				total: allUsers.total || 0,
-				status: { active: activeUsers.total || 0, suspended: suspendedUsers.total || 0 },
-				roles: { customer: customerUsers.total || 0, provider: providerUsers.total || 0, admin: adminUsers.total || 0 },
-			};
-		},
+		queryKey: ["admin-users-stats"],
+		queryFn: () => adminService.getSystemStats(),
 		enabled: user?.role === "admin",
 		staleTime: 60_000,
 	});
@@ -134,14 +119,16 @@ export default function AdminUsersPage() {
 						<Card>
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Active Users</p>
-								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>{userStats?.status.active ?? 0}</p>
+								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
+									{userStats?.byStatus.active ?? 0}
+								</p>
 							</CardContent>
 						</Card>
 						<Card>
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Suspended Users</p>
 								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
-									{userStats?.status.suspended ?? 0}
+									{userStats?.byStatus.suspended ?? 0}
 								</p>
 							</CardContent>
 						</Card>
@@ -149,7 +136,7 @@ export default function AdminUsersPage() {
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Customers</p>
 								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
-									{userStats?.roles.customer ?? 0}
+									{userStats?.byRole.customer ?? 0}
 								</p>
 							</CardContent>
 						</Card>
@@ -157,14 +144,14 @@ export default function AdminUsersPage() {
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Providers</p>
 								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
-									{userStats?.roles.provider ?? 0}
+									{userStats?.byRole.provider ?? 0}
 								</p>
 							</CardContent>
 						</Card>
 						<Card>
 							<CardContent className='p-4'>
 								<p className='text-sm text-gray-600 dark:text-gray-400'>Admins</p>
-								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>{userStats?.roles.admin ?? 0}</p>
+								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>{userStats?.byRole.admin ?? 0}</p>
 							</CardContent>
 						</Card>
 					</div>
@@ -216,7 +203,7 @@ export default function AdminUsersPage() {
 														<option
 															key={role}
 															value={role}>
-															{ROLE_LABELS[role]} ({userStats?.roles[role] ?? 0})
+															{ROLE_LABELS[role]} ({userStats?.byRole[role as keyof typeof userStats.byRole] ?? 0})
 														</option>
 													))}
 												</select>
@@ -230,7 +217,8 @@ export default function AdminUsersPage() {
 														<option
 															key={status}
 															value={status}>
-															{STATUS_LABELS[status]} ({userStats?.status[status] ?? 0})
+															{STATUS_LABELS[status]} (
+															{userStats?.byStatus[status as keyof typeof userStats.byStatus] ?? 0})
 														</option>
 													))}
 												</select>

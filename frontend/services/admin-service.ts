@@ -170,8 +170,27 @@ class AdminService {
 		return response.data || [];
 	}
 
-	async getSystemStats(): Promise<any> {
-		const response = await apiClient.get<any>("/users/stats");
+	async getSystemStats(): Promise<{
+		total: number;
+		byStatus: { active: number; suspended: number };
+		byRole: { customer: number; provider: number; admin: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { active: number; suspended: number };
+			byRole: { customer: number; provider: number; admin: number };
+		}>("/users/stats");
+		return response.data;
+	}
+
+	async getDisputeStats(): Promise<{
+		total: number;
+		byStatus: { open: number; investigating: number; resolved: number; closed: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { open: number; investigating: number; resolved: number; closed: number };
+		}>("/admin/disputes/stats");
 		return response.data;
 	}
 }

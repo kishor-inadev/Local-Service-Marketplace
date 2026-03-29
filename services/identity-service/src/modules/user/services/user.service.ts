@@ -99,7 +99,11 @@ export class UserService {
 		return this.mapToDto(restored);
 	}
 
-	async getAdminUserStats(): Promise<{ total: number; active: number; suspended: number; providers: number }> {
+	async getAdminUserStats(): Promise<{
+		total: number;
+		byStatus: { active: number; suspended: number };
+		byRole: { customer: number; provider: number; admin: number };
+	}> {
 		return this.userRepository.getAdminUserStats();
 	}
 
