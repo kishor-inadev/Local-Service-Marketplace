@@ -197,14 +197,14 @@ export const JWT_SECRETS = {
  * API Endpoints (must match backend routes)
  */
 export const AUTH_ENDPOINTS = {
-  SIGNUP: '/api/v1/user/auth/signup',
-  LOGIN: '/api/v1/user/auth/login',
-  LOGOUT: '/api/v1/user/auth/logout',
-  REFRESH: '/api/v1/user/auth/refresh',
-  VERIFY_EMAIL: '/api/v1/user/auth/verify-email',
-  REQUEST_PASSWORD_RESET: '/api/v1/user/auth/password-reset/request',
-  CONFIRM_PASSWORD_RESET: '/api/v1/user/auth/password-reset/confirm',
-  PROFILE: '/api/v1/user/auth/profile',
+	SIGNUP: "/api/v1/user/auth/signup",
+	LOGIN: "/api/v1/user/auth/login",
+	LOGOUT: "/api/v1/user/auth/logout",
+	REFRESH: "/api/v1/user/auth/refresh",
+	VERIFY_EMAIL: "/api/v1/user/auth/verify-email",
+	REQUEST_PASSWORD_RESET: "/api/v1/user/auth/password-reset/request",
+	CONFIRM_PASSWORD_RESET: "/api/v1/user/auth/password-reset/confirm",
+	PROFILE: "/api/v1/user/auth/me",
 } as const;
 
 /**

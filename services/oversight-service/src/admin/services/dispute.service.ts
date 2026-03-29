@@ -55,6 +55,13 @@ export class DisputeService {
 		return this.disputeRepository.getDisputesByStatus(status);
 	}
 
+	async getDisputeStats(): Promise<{
+		total: number;
+		byStatus: { open: number; investigating: number; resolved: number; closed: number };
+	}> {
+		return this.disputeRepository.getDisputeStats();
+	}
+
 	async updateDispute(id: string, adminId: string, status: string, resolution: string): Promise<Dispute> {
 		this.logger.log(`Updating dispute ${id} by admin ${adminId}`, "DisputeService");
 		const normalizedStatus = status === "in_progress" ? "investigating" : status;

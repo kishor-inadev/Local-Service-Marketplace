@@ -13,7 +13,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, Search, SlidersHorizontal } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, Loader2, Search, SlidersHorizontal, Table2 } from "lucide-react";
 import { Button } from "./Button";
 import { Pagination } from "./Pagination";
 
@@ -62,6 +62,9 @@ interface DataTableProps<T> {
 	pageSizeOptions?: number[];
 	defaultPageSize?: number;
 	emptyMessage?: string;
+	emptyActionLabel?: string;
+	onEmptyAction?: () => void;
+	showEmptyAction?: boolean;
 	showPageSizeControl?: boolean;
 	enableSearch?: boolean;
 	searchPlaceholder?: string;
@@ -106,6 +109,9 @@ export function DataTable<T>({
 	pageSizeOptions = [10, 20, 50],
 	defaultPageSize = 10,
 	emptyMessage = "No records to display",
+	emptyActionLabel = "Create New",
+	onEmptyAction,
+	showEmptyAction = true,
 	showPageSizeControl = true,
 	enableSearch = true,
 	searchPlaceholder = "Search records",
@@ -453,7 +459,7 @@ export function DataTable<T>({
 
 	return (
 		<div className='space-y-4'>
-			<div className='rounded-lg border border-gray-200 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900'>
+			<div className='rounded-xl border border-gray-200/80 bg-white p-3 shadow-sm dark:border-gray-700 dark:bg-gray-900'>
 				<div className='flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between'>
 					<div className='flex flex-wrap items-center gap-2'>
 						{quickSorts.length > 0 && (
@@ -461,7 +467,7 @@ export function DataTable<T>({
 								value={activeQuickSortField}
 								onChange={(e) => onQuickSortChange(e.target.value)}
 								aria-label='Quick sort'
-								className='h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-primary-900'>
+								className='h-10 rounded-lg border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-primary-900'>
 								<option value=''>{quickSortLabel}</option>
 								{quickSorts.map((sort) => (
 									<option
@@ -475,7 +481,12 @@ export function DataTable<T>({
 					</div>
 
 					<div className='ml-auto flex w-full flex-wrap items-center justify-end gap-2 lg:w-auto'>
-						{isLoading && <span className='text-xs text-gray-500 dark:text-gray-400'>{loadingText}</span>}
+						{isLoading && (
+							<span className='inline-flex items-center gap-1.5 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-600 dark:bg-gray-800 dark:text-gray-300'>
+								<Loader2 className='h-3.5 w-3.5 animate-spin' />
+								{loadingText}
+							</span>
+						)}
 						{toolbarFilterFields}
 
 						{enableClearFilters && hasActiveFilters && (
@@ -541,7 +552,7 @@ export function DataTable<T>({
 									onChange={(e) => onSearchChange(e.target.value)}
 									placeholder={searchPlaceholder}
 									aria-label='Search records'
-									className='h-9 w-full rounded-md border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-700 placeholder:text-gray-400 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:ring-primary-900'
+									className='h-10 w-full rounded-lg border border-gray-300 bg-white pl-9 pr-3 text-sm text-gray-700 placeholder:text-gray-400 shadow-sm transition-colors focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:placeholder:text-gray-500 dark:focus:ring-primary-900'
 								/>
 							</div>
 						)}
@@ -551,13 +562,13 @@ export function DataTable<T>({
 
 			{visibleRows.length > 0 ?
 				<>
-					<div className='overflow-x-auto'>
+					<div className='overflow-x-auto rounded-xl border border-gray-200/80 bg-white shadow-sm dark:border-gray-700 dark:bg-gray-900'>
 						<table className='w-full'>
 							<thead>
 								{table.getHeaderGroups().map((headerGroup) => (
 									<tr
 										key={headerGroup.id}
-										className='border-b border-gray-200 dark:border-gray-700'>
+										className='border-b border-gray-200 bg-gray-50/80 dark:border-gray-700 dark:bg-gray-800/50'>
 										{headerGroup.headers.map((header) => {
 											const columnMeta = header.column.columnDef.meta as
 												| { align?: "left" | "center" | "right"; headerClassName?: string }
@@ -567,12 +578,12 @@ export function DataTable<T>({
 											return (
 												<th
 													key={header.id}
-													className={`px-4 py-3 text-sm font-medium text-gray-700 dark:text-gray-300 ${alignmentClass(columnMeta?.align)} ${columnMeta?.headerClassName || ""}`}>
+													className={`px-4 py-3 text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-gray-300 ${alignmentClass(columnMeta?.align)} ${columnMeta?.headerClassName || ""}`}>
 													{isSortable ?
 														<button
 															type='button'
 															onClick={header.column.getToggleSortingHandler()}
-															className={`inline-flex items-center gap-1 ${columnMeta?.align === "right" ? "justify-end" : ""}`}>
+															className={`inline-flex items-center gap-1 rounded-sm transition-colors hover:text-gray-900 dark:hover:text-white ${columnMeta?.align === "right" ? "justify-end" : ""}`}>
 															{flexRender(header.column.columnDef.header, header.getContext())}
 															{sortIcon(header.column.id)}
 														</button>
@@ -587,7 +598,7 @@ export function DataTable<T>({
 								{visibleRows.map((row, rowIndex) => (
 									<tr
 										key={getRowKey(row.original, rowIndex)}
-										className='border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'>
+										className='border-b border-gray-100 transition-colors odd:bg-white even:bg-gray-50/30 hover:bg-gray-50 dark:border-gray-800 dark:odd:bg-gray-900 dark:even:bg-gray-900 dark:hover:bg-gray-800/70'>
 										{row.getVisibleCells().map((cell) => {
 											const columnMeta = cell.column.columnDef.meta as
 												| { align?: "left" | "center" | "right"; className?: string }
@@ -596,7 +607,7 @@ export function DataTable<T>({
 											return (
 												<td
 													key={cell.id}
-													className={`px-4 py-3 text-sm text-gray-900 dark:text-white ${alignmentClass(columnMeta?.align)} ${columnMeta?.className || ""}`}>
+													className={`px-4 py-3.5 text-sm text-gray-800 dark:text-gray-100 ${alignmentClass(columnMeta?.align)} ${columnMeta?.className || ""}`}>
 													{flexRender(cell.column.columnDef.cell, cell.getContext())}
 												</td>
 											);
@@ -643,7 +654,24 @@ export function DataTable<T>({
 						}
 					/>
 				</>
-			:	<p className='py-8 text-center text-gray-500 dark:text-gray-400'>{emptyMessage}</p>}
+			:	<div className='rounded-xl border border-dashed border-gray-300 bg-gray-50/50 px-6 py-12 text-center dark:border-gray-700 dark:bg-gray-900/40'>
+					<div className='mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm dark:bg-gray-800'>
+						<Table2 className='h-5 w-5 text-gray-400' />
+					</div>
+					<p className='text-sm font-medium text-gray-700 dark:text-gray-200'>{emptyMessage}</p>
+					<p className='mt-1 text-xs text-gray-500 dark:text-gray-400'>Try adjusting your filters or search.</p>
+					{onEmptyAction && showEmptyAction && (
+						<div className='mt-4'>
+							<Button
+								variant='primary'
+								size='sm'
+								onClick={onEmptyAction}>
+								{emptyActionLabel}
+							</Button>
+						</div>
+					)}
+				</div>
+			}
 		</div>
 	);
 }

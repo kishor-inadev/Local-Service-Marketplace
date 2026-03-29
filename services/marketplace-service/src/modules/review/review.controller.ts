@@ -62,7 +62,7 @@ export class ReviewController {
 	@Post(":id/respond")
 	@HttpCode(HttpStatus.OK)
 	async respondToReview(@Param("id") id: string, @Body() respondReviewDto: RespondReviewDto, @Request() req: any) {
-		const review = await this.reviewRepository.respondToReview(id, respondReviewDto.response, req.user.id);
+		const review = await this.reviewRepository.respondToReview(id, respondReviewDto.response, req.user.userId);
 
 		return review;
 	}

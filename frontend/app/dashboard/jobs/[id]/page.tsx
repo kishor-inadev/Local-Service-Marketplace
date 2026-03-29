@@ -14,7 +14,7 @@ import { ErrorState } from '@/components/ui/ErrorState';
 import { jobService } from '@/services/job-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Calendar, DollarSign, User, MapPin, FileText } from 'lucide-react';
+import { ArrowLeft, Calendar, DollarSign, User, FileText } from "lucide-react";
 import Link from 'next/link';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
@@ -83,16 +83,16 @@ export default function JobDetailPage() {
 
   if (error || !job) {
     return (
-      <Layout>
-        <div className="container-custom py-8">
-          <ErrorState
-            title="Job not found"
-            message="We couldn't find the job you're looking for."
-            retry={() => router.push(ROUTES.DASHBOARD_JOBS)}
-          />
-        </div>
-      </Layout>
-    );
+			<Layout>
+				<div className='container-custom py-8'>
+					<ErrorState
+						title='Job not found'
+						message="We couldn't find the job you're looking for."
+						retry={() => router.push(ROUTES.DASHBOARD_JOBS)}
+					/>
+				</div>
+			</Layout>
+		);
   }
 
   const isProvider = user?.role === 'provider';

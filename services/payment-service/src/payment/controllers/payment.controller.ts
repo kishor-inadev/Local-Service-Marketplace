@@ -17,6 +17,8 @@ import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { RequestRefundDto } from '@/payment/dto/request-refund.dto';
 import { TransactionQueryDto } from "../dto/transaction-query.dto";
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from "@/common/guards/roles.guard";
+import { Roles } from "@/common/decorators/roles.decorator";
 
 @Controller("payments")
 export class PaymentController {
@@ -37,12 +39,24 @@ export class PaymentController {
 			createPaymentDto.job_id,
 			createPaymentDto.amount,
 			createPaymentDto.currency,
-			req.user.id, // user_id from authenticated user
+			req.user.userId, // user_id from authenticated user
 			createPaymentDto.provider_id,
 			createPaymentDto.coupon_code,
 		);
 
 		return payment;
+	}
+
+	/**
+	 * Admin stats endpoint
+	 * GET /payments/stats
+	 */
+	@Get("stats")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Roles("admin")
+	@HttpCode(HttpStatus.OK)
+	async getPaymentStats() {
+		return this.paymentService.getPaymentStats();
 	}
 
 	/**
@@ -52,7 +66,7 @@ export class PaymentController {
 	@Get("my")
 	@UseGuards(JwtAuthGuard)
 	async getMyPayments(@Request() req: any, @Query() queryDto: TransactionQueryDto) {
-		return this.paymentService.getPaymentsByUserPaginated(req.user.id, queryDto);
+		return this.paymentService.getPaymentsByUserPaginated(req.user.userId, queryDto);
 	}
 
 	@Get("jobs/:jobId")

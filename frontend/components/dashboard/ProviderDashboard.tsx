@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from "next/navigation";
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/config/constants';
@@ -14,20 +15,10 @@ import { proposalService } from '@/services/proposal-service';
 import { jobService } from '@/services/job-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
 import Link from 'next/link';
-import {
-  Plus,
-  Briefcase,
-  FileText,
-  DollarSign,
-  Search,
-  Calendar,
-  TrendingUp,
-  User,
-  Star,
-  ImageIcon,
-} from 'lucide-react';
+import { Briefcase, FileText, DollarSign, Search, Calendar, TrendingUp, User, Star, ImageIcon } from "lucide-react";
 
 export default function ProviderDashboard() {
+	const router = useRouter();
   const { user, isAuthenticated } = useAuth();
 
   const {
@@ -65,12 +56,15 @@ export default function ProviderDashboard() {
 		);
 	}
 
-  // Calculate earnings from completed jobs
-  const totalEarnings =
-    jobs?.filter((j: any) => j.status === 'completed').reduce((sum: number, job: any) => sum + (job.actual_amount || 0), 0) || 0;
+	const completedJobs = jobs?.filter((j: any) => j.status === "completed") || [];
+	const activeJobsList = jobs?.filter((j: any) => j.status === "in_progress") || [];
+	const acceptedProposals = proposals?.filter((p: any) => p.status === "accepted").length || 0;
 
-  const pendingProposals = proposals?.filter((p: any) => p.status === 'pending').length || 0;
-  const activeJobs = jobs?.filter((j: any) => j.status === 'in_progress').length || 0;
+	// Calculate earnings from completed jobs
+	const totalEarnings = completedJobs.reduce((sum: number, job: any) => sum + (job.actual_amount || 0), 0);
+	const pendingProposals = proposals?.filter((p: any) => p.status === "pending").length || 0;
+	const activeJobs = activeJobsList.length;
+	const successRate = proposals && proposals.length > 0 ? Math.round((acceptedProposals / proposals.length) * 100) : 0;
 
   return (
 		<Layout>
@@ -154,12 +148,7 @@ export default function ProviderDashboard() {
 									<p className='text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400'>
 										Success Rate
 									</p>
-									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>
-										{proposals && proposals.length > 0 ?
-											Math.round((proposals.filter((p) => p.status === "accepted").length / proposals.length) * 100)
-										:	0}
-										%
-									</p>
+									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>{successRate}%</p>
 								</div>
 								<div className='h-12 w-12 rounded-2xl bg-yellow-50 dark:bg-yellow-900/30 flex items-center justify-center flex-shrink-0'>
 									<TrendingUp className='h-6 w-6 text-yellow-600 dark:text-yellow-400' />
@@ -176,7 +165,7 @@ export default function ProviderDashboard() {
 					</CardHeader>
 					<CardContent>
 						<div className='grid grid-cols-1 md:grid-cols-3 gap-4'>
-							<Link href={ROUTES.DASHBOARD_BROWSE_REQUESTS || "/dashboard/browse-requests"}>
+							<Link href={ROUTES.DASHBOARD_BROWSE_REQUESTS}>
 								<Button
 									variant='outline'
 									className='w-full justify-start'>
@@ -184,7 +173,7 @@ export default function ProviderDashboard() {
 									Browse Service Requests
 								</Button>
 							</Link>
-							<Link href={ROUTES.DASHBOARD_MY_PROPOSALS || "/dashboard/my-proposals"}>
+							<Link href={ROUTES.DASHBOARD_MY_PROPOSALS}>
 								<Button
 									variant='outline'
 									className='w-full justify-start'>
@@ -192,7 +181,7 @@ export default function ProviderDashboard() {
 									View My Proposals
 								</Button>
 							</Link>
-							<Link href={ROUTES.DASHBOARD_AVAILABILITY || "/dashboard/availability"}>
+							<Link href={ROUTES.DASHBOARD_AVAILABILITY}>
 								<Button
 									variant='outline'
 									className='w-full justify-start'>
@@ -253,7 +242,7 @@ export default function ProviderDashboard() {
 						<CardHeader>
 							<div className='flex items-center justify-between'>
 								<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Recent Proposals</h2>
-								<Link href={ROUTES.DASHBOARD_MY_PROPOSALS || "/dashboard/my-proposals"}>
+								<Link href={ROUTES.DASHBOARD_MY_PROPOSALS}>
 									<Button
 										variant='outline'
 										size='sm'>
@@ -296,7 +285,7 @@ export default function ProviderDashboard() {
 									title='No proposals yet'
 									description='Browse open service requests and submit your first proposal.'
 									icon='search'
-									action={{ label: "Browse Requests", onClick: () => {} }}
+									action={{ label: "Browse Requests", onClick: () => router.push(ROUTES.DASHBOARD_BROWSE_REQUESTS) }}
 								/>
 							}
 						</CardContent>
@@ -323,15 +312,15 @@ export default function ProviderDashboard() {
 										<SkeletonListItem key={i} />
 									))}
 								</div>
-							: jobs && jobs.length > 0 ?
+							: activeJobsList.length > 0 ?
 								<div className='space-y-3'>
-									{jobs
-										.filter((j: any) => j.status === "in_progress")
+									{activeJobsList
+										.sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
 										.slice(0, 5)
 										.map((job: any) => (
 											<Link
 												key={job.id}
-												href={`/jobs/${job.id}`}
+												href={ROUTES.DASHBOARD_JOB_DETAIL(job.id)}
 												className='block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-green-200 dark:hover:border-green-700 transition-all'>
 												<div className='flex items-start justify-between gap-3'>
 													<div className='flex-1 min-w-0'>
@@ -354,6 +343,7 @@ export default function ProviderDashboard() {
 									title='No active jobs'
 									description='Accepted proposals will show here as active jobs.'
 									icon='inbox'
+									action={{ label: "Browse Requests", onClick: () => router.push(ROUTES.DASHBOARD_BROWSE_REQUESTS) }}
 								/>
 							}
 						</CardContent>
@@ -365,7 +355,7 @@ export default function ProviderDashboard() {
 					<CardHeader>
 						<div className='flex items-center justify-between'>
 							<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Earnings Overview</h2>
-							<Link href={ROUTES.DASHBOARD_EARNINGS || "/dashboard/earnings"}>
+							<Link href={ROUTES.DASHBOARD_EARNINGS}>
 								<Button
 									variant='outline'
 									size='sm'>
@@ -378,9 +368,7 @@ export default function ProviderDashboard() {
 						<div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
 							<div className='p-4 bg-green-50 dark:bg-green-900/20 rounded-lg'>
 								<p className='text-sm font-medium text-green-800 dark:text-green-300'>Completed Jobs</p>
-								<p className='text-2xl font-bold text-green-900 dark:text-green-200 mt-2'>
-									{jobs?.filter((j: any) => j.status === "completed").length || 0}
-								</p>
+								<p className='text-2xl font-bold text-green-900 dark:text-green-200 mt-2'>{completedJobs.length}</p>
 							</div>
 							<div className='p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg'>
 								<p className='text-sm font-medium text-blue-800 dark:text-blue-300'>Jobs in Progress</p>

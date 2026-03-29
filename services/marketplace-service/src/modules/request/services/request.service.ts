@@ -287,4 +287,12 @@ export class RequestService {
 
 		return { data, total: data.length };
 	}
+
+	async getRequestStats(): Promise<{
+		total: number;
+		byStatus: { open: number; assigned: number; completed: number; cancelled: number };
+	}> {
+		this.logger.log(`Fetching request stats`, RequestService.name);
+		return this.requestRepository.getRequestStats();
+	}
 }

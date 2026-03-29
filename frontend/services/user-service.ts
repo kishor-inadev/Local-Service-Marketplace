@@ -77,7 +77,7 @@ export interface UpdateProviderServicesData {
  * Get current user profile
  */
 export const getUserProfile = async (): Promise<UserProfile> => {
-  const response = await apiClient.get<UserProfile>('/users/me');
+  const response = await apiClient.get<UserProfile>("/user/auth/me");
   return response.data;
 };
 
@@ -85,7 +85,7 @@ export const getUserProfile = async (): Promise<UserProfile> => {
  * Update current user profile
  */
 export const updateUserProfile = async (data: UpdateProfileData): Promise<UserProfile> => {
-  const response = await apiClient.patch<UserProfile>('/users/me', data);
+  const response = await apiClient.patch<UserProfile>("/user/auth/me", data);
   return response.data;
 };
 

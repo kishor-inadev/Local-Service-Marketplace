@@ -29,36 +29,26 @@ export class GatewayService {
     user?: any,
   ): Promise<AxiosResponse> {
     try {
-      const serviceName = this.getServiceName(path);
-      const serviceConfig = servicesConfig[serviceName];
+			const serviceName = this.getServiceName(path);
+			const serviceConfig = servicesConfig[serviceName];
 
-      if (!serviceConfig) {
-        this.logger.error(
-          `No service configuration found for path: ${path}`,
-          'GatewayService',
-        );
-        throw new ServiceUnavailableException('Service not available');
-      }
+			if (!serviceConfig) {
+				this.logger.error(`No service configuration found for path: ${path}`, "GatewayService");
+				throw new ServiceUnavailableException("Service not available");
+			}
 
-      // Strip /api/v1 prefix if present (microservices don't have this prefix)
-      const cleanPath = path.startsWith('/api/v1')
-        ? path.replace('/api/v1', '')
-        : path;
+			// Strip /api/v1 prefix if present (microservices don't have this prefix)
+			const cleanPath = path.startsWith("/api/v1") ? path.replace("/api/v1", "") : path;
 
-      // Apply optional path prefix strip (e.g. /user/auth/* → /auth/*)
-      const rewrittenPath = serviceConfig.stripPrefix
-        ? cleanPath.replace(serviceConfig.stripPrefix, '')
-        : cleanPath;
+			// Apply optional path prefix strip (e.g. /user/auth/* → /auth/*)
+			const rewrittenPath = serviceConfig.stripPrefix ? cleanPath.replace(serviceConfig.stripPrefix, "") : cleanPath;
 
-      const targetUrl = `${serviceConfig.url}${rewrittenPath}`;
+			const targetUrl = `${serviceConfig.url}${rewrittenPath}`;
 
-      this.logger.log(
-        `Forwarding ${method} ${path} to ${serviceConfig.name} (${targetUrl})`,
-        'GatewayService',
-      );
+			this.logger.log(`Forwarding ${method} ${path} to ${serviceConfig.name} (${targetUrl})`, "GatewayService");
 
-      // Prepare request config
-      const config: AxiosRequestConfig = {
+			// Prepare request config
+			const config: AxiosRequestConfig = {
 				method: method as any,
 				url: targetUrl,
 				headers: this.prepareHeaders(headers, user),
@@ -67,51 +57,48 @@ export class GatewayService {
 				validateStatus: () => true, // Never throw on any HTTP status — let the controller handle it
 			};
 
-      if (body && (method === 'POST' || method === 'PUT' || method === 'PATCH')) {
-        config.data = body;
-      }
+			if (body && (method === "POST" || method === "PUT" || method === "PATCH")) {
+				config.data = body;
+			}
 
-      if (queryParams && Object.keys(queryParams).length > 0) {
-        config.params = queryParams;
-      }
+			if (queryParams && Object.keys(queryParams).length > 0) {
+				config.params = queryParams;
+			}
 
-      // Make request to microservice
-      const response = await firstValueFrom(
-        this.httpService.request(config),
-      );
+			// Make request to microservice
+			const response = await firstValueFrom(this.httpService.request(config));
 
-      this.logger.log(
-        `Response from ${serviceConfig.name}: ${response.status}`,
-        'GatewayService',
-      );
+			this.logger.log(`Response from ${serviceConfig.name}: ${response.status}`, "GatewayService");
 
-      return response;
-    } catch (error) {
-      this.logger.error(
-        `Error forwarding request: ${error.message}`,
-        error.stack,
-        'GatewayService',
-      );
+			return response;
+		} catch (error) {
+			this.logger.error(`Error forwarding request: ${error.message}`, error.stack, "GatewayService");
 
-      if (error.code === 'ECONNREFUSED') {
-        throw new ServiceUnavailableException('Service temporarily unavailable');
-      }
+			// Preserve known gateway exceptions (e.g., unmapped route)
+			if (error instanceof ServiceUnavailableException || error instanceof GatewayTimeoutException) {
+				throw error;
+			}
 
-      if (error.code === 'ETIMEDOUT' || error.message.includes('timeout')) {
-        throw new GatewayTimeoutException('Service request timeout');
-      }
+			if (error.code === "ECONNREFUSED") {
+				throw new ServiceUnavailableException("Service temporarily unavailable");
+			}
 
-      // Re-throw the error with status from microservice if available
-      if (error.response) {
-        const { status, data } = error.response;
-        const serviceError: any = new Error(data.message || 'Service error');
-        serviceError.status = status;
-        serviceError.response = data;
-        throw serviceError;
-      }
+			if (error.code === "ETIMEDOUT" || error.message.includes("timeout")) {
+				throw new GatewayTimeoutException("Service request timeout");
+			}
 
-      throw error;
-    }
+			// Re-throw the error with status from microservice if available
+			if (error.response) {
+				const { status, data } = error.response;
+				const responseMessage = typeof data === "string" ? data : data?.message;
+				const serviceError: any = new Error(responseMessage || "Service error");
+				serviceError.status = status;
+				serviceError.response = data;
+				throw serviceError;
+			}
+
+			throw error;
+		}
   }
 
   /**

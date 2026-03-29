@@ -53,7 +53,7 @@ export interface TwoFAStatus {
 }
 
 export interface TwoFASetup {
-	qr_code_url: string;
+	qrCodeUrl: string;
 	secret: string;
 }
 
@@ -100,7 +100,7 @@ class AuthService {
 	}
 
 	async getProfile(): Promise<AuthResponse["user"]> {
-		const response = await apiClient.get<AuthResponse["user"]>("/user/auth/profile");
+		const response = await apiClient.get<AuthResponse["user"]>("/user/auth/me");
 		return response.data;
 	}
 
@@ -167,12 +167,12 @@ class AuthService {
 	}
 
 	async setup2FA(): Promise<TwoFASetup> {
-		const response = await apiClient.post<TwoFASetup>("/user/auth/2fa/setup", {});
+		const response = await apiClient.post<TwoFASetup>("/user/auth/2fa/enable", {});
 		return response.data;
 	}
 
 	async enable2FA(token: string): Promise<void> {
-		await apiClient.post<void>("/user/auth/2fa/enable", { token });
+		await apiClient.post<void>("/user/auth/2fa/verify", { code: token });
 	}
 
 	async disable2FA(token: string): Promise<void> {
@@ -189,7 +189,7 @@ class AuthService {
 	}
 
 	async revokeAllSessions(): Promise<void> {
-		await apiClient.delete<void>("/user/auth/sessions");
+		await apiClient.delete<void>("/user/auth/sessions/all");
 	}
 }
 

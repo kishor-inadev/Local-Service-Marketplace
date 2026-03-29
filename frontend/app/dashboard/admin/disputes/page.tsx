@@ -18,6 +18,15 @@ import type { ColumnFiltersState, SortingState, Table } from "@tanstack/react-ta
 
 type DisputeRow = { id: string; job_id?: string; reason?: string; status: string; created_at: string };
 
+const DISPUTE_STATUS_OPTIONS = ["open", "investigating", "resolved", "closed"] as const;
+
+const DISPUTE_STATUS_LABELS: Record<(typeof DISPUTE_STATUS_OPTIONS)[number], string> = {
+	open: "Open",
+	investigating: "Investigating",
+	resolved: "Resolved",
+	closed: "Closed",
+};
+
 const mapDisputeSortBy = (field?: string): "createdAt" | "status" | "resolvedAt" => {
 	switch (field) {
 		case "status":
@@ -60,6 +69,13 @@ export default function AdminDisputesPage() {
 
 	const disputeList: DisputeRow[] = disputes?.data || [];
 
+	const { data: disputeStats } = useQuery({
+		queryKey: ["admin-disputes-stats"],
+		queryFn: () => adminService.getDisputeStats(),
+		enabled: user?.role === "admin",
+		staleTime: 60_000,
+	});
+
   return (
 		<ProtectedRoute requiredRoles={["admin"]}>
 			<Layout>
@@ -69,6 +85,47 @@ export default function AdminDisputesPage() {
 						<p className='text-gray-600 dark:text-gray-400'>
 							Review and resolve disputes between customers and providers
 						</p>
+					</div>
+
+					<div className='mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-5'>
+						<Card>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-600 dark:text-gray-400'>Total Disputes</p>
+								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>{disputeStats?.total ?? 0}</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-600 dark:text-gray-400'>Open</p>
+								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
+									{disputeStats?.byStatus.open ?? 0}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-600 dark:text-gray-400'>Investigating</p>
+								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
+									{disputeStats?.byStatus.investigating ?? 0}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-600 dark:text-gray-400'>Resolved</p>
+								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
+									{disputeStats?.byStatus.resolved ?? 0}
+								</p>
+							</CardContent>
+						</Card>
+						<Card>
+							<CardContent className='p-4'>
+								<p className='text-sm text-gray-600 dark:text-gray-400'>Closed</p>
+								<p className='mt-1 text-2xl font-bold text-gray-900 dark:text-white'>
+									{disputeStats?.byStatus.closed ?? 0}
+								</p>
+							</CardContent>
+						</Card>
 					</div>
 
 					<Card>
@@ -103,19 +160,18 @@ export default function AdminDisputesPage() {
 									initialSortDirection='desc'
 									enableSearch={false}
 									renderToolbarFields={(table: Table<DisputeRow>) => {
-										const statusOptions = Array.from(new Set(disputeList.map((d) => d.status).filter(Boolean)));
-
 										return (
 											<select
 												value={(table.getColumn("status")?.getFilterValue() as string) || ""}
 												onChange={(e) => table.getColumn("status")?.setFilterValue(e.target.value || undefined)}
 												className='rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200'>
 												<option value=''>All statuses</option>
-												{statusOptions.map((status) => (
+												{DISPUTE_STATUS_OPTIONS.map((status) => (
 													<option
 														key={status}
 														value={status}>
-														{status}
+														{DISPUTE_STATUS_LABELS[status]} (
+														{disputeStats?.byStatus[status as keyof typeof disputeStats.byStatus] ?? 0})
 													</option>
 												))}
 											</select>

@@ -28,7 +28,11 @@ export class SubscriptionController {
 	@Post()
 	@HttpCode(HttpStatus.CREATED)
 	async createSubscription(@Body() data: CreateSubscriptionDto, @Request() req: any) {
-		const subscription = await this.subscriptionService.createSubscription(data.provider_id, data.plan_id, req.user.id);
+		const subscription = await this.subscriptionService.createSubscription(
+			data.provider_id,
+			data.plan_id,
+			req.user.userId,
+		);
 
 		return { success: true, data: subscription, message: "Subscription created. Pending payment confirmation." };
 	}
@@ -59,7 +63,7 @@ export class SubscriptionController {
 
 	@Put(":subscriptionId/cancel")
 	async cancelSubscription(@Param("subscriptionId", ParseUUIDPipe) subscriptionId: string, @Request() req: any) {
-		const subscription = await this.subscriptionService.cancelSubscription(subscriptionId, req.user.id);
+		const subscription = await this.subscriptionService.cancelSubscription(subscriptionId, req.user.userId);
 
 		return {
 			success: true,
@@ -78,7 +82,7 @@ export class SubscriptionController {
 		const subscription = await this.subscriptionService.upgradeSubscription(
 			providerId,
 			upgradeData.new_plan_id,
-			req.user.id,
+			req.user.userId,
 		);
 
 		return { success: true, data: subscription, message: "Subscription upgrade initiated. Pending payment." };

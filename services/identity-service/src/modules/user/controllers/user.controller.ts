@@ -1,109 +1,184 @@
 import {
-  Controller,
-  Get,
-  Patch,
-  Body,
-  Param,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
-import { Request } from 'express';
+	Controller,
+	Get,
+	Patch,
+	Post,
+	Delete,
+	Body,
+	Param,
+	Query,
+	ParseUUIDPipe,
+	HttpCode,
+	HttpStatus,
+	Inject,
+	UseGuards,
+} from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { UserService } from '../services/user.service';
 import { UpdateUserDto } from '../dto/update-user.dto';
 import { UserResponseDto } from '../dto/user-response.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
+import { RolesGuard } from "../../../common/guards/roles.guard";
+import { Roles } from "../../../common/decorators/roles.decorator";
+import { AdminUserListQueryDto } from "../dto/admin-user-list-query.dto";
+import { AdminCreateUserDto } from "../dto/admin-create-user.dto";
+import { ResetUserPasswordDto, SuspendUserDto } from "../dto/admin-user-actions.dto";
 
-@Controller('users')
+@Controller("users")
 export class UserController {
-  constructor(
-    private readonly userService: UserService,
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) { }
+	constructor(
+		private readonly userService: UserService,
+		@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+	) {}
 
-  /**
-   * Get current user profile
-   * GET /users/me
-   */
-  @Get('me')
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  async getCurrentUser(@Req() req: Request): Promise<UserResponseDto> {
-    // Extract user ID from gateway-injected header (set by JwtAuthGuard)
-    const userId = (req as any).user?.userId;
+	/**
+	 * Admin: list users
+	 * GET /users
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Get()
+	@HttpCode(HttpStatus.OK)
+	async getUsersForAdmin(@Query() queryDto: AdminUserListQueryDto) {
+		this.logger.info("GET /users", { context: "UserController", query: queryDto });
 
-    this.logger.info('GET /users/me', {
-      context: 'UserController',
-      user_id: userId,
-    });
+		return this.userService.getUsersForAdmin(queryDto);
+	}
 
-    if (!userId) {
-      throw new Error('User ID not found in request');
-    }
+	/**
+	 * Admin: user stats
+	 * GET /users/stats
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Get("stats")
+	@HttpCode(HttpStatus.OK)
+	async getAdminUserStats() {
+		this.logger.info("GET /users/stats", { context: "UserController" });
 
-    return this.userService.getUserById(userId);
-  }
+		return this.userService.getAdminUserStats();
+	}
 
-  /**
-   * Get user by ID
-   * GET /users/:id
-   */
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  async getUser(@Param('id') id: string): Promise<UserResponseDto> {
-    this.logger.info('GET /users/:id', {
-      context: 'UserController',
-      user_id: id,
-    });
+	/**
+	 * Admin: create user
+	 * POST /users
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Post()
+	@HttpCode(HttpStatus.CREATED)
+	async createUserByAdmin(@Body() createUserDto: AdminCreateUserDto): Promise<UserResponseDto> {
+		this.logger.info("POST /users", {
+			context: "UserController",
+			email: createUserDto.email,
+			role: createUserDto.role,
+		});
 
-    return this.userService.getUserById(id);
-  }
+		return this.userService.createUserByAdmin(createUserDto);
+	}
 
-  /**
-   * Update current user profile
-   * PATCH /users/me
-   */
-  @Patch('me')
-  @UseGuards(JwtAuthGuard)
-  @HttpCode(HttpStatus.OK)
-  async updateCurrentUser(
-    @Req() req: Request,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
-    // Extract user ID from gateway-injected header
-    const userId = (req as any).user?.userId;
+	/**
+	 * Admin: get user by ID
+	 * GET /users/:id
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Get(":id")
+	@HttpCode(HttpStatus.OK)
+	async getAdminUser(@Param("id", ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+		this.logger.info("GET /users/:id", { context: "UserController", user_id: id });
 
-    this.logger.info('PATCH /users/me', {
-      context: 'UserController',
-      user_id: userId,
-    });
+		return this.userService.getUserById(id);
+	}
 
-    if (!userId) {
-      throw new Error('User ID not found in request');
-    }
+	/**
+	 * Admin: suspend user
+	 * PATCH /users/:id/suspend
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id/suspend")
+	@HttpCode(HttpStatus.OK)
+	async suspendUser(@Param("id", ParseUUIDPipe) id: string, @Body() body: SuspendUserDto): Promise<UserResponseDto> {
+		this.logger.info("PATCH /users/:id/suspend", { context: "UserController", user_id: id, reason: body.reason });
 
-    return this.userService.updateUser(userId, updateUserDto);
-  }
+		return this.userService.suspendUser(id);
+	}
 
-  /**
-   * Update user by ID  
-   * PATCH /users/:id
-   */
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  async updateUser(
-    @Param('id') id: string,
-    @Body() updateUserDto: UpdateUserDto,
-  ): Promise<UserResponseDto> {
-    this.logger.info('PATCH /users/:id', {
-      context: 'UserController',
-      user_id: id,
-    });
+	/**
+	 * Admin: activate user
+	 * PATCH /users/:id/activate
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id/activate")
+	@HttpCode(HttpStatus.OK)
+	async activateUser(@Param("id", ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+		this.logger.info("PATCH /users/:id/activate", { context: "UserController", user_id: id });
 
-    return this.userService.updateUser(id, updateUserDto);
-  }
+		return this.userService.activateUser(id);
+	}
+
+	/**
+	 * Admin: reset user password
+	 * PATCH /users/:id/reset-password
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id/reset-password")
+	@HttpCode(HttpStatus.OK)
+	async resetUserPassword(
+		@Param("id", ParseUUIDPipe) id: string,
+		@Body() dto: ResetUserPasswordDto,
+	): Promise<{ success: true }> {
+		this.logger.info("PATCH /users/:id/reset-password", { context: "UserController", user_id: id });
+
+		return this.userService.resetUserPassword(id, dto);
+	}
+
+	/**
+	 * Admin: restore deleted user
+	 * PATCH /users/:id/restore
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id/restore")
+	@HttpCode(HttpStatus.OK)
+	async restoreUser(@Param("id", ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+		this.logger.info("PATCH /users/:id/restore", { context: "UserController", user_id: id });
+
+		return this.userService.restoreUser(id);
+	}
+
+	/**
+	 * Admin: update user by ID
+	 * PATCH /users/:id
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id")
+	@HttpCode(HttpStatus.OK)
+	async updateUser(
+		@Param("id", ParseUUIDPipe) id: string,
+		@Body() updateUserDto: UpdateUserDto,
+	): Promise<UserResponseDto> {
+		this.logger.info("PATCH /users/:id", { context: "UserController", user_id: id });
+
+		return this.userService.updateUser(id, updateUserDto);
+	}
+
+	/**
+	 * Admin: soft-delete user
+	 * DELETE /users/:id
+	 */
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Delete(":id")
+	@HttpCode(HttpStatus.OK)
+	async deleteUser(@Param("id", ParseUUIDPipe) id: string): Promise<UserResponseDto> {
+		this.logger.info("DELETE /users/:id", { context: "UserController", user_id: id });
+
+		return this.userService.deleteUser(id);
+	}
 }

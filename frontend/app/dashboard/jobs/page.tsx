@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from "@/components/ui/Card";
 import { Loading } from '@/components/ui/Loading';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -17,14 +17,12 @@ import { Briefcase } from 'lucide-react';
 
 export default function JobsPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+	const { isAuthenticated, isLoading: authLoading } = useAuth();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
-		console.log(isAuthenticated);
-		
-      router.push(ROUTES.LOGIN);
-    }
+			router.push(ROUTES.LOGIN);
+		}
   }, [isAuthenticated, authLoading, router]);
   const {
 		data: jobs,

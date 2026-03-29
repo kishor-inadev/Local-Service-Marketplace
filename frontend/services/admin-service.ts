@@ -1,12 +1,35 @@
 import { apiClient } from './api-client';
 
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  status: 'active' | 'suspended' | 'deleted';
-  created_at: string;
+	id: string;
+	email: string;
+	name?: string;
+	role: string;
+	status: "active" | "suspended" | "deleted";
+	created_at: string;
+}
+
+type ApiUser = Partial<User> & { createdAt?: string };
+
+const normalizeUser = (user: ApiUser): User => ({
+	id: String(user.id || ""),
+	email: String(user.email || ""),
+	name: user.name || undefined,
+	role: String(user.role || "customer"),
+	status: (user.status as User["status"]) || "active",
+	created_at: String(user.created_at || user.createdAt || ""),
+});
+
+export interface AdminCreateUserPayload {
+	email: string;
+	password: string;
+	name: string;
+	phone?: string;
+	role: "customer" | "provider" | "admin";
+	emailVerified?: boolean;
+	timezone?: string;
+	language?: string;
+	status?: "active" | "suspended";
 }
 
 export interface Dispute {
@@ -53,24 +76,44 @@ class AdminService {
 		if (params?.sortOrder) searchParams.append("sortOrder", params.sortOrder);
 		if (params?.page) searchParams.append("page", params.page.toString());
 
-		const response = await apiClient.get<{ data: User[]; total: number }>(`/admin/users?${searchParams.toString()}`);
+		const response = await apiClient.get<{ data: ApiUser[]; total: number }>(`/users?${searchParams.toString()}`);
 		// API client unwraps standardized response and returns { data, total } for paginated responses
-		return response.data;
+		return { data: (response.data?.data || []).map(normalizeUser), total: response.data?.total || 0 };
 	}
 
 	async getUserById(id: string): Promise<User> {
-		const response = await apiClient.get<User>(`/admin/users/${id}`);
-		return response.data;
+		const response = await apiClient.get<ApiUser>(`/users/${id}`);
+		return normalizeUser(response.data || {});
+	}
+
+	async createUser(payload: AdminCreateUserPayload): Promise<User> {
+		const response = await apiClient.post<ApiUser>("/users", payload);
+		return normalizeUser(response.data || {});
 	}
 
 	async suspendUser(id: string, reason: string): Promise<User> {
-		const response = await apiClient.patch<User>(`/admin/users/${id}/suspend`, { reason });
-		return response.data;
+		const response = await apiClient.patch<ApiUser>(`/users/${id}/suspend`, { reason });
+		return normalizeUser(response.data || {});
 	}
 
 	async activateUser(id: string): Promise<User> {
-		const response = await apiClient.patch<User>(`/admin/users/${id}/activate`, {});
+		const response = await apiClient.patch<ApiUser>(`/users/${id}/activate`, {});
+		return normalizeUser(response.data || {});
+	}
+
+	async resetUserPassword(id: string, newPassword: string, reason?: string): Promise<{ success: true }> {
+		const response = await apiClient.patch<{ success: true }>(`/users/${id}/reset-password`, { newPassword, reason });
 		return response.data;
+	}
+
+	async deleteUser(id: string): Promise<User> {
+		const response = await apiClient.delete<ApiUser>(`/users/${id}`);
+		return normalizeUser(response.data || {});
+	}
+
+	async restoreUser(id: string): Promise<User> {
+		const response = await apiClient.patch<ApiUser>(`/users/${id}/restore`, {});
+		return normalizeUser(response.data || {});
 	}
 
 	async getDisputes(params?: {
@@ -127,8 +170,62 @@ class AdminService {
 		return response.data || [];
 	}
 
-	async getSystemStats(): Promise<any> {
-		const response = await apiClient.get<any>("/admin/stats");
+	async getSystemStats(): Promise<{
+		total: number;
+		byStatus: { active: number; suspended: number };
+		byRole: { customer: number; provider: number; admin: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { active: number; suspended: number };
+			byRole: { customer: number; provider: number; admin: number };
+		}>("/users/stats");
+		return response.data;
+	}
+
+	async getDisputeStats(): Promise<{
+		total: number;
+		byStatus: { open: number; investigating: number; resolved: number; closed: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { open: number; investigating: number; resolved: number; closed: number };
+		}>("/admin/disputes/stats");
+		return response.data;
+	}
+
+	async getJobStats(): Promise<{
+		total: number;
+		byStatus: { scheduled: number; in_progress: number; completed: number; cancelled: number; disputed: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { scheduled: number; in_progress: number; completed: number; cancelled: number; disputed: number };
+		}>("/jobs/stats");
+		return response.data;
+	}
+
+	async getRequestStats(): Promise<{
+		total: number;
+		byStatus: { open: number; assigned: number; completed: number; cancelled: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { open: number; assigned: number; completed: number; cancelled: number };
+		}>("/requests/stats");
+		return response.data;
+	}
+
+	async getPaymentStats(): Promise<{
+		total: number;
+		totalRevenue: number;
+		byStatus: { pending: number; completed: number; failed: number; refunded: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			totalRevenue: number;
+			byStatus: { pending: number; completed: number; failed: number; refunded: number };
+		}>("/payments/stats");
 		return response.data;
 	}
 }

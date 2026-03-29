@@ -30,7 +30,7 @@ export class NotificationPreferencesController {
       throw new BadRequestException('Notification preferences are disabled. Set NOTIFICATION_PREFERENCES_ENABLED=true to enable this feature.');
     }
 
-    const preferences = await this.preferencesService.getPreferences(req.user.id);
+    const preferences = await this.preferencesService.getPreferences(req.user.userId);
 
     return { success: true, data: preferences, message: "Notification preferences retrieved successfully" };
   }
@@ -46,10 +46,7 @@ export class NotificationPreferencesController {
       throw new BadRequestException('Notification preferences are disabled. Set NOTIFICATION_PREFERENCES_ENABLED=true to enable this feature.');
     }
 
-    const preferences = await this.preferencesService.updatePreferences(
-      req.user.id,
-      dto
-    );
+    const preferences = await this.preferencesService.updatePreferences(req.user.userId, dto);
 
     return {
       success: true,
@@ -66,9 +63,7 @@ export class NotificationPreferencesController {
       throw new BadRequestException('Notification preferences are disabled. Set NOTIFICATION_PREFERENCES_ENABLED=true to enable this feature.');
     }
 
-    const preferences = await this.preferencesService.disableAllNotifications(
-      req.user.id
-    );
+    const preferences = await this.preferencesService.disableAllNotifications(req.user.userId);
 
     return {
       success: true,
@@ -85,9 +80,7 @@ export class NotificationPreferencesController {
       throw new BadRequestException('Notification preferences are disabled. Set NOTIFICATION_PREFERENCES_ENABLED=true to enable this feature.');
     }
 
-    const preferences = await this.preferencesService.enableAllNotifications(
-      req.user.id
-    );
+    const preferences = await this.preferencesService.enableAllNotifications(req.user.userId);
 
     return {
       success: true,

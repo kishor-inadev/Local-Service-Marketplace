@@ -59,12 +59,12 @@ describe('GatewayService', () => {
       mockHttpService.request.mockReturnValue(of(mockResponse));
 
       const result = await service.forwardRequest(
-        '/auth/login',
-        'POST',
-        { email: 'test@example.com', password: 'password' },
-        { 'content-type': 'application/json' },
-        {},
-      );
+				"/user/auth/login",
+				"POST",
+				{ email: "test@example.com", password: "password" },
+				{ "content-type": "application/json" },
+				{},
+			);
 
       expect(result.status).toBe(200);
       expect(result.data).toEqual({ success: true });
@@ -82,9 +82,7 @@ describe('GatewayService', () => {
 
       mockHttpService.request.mockReturnValue(throwError(() => error));
 
-      await expect(
-        service.forwardRequest('/auth/login', 'POST'),
-      ).rejects.toThrow(ServiceUnavailableException);
+      await expect(service.forwardRequest("/user/auth/login", "POST")).rejects.toThrow(ServiceUnavailableException);
     });
 
     it('should throw GatewayTimeoutException on timeout', async () => {
@@ -93,9 +91,7 @@ describe('GatewayService', () => {
 
       mockHttpService.request.mockReturnValue(throwError(() => error));
 
-      await expect(
-        service.forwardRequest('/auth/login', 'POST'),
-      ).rejects.toThrow(GatewayTimeoutException);
+      await expect(service.forwardRequest("/user/auth/login", "POST")).rejects.toThrow(GatewayTimeoutException);
     });
 
     it('should sanitize headers before forwarding', async () => {
@@ -108,16 +104,12 @@ describe('GatewayService', () => {
       mockHttpService.request.mockReturnValue(of(mockResponse));
 
       await service.forwardRequest(
-        '/users/me',
-        'GET',
-        undefined,
-        {
-          host: 'localhost:3000',
-          connection: 'keep-alive',
-          authorization: 'Bearer token',
-        },
-        {},
-      );
+				"/user/auth/me",
+				"GET",
+				undefined,
+				{ host: "localhost:3000", connection: "keep-alive", authorization: "Bearer token" },
+				{},
+			);
 
       const requestConfig = mockHttpService.request.mock.calls[0][0];
       expect(requestConfig.headers.host).toBeUndefined();
@@ -144,8 +136,8 @@ describe('GatewayService', () => {
 
       const result = await service.healthCheck();
 
-      expect(result).toHaveProperty('auth');
-      expect(result.auth.status).toBe('healthy');
+    expect(result).toHaveProperty("identity-service");
+		expect(result["identity-service"].status).toBe("healthy");
     });
 
     it('should mark service as unhealthy on error', async () => {
@@ -155,8 +147,8 @@ describe('GatewayService', () => {
 
       const result = await service.healthCheck();
 
-      expect(result.auth.status).toBe('unhealthy');
-      expect(result.auth.error).toBe('Connection failed');
+    expect(result["identity-service"].status).toBe("unhealthy");
+		expect(result["identity-service"].error).toBe("Connection failed");
     });
   });
 });

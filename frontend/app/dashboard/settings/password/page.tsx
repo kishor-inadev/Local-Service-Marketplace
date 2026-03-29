@@ -335,7 +335,7 @@ export default function ChangePasswordPage() {
 								</p>
 								<div className='flex justify-center'>
 									<img
-										src={setup2FAMutation.data.qr_code_url}
+										src={setup2FAMutation.data.qrCodeUrl}
 										alt='2FA QR Code'
 										className='w-48 h-48 border border-gray-200 dark:border-gray-600 rounded-lg bg-white p-2'
 									/>

@@ -52,25 +52,22 @@ describe('API Gateway (e2e)', () => {
   describe('Authentication', () => {
     it('should reject requests without JWT token', () => {
       return request(app.getHttpServer())
-        .get('/users/me')
-        .expect(401)
-        .expect((res) => {
-          expect(res.body).toHaveProperty('statusCode', 401);
-          expect(res.body.message).toContain('token');
-        });
+				.get("/user/auth/me")
+				.expect(401)
+				.expect((res) => {
+					expect(res.body).toHaveProperty("statusCode", 401);
+					expect(res.body.message).toContain("token");
+				});
     });
 
     it('should allow public routes without JWT', () => {
       return request(app.getHttpServer())
-        .post('/auth/login')
-        .send({
-          email: 'test@example.com',
-          password: 'password',
-        })
-        .expect((res) => {
-          // Should forward to auth service (may fail if service not running)
-          expect([200, 201, 400, 401, 503]).toContain(res.status);
-        });
+				.post("/user/auth/login")
+				.send({ email: "test@example.com", password: "password" })
+				.expect((res) => {
+					// Should forward to auth service (may fail if service not running)
+					expect([200, 201, 400, 401, 503]).toContain(res.status);
+				});
     });
   });
 
@@ -96,17 +93,12 @@ describe('API Gateway (e2e)', () => {
   describe('Request Forwarding', () => {
     it('should forward requests to appropriate service', () => {
       return request(app.getHttpServer())
-        .post('/auth/signup')
-        .send({
-          email: 'newuser@example.com',
-          password: 'SecurePass123!',
-          name: 'Test User',
-          role: 'customer',
-        })
-        .expect((res) => {
-          // Should forward to auth service
-          expect([201, 400, 409, 503]).toContain(res.status);
-        });
+				.post("/user/auth/signup")
+				.send({ email: "newuser@example.com", password: "SecurePass123!", name: "Test User", role: "customer" })
+				.expect((res) => {
+					// Should forward to auth service
+					expect([201, 400, 409, 503]).toContain(res.status);
+				});
     });
 
     it('should return 503 for unavailable services', () => {

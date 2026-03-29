@@ -39,7 +39,6 @@ export const routingConfig = {
 	// marketplace-service (requests + proposals + jobs + reviews)
 	"/requests": "marketplace-service",
 	"/categories": "marketplace-service",
-	"/service-categories": "marketplace-service",
 	"/proposals": "marketplace-service",
 	"/jobs": "marketplace-service",
 	"/reviews": "marketplace-service",
@@ -118,7 +117,6 @@ export const publicRoutes = [
 	// ============================================
 	"/api/v1/admin/contact", // Contact form submission (public)
 	"/api/v1/categories", // List service categories (public browsing)
-	"/api/v1/service-categories", // Alias for categories (backward compat)
 
 	// ============================================
 	// Health & Monitoring

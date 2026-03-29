@@ -77,7 +77,10 @@ class ServerAuthService {
 
 	async loginWithPhone(phone: string, password: string): Promise<BackendAuthResponse | null> {
 		try {
-			const response = await serverClient.post<BackendAuthResponse>("/user/auth/phone/login", { phone, password });
+			const response = await serverClient.post<BackendAuthResponse>("/api/v1/user/auth/phone/login", {
+				phone,
+				password,
+			});
 			const data = response.data;
 			if (!isValidBackendAuthResponse(data)) {
 				console.error("Invalid backend auth response", data);
@@ -92,7 +95,10 @@ class ServerAuthService {
 
 	async verifyPhoneOtp(phone: string, code: string): Promise<BackendAuthResponse | null> {
 		try {
-			const response = await serverClient.post<BackendAuthResponse>("/user/auth/phone/otp/verify", { phone, code });
+			const response = await serverClient.post<BackendAuthResponse>("/api/v1/user/auth/phone/otp/verify", {
+				phone,
+				code,
+			});
 			const data = response.data;
 			if (!isValidBackendAuthResponse(data)) {
 				console.error("Invalid backend auth response", data);
@@ -107,7 +113,10 @@ class ServerAuthService {
 
 	async verifyEmailOtp(email: string, code: string): Promise<BackendAuthResponse | null> {
 		try {
-			const response = await serverClient.post<BackendAuthResponse>("/user/auth/email/otp/verify", { email, code });
+			const response = await serverClient.post<BackendAuthResponse>("/api/v1/user/auth/email/otp/verify", {
+				email,
+				code,
+			});
 			const data = response.data;
 			if (!isValidBackendAuthResponse(data)) {
 				console.error("Invalid backend auth response", data);

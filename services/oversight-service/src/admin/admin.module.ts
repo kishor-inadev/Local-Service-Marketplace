@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AdminController } from './admin.controller';
-import { UserModerationService } from './services/user-moderation.service';
+import { AdminController } from "./admin.controller";
 import { DisputeService } from './services/dispute.service';
 import { AuditLogService } from './services/audit-log.service';
 import { SystemSettingService } from './services/system-setting.service';
@@ -12,25 +11,18 @@ import { SystemSettingRepository } from './repositories/system-setting.repositor
 import { ContactMessageRepository } from './repositories/contact-message.repository';
 
 @Module({
-  controllers: [AdminController],
-  providers: [
-    UserModerationService,
-    DisputeService,
-    AuditLogService,
-    SystemSettingService,
-    ContactMessageService,
-    AdminActionRepository,
-    DisputeRepository,
-    AuditLogRepository,
-    SystemSettingRepository,
-    ContactMessageRepository,
-  ],
-  exports: [
-    UserModerationService,
-    DisputeService,
-    AuditLogService,
-    SystemSettingService,
-    ContactMessageService,
-  ],
+	controllers: [AdminController],
+	providers: [
+		DisputeService,
+		AuditLogService,
+		SystemSettingService,
+		ContactMessageService,
+		AdminActionRepository,
+		DisputeRepository,
+		AuditLogRepository,
+		SystemSettingRepository,
+		ContactMessageRepository,
+	],
+	exports: [DisputeService, AuditLogService, SystemSettingService, ContactMessageService],
 })
 export class AdminModule {}

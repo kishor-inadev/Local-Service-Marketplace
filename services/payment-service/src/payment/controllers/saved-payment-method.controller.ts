@@ -30,7 +30,7 @@ export class SavedPaymentMethodController {
     @Request() req: any
   ) {
     // Ensure user_id matches authenticated user
-    dto.user_id = req.user.id;
+    dto.user_id = req.user.userId;
 
     const paymentMethod = await this.paymentMethodService.savePaymentMethod(dto);
 
@@ -43,18 +43,14 @@ export class SavedPaymentMethodController {
 
   @Get()
   async getUserPaymentMethods(@Request() req: any) {
-    const methods = await this.paymentMethodService.getUserPaymentMethods(
-      req.user.id
-    );
+    const methods = await this.paymentMethodService.getUserPaymentMethods(req.user.userId);
 
     return { data: methods, total: methods.length, page: 1, limit: methods.length || 1 };
   }
 
   @Get('default')
   async getDefaultPaymentMethod(@Request() req: any) {
-    const method = await this.paymentMethodService.getDefaultPaymentMethod(
-      req.user.id
-    );
+    const method = await this.paymentMethodService.getDefaultPaymentMethod(req.user.userId);
 
     return { success: true, data: method, message: "Default payment method retrieved successfully" };
   }
@@ -62,9 +58,9 @@ export class SavedPaymentMethodController {
   @Get('expiring')
   async getExpiringCards(@Request() req: any) {
     const expiringCards = await this.paymentMethodService.getExpiringCards(
-      req.user.id,
-      2 // 2 months ahead
-    );
+			req.user.userId,
+			2, // 2 months ahead
+		);
 
     return { data: expiringCards, total: expiringCards.length, page: 1, limit: expiringCards.length || 1 };
   }
@@ -74,10 +70,7 @@ export class SavedPaymentMethodController {
     @Param('methodId', ParseUUIDPipe) methodId: string,
     @Request() req: any
   ) {
-    const method = await this.paymentMethodService.getPaymentMethodById(
-      methodId,
-      req.user.id
-    );
+    const method = await this.paymentMethodService.getPaymentMethodById(methodId, req.user.userId);
 
     return { success: true, data: method, message: "Payment method retrieved successfully" };
   }
@@ -87,10 +80,7 @@ export class SavedPaymentMethodController {
     @Param('methodId', ParseUUIDPipe) methodId: string,
     @Request() req: any
   ) {
-    const method = await this.paymentMethodService.setDefaultPaymentMethod(
-      methodId,
-      req.user.id
-    );
+    const method = await this.paymentMethodService.setDefaultPaymentMethod(methodId, req.user.userId);
 
     return {
       success: true,
@@ -104,7 +94,7 @@ export class SavedPaymentMethodController {
     @Param('methodId', ParseUUIDPipe) methodId: string,
     @Request() req: any
   ) {
-    await this.paymentMethodService.deletePaymentMethod(methodId, req.user.id);
+    await this.paymentMethodService.deletePaymentMethod(methodId, req.user.userId);
 
     return {
       success: true,

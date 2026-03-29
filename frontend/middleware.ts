@@ -4,6 +4,11 @@ import { getToken } from 'next-auth/jwt';
 
 type Role = "customer" | "provider" | "admin";
 
+function getDashboardHomeByRole(role?: Role) {
+	if (role === "admin") return "/dashboard/admin";
+	return "/dashboard";
+}
+
 /**
  * Role-based route protection.
  * Checked with prefix matching — the most specific prefix wins.
@@ -54,7 +59,12 @@ export async function middleware(req: NextRequest) {
 
 	// ── 1. Bounce authenticated users away from login/signup ──────────────────
 	if (AUTH_REDIRECT_ROUTES.includes(pathname) && isLoggedIn) {
-		return NextResponse.redirect(new URL("/dashboard", nextUrl));
+		return NextResponse.redirect(new URL(getDashboardHomeByRole(userRole), nextUrl));
+	}
+
+	// Only admins are canonicalized to their dedicated URL namespace.
+	if (pathname === "/dashboard" && isLoggedIn && userRole === "admin") {
+		return NextResponse.redirect(new URL(getDashboardHomeByRole(userRole), nextUrl));
 	}
 
 	const isProtected = pathname === AUTH_REQUIRED_PREFIX || pathname.startsWith(AUTH_REQUIRED_PREFIX + "/");

@@ -21,6 +21,7 @@ import { RegisterDto, RegisterResponseDto } from '../dto/register.dto';
 import { LoginDto } from '../dto/login.dto';
 import { AuthResponseDto } from '../dto/auth-response.dto';
 import { OAuthUserDto } from '../dto/oauth-user.dto';
+import { UpdateUserDto } from "../../user/dto/update-user.dto";
 import {
   UnauthorizedException,
   ConflictException,
@@ -54,10 +55,10 @@ export class AuthService {
 	}
 
 	private generatePassword(length = 12): string {
-		const upper = 'ABCDEFGHJKMNPQRSTUVWXYZ';
-		const lower = 'abcdefghjkmnpqrstuvwxyz';
-		const digits = '23456789';
-		const special = '!@#$%^&*';
+		const upper = "ABCDEFGHJKMNPQRSTUVWXYZ";
+		const lower = "abcdefghjkmnpqrstuvwxyz";
+		const digits = "23456789";
+		const special = "!@#$%^&*";
 		const all = upper + lower + digits + special;
 
 		// Guarantee at least one of each required category
@@ -80,23 +81,23 @@ export class AuthService {
 			[combined[i], combined[j]] = [combined[j], combined[i]];
 		}
 
-		return combined.join('');
+		return combined.join("");
 	}
 
 	async register(registerDto: RegisterDto): Promise<RegisterResponseDto> {
 		const { email, phone, name, userType: role = "customer" } = registerDto;
 
 		if (!email && !phone) {
-			throw new BadRequestException('Either email or phone is required');
+			throw new BadRequestException("Either email or phone is required");
 		}
 
-		this.logger.info('Register attempt', { context: 'AuthService', email, phone, role });
+		this.logger.info("Register attempt", { context: "AuthService", email, phone, role });
 
 		// Check for duplicate email
 		if (email) {
 			const existingByEmail = await this.userRepo.findByEmail(email);
 			if (existingByEmail) {
-				throw new ConflictException('A user with this email already exists');
+				throw new ConflictException("A user with this email already exists");
 			}
 		}
 
@@ -104,7 +105,7 @@ export class AuthService {
 		if (phone) {
 			const existingByPhone = await this.userRepo.findByPhone(phone);
 			if (existingByPhone) {
-				throw new ConflictException('A user with this phone number already exists');
+				throw new ConflictException("A user with this phone number already exists");
 			}
 		}
 
@@ -119,8 +120,8 @@ export class AuthService {
 		// Generate email verification token
 		const verificationToken = await this.tokenService.createEmailVerificationToken(user.id);
 
-		const frontendUrl = this.configService.get<string>('FRONTEND_URL', 'http://localhost:3000');
-		const displayName = name || (email ? email.split('@')[0] : phone);
+		const frontendUrl = this.configService.get<string>("FRONTEND_URL", "http://localhost:3000");
+		const displayName = name || (email ? email.split("@")[0] : phone);
 		let emailSent = false;
 		let verificationEmailSent = false;
 
@@ -130,17 +131,15 @@ export class AuthService {
 				await this.notificationClient
 					.sendEmail({
 						to: email,
-						template: 'generatedPassword',
-						variables: {
-							name: displayName,
-							password: rawPassword,
-							loginUrl: `${frontendUrl}/login`,
-						},
+						template: "generatedPassword",
+						variables: { name: displayName, password: rawPassword, loginUrl: `${frontendUrl}/login` },
 					})
-					.then(() => { emailSent = true; })
+					.then(() => {
+						emailSent = true;
+					})
 					.catch((err) => {
-						this.logger.error('Failed to send generated password email', {
-							context: 'AuthService',
+						this.logger.error("Failed to send generated password email", {
+							context: "AuthService",
 							error: err.message,
 							userId: user.id,
 						});
@@ -151,31 +150,30 @@ export class AuthService {
 			await this.notificationClient
 				.sendEmail({
 					to: email,
-					template: 'emailVerification',
-					variables: {
-						name: displayName,
-						verificationUrl: `${frontendUrl}/verify-email?token=${verificationToken}`,
-					},
+					template: "emailVerification",
+					variables: { name: displayName, verificationUrl: `${frontendUrl}/verify-email?token=${verificationToken}` },
 				})
-				.then(() => { verificationEmailSent = true; })
+				.then(() => {
+					verificationEmailSent = true;
+				})
 				.catch((err) => {
-					this.logger.error('Failed to send verification email', {
-						context: 'AuthService',
+					this.logger.error("Failed to send verification email", {
+						context: "AuthService",
 						error: err.message,
 						userId: user.id,
 					});
 				});
 		}
 
-		this.logger.info('User registered successfully', {
-			context: 'AuthService',
+		this.logger.info("User registered successfully", {
+			context: "AuthService",
 			userId: user.id,
 			email: user.email,
 			passwordWasGenerated,
 		});
 
 		return {
-			message: 'Registration successful. Please verify your email before logging in.',
+			message: "Registration successful. Please verify your email before logging in.",
 			email: user.email,
 			emailSent,
 			verificationEmailSent,
@@ -423,6 +421,70 @@ export class AuthService {
 		await this.sessionRepo.deleteByUserId(userId);
 
 		this.logger.info("Password reset successful", { context: "AuthService", userId });
+	}
+
+	async getProfile(userId: string): Promise<any> {
+		if (!userId) {
+			throw new UnauthorizedException("Unauthorized");
+		}
+
+		const user = await this.userRepo.findById(userId);
+
+		if (!user) {
+			throw new NotFoundException("User not found");
+		}
+
+		return {
+			id: user.id,
+			email: user.email,
+			name: user.name,
+			phone: user.phone,
+			role: user.role,
+			email_verified: user.email_verified,
+			phone_verified: user.phone_verified || false,
+			profile_picture_url: user.profile_picture_url,
+			timezone: user.timezone || "UTC",
+			language: user.language || "en",
+			last_login_at: user.last_login_at,
+			status: user.status,
+			created_at: user.created_at,
+			updated_at: user.updated_at,
+			deleted_at: user.deleted_at,
+		};
+	}
+
+	async updateProfile(userId: string, updateUserDto: UpdateUserDto): Promise<any> {
+		if (!userId) {
+			throw new UnauthorizedException("Unauthorized");
+		}
+
+		const updatedUser = await this.userRepo.update(
+			userId,
+			updateUserDto.name,
+			updateUserDto.email,
+			updateUserDto.phone,
+			updateUserDto.profilePictureUrl,
+			updateUserDto.timezone,
+			updateUserDto.language,
+		);
+
+		return {
+			id: updatedUser.id,
+			email: updatedUser.email,
+			name: updatedUser.name,
+			phone: updatedUser.phone,
+			role: updatedUser.role,
+			email_verified: updatedUser.email_verified,
+			phone_verified: updatedUser.phone_verified || false,
+			profile_picture_url: updatedUser.profile_picture_url,
+			timezone: updatedUser.timezone || "UTC",
+			language: updatedUser.language || "en",
+			last_login_at: updatedUser.last_login_at,
+			status: updatedUser.status,
+			created_at: updatedUser.created_at,
+			updated_at: updatedUser.updated_at,
+			deleted_at: updatedUser.deleted_at,
+		};
 	}
 
 	async verifyEmail(token: string): Promise<void> {
@@ -733,6 +795,103 @@ export class AuthService {
 		}
 	}
 
+	// ==========================================
+	// Email OTP Routes
+	// ==========================================
+
+	async requestEmailOtp(email: string): Promise<{ message: string }> {
+		const normalizedEmail = email.trim().toLowerCase();
+		this.logger.info("Email OTP request", { context: "AuthService", email: normalizedEmail });
+
+		if (!this.notificationClient.isEmailEnabled()) {
+			this.logger.warn("Email OTP request but email service is disabled", { context: "AuthService", email });
+			throw new BadRequestException("Email OTP service is currently unavailable. Please use password login instead.");
+		}
+
+		const user = await this.userRepo.findByEmail(normalizedEmail);
+		if (!user) {
+			// Avoid email enumeration
+			return { message: "If this email is registered, an OTP will be sent" };
+		}
+
+		if (user.status !== "active") {
+			throw new UnauthorizedException("Account is not active");
+		}
+
+		const otp = await this.tokenService.createEmailOtpToken(user.id);
+
+		void this.notificationClient
+			.sendEmail({
+				to: normalizedEmail,
+				template: "email-otp",
+				variables: { name: user.name, code: otp, expiresInMinutes: 10 },
+			})
+			.then((sent) => {
+				if (!sent) {
+					this.logger.warn("Email OTP delivery returned false", { context: "AuthService", userId: user.id });
+				}
+			})
+			.catch((err) => {
+				this.logger.error("Email OTP delivery failed", { context: "AuthService", userId: user.id, error: err.message });
+			});
+
+		this.logger.info("Email OTP sent", { context: "AuthService", userId: user.id });
+		return { message: "If this email is registered, an OTP will be sent" };
+	}
+
+	async verifyEmailOtp(email: string, code: string, ipAddress?: string): Promise<AuthResponseDto> {
+		const normalizedEmail = email.trim().toLowerCase();
+		this.logger.info("Email OTP verification attempt", { context: "AuthService", email: normalizedEmail });
+
+		if (!this.notificationClient.isEmailEnabled()) {
+			throw new BadRequestException("Email OTP service is currently unavailable. Please use password login instead.");
+		}
+
+		const user = await this.userRepo.findByEmail(normalizedEmail);
+		if (!user) {
+			throw new UnauthorizedException("Invalid email or OTP");
+		}
+
+		if (user.status !== "active") {
+			throw new UnauthorizedException("Account is not active");
+		}
+
+		const valid = await this.tokenService.verifyEmailOtpToken(user.id, code.trim());
+		if (!valid) {
+			this.logger.warn("Email OTP verification failed: invalid or expired code", {
+				context: "AuthService",
+				email: normalizedEmail,
+			});
+			throw new UnauthorizedException("Invalid or expired OTP");
+		}
+
+		const accessToken = this.jwtService.generateAccessToken(user.id, user.email, user.role);
+		const refreshToken = this.jwtService.generateRefreshToken(user.id, user.email, user.role);
+
+		const expiresAt = new Date();
+		expiresAt.setDate(expiresAt.getDate() + 7);
+		await this.sessionRepo.create(user.id, refreshToken, expiresAt, ipAddress);
+
+		this.logger.info("Email OTP login successful", { context: "AuthService", userId: user.id });
+
+		return {
+			accessToken,
+			refreshToken,
+			user: {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				role: user.role,
+				email_verified: user.email_verified,
+				phone_verified: user.phone_verified || false,
+				profile_picture_url: user.profile_picture_url,
+				timezone: user.timezone || "UTC",
+				language: user.language || "en",
+				last_login_at: user.last_login_at,
+			},
+		};
+	}
+
 	/**
 	 * Verify JWT token and return user information (for API Gateway)
 	 */
@@ -830,6 +989,10 @@ export class AuthService {
 	 * TWO-FACTOR AUTHENTICATION (2FA)
 	 * Uses TOTP (Time-based One-Time Password) via otplib
 	 */
+
+	async get2FAStatus(userId: string): Promise<boolean> {
+		return this.twoFactorSecretRepo.is2FAEnabled(userId);
+	}
 
 	async enable2FA(userId: string): Promise<{ secret: string; qrCodeUrl: string }> {
 		this.logger.info("2FA enable requested", { context: "AuthService", userId });
@@ -1363,8 +1526,8 @@ export class AuthService {
 	private async verifyAppleIdentityToken(identityToken: string): Promise<string | null> {
 		// Verify JWT signature using Apple's public keys via apple-signin-auth
 		try {
-			const { verify } = require('apple-signin-auth');
-			const appleClientId = this.configService.get<string>('APPLE_CLIENT_ID');
+			const { verify } = require("apple-signin-auth");
+			const appleClientId = this.configService.get<string>("APPLE_CLIENT_ID");
 			const payload = await verify(identityToken, { clientId: appleClientId });
 			return payload.sub; // Apple user ID
 		} catch (error) {

@@ -11,7 +11,7 @@
  * Example migration:
  * 
  * OLD (utils/api.ts):
- *   const { data } = await apiRequest('/users/me', { token });
+ *   const { data } = await apiRequest('/user/auth/me', { token });
  * 
  * NEW (services/user-service.ts):
  *   import { getUserProfile } from '@/services/user-service';
@@ -19,7 +19,7 @@
  * 
  * Or direct API client usage:
  *   import { apiClient } from '@/services/api-client';
- *   const response = await apiClient.get('/users/me');
+ *   const response = await apiClient.get('/user/auth/me');
  *   const user = response.data;
  */
 

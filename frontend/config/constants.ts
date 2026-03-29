@@ -93,6 +93,7 @@ export const ROUTES = {
 	// Dashboard - Admin
 	DASHBOARD_ADMIN: "/dashboard/admin",
 	DASHBOARD_ADMIN_USERS: "/dashboard/admin/users",
+	DASHBOARD_ADMIN_USERS_CREATE: "/dashboard/admin/users/create",
 	DASHBOARD_ADMIN_DISPUTES: "/dashboard/admin/disputes",
 	DASHBOARD_ADMIN_SETTINGS: "/dashboard/admin/settings",
 
@@ -107,90 +108,71 @@ export const ROUTES = {
 	PROVIDERS: "/providers",
 	PROVIDER_DETAIL: (id: string) => `/providers/${id}`,
 
-	// Admin (Legacy - redirects to dashboard/admin)
-	ADMIN: "/dashboard/admin",
-	ADMIN_USERS: "/dashboard/admin/users",
-	ADMIN_DISPUTES: "/dashboard/admin/disputes",
-	ADMIN_SETTINGS: "/dashboard/admin/settings",
-
 	// Legal
 	PRIVACY: "/privacy",
 	TERMS: "/terms",
 	COOKIES: "/cookies",
-
-	// Legacy routes (for backward compatibility - redirects)
-	PROFILE: "/dashboard/profile",
-	PROFILE_EDIT: "/dashboard/profile/edit",
-	SETTINGS: "/dashboard/settings",
-	REQUESTS: "/dashboard/requests", // Requires authentication - view all requests
-	JOBS: "/dashboard/jobs",
-	JOB_DETAIL: (id: string) => `/dashboard/jobs/${id}`,
-	MESSAGES: "/dashboard/messages",
-	NOTIFICATIONS: "/dashboard/notifications",
-	PAYMENT_HISTORY: "/dashboard/payments/history",
-	REVIEW_SUBMIT: "/dashboard/reviews/submit",
-	DASHBOARD_CREATE_REQUEST: "/requests/create", // Public route - unauthenticated users can create requests
 } as const;
 
 export const API_ENDPOINTS = {
-  // Auth
-  AUTH: '/auth',
-  LOGIN: '/auth/login',
-  SIGNUP: '/auth/signup',
-  LOGOUT: '/auth/logout',
-  REFRESH: '/auth/refresh',
-  VERIFY_EMAIL: '/auth/verify-email',
-  RESET_PASSWORD: '/auth/reset-password',
-  
-  // Users
-  USERS: '/users',
-  USER_PROFILE: '/users/me',
-  
-  // Providers
-  PROVIDERS: '/providers',
-  PROVIDER_SERVICES: (id: string) => `/providers/${id}/services`,
-  PROVIDER_AVAILABILITY: (id: string) => `/providers/${id}/availability`,
-  
-  // Requests
-  REQUESTS: '/requests',
-  REQUEST_BY_ID: (id: string) => `/requests/${id}`,
-  CANCEL_REQUEST: (id: string) => `/requests/${id}/cancel`,
-  
-  // Proposals
-  PROPOSALS: '/proposals',
-  PROPOSAL_BY_ID: (id: string) => `/proposals/${id}`,
-  ACCEPT_PROPOSAL: (id: string) => `/proposals/${id}/accept`,
-  REJECT_PROPOSAL: (id: string) => `/proposals/${id}/reject`,
-  REQUEST_PROPOSALS: (requestId: string) => `/requests/${requestId}/proposals`,
-  
-  // Jobs
-  JOBS: '/jobs',
-  JOB_BY_ID: (id: string) => `/jobs/${id}`,
-  START_JOB: (id: string) => `/jobs/${id}/start`,
-  COMPLETE_JOB: (id: string) => `/jobs/${id}/complete`,
-  
-  // Payments
-  PAYMENTS: '/payments',
-  CREATE_PAYMENT: '/payments',
-  REFUND: (id: string) => `/payments/${id}/refund`,
-  
-  // Messages
-  MESSAGES: '/messages',
-  SEND_MESSAGE: '/messages',
-  
-  // Notifications
-  NOTIFICATIONS: '/notifications',
-  MARK_READ: (id: string) => `/notifications/${id}/read`,
-  MARK_ALL_READ: '/notifications/read-all',
-  
-  // Reviews
-  REVIEWS: '/reviews',
-  CREATE_REVIEW: '/reviews',
-  
-  // Admin
-  ADMIN_USERS: '/admin/users',
-  ADMIN_DISPUTES: '/admin/disputes',
-  ADMIN_AUDIT_LOGS: '/admin/audit-logs',
+	// Auth
+	AUTH: "/auth",
+	LOGIN: "/auth/login",
+	SIGNUP: "/auth/signup",
+	LOGOUT: "/auth/logout",
+	REFRESH: "/auth/refresh",
+	VERIFY_EMAIL: "/auth/verify-email",
+	RESET_PASSWORD: "/auth/reset-password",
+
+	// Users
+	USERS: "/users",
+	USER_PROFILE: "/user/auth/me",
+
+	// Providers
+	PROVIDERS: "/providers",
+	PROVIDER_SERVICES: (id: string) => `/providers/${id}/services`,
+	PROVIDER_AVAILABILITY: (id: string) => `/providers/${id}/availability`,
+
+	// Requests
+	REQUESTS: "/requests",
+	REQUEST_BY_ID: (id: string) => `/requests/${id}`,
+	CANCEL_REQUEST: (id: string) => `/requests/${id}/cancel`,
+
+	// Proposals
+	PROPOSALS: "/proposals",
+	PROPOSAL_BY_ID: (id: string) => `/proposals/${id}`,
+	ACCEPT_PROPOSAL: (id: string) => `/proposals/${id}/accept`,
+	REJECT_PROPOSAL: (id: string) => `/proposals/${id}/reject`,
+	REQUEST_PROPOSALS: (requestId: string) => `/requests/${requestId}/proposals`,
+
+	// Jobs
+	JOBS: "/jobs",
+	JOB_BY_ID: (id: string) => `/jobs/${id}`,
+	START_JOB: (id: string) => `/jobs/${id}/start`,
+	COMPLETE_JOB: (id: string) => `/jobs/${id}/complete`,
+
+	// Payments
+	PAYMENTS: "/payments",
+	CREATE_PAYMENT: "/payments",
+	REFUND: (id: string) => `/payments/${id}/refund`,
+
+	// Messages
+	MESSAGES: "/messages",
+	SEND_MESSAGE: "/messages",
+
+	// Notifications
+	NOTIFICATIONS: "/notifications",
+	MARK_READ: (id: string) => `/notifications/${id}/read`,
+	MARK_ALL_READ: "/notifications/read-all",
+
+	// Reviews
+	REVIEWS: "/reviews",
+	CREATE_REVIEW: "/reviews",
+
+	// Admin
+	ADMIN_USERS: "/admin/users",
+	ADMIN_DISPUTES: "/admin/disputes",
+	ADMIN_AUDIT_LOGS: "/admin/audit-logs",
 } as const;
 
 export const REQUEST_STATUS = {
@@ -225,6 +207,13 @@ export const USER_ROLES = {
   PROVIDER: 'provider',
   ADMIN: 'admin',
 } as const;
+
+export type DashboardRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+
+export function getDashboardHomeByRole(role?: string): string {
+	if (role === USER_ROLES.ADMIN) return ROUTES.DASHBOARD_ADMIN;
+	return ROUTES.DASHBOARD;
+}
 
 export const NOTIFICATION_TYPES = {
   NEW_PROPOSAL: 'new_proposal',

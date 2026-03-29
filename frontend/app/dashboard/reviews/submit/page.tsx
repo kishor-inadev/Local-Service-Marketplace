@@ -58,7 +58,7 @@ function SubmitReviewContent() {
 
     if (!jobId || !providerId) {
       toast.error('Missing job or provider information');
-      router.push(ROUTES.JOBS);
+			router.push(ROUTES.DASHBOARD_JOBS);
     }
   }, [jobId, providerId, router]);
 

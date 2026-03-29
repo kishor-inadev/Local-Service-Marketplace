@@ -16,7 +16,6 @@ import {
 	HttpStatus,
 } from "@nestjs/common";
 import { Request } from "express";
-import { UserModerationService } from "./services/user-moderation.service";
 import { DisputeService } from "./services/dispute.service";
 import { AuditLogService } from "./services/audit-log.service";
 import { SystemSettingService } from "./services/system-setting.service";
@@ -25,7 +24,6 @@ import { UpdateDisputeDto } from "./dto/update-dispute.dto";
 import { UpdateSystemSettingDto } from "./dto/update-system-setting.dto";
 import { CreateContactMessageDto } from "./dto/create-contact-message.dto";
 import { UpdateContactMessageDto } from "./dto/update-contact-message.dto";
-import { UserListQueryDto } from "./dto/user-list-query.dto";
 import { DisputeListQueryDto } from "./dto/dispute-list-query.dto";
 import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
 import { ContactMessageListQueryDto } from "./dto/contact-message-list-query.dto";
@@ -37,58 +35,20 @@ import { Roles } from "@/common/decorators/roles.decorator";
 @Controller("admin")
 export class AdminController {
 	constructor(
-		private readonly userModerationService: UserModerationService,
 		private readonly disputeService: DisputeService,
 		private readonly auditLogService: AuditLogService,
 		private readonly systemSettingService: SystemSettingService,
 		private readonly contactMessageService: ContactMessageService,
 	) {}
 
-	// User Moderation Endpoints
-	@Roles("admin")
-	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Get("stats")
-	async getStats() {
-		return this.userModerationService.getStats();
-	}
-
-	@Roles("admin")
-	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Get("users")
-	async getUsers(@Query() queryDto: UserListQueryDto) {
-		if (queryDto.search) {
-			return this.userModerationService.searchUsers(queryDto);
-		}
-
-		return this.userModerationService.getAllUsers(queryDto);
-	}
-
-	@Roles("admin")
-	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Get("users/:id")
-	async getUserById(@Param("id", ParseUUIDPipe) id: string) {
-		return this.userModerationService.getUserById(id);
-	}
-
-	@Roles("admin")
-	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Patch("users/:id/suspend")
-	async suspendUser(
-		@Param("id", ParseUUIDPipe) id: string,
-		@Body() body: { reason?: string },
-		@Headers("x-user-id") adminId: string,
-	) {
-		return this.userModerationService.suspendUser(id, adminId, true, body.reason);
-	}
-
-	@Roles("admin")
-	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Patch("users/:id/activate")
-	async activateUser(@Param("id", ParseUUIDPipe) id: string, @Headers("x-user-id") adminId: string) {
-		return this.userModerationService.activateUser(id, adminId);
-	}
-
 	// Dispute Management Endpoints
+	@Roles("admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Get("disputes/stats")
+	async getDisputeStats() {
+		return this.disputeService.getDisputeStats();
+	}
+
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes")
