@@ -32,6 +32,8 @@ import { RefreshTokenDto } from "../dto/refresh-token.dto";
 import { PhoneLoginDto } from "../dto/phone-login.dto";
 import { PhoneOtpRequestDto } from "../dto/phone-otp-request.dto";
 import { PhoneOtpVerifyDto } from "../dto/phone-otp-verify.dto";
+import { EmailOtpRequestDto } from "../dto/email-otp-request.dto";
+import { EmailOtpVerifyDto } from "../dto/email-otp-verify.dto";
 import { AuthResponseDto } from "../dto/auth-response.dto";
 import { OAuthUserDto } from "../dto/oauth-user.dto";
 import { VerifyTokenDto, VerifyTokenResponseDto } from "../dto/verify-token.dto";
@@ -247,6 +249,30 @@ export class AuthController {
 		this.setAuthCookies(res, result.accessToken, result.refreshToken);
 
 		return { message: "Phone verified and login successful", ...result };
+	}
+
+	// ==========================================
+	// Email OTP Routes
+	// ==========================================
+
+	@Post("email/otp/request")
+	@HttpCode(HttpStatus.OK)
+	async requestEmailOtp(@Body() dto: EmailOtpRequestDto): Promise<{ message: string }> {
+		this.logger.info("POST /auth/email/otp/request", { context: "AuthController", email: dto.email });
+		return this.authService.requestEmailOtp(dto.email);
+	}
+
+	@Post("email/otp/verify")
+	@HttpCode(HttpStatus.OK)
+	async verifyEmailOtp(
+		@Body() dto: EmailOtpVerifyDto,
+		@Ip() ipAddress: string,
+		@Res({ passthrough: true }) res: Response,
+	): Promise<AuthResponseDto> {
+		this.logger.info("POST /auth/email/otp/verify", { context: "AuthController", email: dto.email, ipAddress });
+		const result = await this.authService.verifyEmailOtp(dto.email, dto.code, ipAddress);
+		this.setAuthCookies(res, result.accessToken, result.refreshToken);
+		return { message: "Email OTP verified and login successful", ...result };
 	}
 
 	// ==========================================

@@ -795,6 +795,89 @@ export class AuthService {
 		}
 	}
 
+	// ==========================================
+	// Email OTP Routes
+	// ==========================================
+
+	async requestEmailOtp(email: string): Promise<{ message: string }> {
+		this.logger.info("Email OTP request", { context: "AuthService", email });
+
+		if (!this.notificationClient.isEmailEnabled()) {
+			this.logger.warn("Email OTP request but email service is disabled", { context: "AuthService", email });
+			throw new BadRequestException("Email OTP service is currently unavailable. Please use password login instead.");
+		}
+
+		const user = await this.userRepo.findByEmail(email);
+		if (!user) {
+			// Avoid email enumeration
+			return { message: "If this email is registered, an OTP will be sent" };
+		}
+
+		if (user.status !== "active") {
+			throw new UnauthorizedException("Account is not active");
+		}
+
+		const otp = await this.tokenService.createEmailOtpToken(user.id);
+
+		await this.notificationClient.sendEmail({
+			to: email,
+			template: "email-otp",
+			variables: { name: user.name, code: otp, expiresInMinutes: 10 },
+		});
+
+		this.logger.info("Email OTP sent", { context: "AuthService", userId: user.id });
+		return { message: "If this email is registered, an OTP will be sent" };
+	}
+
+	async verifyEmailOtp(email: string, code: string, ipAddress?: string): Promise<AuthResponseDto> {
+		this.logger.info("Email OTP verification attempt", { context: "AuthService", email });
+
+		if (!this.notificationClient.isEmailEnabled()) {
+			throw new BadRequestException("Email OTP service is currently unavailable. Please use password login instead.");
+		}
+
+		const user = await this.userRepo.findByEmail(email);
+		if (!user) {
+			throw new UnauthorizedException("Invalid email or OTP");
+		}
+
+		if (user.status !== "active") {
+			throw new UnauthorizedException("Account is not active");
+		}
+
+		const valid = await this.tokenService.verifyEmailOtpToken(user.id, code);
+		if (!valid) {
+			this.logger.warn("Email OTP verification failed: invalid or expired code", { context: "AuthService", email });
+			throw new UnauthorizedException("Invalid or expired OTP");
+		}
+
+		const accessToken = this.jwtService.generateAccessToken(user.id, user.email, user.role);
+		const refreshToken = this.jwtService.generateRefreshToken(user.id, user.email, user.role);
+
+		const expiresAt = new Date();
+		expiresAt.setDate(expiresAt.getDate() + 7);
+		await this.sessionRepo.create(user.id, refreshToken, expiresAt, ipAddress);
+
+		this.logger.info("Email OTP login successful", { context: "AuthService", userId: user.id });
+
+		return {
+			accessToken,
+			refreshToken,
+			user: {
+				id: user.id,
+				email: user.email,
+				name: user.name,
+				role: user.role,
+				email_verified: user.email_verified,
+				phone_verified: user.phone_verified || false,
+				profile_picture_url: user.profile_picture_url,
+				timezone: user.timezone || "UTC",
+				language: user.language || "en",
+				last_login_at: user.last_login_at,
+			},
+		};
+	}
+
 	/**
 	 * Verify JWT token and return user information (for API Gateway)
 	 */
