@@ -34,7 +34,7 @@ interface NavItem {
 }
 
 const customerLinks: NavItem[] = [
-	{ label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
+	{ label: "Dashboard", href: ROUTES.DASHBOARD_CUSTOMER, icon: LayoutDashboard },
 	{ label: "My Requests", href: ROUTES.DASHBOARD_REQUESTS, icon: FileText },
 	{ label: "My Jobs", href: ROUTES.DASHBOARD_JOBS, icon: Briefcase },
 	{ label: "Favorites", href: ROUTES.DASHBOARD_FAVORITES, icon: Heart },
@@ -42,7 +42,7 @@ const customerLinks: NavItem[] = [
 ];
 
 const providerLinks: NavItem[] = [
-	{ label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
+	{ label: "Dashboard", href: ROUTES.DASHBOARD_PROVIDER, icon: LayoutDashboard },
 	{ label: "Browse Requests", href: ROUTES.DASHBOARD_BROWSE_REQUESTS, icon: Search },
 	{ label: "My Proposals", href: ROUTES.DASHBOARD_MY_PROPOSALS, icon: ClipboardList },
 	{ label: "My Jobs", href: ROUTES.DASHBOARD_JOBS, icon: Briefcase },

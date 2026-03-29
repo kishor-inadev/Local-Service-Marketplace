@@ -3,7 +3,7 @@
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
-import { ROUTES } from '@/config/constants';
+import { ROUTES, getDashboardHomeByRole } from "@/config/constants";
 import { authService, SignupData } from '@/services/auth-service';
 import toast from 'react-hot-toast';
 
@@ -211,7 +211,7 @@ export function useAuth() {
       return false;
     }
     if (!roles.includes(user.role)) {
-      router.push(ROUTES.DASHBOARD);
+      router.push(getDashboardHomeByRole(user.role));
       return false;
     }
     return true;

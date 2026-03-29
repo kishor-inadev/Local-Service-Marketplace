@@ -4,6 +4,12 @@ import { getToken } from 'next-auth/jwt';
 
 type Role = "customer" | "provider" | "admin";
 
+function getDashboardHomeByRole(role?: Role) {
+	if (role === "admin") return "/dashboard/admin";
+	if (role === "provider") return "/dashboard/provider";
+	return "/dashboard/customer";
+}
+
 /**
  * Role-based route protection.
  * Checked with prefix matching — the most specific prefix wins.
@@ -21,6 +27,7 @@ const ROLE_ROUTES: Array<{ prefix: string; roles: Role[] }> = [
 	{ prefix: "/dashboard/my-proposals", roles: ["provider"] },
 
 	// Customer-only
+	{ prefix: "/dashboard/customer", roles: ["customer"] },
 	{ prefix: "/dashboard/requests", roles: ["customer"] },
 	{ prefix: "/dashboard/favorites", roles: ["customer"] },
 	{ prefix: "/dashboard/reviews/submit", roles: ["customer"] },
@@ -54,7 +61,12 @@ export async function middleware(req: NextRequest) {
 
 	// ── 1. Bounce authenticated users away from login/signup ──────────────────
 	if (AUTH_REDIRECT_ROUTES.includes(pathname) && isLoggedIn) {
-		return NextResponse.redirect(new URL("/dashboard", nextUrl));
+		return NextResponse.redirect(new URL(getDashboardHomeByRole(userRole), nextUrl));
+	}
+
+	// Canonicalize generic dashboard route to role-specific home route
+	if (pathname === "/dashboard" && isLoggedIn) {
+		return NextResponse.redirect(new URL(getDashboardHomeByRole(userRole), nextUrl));
 	}
 
 	const isProtected = pathname === AUTH_REQUIRED_PREFIX || pathname.startsWith(AUTH_REQUIRED_PREFIX + "/");

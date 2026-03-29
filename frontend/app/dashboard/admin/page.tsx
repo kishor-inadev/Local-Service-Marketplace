@@ -77,6 +77,13 @@ export default function AdminDashboardPage() {
 	const totalUsers = userStats?.total ?? 0;
 	const activeDisputes = disputeStats?.byStatus?.open ?? 0;
 	const totalRevenue = paymentStats?.totalRevenue ?? 0;
+	const totalRequests = requestStats?.total ?? 0;
+	const totalJobs = jobStats?.total ?? 0;
+	const completedJobs = jobStats?.byStatus?.completed ?? 0;
+	const requestCompletionRate =
+		totalRequests > 0 ? Math.round(((requestStats?.byStatus?.completed ?? 0) / totalRequests) * 100) : 0;
+	const jobSuccessRate = totalJobs > 0 ? Math.round((completedJobs / totalJobs) * 100) : 0;
+	const disputeRate = totalJobs > 0 ? Math.round(((jobStats?.byStatus?.disputed ?? 0) / totalJobs) * 100) : 0;
 
 	return (
 		<ProtectedRoute requiredRoles={["admin"]}>
@@ -148,6 +155,59 @@ export default function AdminDashboardPage() {
 										</CardContent>
 									</Card>
 								))}
+							</div>
+
+							{/* Performance Insights */}
+							<div className='grid grid-cols-1 md:grid-cols-3 gap-4 mb-10'>
+								<Card>
+									<CardContent className='p-5'>
+										<p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>
+											Requests Completion
+										</p>
+										<div className='mt-2 flex items-end justify-between'>
+											<p className='text-3xl font-bold text-gray-900 dark:text-white'>{requestCompletionRate}%</p>
+											<span className='text-sm text-green-600'>Healthy</span>
+										</div>
+										<div className='mt-3 h-2 rounded-full bg-gray-100 dark:bg-gray-700'>
+											<div
+												className='h-2 rounded-full bg-green-500'
+												style={{ width: `${requestCompletionRate}%` }}
+											/>
+										</div>
+									</CardContent>
+								</Card>
+
+								<Card>
+									<CardContent className='p-5'>
+										<p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Jobs Success</p>
+										<div className='mt-2 flex items-end justify-between'>
+											<p className='text-3xl font-bold text-gray-900 dark:text-white'>{jobSuccessRate}%</p>
+											<span className='text-sm text-blue-600'>Stable</span>
+										</div>
+										<div className='mt-3 h-2 rounded-full bg-gray-100 dark:bg-gray-700'>
+											<div
+												className='h-2 rounded-full bg-blue-500'
+												style={{ width: `${jobSuccessRate}%` }}
+											/>
+										</div>
+									</CardContent>
+								</Card>
+
+								<Card>
+									<CardContent className='p-5'>
+										<p className='text-xs uppercase tracking-wide text-gray-500 dark:text-gray-400'>Dispute Pressure</p>
+										<div className='mt-2 flex items-end justify-between'>
+											<p className='text-3xl font-bold text-gray-900 dark:text-white'>{disputeRate}%</p>
+											<span className='text-sm text-red-600'>{activeDisputes} open</span>
+										</div>
+										<div className='mt-3 h-2 rounded-full bg-gray-100 dark:bg-gray-700'>
+											<div
+												className='h-2 rounded-full bg-red-500'
+												style={{ width: `${Math.min(disputeRate, 100)}%` }}
+											/>
+										</div>
+									</CardContent>
+								</Card>
 							</div>
 
 							{/* Service Breakdown */}

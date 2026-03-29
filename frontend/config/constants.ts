@@ -42,6 +42,8 @@ export const ROUTES = {
 
 	// Dashboard - Main
 	DASHBOARD: "/dashboard",
+	DASHBOARD_CUSTOMER: "/dashboard/customer",
+	DASHBOARD_PROVIDER: "/dashboard/provider",
 
 	// Dashboard - Profile
 	DASHBOARD_PROFILE: "/dashboard/profile",
@@ -226,6 +228,14 @@ export const USER_ROLES = {
   PROVIDER: 'provider',
   ADMIN: 'admin',
 } as const;
+
+export type DashboardRole = (typeof USER_ROLES)[keyof typeof USER_ROLES];
+
+export function getDashboardHomeByRole(role?: string): string {
+	if (role === USER_ROLES.ADMIN) return ROUTES.DASHBOARD_ADMIN;
+	if (role === USER_ROLES.PROVIDER) return ROUTES.DASHBOARD_PROVIDER;
+	return ROUTES.DASHBOARD_CUSTOMER;
+}
 
 export const NOTIFICATION_TYPES = {
   NEW_PROPOSAL: 'new_proposal',
