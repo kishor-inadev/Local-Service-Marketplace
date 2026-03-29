@@ -1,5 +1,6 @@
 'use client';
 
+import { useRouter } from "next/navigation";
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from '@/config/constants';
@@ -19,6 +20,7 @@ import { SkeletonStatCard, SkeletonListItem } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
 
 export default function CustomerDashboard() {
+	const router = useRouter();
   const { user, isAuthenticated } = useAuth();
 
   const {
@@ -46,6 +48,7 @@ export default function CustomerDashboard() {
 	});
 
   const hasError = requestsError || jobsError;
+	const activeJobs = jobs?.filter((j) => j.status === "in_progress") || [];
 
 	if (hasError) {
 		return (
@@ -109,9 +112,7 @@ export default function CustomerDashboard() {
 									<p className='text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400'>
 										Active Jobs
 									</p>
-									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>
-										{jobs?.filter((j) => j.status === "in_progress").length ?? 0}
-									</p>
+									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>{activeJobs.length}</p>
 								</div>
 								<div className='h-12 w-12 rounded-2xl bg-green-50 dark:bg-green-900/30 flex items-center justify-center flex-shrink-0'>
 									<Briefcase className='h-6 w-6 text-green-600 dark:text-green-400' />
@@ -168,7 +169,7 @@ export default function CustomerDashboard() {
 									{requests.slice(0, 5).map((request) => (
 										<Link
 											key={request.id}
-											href={`/requests/${request.id}`}
+											href={ROUTES.DASHBOARD_REQUEST_DETAIL(request.id)}
 											className='block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-primary-200 dark:hover:border-primary-700 transition-all'>
 											<div className='flex items-start justify-between gap-3'>
 												<div className='flex-1 min-w-0'>
@@ -191,7 +192,7 @@ export default function CustomerDashboard() {
 									title='No requests yet'
 									description='Post your first service request to get proposals from local professionals.'
 									icon='file'
-									action={{ label: "Create Request", onClick: () => {} }}
+									action={{ label: "Create Request", onClick: () => router.push(ROUTES.CREATE_REQUEST) }}
 								/>
 							}
 						</CardContent>
@@ -218,29 +219,32 @@ export default function CustomerDashboard() {
 										<SkeletonListItem key={i} />
 									))}
 								</div>
-							: jobs && jobs.length > 0 ?
+							: activeJobs.length > 0 ?
 								<div className='space-y-3'>
-									{jobs.slice(0, 5).map((job) => (
-										<Link
-											key={job.id}
-											href={`/jobs/${job.id}`}
-											className='block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-green-200 dark:hover:border-green-700 transition-all'>
-											<div className='flex items-start justify-between gap-3'>
-												<div className='flex-1 min-w-0'>
-													<h3 className='font-medium text-gray-900 dark:text-white truncate'>
-														Job #{job.id.slice(0, 8)}
-													</h3>
-													<p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
-														{job.provider?.name || "Provider"}
-													</p>
-													<p className='text-xs text-gray-400 dark:text-gray-500 mt-1.5'>
-														{formatDate(job.created_at)}
-													</p>
+									{activeJobs
+										.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+										.slice(0, 5)
+										.map((job) => (
+											<Link
+												key={job.id}
+												href={ROUTES.DASHBOARD_JOB_DETAIL(job.id)}
+												className='block p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-green-200 dark:hover:border-green-700 transition-all'>
+												<div className='flex items-start justify-between gap-3'>
+													<div className='flex-1 min-w-0'>
+														<h3 className='font-medium text-gray-900 dark:text-white truncate'>
+															Job #{job.id.slice(0, 8)}
+														</h3>
+														<p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+															{job.provider?.name || "Provider"}
+														</p>
+														<p className='text-xs text-gray-400 dark:text-gray-500 mt-1.5'>
+															{formatDate(job.created_at)}
+														</p>
+													</div>
+													<StatusBadge status={job.status} />
 												</div>
-												<StatusBadge status={job.status} />
-											</div>
-										</Link>
-									))}
+											</Link>
+										))}
 								</div>
 							:	<EmptyState
 									title='No active jobs'
