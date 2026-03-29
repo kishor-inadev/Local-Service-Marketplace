@@ -170,6 +170,34 @@ export class JobRepository {
 		return result.rows;
 	}
 
+	async getJobStats(): Promise<{
+		total: number;
+		byStatus: { scheduled: number; in_progress: number; completed: number; cancelled: number; disputed: number };
+	}> {
+		const query = `
+      SELECT
+        COUNT(*)::int AS total,
+        COUNT(*) FILTER (WHERE status = 'scheduled')::int AS scheduled,
+        COUNT(*) FILTER (WHERE status = 'in_progress')::int AS in_progress,
+        COUNT(*) FILTER (WHERE status = 'completed')::int AS completed,
+        COUNT(*) FILTER (WHERE status = 'cancelled')::int AS cancelled,
+        COUNT(*) FILTER (WHERE status = 'disputed')::int AS disputed
+      FROM jobs
+    `;
+		const result = await this.pool.query(query);
+		const row = result.rows[0];
+		return {
+			total: row.total,
+			byStatus: {
+				scheduled: row.scheduled,
+				in_progress: row.in_progress,
+				completed: row.completed,
+				cancelled: row.cancelled,
+				disputed: row.disputed,
+			},
+		};
+	}
+
 	async countJobs(queryDto: JobQueryDto): Promise<number> {
 		const { provider_id, customer_id, request_id, status, started_from, started_to, completed_from, completed_to } =
 			queryDto;

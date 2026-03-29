@@ -17,6 +17,12 @@ export class JobController {
 		return this.jobService.createJob(createJobDto);
 	}
 
+	@Get("stats")
+	@HttpCode(HttpStatus.OK)
+	async getJobStats() {
+		return this.jobService.getJobStats();
+	}
+
 	@Get("my")
 	@HttpCode(HttpStatus.OK)
 	async getMyJobs(

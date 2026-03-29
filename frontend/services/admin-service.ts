@@ -193,6 +193,41 @@ class AdminService {
 		}>("/admin/disputes/stats");
 		return response.data;
 	}
+
+	async getJobStats(): Promise<{
+		total: number;
+		byStatus: { scheduled: number; in_progress: number; completed: number; cancelled: number; disputed: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { scheduled: number; in_progress: number; completed: number; cancelled: number; disputed: number };
+		}>("/jobs/stats");
+		return response.data;
+	}
+
+	async getRequestStats(): Promise<{
+		total: number;
+		byStatus: { open: number; assigned: number; completed: number; cancelled: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			byStatus: { open: number; assigned: number; completed: number; cancelled: number };
+		}>("/requests/stats");
+		return response.data;
+	}
+
+	async getPaymentStats(): Promise<{
+		total: number;
+		totalRevenue: number;
+		byStatus: { pending: number; completed: number; failed: number; refunded: number };
+	}> {
+		const response = await apiClient.get<{
+			total: number;
+			totalRevenue: number;
+			byStatus: { pending: number; completed: number; failed: number; refunded: number };
+		}>("/payments/stats");
+		return response.data;
+	}
 }
 
 export const adminService = new AdminService();

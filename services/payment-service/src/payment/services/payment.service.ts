@@ -238,4 +238,13 @@ export class PaymentService {
 		this.logger.log(`Fetching payouts for provider ${providerId}`, "PaymentService");
 		return this.paymentRepository.getProviderPayouts(providerId);
 	}
+
+	async getPaymentStats(): Promise<{
+		total: number;
+		totalRevenue: number;
+		byStatus: { pending: number; completed: number; failed: number; refunded: number };
+	}> {
+		this.logger.log(`Fetching payment stats`, "PaymentService");
+		return this.paymentRepository.getPaymentStats();
+	}
 }

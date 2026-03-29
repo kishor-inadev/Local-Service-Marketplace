@@ -17,6 +17,8 @@ import { CreatePaymentDto } from '../dto/create-payment.dto';
 import { RequestRefundDto } from '@/payment/dto/request-refund.dto';
 import { TransactionQueryDto } from "../dto/transaction-query.dto";
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
+import { RolesGuard } from "@/common/guards/roles.guard";
+import { Roles } from "@/common/decorators/roles.decorator";
 
 @Controller("payments")
 export class PaymentController {
@@ -43,6 +45,18 @@ export class PaymentController {
 		);
 
 		return payment;
+	}
+
+	/**
+	 * Admin stats endpoint
+	 * GET /payments/stats
+	 */
+	@Get("stats")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Roles("admin")
+	@HttpCode(HttpStatus.OK)
+	async getPaymentStats() {
+		return this.paymentService.getPaymentStats();
 	}
 
 	/**

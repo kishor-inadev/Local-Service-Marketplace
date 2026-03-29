@@ -511,19 +511,27 @@ export class PaymentRepository {
 		return [];
 	}
 
-	async getPaymentStats(): Promise<any> {
+	async getPaymentStats(): Promise<{
+		total: number;
+		totalRevenue: number;
+		byStatus: { pending: number; completed: number; failed: number; refunded: number };
+	}> {
 		const query = `
-      SELECT 
-        status,
-        payment_method,
-        COUNT(*) as count,
-        SUM(amount) as total_amount,
-        SUM(platform_fee) as total_fees
+      SELECT
+        COUNT(*)::int AS total,
+        COALESCE(SUM(CASE WHEN status = 'completed' THEN amount ELSE 0 END), 0)::numeric AS total_revenue,
+        COUNT(*) FILTER (WHERE status = 'pending')::int AS pending,
+        COUNT(*) FILTER (WHERE status = 'completed')::int AS completed,
+        COUNT(*) FILTER (WHERE status = 'failed')::int AS failed,
+        COUNT(*) FILTER (WHERE status = 'refunded')::int AS refunded
       FROM payments
-      GROUP BY status, payment_method
-      ORDER BY count DESC
     `;
 		const result = await this.pool.query(query);
-		return result.rows;
+		const row = result.rows[0];
+		return {
+			total: row.total,
+			totalRevenue: parseFloat(row.total_revenue),
+			byStatus: { pending: row.pending, completed: row.completed, failed: row.failed, refunded: row.refunded },
+		};
 	}
 }

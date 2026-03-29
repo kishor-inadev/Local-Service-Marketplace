@@ -245,4 +245,12 @@ export class JobService {
 		const response = jobs.map(JobResponseDto.fromEntity);
 		return new PaginatedJobResponseDto(response, undefined, false, total, queryDto.page || 1, limit);
 	}
+
+	async getJobStats(): Promise<{
+		total: number;
+		byStatus: { scheduled: number; in_progress: number; completed: number; cancelled: number; disputed: number };
+	}> {
+		this.logger.log(`Fetching job stats`, JobService.name);
+		return this.jobRepository.getJobStats();
+	}
 }

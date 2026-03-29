@@ -33,6 +33,15 @@ export class RequestController {
 		return this.requestService.createRequest(createRequestDto);
 	}
 
+	// Admin stats endpoint
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Roles("admin")
+	@Get("stats")
+	@HttpCode(HttpStatus.OK)
+	async getRequestStats() {
+		return this.requestService.getRequestStats();
+	}
+
 	// Public — anyone can browse open requests
 	@UseGuards(JwtAuthGuard)
 	@Get()
