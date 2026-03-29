@@ -1,13 +1,24 @@
 import { apiClient } from './api-client';
 
 export interface User {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  status: 'active' | 'suspended' | 'deleted';
-  created_at: string;
+	id: string;
+	email: string;
+	name?: string;
+	role: string;
+	status: "active" | "suspended" | "deleted";
+	created_at: string;
 }
+
+type ApiUser = Partial<User> & { createdAt?: string };
+
+const normalizeUser = (user: ApiUser): User => ({
+	id: String(user.id || ""),
+	email: String(user.email || ""),
+	name: user.name || undefined,
+	role: String(user.role || "customer"),
+	status: (user.status as User["status"]) || "active",
+	created_at: String(user.created_at || user.createdAt || ""),
+});
 
 export interface AdminCreateUserPayload {
 	email: string;
@@ -65,29 +76,29 @@ class AdminService {
 		if (params?.sortOrder) searchParams.append("sortOrder", params.sortOrder);
 		if (params?.page) searchParams.append("page", params.page.toString());
 
-		const response = await apiClient.get<{ data: User[]; total: number }>(`/users?${searchParams.toString()}`);
+		const response = await apiClient.get<{ data: ApiUser[]; total: number }>(`/users?${searchParams.toString()}`);
 		// API client unwraps standardized response and returns { data, total } for paginated responses
-		return response.data;
+		return { data: (response.data?.data || []).map(normalizeUser), total: response.data?.total || 0 };
 	}
 
 	async getUserById(id: string): Promise<User> {
-		const response = await apiClient.get<User>(`/users/${id}`);
-		return response.data;
+		const response = await apiClient.get<ApiUser>(`/users/${id}`);
+		return normalizeUser(response.data || {});
 	}
 
 	async createUser(payload: AdminCreateUserPayload): Promise<User> {
-		const response = await apiClient.post<User>("/users", payload);
-		return response.data;
+		const response = await apiClient.post<ApiUser>("/users", payload);
+		return normalizeUser(response.data || {});
 	}
 
 	async suspendUser(id: string, reason: string): Promise<User> {
-		const response = await apiClient.patch<User>(`/users/${id}/suspend`, { reason });
-		return response.data;
+		const response = await apiClient.patch<ApiUser>(`/users/${id}/suspend`, { reason });
+		return normalizeUser(response.data || {});
 	}
 
 	async activateUser(id: string): Promise<User> {
-		const response = await apiClient.patch<User>(`/users/${id}/activate`, {});
-		return response.data;
+		const response = await apiClient.patch<ApiUser>(`/users/${id}/activate`, {});
+		return normalizeUser(response.data || {});
 	}
 
 	async resetUserPassword(id: string, newPassword: string, reason?: string): Promise<{ success: true }> {
@@ -96,13 +107,13 @@ class AdminService {
 	}
 
 	async deleteUser(id: string): Promise<User> {
-		const response = await apiClient.delete<User>(`/users/${id}`);
-		return response.data;
+		const response = await apiClient.delete<ApiUser>(`/users/${id}`);
+		return normalizeUser(response.data || {});
 	}
 
 	async restoreUser(id: string): Promise<User> {
-		const response = await apiClient.patch<User>(`/users/${id}/restore`, {});
-		return response.data;
+		const response = await apiClient.patch<ApiUser>(`/users/${id}/restore`, {});
+		return normalizeUser(response.data || {});
 	}
 
 	async getDisputes(params?: {
