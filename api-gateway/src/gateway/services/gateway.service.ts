@@ -142,27 +142,29 @@ export class GatewayService {
 
     // Add user context headers from decoded JWT
     if (user) {
-      // Extract user information from JWT payload
-      sanitized['x-user-id'] = user.userId || user.sub || user.id || '';
-      sanitized['x-user-email'] = user.email || '';
-      sanitized['x-user-role'] = user.role || 'user';
+			// Extract user information from JWT payload
+			sanitized["x-user-id"] = user.userId || user.sub || user.id || "";
+			sanitized["x-user-email"] = user.email || "";
+			sanitized["x-user-role"] = user.role || "user";
 
-      // Optional: Add other user fields if present
-      if (user.name) {
-        sanitized['x-user-name'] = user.name;
-      }
-      if (user.phone) {
-        sanitized['x-user-phone'] = user.phone;
-      }
-      if (user.providerId) {
-        sanitized['x-provider-id'] = user.providerId;
-      }
+			// Optional: Add other user fields if present
+			if (user.name) {
+				sanitized["x-user-name"] = user.name;
+			}
+			if (user.phone) {
+				sanitized["x-user-phone"] = user.phone;
+			}
+			if (user.providerId) {
+				sanitized["x-provider-id"] = user.providerId;
+			}
 
-      this.logger.log(
-        `Added user context headers: userId=${sanitized['x-user-id']}, role=${sanitized['x-user-role']}`,
-        'GatewayService',
-      );
-    }
+			this.logger.log(
+				`Added user context headers: userId=${sanitized["x-user-id"]}, role=${sanitized["x-user-role"]}`,
+				"GatewayService",
+			);
+			// Debug: Log all outgoing headers
+			this.logger.log(`Outgoing headers to microservice: ${JSON.stringify(sanitized, null, 2)}`, "GatewayService");
+		}
 
     return sanitized;
   }
