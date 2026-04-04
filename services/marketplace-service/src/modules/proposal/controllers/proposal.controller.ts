@@ -15,6 +15,7 @@ import {
 } from "@nestjs/common";
 import { ProposalService } from "../services/proposal.service";
 import { CreateProposalDto } from "../dto/create-proposal.dto";
+import { UpdateProposalDto } from "../dto/update-proposal.dto";
 import { ProposalQueryDto } from "../dto/proposal-query.dto";
 import { ProposalResponseDto, PaginatedProposalResponseDto } from "../dto/proposal-response.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
@@ -82,7 +83,7 @@ export class ProposalController {
 	@HttpCode(HttpStatus.OK)
 	async updateProposal(
 		@Param("id", ParseUUIDPipe) id: string,
-		@Body() body: { price?: number; message?: string; estimated_hours?: number },
+		@Body() body: UpdateProposalDto,
 		@Request() req: any,
 	): Promise<ProposalResponseDto> {
 		return this.proposalService.updateProposal(id, req.user.userId, body);

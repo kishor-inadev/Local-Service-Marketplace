@@ -1,4 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext, UnauthorizedException } from '@nestjs/common';
+import * as crypto from 'crypto';
 
 /**
  * JWT Auth Guard for identity-service user endpoints.
@@ -23,6 +24,17 @@ export class JwtAuthGuard implements CanActivate {
 
     if (!userId || !userEmail) {
       throw new UnauthorizedException('Authentication required. Request must come through API Gateway.');
+    }
+
+    // Verify HMAC signature to ensure headers were set by the gateway
+    const gatewaySecret = process.env.GATEWAY_INTERNAL_SECRET;
+    if (gatewaySecret) {
+      const receivedHmac = request.headers['x-gateway-hmac'];
+      const hmacPayload = `${userId}:${userEmail}:${userRole || 'user'}`;
+      const expectedHmac = crypto.createHmac('sha256', gatewaySecret).update(hmacPayload).digest('hex');
+      if (!receivedHmac || receivedHmac !== expectedHmac) {
+        throw new UnauthorizedException('Invalid gateway signature.');
+      }
     }
 
     // Attach user info to request object for use in controllers/services

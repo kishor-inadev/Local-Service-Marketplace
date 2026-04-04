@@ -32,7 +32,7 @@ import {
 
 @Injectable()
 export class AuthService {
-	private readonly saltRounds = 10;
+	private readonly saltRounds = 12;
 	private readonly maxLoginAttempts: number;
 
 	constructor(
@@ -341,10 +341,14 @@ export class AuthService {
 		};
 	}
 
-	async logout(refreshToken: string): Promise<void> {
+	async logout(refreshToken?: string, userId?: string): Promise<void> {
 		this.logger.info("Logout attempt", { context: "AuthService" });
 
-		await this.sessionRepo.deleteByRefreshToken(refreshToken);
+		if (refreshToken) {
+			await this.sessionRepo.deleteByRefreshToken(refreshToken);
+		} else if (userId) {
+			await this.sessionRepo.deleteByUserId(userId);
+		}
 
 		this.logger.info("Logout successful", { context: "AuthService" });
 	}

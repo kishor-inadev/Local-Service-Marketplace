@@ -1,8 +1,10 @@
 import { Injectable, Inject, LoggerService } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { firstValueFrom } from 'rxjs';
+import * as crypto from 'crypto';
 import { servicesConfig, routingConfig } from '../config/services.config';
 import {
   GatewayTimeoutException,
@@ -11,11 +13,16 @@ import {
 
 @Injectable()
 export class GatewayService {
+  private readonly gatewaySecret: string;
+
   constructor(
     private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-  ) { }
+  ) {
+    this.gatewaySecret = this.configService.get<string>('GATEWAY_INTERNAL_SECRET', '');
+  }
 
   /**
    * Forward request to appropriate microservice
@@ -158,12 +165,19 @@ export class GatewayService {
 				sanitized["x-provider-id"] = user.providerId;
 			}
 
+			// Sign user context headers with HMAC to prevent tampering
+			if (this.gatewaySecret) {
+				const hmacPayload = `${sanitized["x-user-id"]}:${sanitized["x-user-email"]}:${sanitized["x-user-role"]}`;
+				sanitized["x-gateway-hmac"] = crypto
+					.createHmac("sha256", this.gatewaySecret)
+					.update(hmacPayload)
+					.digest("hex");
+			}
+
 			this.logger.log(
 				`Added user context headers: userId=${sanitized["x-user-id"]}, role=${sanitized["x-user-role"]}`,
 				"GatewayService",
 			);
-			// Debug: Log all outgoing headers
-			this.logger.log(`Outgoing headers to microservice: ${JSON.stringify(sanitized, null, 2)}`, "GatewayService");
 		}
 
     return sanitized;

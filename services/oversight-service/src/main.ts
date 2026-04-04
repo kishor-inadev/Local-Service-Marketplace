@@ -6,9 +6,12 @@ import { WinstonModule } from "nest-winston";
 import { winstonConfig } from "./common/config/winston.config";
 import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { ResponseTransformInterceptor } from "./common/interceptors/response-transform.interceptor";
+import helmet from "helmet";
 
 async function bootstrap() {
 	const app = await NestFactory.create(AppModule, { logger: WinstonModule.createLogger(winstonConfig) });
+
+	app.use(helmet());
 
 	const configService = app.get(ConfigService);
 	const port = configService.get<number>("PORT", 3010);

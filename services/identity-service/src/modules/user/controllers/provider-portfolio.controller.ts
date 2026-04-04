@@ -18,6 +18,7 @@ import {
 import { FilesInterceptor } from '@nestjs/platform-express';
 import { ProviderPortfolioService } from '../services/provider-portfolio.service';
 import { CreatePortfolioDto } from '../dto/create-portfolio.dto';
+import { UpdatePortfolioItemDto } from '../dto/update-portfolio-item.dto';
 import { JwtAuthGuard } from '../../../common/guards/jwt-auth.guard';
 
 @UseGuards(JwtAuthGuard)
@@ -98,7 +99,7 @@ export class ProviderPortfolioController {
   @Put(':itemId')
   async updatePortfolioItem(
     @Param('itemId', ParseUUIDPipe) itemId: string,
-    @Body() updateData: { title?: string; description?: string },
+    @Body() updateData: UpdatePortfolioItemDto,
     @Request() req: any
   ) {
     const item = await this.portfolioService.updatePortfolioItem(

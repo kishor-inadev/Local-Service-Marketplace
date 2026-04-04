@@ -11,6 +11,7 @@ import {
 	HttpCode,
 	HttpStatus,
 	ParseIntPipe,
+	ParseUUIDPipe,
 	DefaultValuePipe,
 	Headers,
 } from "@nestjs/common";
@@ -18,6 +19,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { AnalyticsService } from "../services/analytics.service";
 import { MetricsAggregationService } from "../services/metrics-aggregation.service";
 import { TrackActivityDto } from "../dto/track-activity.dto";
+import { BackfillMetricsDto } from "../dto/backfill-metrics.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
@@ -61,7 +63,7 @@ export class AnalyticsController {
 
 	@Get("user-activity/:userId")
 	async getUserActivity(
-		@Param("userId") userId: string,
+		@Param("userId", ParseUUIDPipe) userId: string,
 		@Headers("x-user-id") requestingUserId: string,
 		@Headers("x-user-role") requestingUserRole: string,
 		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
@@ -165,7 +167,7 @@ export class AnalyticsController {
 	@UseGuards(RolesGuard)
 	@Roles("admin")
 	@HttpCode(HttpStatus.OK)
-	async backfillMetrics(@Body() body: { startDate: string; endDate: string }) {
+	async backfillMetrics(@Body() body: BackfillMetricsDto) {
 		this.logger.log(
 			`POST /analytics/workers/backfill - Backfill metrics from ${body.startDate} to ${body.endDate}`,
 			"AnalyticsController",

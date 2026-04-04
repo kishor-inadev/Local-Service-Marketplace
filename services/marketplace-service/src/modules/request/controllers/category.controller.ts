@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, HttpCode, HttpStatus, UseGuards, ParseUUIDPipe } from '@nestjs/common';
 import { CategoryService } from "../services/category.service";
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -22,7 +22,7 @@ export class CategoryController {
 
 	@Get(":id")
 	@HttpCode(HttpStatus.OK)
-	async getCategoryById(@Param("id") id: string): Promise<any> {
+	async getCategoryById(@Param("id", ParseUUIDPipe) id: string): Promise<any> {
 		return this.categoryService.getCategoryById(id);
 	}
 

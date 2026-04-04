@@ -18,6 +18,7 @@ import { ReviewRepository } from "./repositories/review.repository";
 import { CreateReviewDto } from "./dto/create-review.dto";
 import { RespondReviewDto } from "./dto/respond-review.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { ForbiddenException } from "@/common/exceptions/http.exceptions";
 
 @UseGuards(JwtAuthGuard)
 @Controller("reviews")
@@ -63,8 +64,12 @@ export class ReviewController {
 	 */
 	@Post(":id/respond")
 	@HttpCode(HttpStatus.OK)
-	async respondToReview(@Param("id") id: string, @Body() respondReviewDto: RespondReviewDto, @Request() req: any) {
-		const review = await this.reviewRepository.respondToReview(id, respondReviewDto.response, req.user.userId);
+	async respondToReview(@Param("id", ParseUUIDPipe) id: string, @Body() respondReviewDto: RespondReviewDto, @Request() req: any) {
+		const providerId = req.user.providerId;
+		if (!providerId) {
+			throw new ForbiddenException("Only providers can respond to reviews");
+		}
+		const review = await this.reviewRepository.respondToReview(id, respondReviewDto.response, providerId);
 
 		return review;
 	}
@@ -75,7 +80,7 @@ export class ReviewController {
 	 */
 	@Post(":id/helpful")
 	@HttpCode(HttpStatus.OK)
-	async markHelpful(@Param("id") id: string, @Request() req: any) {
+	async markHelpful(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
 		const review = await this.reviewRepository.incrementHelpfulCount(id);
 
 		return review;
@@ -86,7 +91,7 @@ export class ReviewController {
 	 */
 	@Get("provider/:providerId")
 	async getProviderReviews(
-		@Param("providerId") providerId: string,
+		@Param("providerId", ParseUUIDPipe) providerId: string,
 		@Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
 		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
 	) {
@@ -109,7 +114,7 @@ export class ReviewController {
 	 * GET /reviews/provider/:providerId/rating
 	 */
 	@Get("provider/:providerId/rating")
-	async getProviderRating(@Param("providerId") providerId: string) {
+	async getProviderRating(@Param("providerId", ParseUUIDPipe) providerId: string) {
 		return this.reviewService.getProviderRating(providerId);
 	}
 }

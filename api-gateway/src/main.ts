@@ -71,5 +71,6 @@ async function bootstrap() {
 
   console.log(`API Gateway is running on port ${port}`);
   console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+}
 
 bootstrap();

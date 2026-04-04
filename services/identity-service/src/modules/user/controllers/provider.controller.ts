@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Inject,
   UseGuards,
+  ParseUUIDPipe,
 } from '@nestjs/common';
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
@@ -48,7 +49,7 @@ export class ProviderController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  async getProvider(@Param('id') id: string): Promise<ProviderResponseDto> {
+  async getProvider(@Param('id', ParseUUIDPipe) id: string): Promise<ProviderResponseDto> {
     this.logger.info('GET /providers/:id', {
       context: 'ProviderController',
       provider_id: id,
@@ -73,7 +74,7 @@ export class ProviderController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   async updateProvider(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() updateProviderDto: UpdateProviderDto,
   ): Promise<ProviderResponseDto> {
     this.logger.info('PATCH /providers/:id', {
@@ -87,7 +88,7 @@ export class ProviderController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteProvider(@Param('id') id: string): Promise<void> {
+  async deleteProvider(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
     this.logger.info('DELETE /providers/:id', {
       context: 'ProviderController',
       provider_id: id,
@@ -104,7 +105,7 @@ export class ProviderController {
   @Patch(':id/services')
   @HttpCode(HttpStatus.OK)
   async updateProviderServices(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProviderServicesDto,
   ): Promise<ProviderResponseDto> {
     this.logger.info('PATCH /providers/:id/services', {
@@ -126,7 +127,7 @@ export class ProviderController {
   @Patch(':id/availability')
   @HttpCode(HttpStatus.OK)
   async updateProviderAvailability(
-    @Param('id') id: string,
+    @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateProviderAvailabilityDto,
   ): Promise<ProviderResponseDto> {
     this.logger.info('PATCH /providers/:id/availability', {

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsBoolean, IsEmail, MinLength } from "class-validator";
+import { IsString, IsOptional, IsBoolean, IsEmail, MinLength, MaxLength } from "class-validator";
 
 export class ChangePasswordDto {
 	@IsString()
@@ -6,6 +6,7 @@ export class ChangePasswordDto {
 
 	@IsString()
 	@MinLength(8)
+	@MaxLength(72)
 	newPassword: string;
 }
 
@@ -27,6 +28,21 @@ export class DeactivateAccountDto {
 export class CancelAccountDeletionDto {
 	@IsString()
 	password: string;
+}
+
+export class DeleteAccountDto {
+	@IsString()
+	password: string;
+
+	@IsOptional()
+	@IsString()
+	reason?: string;
+}
+
+export class OAuthExchangeDto {
+	@IsOptional()
+	@IsString()
+	code?: string;
 }
 
 export class SocialLinkDto {

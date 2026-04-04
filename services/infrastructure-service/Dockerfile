@@ -22,7 +22,7 @@ RUN pnpm install
 COPY . .
 
 # Build the application
-RUN npm run build
+RUN pnpm run build
 
 # Stage 2: Production
 FROM node:20-alpine
@@ -49,6 +49,9 @@ COPY --from=builder /app/dist ./dist
 
 # Expose port
 EXPOSE 3012
+
+# Set non-root user
+USER node
 
 # Start the application
 CMD ["node", "dist/main"]

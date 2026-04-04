@@ -13,7 +13,7 @@ import { ConflictException, NotFoundException } from "@/common/exceptions/http.e
 
 @Injectable()
 export class UserService {
-	private readonly saltRounds = 10;
+	private readonly saltRounds = 12;
 
 	constructor(
 		private readonly userRepository: UserRepository,

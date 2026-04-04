@@ -76,21 +76,21 @@ export class MessagingController {
 	}
 
 	@Get("attachments/message/:messageId")
-	async getAttachmentsByMessage(@Param("messageId") messageId: string) {
+	async getAttachmentsByMessage(@Param("messageId", ParseUUIDPipe) messageId: string) {
 		this.logger.log(`GET /messages/attachments/message/${messageId} - Get attachments`, "MessagingController");
 		const attachments = await this.attachmentService.getAttachmentsByMessageId(messageId);
 		return { data: attachments, total: attachments.length, page: 1, limit: attachments.length || 1 };
 	}
 
 	@Get("attachments/:id")
-	async getAttachment(@Param("id") id: string) {
+	async getAttachment(@Param("id", ParseUUIDPipe) id: string) {
 		this.logger.log(`GET /messages/attachments/${id} - Get attachment`, "MessagingController");
 		const attachment = await this.attachmentService.getAttachmentById(id);
 		return { success: true, data: attachment, message: "Attachment retrieved successfully" };
 	}
 
 	@Get(":id")
-	async getMessage(@Param("id") id: string) {
+	async getMessage(@Param("id", ParseUUIDPipe) id: string) {
 		this.logger.log(`GET /messages/${id} - Get message`, "MessagingController");
 		const item = await this.messageService.getMessageById(id);
 		return { success: true, data: item, message: "Message retrieved successfully" };

@@ -4,7 +4,7 @@ export class Proposal {
 	provider_id: string;
 	customer_id?: string; // joined from service_requests
 	price: number;
-	message: string;
+	message?: string;
 	estimated_hours?: number; // ✅ NEW
 	start_date?: Date; // ✅ NEW
 	completion_date?: Date; // ✅ NEW

@@ -17,6 +17,7 @@ import {
 	BadRequestException,
 	HttpCode,
 	HttpStatus,
+	ParseUUIDPipe,
 } from "@nestjs/common";
 import { randomUUID } from "crypto";
 import { AuthGuard } from "@nestjs/passport";
@@ -29,7 +30,7 @@ import { RegisterDto, RegisterResponseDto } from "../dto/register.dto";
 import { LoginDto } from "../dto/login.dto";
 import { PasswordResetRequestDto } from "../dto/password-reset-request.dto";
 import { PasswordResetConfirmDto } from "../dto/password-reset-confirm.dto";
-import { RefreshTokenDto } from "../dto/refresh-token.dto";
+import { RefreshTokenDto, LogoutDto } from "../dto/refresh-token.dto";
 import { PhoneLoginDto } from "../dto/phone-login.dto";
 import { PhoneOtpRequestDto } from "../dto/phone-otp-request.dto";
 import { PhoneOtpVerifyDto } from "../dto/phone-otp-verify.dto";
@@ -41,13 +42,18 @@ import { VerifyTokenDto, VerifyTokenResponseDto } from "../dto/verify-token.dto"
 import { CheckIdentifierDto, CheckIdentifierResponseDto } from "../dto/check-identifier.dto";
 import { JwtAuthGuard } from "../guards/jwt-auth.guard";
 import { UpdateUserDto } from "../../user/dto/update-user.dto";
-// Future feature DTOs (uncomment when implementing)
-// import { Enable2faDto } from '../dto/2fa.dto';
-// import { ChangePasswordDto } from '../dto/account-management.dto';
-// import { ResendVerificationEmailDto } from '../dto/account-management.dto';
-// import { DeactivateAccountDto } from '../dto/account-management.dto';
-// import { CancelAccountDeletionDto } from '../dto/account-management.dto';
-// import { SocialLinkDto } from '../dto/account-management.dto';
+import { VerifyTwoFactorDto, DisableTwoFactorDto, VerifyBackupCodeDto } from "../dto/two-factor.dto";
+import {
+	ChangePasswordDto,
+	ResendVerificationEmailDto,
+	DeactivateAccountDto,
+	DeleteAccountDto,
+	CancelAccountDeletionDto,
+	SocialLinkDto,
+	MagicLinkRequestDto,
+	AppleMobileSignInDto,
+	OAuthExchangeDto,
+} from "../dto/account-management.dto";
 // import { MagicLinkRequestDto } from '../dto/account-management.dto';
 // import { AppleMobileSignInDto } from '../dto/account-management.dto';
 
@@ -109,11 +115,12 @@ export class AuthController {
 	@Post("logout")
 	@HttpCode(HttpStatus.OK)
 	async logout(
-		@Body() refreshTokenDto: RefreshTokenDto,
+		@Body() logoutDto: LogoutDto,
+		@Headers("x-user-id") userId: string,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<{ message: string }> {
 		this.logger.info("POST /auth/logout", { context: "AuthController" });
-		await this.authService.logout(refreshTokenDto.refreshToken);
+		await this.authService.logout(logoutDto.refreshToken, userId);
 
 		// Clear cookies
 		this.clearAuthCookies(res);
@@ -215,7 +222,7 @@ export class AuthController {
 	@Post("oauth/exchange")
 	@HttpCode(HttpStatus.OK)
 	async exchangeOAuthCode(
-		@Body() body: { code?: string },
+		@Body() body: OAuthExchangeDto,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<{ message: string; accessToken: string; refreshToken: string }> {
 		if (!body?.code) {
@@ -420,7 +427,7 @@ export class AuthController {
 	@Post("2fa/verify")
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async verify2FA(@Body() dto: { code: string }, @Req() req: Request): Promise<{ result: string }> {
+	async verify2FA(@Body() dto: VerifyTwoFactorDto, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.verify2FA(req.user["sub"], dto.code);
 		return { result: "2FA enabled successfully" };
 	}
@@ -428,7 +435,7 @@ export class AuthController {
 	@Post("2fa/disable")
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async disable2FA(@Body() dto: { password: string; code?: string }, @Req() req: Request): Promise<{ result: string }> {
+	async disable2FA(@Body() dto: DisableTwoFactorDto, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.disable2FA(req.user["sub"], dto.password, dto.code);
 		return { result: "2FA disabled successfully" };
 	}
@@ -444,7 +451,7 @@ export class AuthController {
 	@Post("2fa/backup-codes/verify")
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async useBackupCode(@Body() dto: { backupCode: string }, @Req() req: Request): Promise<{ success: boolean }> {
+	async useBackupCode(@Body() dto: VerifyBackupCodeDto, @Req() req: Request): Promise<{ success: boolean }> {
 		const valid = await this.authService.useBackupCode(req.user["sub"], dto.backupCode);
 		return { success: valid };
 	}
@@ -458,7 +465,7 @@ export class AuthController {
 
 	@Delete("sessions/:sessionId")
 	@UseGuards(JwtAuthGuard)
-	async revokeSession(@Req() req: Request, @Param("sessionId") sessionId: string): Promise<{ result: string }> {
+	async revokeSession(@Req() req: Request, @Param("sessionId", ParseUUIDPipe) sessionId: string): Promise<{ result: string }> {
 		await this.authService.revokeSession(req.user["sub"], sessionId);
 		return { result: "Session revoked" };
 	}
@@ -478,7 +485,7 @@ export class AuthController {
 
 	@Delete("devices/:deviceId")
 	@UseGuards(JwtAuthGuard)
-	async removeDevice(@Req() req: Request, @Param("deviceId") deviceId: string): Promise<{ result: string }> {
+	async removeDevice(@Req() req: Request, @Param("deviceId", ParseUUIDPipe) deviceId: string): Promise<{ result: string }> {
 		await this.authService.removeDevice(req.user["sub"], deviceId);
 		return { result: "Device removed" };
 	}
@@ -488,7 +495,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async changePassword(
-		@Body() dto: { currentPassword: string; newPassword: string },
+		@Body() dto: ChangePasswordDto,
 		@Req() req: Request,
 	): Promise<{ result: string }> {
 		await this.authService.changePassword(req.user["sub"], dto.currentPassword, dto.newPassword);
@@ -497,7 +504,7 @@ export class AuthController {
 
 	@Post("email/resend-verification")
 	@HttpCode(HttpStatus.OK)
-	async resendVerificationEmail(@Body() dto: { email: string }): Promise<{ result: string }> {
+	async resendVerificationEmail(@Body() dto: ResendVerificationEmailDto): Promise<{ result: string }> {
 		await this.authService.resendVerificationEmail(dto.email);
 		return { result: "Verification email sent if email is registered and not verified" };
 	}
@@ -506,7 +513,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async deactivateAccount(
-		@Body() dto: { password: string; reason?: string },
+		@Body() dto: DeactivateAccountDto,
 		@Req() req: Request,
 	): Promise<{ result: string }> {
 		await this.authService.deactivateAccount(req.user["sub"], dto.password, dto.reason);
@@ -517,7 +524,7 @@ export class AuthController {
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async requestAccountDeletion(
-		@Body() dto: { password: string; reason?: string },
+		@Body() dto: DeleteAccountDto,
 		@Req() req: Request,
 	): Promise<{ result: string }> {
 		await this.authService.requestAccountDeletion(req.user["sub"], dto.password, dto.reason);
@@ -527,7 +534,7 @@ export class AuthController {
 	@Post("account/cancel-deletion")
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async cancelAccountDeletion(@Body() dto: { password: string }, @Req() req: Request): Promise<{ result: string }> {
+	async cancelAccountDeletion(@Body() dto: CancelAccountDeletionDto, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.cancelAccountDeletion(req.user["sub"], dto.password);
 		return { result: "Account deletion cancelled" };
 	}
@@ -559,7 +566,7 @@ export class AuthController {
 	async linkSocialAccount(
 		@Req() req: Request,
 		@Param("provider") provider: string,
-		@Body() dto: { idToken?: string; accessToken?: string },
+		@Body() dto: SocialLinkDto,
 	): Promise<{ result: string }> {
 		if (!dto.idToken && !dto.accessToken) {
 			throw new BadRequestException("Either idToken or accessToken is required");
@@ -584,7 +591,7 @@ export class AuthController {
 	// MAGIC LINK (PASSWORDLESS)
 	@Post("magic-link/request")
 	@HttpCode(HttpStatus.OK)
-	async requestMagicLink(@Body() dto: { email: string; redirectUrl?: string }): Promise<{ result: string }> {
+	async requestMagicLink(@Body() dto: MagicLinkRequestDto): Promise<{ result: string }> {
 		await this.authService.requestMagicLink(dto.email, dto.redirectUrl);
 		return { result: "Magic link sent if email is registered" };
 	}
@@ -626,7 +633,7 @@ export class AuthController {
 	@Post("apple/mobile")
 	@HttpCode(HttpStatus.OK)
 	async appleMobileSignIn(
-		@Body() dto: { identityToken: string; authorizationCode?: string; fullName?: string },
+		@Body() dto: AppleMobileSignInDto,
 		@Ip() ipAddress: string,
 		@Res({ passthrough: true }) res: Response,
 	): Promise<AuthResponseDto> {
