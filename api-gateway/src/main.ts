@@ -61,16 +61,17 @@ async function bootstrap() {
 
   // Graceful shutdown — drain in-flight requests before exit
   app.enableShutdownHooks();
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   const shutdown = async (signal: string) => {
-    console.log(`${signal} received — shutting down API Gateway gracefully`);
+    logger.log(`${signal} received — shutting down API Gateway gracefully`);
     await app.close();
     process.exit(0);
   };
   process.once('SIGTERM', () => shutdown('SIGTERM'));
   process.once('SIGINT', () => shutdown('SIGINT'));
 
-  console.log(`API Gateway is running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  logger.log(`API Gateway is running on port ${port}`);
+  logger.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
 }
 
 bootstrap();

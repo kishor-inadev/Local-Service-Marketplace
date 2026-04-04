@@ -1195,7 +1195,7 @@ export class AuthService {
 		const token = await this.tokenService.createEmailVerificationToken(user.id);
 		const frontendUrl = this.configService.get<string>("FRONTEND_URL", "http://localhost:3000");
 
-		this.notificationClient
+		const sent = await this.notificationClient
 			.sendEmail({
 				to: email,
 				template: "emailVerification",
@@ -1205,8 +1205,13 @@ export class AuthService {
 				},
 			})
 			.catch((err) => {
-				this.logger.error("Failed to send verification email", { error: err.message });
+				this.logger.error("Failed to send verification email", { context: "AuthService", error: err.message, userId: user.id });
+				throw new BadRequestException("Failed to send verification email. Please try again later.");
 			});
+
+		if (!sent) {
+			throw new BadRequestException("Failed to send verification email. Please try again later.");
+		}
 	}
 
 	async deactivateAccount(userId: string, password: string, reason?: string): Promise<void> {

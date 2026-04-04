@@ -1,7 +1,7 @@
 # Multi-stage Dockerfile for Next.js Frontend
 
 # Stage 1: Dependencies
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -19,7 +19,7 @@ RUN pnpm config set network-timeout 600000 && \
 RUN pnpm install
 
 # Stage 2: Builder
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
@@ -37,7 +37,7 @@ ENV DOCKER_BUILD true
 RUN pnpm run build
 
 # Stage 3: Runner
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production

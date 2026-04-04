@@ -52,7 +52,7 @@ export class GatewayService {
 
 			const targetUrl = `${serviceConfig.url}${rewrittenPath}`;
 
-			this.logger.log(`Forwarding ${method} ${path} to ${serviceConfig.name} (${targetUrl})`, "GatewayService");
+			this.logger.log(`[${headers?.['x-request-id'] || 'no-rid'}] Forwarding ${method} ${path} to ${serviceConfig.name} (${targetUrl})`, "GatewayService");
 
 			// Prepare request config
 			const config: AxiosRequestConfig = {
@@ -146,6 +146,11 @@ export class GatewayService {
     delete sanitized.connection;
     delete sanitized['content-length'];
     delete sanitized['accept-encoding'];
+
+    // Generate or forward request ID for distributed tracing
+    if (!sanitized['x-request-id']) {
+      sanitized['x-request-id'] = crypto.randomUUID();
+    }
 
     // Add user context headers from decoded JWT
     if (user) {

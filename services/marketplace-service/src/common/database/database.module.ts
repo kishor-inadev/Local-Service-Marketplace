@@ -1,6 +1,8 @@
-import { Module, Global } from '@nestjs/common';
+import { Module, Global, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Pool } from 'pg';
+
+const logger = new Logger('DatabaseModule');
 
 export const DATABASE_POOL = 'DATABASE_POOL';
 
@@ -31,9 +33,9 @@ const databasePoolFactory = {
     // Test connection
     try {
       await pool.query('SELECT NOW()');
-      console.log('✅ Database connected successfully');
+      logger.log('Database connected successfully');
     } catch (error) {
-      console.error('❌ Database connection failed:', error);
+      logger.error('Database connection failed:', error);
       throw error;
     }
 

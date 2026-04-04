@@ -21,8 +21,11 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
-
-  # Cache & Queue
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
   redis:
     image: redis:7-alpine
     container_name: marketplace-redis
@@ -136,6 +139,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
 
   # marketplace-service: request + proposal + job + review merged
   marketplace-service:
@@ -181,6 +189,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
 
   payment-service:
     build:
@@ -253,6 +266,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
 
   # comms-service: notification + messaging merged
   comms-service:
@@ -302,6 +320,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
 
   # oversight-service: admin + analytics merged
   oversight-service:
@@ -342,6 +365,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   infrastructure-service:
     build:
@@ -388,6 +416,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   # Shared MongoDB for all services
   mongo:
@@ -557,6 +590,11 @@ services:
       timeout: 10s
       retries: 3
       start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
 
   # Frontend service skipped for local development
 

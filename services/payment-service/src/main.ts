@@ -38,7 +38,7 @@ async function bootstrap() {
   // Graceful shutdown — drain in-flight requests before exit
   app.enableShutdownHooks();
   const shutdown = async (signal: string) => {
-    console.log(`${signal} received — shutting down payment-service gracefully`);
+    logger.log(`${signal} received — shutting down payment-service gracefully`);
     await app.close();
     process.exit(0);
   };
@@ -48,7 +48,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3006;
   await app.listen(port);
 
-  console.log(`Payment Service is running on: http://localhost:${port}`);
+  logger.log(`Payment Service is running on port ${port}`);
 }
 
 bootstrap();

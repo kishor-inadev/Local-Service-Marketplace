@@ -21,21 +21,22 @@ async function bootstrap() {
   );
 
   // Winston logger
-  app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
+  const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
+  app.useLogger(logger);
 
   // Global response transform interceptor
   app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
   // Global exception filter with logger
-  const logger = app.get('winston');
-  app.useGlobalFilters(new HttpExceptionFilter(logger));
+  const winstonLogger = app.get('winston');
+  app.useGlobalFilters(new HttpExceptionFilter(winstonLogger));
 
   // CORS is handled by API Gateway - not needed in internal services
 
   // Graceful shutdown — drain in-flight requests before exit
   app.enableShutdownHooks();
   const shutdown = async (signal: string) => {
-    console.log(`${signal} received — shutting down infrastructure-service gracefully`);
+    logger.log(`${signal} received — shutting down infrastructure-service gracefully`);
     await app.close();
     process.exit(0);
   };
@@ -45,7 +46,7 @@ async function bootstrap() {
   const port = process.env.PORT || 3012;
   await app.listen(port);
 
-  console.log(`Infrastructure Service is running on port ${port}`);
+  logger.log(`Infrastructure Service is running on port ${port}`);
 }
 
 bootstrap();
