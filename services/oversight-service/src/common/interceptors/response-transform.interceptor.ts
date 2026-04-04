@@ -103,7 +103,7 @@ export class ResponseTransformInterceptor<T>
 					data: responseData ?? null,
 					meta,
 				} as StandardResponse<T>;
-			};),
+			}),
 		);
   }
 

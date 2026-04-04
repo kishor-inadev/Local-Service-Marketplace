@@ -1,16 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Body,
-  Query,
-  Request,
-  ParseUUIDPipe,
-  UseGuards,
-  HttpCode,
-  HttpStatus
-} from '@nestjs/common';
+	Controller,
+	Get,
+	Post,
+	Param,
+	Body,
+	Query,
+	Request,
+	Headers,
+	ParseUUIDPipe,
+	UseGuards,
+	HttpCode,
+	HttpStatus,
+} from "@nestjs/common";
 import { PaymentService } from '../services/payment.service';
 import { RefundService } from '../services/refund.service';
 import { CreatePaymentDto } from '../dto/create-payment.dto';
@@ -35,7 +36,11 @@ export class PaymentController {
 	@Post()
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.CREATED)
-	async createPayment(@Body() createPaymentDto: CreatePaymentDto, @Request() req: any) {
+	async createPayment(
+		@Body() createPaymentDto: CreatePaymentDto,
+		@Request() req: any,
+		@Headers("x-payment-gateway") gatewayHeader?: string,
+	) {
 		const payment = await this.paymentService.createPayment(
 			createPaymentDto.job_id,
 			createPaymentDto.amount,
@@ -43,6 +48,7 @@ export class PaymentController {
 			req.user.userId, // user_id from authenticated user
 			createPaymentDto.provider_id,
 			createPaymentDto.coupon_code,
+			gatewayHeader?.toLowerCase(),
 		);
 
 		return payment;

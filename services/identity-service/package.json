@@ -84,6 +84,12 @@
         "transform": {
             "^.+\\.(t|j)s$": "ts-jest"
         },
+        "transformIgnorePatterns": [
+            "/node_modules/(?!(@otplib|otplib)/)"
+        ],
+        "moduleNameMapper": {
+            "^@/(.*)$": "<rootDir>/$1"
+        },
         "collectCoverageFrom": [
             "**/*.(t|j)s"
         ],

@@ -30,6 +30,10 @@ export interface CreatePaymentData {
 	currency: "USD" | "EUR" | "GBP" | "INR";
 	payment_method?: string;
 	coupon_code?: string;
+	/** Optional gateway override. Maps to the X-Payment-Gateway request header.
+	 *  Supported values: "stripe" | "razorpay" | "paypal" | "payubiz" | "instamojo" | "mock"
+	 *  When omitted the server default (PAYMENT_GATEWAY env var) is used. */
+	gateway?: string;
 }
 
 export interface RefundData {
@@ -39,7 +43,9 @@ export interface RefundData {
 
 class PaymentService {
 	async createPayment(data: CreatePaymentData): Promise<Payment> {
-		const response = await apiClient.post<Payment>("/payments", data);
+		const { gateway, ...body } = data;
+		const config = gateway ? { headers: { "x-payment-gateway": gateway } } : undefined;
+		const response = await apiClient.post<Payment>("/payments", body, config);
 		return response.data;
 	}
 

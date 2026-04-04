@@ -1,5 +1,11 @@
 /// <reference types="jest" />
 
+// Mock ESM-only dependencies before any imports
+jest.mock('otplib', () => ({
+  authenticator: { generate: jest.fn().mockReturnValue('123456'), verify: jest.fn().mockReturnValue(true), generateSecret: jest.fn().mockReturnValue('MOCKSECRET') },
+  verifySync: jest.fn().mockReturnValue(false),
+}));
+
 import { AuthService } from './auth.service';
 import {
   UnauthorizedException,

@@ -48,6 +48,7 @@ export const routingConfig = {
 	"/payment-methods": "payment-service",
 	"/subscriptions": "payment-service",
 	"/pricing-plans": "payment-service",
+	"/webhooks": "payment-service",
 	// comms-service (messaging + notifications)
 	"/messages": "comms-service",
 	"/notifications": "comms-service",
@@ -108,9 +109,9 @@ export const publicRoutes = [
 	"/api/v1/user/auth/email/otp/verify", // Verify email OTP
 
 	// ============================================
-	// Payment Webhooks (external services)
+	// Payment Webhooks (external services — no JWT)
 	// ============================================
-	"/api/v1/payments/webhook", // Stripe/payment provider webhooks
+	"/api/v1/webhooks", // All payment gateway webhooks: /webhooks/:gateway
 
 	// ============================================
 	// Public Information Endpoints

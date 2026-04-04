@@ -4,6 +4,7 @@ import { PaymentController } from './controllers/payment.controller';
 import { SavedPaymentMethodController } from './controllers/saved-payment-method.controller';
 import { PricingPlanController } from './controllers/pricing-plan.controller';
 import { SubscriptionController } from './controllers/subscription.controller';
+import { WebhookController } from "./controllers/webhook.controller";
 import { PaymentService } from './services/payment.service';
 import { RefundService } from './services/refund.service';
 import { WebhookService } from './services/webhook.service';
@@ -21,52 +22,52 @@ import { SubscriptionRepository } from './repositories/subscription.repository';
 import { NotificationModule } from '../common/notification/notification.module';
 import { UserModule } from '../common/user/user.module';
 import { AnalyticsModule } from '../common/analytics/analytics.module';
+import { PaymentGatewayModule } from "./gateway/payment-gateway.module";
 
 @Module({
-  imports: [
-    BullModule.registerQueue(
-      { name: 'payment-queue' },
-      { name: 'refund-queue' },
-    ),
-    NotificationModule,
-    UserModule,
-    AnalyticsModule,
-  ],
-  controllers: [
-    PaymentController,
-    SavedPaymentMethodController,
-    PricingPlanController,
-    SubscriptionController,
-  ],
-  providers: [
-    PaymentService,
-    RefundService,
-    WebhookService,
-    CouponService,
-    SavedPaymentMethodService,
-    PricingPlanService,
-    SubscriptionService,
-    PaymentRepository,
-    RefundRepository,
-    WebhookRepository,
-    CouponRepository,
-    SavedPaymentMethodRepository,
-    PricingPlanRepository,
-    SubscriptionRepository,
-  ],
-  exports: [
-    PaymentService,
-    RefundService,
-    WebhookService,
-    CouponService,
-    SavedPaymentMethodService,
-    PricingPlanService,
-    SubscriptionService,
-    PaymentRepository,
-    RefundRepository,
-    SavedPaymentMethodRepository,
-    PricingPlanRepository,
-    SubscriptionRepository,
-  ],
+	imports: [
+		BullModule.registerQueue({ name: "payment-queue" }, { name: "refund-queue" }),
+		NotificationModule,
+		UserModule,
+		AnalyticsModule,
+		PaymentGatewayModule,
+	],
+	controllers: [
+		PaymentController,
+		SavedPaymentMethodController,
+		PricingPlanController,
+		SubscriptionController,
+		WebhookController,
+	],
+	providers: [
+		PaymentService,
+		RefundService,
+		WebhookService,
+		CouponService,
+		SavedPaymentMethodService,
+		PricingPlanService,
+		SubscriptionService,
+		PaymentRepository,
+		RefundRepository,
+		WebhookRepository,
+		CouponRepository,
+		SavedPaymentMethodRepository,
+		PricingPlanRepository,
+		SubscriptionRepository,
+	],
+	exports: [
+		PaymentService,
+		RefundService,
+		WebhookService,
+		CouponService,
+		SavedPaymentMethodService,
+		PricingPlanService,
+		SubscriptionService,
+		PaymentRepository,
+		RefundRepository,
+		SavedPaymentMethodRepository,
+		PricingPlanRepository,
+		SubscriptionRepository,
+	],
 })
 export class PaymentModule {}

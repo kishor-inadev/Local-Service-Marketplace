@@ -6,7 +6,10 @@ import { ResponseTransformInterceptor } from './common/interceptors/response-tra
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+		// rawBody:true enables req.rawBody (Buffer) needed for webhook signature verification
+		rawBody: true,
+	});
 
   // Use Winston logger
   app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
