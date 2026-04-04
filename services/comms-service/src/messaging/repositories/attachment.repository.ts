@@ -51,7 +51,7 @@ export class AttachmentRepository {
   }
 
   async getAttachmentsByMessageId(messageId: string): Promise<Attachment[]> {
-    const query = 'SELECT * FROM attachments WHERE message_id = $1';
+    const query = "SELECT * FROM attachments WHERE message_id = $1 ORDER BY created_at ASC";
     const result = await this.pool.query(query, [messageId]);
     return result.rows.map(
       (row) =>

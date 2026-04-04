@@ -76,10 +76,17 @@ export class ProviderRepository {
 		verificationStatus?: ProviderVerificationStatus,
 		minRating?: number,
 		maxRating?: number,
+		userId?: string,
 	): Promise<Provider[]> {
 		const conditions: string[] = ["providers.deleted_at IS NULL"];
 		const values: any[] = [];
 		let paramCount = 1;
+
+		if (userId) {
+			conditions.push(`providers.user_id = $${paramCount}`);
+			values.push(userId);
+			paramCount++;
+		}
 
 		if (cursor && !offset) {
 			conditions.push(`providers.created_at < (SELECT created_at FROM providers WHERE id = $${paramCount})`);
@@ -168,10 +175,17 @@ export class ProviderRepository {
 		verificationStatus?: ProviderVerificationStatus,
 		minRating?: number,
 		maxRating?: number,
+		userId?: string,
 	): Promise<number> {
 		const conditions: string[] = ["providers.deleted_at IS NULL"];
 		const values: any[] = [];
 		let paramCount = 1;
+
+		if (userId) {
+			conditions.push(`providers.user_id = $${paramCount}`);
+			values.push(userId);
+			paramCount++;
+		}
 
 		if (categoryId) {
 			conditions.push(`EXISTS (

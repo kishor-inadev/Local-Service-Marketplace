@@ -42,9 +42,9 @@ export class SocialAccountRepository {
   async findByUserId(userId: string): Promise<SocialAccount[]> {
     try {
       const result = await this.pool.query<SocialAccount>(
-        `SELECT * FROM social_accounts WHERE user_id = $1`,
-        [userId],
-      );
+				`SELECT * FROM social_accounts WHERE user_id = $1 ORDER BY created_at DESC`,
+				[userId],
+			);
       return result.rows;
     } catch (error) {
       this.logger.error('Error finding social accounts by user ID', {

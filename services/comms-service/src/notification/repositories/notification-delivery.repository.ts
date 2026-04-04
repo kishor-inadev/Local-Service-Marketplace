@@ -43,7 +43,7 @@ export class NotificationDeliveryRepository {
   }
 
   async getDeliveriesByNotificationId(notificationId: string): Promise<NotificationDelivery[]> {
-    const query = 'SELECT * FROM notification_deliveries WHERE notification_id = $1';
+    const query = "SELECT * FROM notification_deliveries WHERE notification_id = $1 ORDER BY created_at ASC";
     const result = await this.pool.query(query, [notificationId]);
     return result.rows.map(
       (row) =>
@@ -73,7 +73,7 @@ export class NotificationDeliveryRepository {
   }
 
   async getPendingDeliveries(): Promise<NotificationDelivery[]> {
-    const query = 'SELECT * FROM notification_deliveries WHERE status = $1 ORDER BY id ASC LIMIT 100';
+    const query = "SELECT * FROM notification_deliveries WHERE status = $1 ORDER BY created_at ASC LIMIT 100";
     const result = await this.pool.query(query, ['pending']);
     return result.rows.map(
       (row) =>

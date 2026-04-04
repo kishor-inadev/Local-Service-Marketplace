@@ -75,4 +75,8 @@ export class ProviderQueryDto {
 	@Max(5)
 	@Type(() => Number)
 	max_rating?: number;
+
+	@IsOptional()
+	@IsString()
+	user_id?: string;
 }

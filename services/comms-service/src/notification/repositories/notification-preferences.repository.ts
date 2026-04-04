@@ -67,6 +67,7 @@ export class NotificationPreferencesRepository {
     const query = `
       SELECT * FROM notification_preferences
       WHERE ${preferenceName} = $1
+      ORDER BY created_at DESC
     `;
     const result = await this.pool.query(query, [enabled]);
     return result.rows;

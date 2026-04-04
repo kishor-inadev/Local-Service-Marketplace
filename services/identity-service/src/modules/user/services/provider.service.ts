@@ -254,6 +254,7 @@ export class ProviderService {
 				queryDto.verification_status,
 				queryDto.min_rating,
 				queryDto.max_rating,
+				queryDto.user_id,
 			);
 
 			const hasMore = providers.length > limit;
@@ -281,6 +282,7 @@ export class ProviderService {
 				queryDto.verification_status,
 				queryDto.min_rating,
 				queryDto.max_rating,
+				queryDto.user_id,
 			),
 			this.providerRepo.countProviders(
 				queryDto.category_id,
@@ -289,6 +291,7 @@ export class ProviderService {
 				queryDto.verification_status,
 				queryDto.min_rating,
 				queryDto.max_rating,
+				queryDto.user_id,
 			),
 		]);
 
