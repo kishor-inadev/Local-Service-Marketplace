@@ -60,6 +60,19 @@ function getChecksum(content) {
   return crypto.createHash('sha256').update(content).digest('hex').substring(0, 16);
 }
 
+// ─── Advisory Lock (Concurrency Safety) ──────────────────────────────────────
+
+const MIGRATION_LOCK_ID = 839274628; // Arbitrary but fixed int32 for pg_advisory_lock
+
+async function acquireLock(pool) {
+  const result = await pool.query('SELECT pg_try_advisory_lock($1) AS acquired', [MIGRATION_LOCK_ID]);
+  return result.rows[0].acquired;
+}
+
+async function releaseLock(pool) {
+  await pool.query('SELECT pg_advisory_unlock($1)', [MIGRATION_LOCK_ID]);
+}
+
 // ─── Migration File Discovery ─────────────────────────────────────────────────
 
 function discoverMigrations() {
@@ -264,12 +277,32 @@ async function main() {
     await ensureTrackingTable(pool);
 
     switch (command) {
-      case 'up':
-        await migrateUp(pool, targetVersion);
+      case 'up': {
+        const locked = await acquireLock(pool);
+        if (!locked) {
+          console.error('❌ Another migration is already running. Aborting.');
+          process.exit(1);
+        }
+        try {
+          await migrateUp(pool, targetVersion);
+        } finally {
+          await releaseLock(pool);
+        }
         break;
-      case 'down':
-        await migrateDown(pool, targetVersion);
+      }
+      case 'down': {
+        const locked = await acquireLock(pool);
+        if (!locked) {
+          console.error('❌ Another migration is already running. Aborting.');
+          process.exit(1);
+        }
+        try {
+          await migrateDown(pool, targetVersion);
+        } finally {
+          await releaseLock(pool);
+        }
         break;
+      }
       case 'status':
         await showStatus(pool);
         break;

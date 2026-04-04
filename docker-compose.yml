@@ -430,8 +430,8 @@ services:
     ports:
       - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:-mongoadmin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-mongopass123}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?MONGO_ROOT_USERNAME must be set}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD must be set}
     volumes:
       - mongo_data:/data/db
     networks:
@@ -461,7 +461,7 @@ services:
       - ENABLE_LOGGING=true
       - ENABLE_FILE_LOGS=false
       - CORS_ORIGIN=*
-      - MONGO_URL=mongodb://${MONGO_ROOT_USERNAME:-mongoadmin}:${MONGO_ROOT_PASSWORD:-mongopass123}@mongo:27017/email_service?authSource=admin
+      - MONGO_URL=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/email_service?authSource=admin
       - MONGO_MAX_POOL_SIZE=50
       - MONGO_MIN_POOL_SIZE=10
       - ENABLE_KAFKA=${EVENT_BUS_ENABLED:-false}
@@ -503,7 +503,7 @@ services:
       - TENANCY_ENABLED=false
       - DEFAULT_TENANT_ID=marketplace
       - API_KEY=${SMS_API_KEY:-change-me-to-a-strong-random-secret}
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME:-mongoadmin}:${MONGO_ROOT_PASSWORD:-mongopass123}@mongo:27017/sms_service?authSource=admin
+      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/sms_service?authSource=admin
       - SMS_PROVIDER=${SMS_PROVIDER:-mock}
       - SMS_FALLBACK_PROVIDER=${SMS_FALLBACK_PROVIDER:-}
       - OTP_LENGTH=6

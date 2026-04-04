@@ -53,6 +53,7 @@ jobs:
         with:
           context: ${{ matrix.context }}
           push: false
+          load: true
           tags: lsmp-${{ matrix.service }}:ci-${{ github.sha }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
@@ -62,6 +63,34 @@ jobs:
           docker images lsmp-${{ matrix.service }}:ci-${{ github.sha }} --format "{{.Size}}"
           SIZE=$(docker images lsmp-${{ matrix.service }}:ci-${{ github.sha }} --format "{{.Size}}")
           echo "Image size for ${{ matrix.service }}: $SIZE"
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: lsmp-${{ matrix.service }}:ci-${{ github.sha }}
+          format: table
+          exit-code: 1
+          ignore-unfixed: true
+          severity: CRITICAL,HIGH
+        continue-on-error: true
+
+      - name: Login to Container Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ secrets.DOCKER_REGISTRY || 'ghcr.io' }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push to Registry
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          REGISTRY="${{ secrets.DOCKER_REGISTRY || 'ghcr.io' }}"
+          IMAGE_BASE="${REGISTRY}/${{ github.repository_owner }}/lsmp-${{ matrix.service }}"
+          docker tag lsmp-${{ matrix.service }}:ci-${{ github.sha }} ${IMAGE_BASE}:${{ github.sha }}
+          docker tag lsmp-${{ matrix.service }}:ci-${{ github.sha }} ${IMAGE_BASE}:latest
+          docker push ${IMAGE_BASE}:${{ github.sha }}
+          docker push ${IMAGE_BASE}:latest
 
   compose-validation:
     name: "Validate Docker Compose Files"

@@ -2,6 +2,8 @@ import { Injectable, NestMiddleware, Inject, LoggerService } from '@nestjs/commo
 import { Request, Response, NextFunction } from 'express';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import rateLimit from 'express-rate-limit';
+import { RedisStore } from 'rate-limit-redis';
+import { getRedisClient } from '../../common/redis/redis.provider';
 
 /**
  * Stricter rate limiter applied only to authentication endpoints.
@@ -28,6 +30,12 @@ export class AuthRateLimitMiddleware implements NestMiddleware {
   ) {
     const windowMs = parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS ?? '900000'); // 15 min
     const max = parseInt(process.env.AUTH_RATE_LIMIT_MAX ?? '10'); // 10 attempts
+
+    const redisClient = getRedisClient();
+
+    const storeOptions = redisClient
+      ? { store: new RedisStore({ sendCommand: (...args: string[]) => (redisClient as any).call(...args), prefix: 'rl:auth:' }) }
+      : {};
 
     this.limiter = rateLimit({
       windowMs,
