@@ -207,7 +207,7 @@
                   "pm.test('Response data contains access token, refresh token, and user', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                  "    pm.expect(jsonData.data).to.have.property('refresh_token');",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
                   "    pm.expect(jsonData.data).to.have.property('user');",
                   "    pm.expect(jsonData.data.user).to.have.property('id');",
                   "    pm.expect(jsonData.data.user).to.have.property('email');",
@@ -227,15 +227,15 @@
                   "    pm.expect(user).to.have.property('id');",
                   "    pm.expect(user).to.have.property('email');",
                   "    pm.expect(user).to.have.property('role');",
-                  "    pm.expect(user).to.have.property('isVerified', false);",
+                  "    pm.expect(user).to.have.property('email_verified', false);",
                   "});",
                   "",
                   "// Extract variables for subsequent requests (only on success)",
                   "if (pm.response.code === 201) {",
                   "    const r = pm.response.json();",
-                  "    if (r.data && r.data.accessToken) pm.collectionVariables.set('token', r.data.accessToken);",
-                  "    if (r.data && r.data.refresh_token) pm.collectionVariables.set('refresh_token', r.data.refresh_token);",
-                  "    if (r.data && r.data.user && r.data.user.id) pm.collectionVariables.set('user_id', r.data.user.id);",
+                  "    if (r.data && r.data.accessToken) pm.environment.set('token', r.data.accessToken);",
+                  "    if (r.data && r.data.refreshToken) pm.environment.set('refresh_token', r.data.refreshToken);",
+                  "    if (r.data && r.data.user && r.data.user.id) pm.environment.set('user_id', r.data.user.id);",
                   "}"
                 ]
               }
@@ -292,7 +292,7 @@
                   "pm.test('Response includes access token, refresh token, and user', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                  "    pm.expect(jsonData.data).to.have.property('refresh_token');",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
                   "    pm.expect(jsonData.data).to.have.property('user');",
                   "});",
                   "",
@@ -316,9 +316,9 @@
                   "// Extract variables for subsequent requests",
                   "if (pm.response.code === 200) {",
                   "    const r = pm.response.json();",
-                  "    if (r.data && r.data.accessToken) pm.collectionVariables.set('token', r.data.accessToken);",
-                  "    if (r.data && r.data.refresh_token) pm.collectionVariables.set('refresh_token', r.data.refresh_token);",
-                  "    if (r.data && r.data.user && r.data.user.id) pm.collectionVariables.set('user_id', r.data.user.id);",
+                  "    if (r.data && r.data.accessToken) pm.environment.set('token', r.data.accessToken);",
+                  "    if (r.data && r.data.refreshToken) pm.environment.set('refresh_token', r.data.refreshToken);",
+                  "    if (r.data && r.data.user && r.data.user.id) pm.environment.set('user_id', r.data.user.id);",
                   "}"
                 ]
               }
@@ -375,7 +375,7 @@
                   "pm.test('New tokens generated', function () {",
                   "    const jsonData = pm.response.json();",
                   "    pm.expect(jsonData.data).to.have.property('accessToken');",
-                  "    pm.expect(jsonData.data).to.have.property('refresh_token');",
+                  "    pm.expect(jsonData.data).to.have.property('refreshToken');",
                   "    pm.expect(jsonData.data.accessToken).to.be.a('string');",
                   "    pm.expect(jsonData.data.accessToken).to.not.be.empty;",
                   "});",
@@ -383,7 +383,7 @@
                   "// Test 4: Refresh token is different from before (token rotation)",
                   "pm.test('Refresh token rotated (security best practice)', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    const oldRefresh = pm.collectionVariables.get('refresh_token');",
+                  "    const oldRefresh = pm.environment.get('refresh_token');",
                   "    const newRefresh = jsonData.data.refresh_token;",
                   "    // Note: In a real scenario, we'd verify they're different",
                   "    // For testing, just verify format",
@@ -393,8 +393,8 @@
                   "// Extract new tokens",
                   "if (pm.response.code === 200) {",
                   "    const r = pm.response.json();",
-                  "    if (r.data && r.data.accessToken) pm.collectionVariables.set('token', r.data.accessToken);",
-                  "    if (r.data && r.data.refresh_token) pm.collectionVariables.set('refresh_token', r.data.refresh_token);",
+                  "    if (r.data && r.data.accessToken) pm.environment.set('token', r.data.accessToken);",
+                  "    if (r.data && r.data.refreshToken) pm.environment.set('refresh_token', r.data.refreshToken);",
                   "}"
                 ]
               }
@@ -2017,7 +2017,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 200) {\n  const r = pm.response.json();\n  if (r.data && r.data.accessToken) pm.collectionVariables.set('token', r.data.accessToken);\n  if (r.data && r.data.refresh_token) pm.collectionVariables.set('refresh_token', r.data.refresh_token);\n}"
+                  "if (pm.response.code === 200) {\n  const r = pm.response.json();\n  if (r.data && r.data.accessToken) pm.environment.set('token', r.data.accessToken);\n  if (r.data && r.data.refreshToken) pm.environment.set('refresh_token', r.data.refreshToken);\n}"
                 ]
               }
             },
@@ -2181,7 +2181,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 200) {\n  const r = pm.response.json();\n  if (r.data && r.data.accessToken) pm.collectionVariables.set('token', r.data.accessToken);\n  if (r.data && r.data.refresh_token) pm.collectionVariables.set('refresh_token', r.data.refresh_token);\n}"
+                  "if (pm.response.code === 200) {\n  const r = pm.response.json();\n  if (r.data && r.data.accessToken) pm.environment.set('token', r.data.accessToken);\n  if (r.data && r.data.refreshToken) pm.environment.set('refresh_token', r.data.refreshToken);\n}"
                 ]
               }
             },
@@ -2262,7 +2262,7 @@
                   "",
                   "pm.test('User ID matches authenticated user', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    const userId = pm.collectionVariables.get('user_id');",
+                  "    const userId = pm.environment.get('user_id');",
                   "    if (userId) {",
                   "        pm.expect(jsonData.data.id).to.eql(userId);",
                   "    }",
@@ -2427,7 +2427,7 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "if (pm.response.code === 201) {\n  const r = pm.response.json();\n  if (r.data && r.data.id) pm.collectionVariables.set('provider_id', r.data.id);\n}"
+                  "if (pm.response.code === 201) {\n  const r = pm.response.json();\n  if (r.data && r.data.id) pm.environment.set('provider_id', r.data.id);\n}"
                 ]
               }
             },
@@ -3499,8 +3499,8 @@
                   "if (pm.response.code === 201) {",
                   "    const r = pm.response.json();",
                   "    if (r.data && r.data.id) {",
-                  "        pm.collectionVariables.set('request_id', r.data.id);",
-                  "        if (r.data.display_id) pm.collectionVariables.set('request_display_id', r.data.display_id);",
+                  "        pm.environment.set('request_id', r.data.id);",
+                  "        if (r.data.display_id) pm.environment.set('request_display_id', r.data.display_id);",
                   "        console.log('Created request ID:', r.data.id);",
                   "    }",
                   "}"
@@ -3617,7 +3617,7 @@
                   "",
                   "pm.test('ID matches request_id variable', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    const requestId = pm.collectionVariables.get('request_id');",
+                  "    const requestId = pm.environment.get('request_id');",
                   "    if (requestId) {",
                   "        pm.expect(jsonData.data.id).to.eql(requestId);",
                   "    }",
@@ -3660,7 +3660,7 @@
                   "",
                   "pm.test('Each request has user_id matching authenticated user', function () {",
                   "    const jsonData = pm.response.json();",
-                  "    const userId = pm.collectionVariables.get('user_id');",
+                  "    const userId = pm.environment.get('user_id');",
                   "    if (jsonData.data.length > 0 && userId) {",
                   "        jsonData.data.forEach(req => {",
                   "            pm.expect(req.user_id).to.eql(userId);",
@@ -4050,8 +4050,8 @@
                   "if (pm.response.code === 201) {",
                   "    const r = pm.response.json();",
                   "    if (r.data && r.data.id) {",
-                  "        pm.collectionVariables.set('proposal_id', r.data.id);",
-                  "        if (r.data.display_id) pm.collectionVariables.set('proposal_display_id', r.data.display_id);",
+                  "        pm.environment.set('proposal_id', r.data.id);",
+                  "        if (r.data.display_id) pm.environment.set('proposal_display_id', r.data.display_id);",
                   "        console.log('Created proposal ID:', r.data.id);",
                   "    }",
                   "}"
@@ -4313,8 +4313,8 @@
                   "if (pm.response.code === 201) {",
                   "    const r = pm.response.json();",
                   "    if (r.data && r.data.id) {",
-                  "        pm.collectionVariables.set('job_id', r.data.id);",
-                  "        if (r.data.display_id) pm.collectionVariables.set('job_display_id', r.data.display_id);",
+                  "        pm.environment.set('job_id', r.data.id);",
+                  "        if (r.data.display_id) pm.environment.set('job_display_id', r.data.display_id);",
                   "        console.log('Created job ID:', r.data.id);",
                   "    }",
                   "}"
@@ -4630,7 +4630,7 @@
                   "if (pm.response.code === 201) {",
                   "    const r = pm.response.json();",
                   "    if (r.data && r.data.id) {",
-                  "        pm.collectionVariables.set('review_id', r.data.id);",
+                  "        pm.environment.set('review_id', r.data.id);",
                   "    }",
                   "}"
                 ]
@@ -5174,7 +5174,7 @@
                   "if (pm.response.code === 201) {",
                   "    const r = pm.response.json();",
                   "    if (r.data && r.data.id) {",
-                  "        pm.collectionVariables.set('payment_id', r.data.id);",
+                  "        pm.environment.set('payment_id', r.data.id);",
                   "    }",
                   "}"
                 ]
