@@ -56,9 +56,11 @@ export class ProposalService {
 		const provider = await this.userClient.getProviderById(proposal.provider_id);
 		const providerName = provider?.business_name || "Service Provider";
 
-		// Note: We need request owner info - for now using placeholder
-		// In production, fetch from request-service or pass customer_id in DTO
-		const customerEmail = "customer@example.com"; // TODO: Get from request-service
+		// Fetch the full proposal with customer_id via JOIN, then get customer email
+		const fullProposal = await this.proposalRepository.getProposalById(proposal.id);
+		const customerEmail = fullProposal?.customer_id
+			? await this.userClient.getUserEmail(fullProposal.customer_id)
+			: null;
 
 		if (customerEmail) {
 			this.notificationClient
@@ -146,7 +148,9 @@ export class ProposalService {
 
 		// Send notification to provider (proposal accepted)
 		const providerEmail = await this.userClient.getProviderEmail(proposal.provider_id);
-		const customerName = "Customer"; // TODO: Get from request-service or pass in DTO
+		const customerUser =
+			existingProposal.customer_id ? await this.userClient.getUserById(existingProposal.customer_id) : null;
+		const customerName = customerUser?.name || "Customer";
 
 		if (providerEmail) {
 			this.notificationClient

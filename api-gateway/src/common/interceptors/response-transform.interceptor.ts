@@ -37,7 +37,7 @@ export class ResponseTransformInterceptor<T>
     const response = ctx.getResponse<Response>();
 
     return next.handle().pipe(
-      map((data) => {
+			map((data) => {
 				const statusCode = response.statusCode;
 				const method = request.method;
 				const path = request.path;
@@ -106,8 +106,8 @@ export class ResponseTransformInterceptor<T>
 					data: responseData ?? null,
 					meta,
 				} as StandardResponse<T>;
-			};),
-    );
+			}),
+		);
   }
 
   private generateMessage(method: string, statusCode: number, path: string): string {

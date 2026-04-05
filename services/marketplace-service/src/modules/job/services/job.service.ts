@@ -47,7 +47,8 @@ export class JobService {
 
 		// Send notification to provider (job assigned)
 		const providerEmail = await this.userClient.getProviderEmail(dto.provider_id);
-		const customerName = "Customer"; // TODO: Fetch from request or user-service
+		const customerUser = dto.customer_id ? await this.userClient.getUserById(dto.customer_id) : null;
+		const customerName = customerUser?.name || "Customer";
 
 		if (providerEmail) {
 			this.notificationClient
