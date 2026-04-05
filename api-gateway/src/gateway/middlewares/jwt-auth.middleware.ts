@@ -66,7 +66,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
 		const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
 
 		// Check if route is public for GET requests only
-		const isPublicGetRoute = method === 'GET' && publicGetRoutes.some((route) => path.startsWith(route));
+		const isPublicGetRoute = method === "GET" && publicGetRoutes.some((route) => path.startsWith(route));
 
 		if (isPublicRoute || isPublicGetRoute) {
 			return next();
@@ -82,14 +82,10 @@ export class JwtAuthMiddleware implements NestMiddleware {
 
 		const token = authHeader.substring(7); // Remove 'Bearer ' prefix
 
-		// Handle async validation
+		// Handle async validation — pass errors to Express error handler
 		this.validateToken(token, req, next).catch((error) => {
-			this.logger.error(
-				`Token validation error: ${error.message}`,
-				error.stack,
-				"JwtAuthMiddleware"
-			);
-			throw error;
+			this.logger.error(`Token validation error: ${error.message}`, error.stack, "JwtAuthMiddleware");
+			next(error);
 		});
 	}
 

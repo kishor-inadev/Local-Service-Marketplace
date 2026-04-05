@@ -52,7 +52,10 @@ export class GatewayService {
 
 			const targetUrl = `${serviceConfig.url}${rewrittenPath}`;
 
-			this.logger.log(`[${headers?.['x-request-id'] || 'no-rid'}] Forwarding ${method} ${path} to ${serviceConfig.name} (${targetUrl})`, "GatewayService");
+			this.logger.log(
+				`[${headers?.["x-request-id"] || "no-rid"}] Forwarding ${method} ${path} to ${serviceConfig.name} (${targetUrl})`,
+				"GatewayService",
+			);
 
 			// Prepare request config
 			const config: AxiosRequestConfig = {
@@ -81,8 +84,12 @@ export class GatewayService {
 		} catch (error) {
 			this.logger.error(`Error forwarding request: ${error.message}`, error.stack, "GatewayService");
 
-			// Preserve known gateway exceptions (e.g., unmapped route)
-			if (error instanceof ServiceUnavailableException || error instanceof GatewayTimeoutException) {
+			// Preserve known gateway exceptions (e.g., unmapped route, not found)
+			if (
+				error instanceof ServiceUnavailableException ||
+				error instanceof GatewayTimeoutException ||
+				error instanceof NotFoundException
+			) {
 				throw error;
 			}
 
