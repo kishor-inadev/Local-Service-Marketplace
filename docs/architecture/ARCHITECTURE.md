@@ -28,8 +28,7 @@ Frontend
 Next.js
 
 Backend
-Node.js microservices
-Go services for high-performance workloads
+NestJS microservices
 
 Database
 PostgreSQL
@@ -81,21 +80,21 @@ Search engine
 
 # 4. Microservices
 
-Core services:
+The platform uses **6 backend microservices** (merged from original 13 for operational simplicity):
 
-auth-service
-user-service
-provider-service
-request-service
-proposal-service
-job-service
-payment-service
-notification-service
-review-service
-messaging-service
-admin-service
-analytics-service
-infrastructure-service
+| Service | Port | Merged From | Responsibilities |
+|---------|------|-------------|-----------------|
+| identity-service | 3001 | auth + user + provider | Authentication, JWT, OAuth, user profiles, provider management |
+| marketplace-service | 3003 | request + proposal + job + review | Service requests, proposals, jobs, reviews |
+| payment-service | 3006 | — | Payment processing, refunds, escrow |
+| comms-service | 3007 | notification + messaging | Email delivery, SMS/OTP, in-app notifications |
+| oversight-service | 3010 | admin + analytics | Admin operations, disputes, analytics |
+| infrastructure-service | 3012 | — | Feature flags, rate limits, background jobs, events |
+
+Supporting services:
+- **api-gateway** (port 3700) — single entry point, JWT validation, rate limiting
+- **email-service** (port 3500 internal) — SMTP email delivery (Docker profile: `email`)
+- **sms-service** (port 3000 internal) — SMS/OTP delivery (Docker profile: `sms`)
 
 Each service:
 
@@ -252,15 +251,13 @@ docker/docker-compose.yml
 Core services:
 
 PostgreSQL
-Redis
-API gateway
-Auth service
-Request service
-Proposal service
-Job service
-Payment service
-Notification service
-Worker service
+Redis (optional)
+API Gateway (port 3700)
+identity-service
+marketplace-service
+payment-service
+comms-service
+oversight-service
 
 ---
 
@@ -429,15 +426,12 @@ gateway
  └── api-gateway
 
 services
- ├── auth-service
- ├── user-service
- ├── request-service
- ├── proposal-service
- ├── job-service
+ ├── identity-service
+ ├── marketplace-service
  ├── payment-service
- ├── notification-service
- ├── review-service
- └── messaging-service
+ ├── comms-service
+ ├── oversight-service
+ └── infrastructure-service
 
 workers
  └── background-worker

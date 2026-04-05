@@ -45,10 +45,10 @@ return data;
 - Category creation → invalidate `categories:all`
 
 **Files:**
-- `services/request-service/src/redis/redis.service.ts`
-- `services/request-service/src/redis/redis.module.ts`
-- `services/request-service/src/modules/request/services/request.service.ts`
-- `services/request-service/src/modules/request/services/category.service.ts`
+- `services/marketplace-service/src/redis/redis.service.ts`
+- `services/marketplace-service/src/redis/redis.module.ts`
+- `services/marketplace-service/src/modules/request/services/request.service.ts`
+- `services/marketplace-service/src/modules/request/services/category.service.ts`
 
 ### User Service
 **Cached Entities:**
@@ -60,9 +60,9 @@ return data;
 - Provider creation → invalidate all providers with pattern `provider:*`
 
 **Files:**
-- `services/user-service/src/redis/redis.service.ts`
-- `services/user-service/src/redis/redis.module.ts`
-- `services/user-service/src/modules/user/services/provider.service.ts`
+- `services/identity-service/src/redis/redis.service.ts`
+- `services/identity-service/src/redis/redis.module.ts`
+- `services/identity-service/src/modules/user/services/provider.service.ts`
 
 ### Job Service
 **Cached Entities:**
@@ -73,9 +73,9 @@ return data;
 - Job completion → invalidate `job:{id}`
 
 **Files:**
-- `services/job-service/src/redis/redis.service.ts`
-- `services/job-service/src/redis/redis.module.ts`
-- `services/job-service/src/modules/job/services/job.service.ts`
+- `services/marketplace-service/src/redis/redis.service.ts`
+- `services/marketplace-service/src/redis/redis.module.ts`
+- `services/marketplace-service/src/modules/job/services/job.service.ts`
 
 ## Redis Service API
 
@@ -153,7 +153,7 @@ REDIS_PORT=6379
 
 Restart services to enable caching:
 ```bash
-docker-compose restart request-service user-service job-service
+docker-compose restart marketplace-service identity-service
 ```
 
 ## Performance Impact
@@ -326,10 +326,10 @@ docker-compose up
 CACHE_ENABLED=true
 
 # Restart affected services
-docker-compose restart request-service user-service job-service
+docker-compose restart marketplace-service identity-service
 
 # Watch logs for cache hits
-docker-compose logs -f request-service | grep "Cache hit"
+docker-compose logs -f marketplace-service | grep "Cache hit"
 ```
 
 ### Test Cache Invalidation

@@ -1,6 +1,6 @@
 # Email & SMS Integration Guide
 
-This guide explains how to integrate the email and SMS microservices with the notification-service.
+This guide explains how to integrate the email and SMS microservices with the comms-service.
 
 ---
 
@@ -8,9 +8,9 @@ This guide explains how to integrate the email and SMS microservices with the no
 
 ```
 ┌──────────────────┐
-│ notification-    │
-│   service        │
-│  (port 3008)     │
+│ comms-service     │
+│                  │
+│  (port 3007)     │
 └────────┬─────────┘
          │
          ├─────────────────────┐
@@ -24,13 +24,13 @@ This guide explains how to integrate the email and SMS microservices with the no
 └────────────────┘    └────────────────┘
 ```
 
-**notification-service** makes HTTP requests to email-service and sms-service when sending notifications.
+**comms-service** makes HTTP requests to email-service and sms-service when sending notifications.
 
 ---
 
 ## Step 1: Create HTTP Client for Email Service
 
-**File**: `services/notification-service/src/modules/notification/clients/email.client.ts`
+**File**: `services/comms-service/src/modules/notification/clients/email.client.ts`
 
 ```typescript
 import { Injectable, Logger } from '@nestjs/common';
@@ -152,7 +152,7 @@ export class EmailClient {
 
 ## Step 2: Create HTTP Client for SMS Service
 
-**File**: `services/notification-service/src/modules/notification/clients/sms.client.ts`
+**File**: `services/comms-service/src/modules/notification/clients/sms.client.ts`
 
 ```typescript
 import { Injectable, Logger } from '@nestjs/common';
@@ -311,7 +311,7 @@ export class SmsClient {
 
 ## Step 3: Update Notification Module
 
-**File**: `services/notification-service/src/modules/notification/notification.module.ts`
+**File**: `services/comms-service/src/modules/notification/notification.module.ts`
 
 ```typescript
 import { Module } from '@nestjs/common';
@@ -340,7 +340,7 @@ export class NotificationModule {}
 
 ## Step 4: Update Notification Service
 
-**File**: `services/notification-service/src/modules/notification/services/notification.service.ts`
+**File**: `services/comms-service/src/modules/notification/services/notification.service.ts`
 
 ```typescript
 import { Injectable, Logger } from '@nestjs/common';
@@ -531,7 +531,7 @@ TWILIO_FROM_NUMBER=+1234567890
 ## Step 7: Install Dependencies
 
 ```bash
-cd services/notification-service
+cd services/comms-service
 npm install axios
 ```
 
@@ -591,7 +591,7 @@ curl -X POST http://localhost:5000/api/v1/sms/otp/send \
 ### In Auth Service (after user signup)
 
 ```typescript
-// services/auth-service/src/modules/auth/services/auth.service.ts
+// services/identity-service/src/modules/auth/services/auth.service.ts
 
 async register(email: string, password: string, role: string) {
   const user = await this.userRepo.create(email, password, role);
@@ -614,7 +614,7 @@ async register(email: string, password: string, role: string) {
 ### In Job Service (when job assigned)
 
 ```typescript
-// services/job-service/src/modules/job/services/job.service.ts
+// services/marketplace-service/src/modules/job/services/job.service.ts
 
 async assignJob(jobId: string, providerId: string) {
   const job = await this.jobRepo.assign(jobId, providerId);
@@ -658,12 +658,12 @@ async assignJob(jobId: string, providerId: string) {
 
 ## Next Steps
 
-1. **Install axios in notification-service**: `npm install axios`
+1. **Install axios in comms-service**: `npm install axios`
 2. **Create client files**: EmailClient and SmsClient
 3. **Update NotificationService**: Add methods for email/SMS
 4. **Configure SMTP**: Get Gmail App Password
 5. **Test**: Send test email and SMS
-6. **Integrate**: Use in auth-service, job-service, etc.
+6. **Integrate**: Use in identity-service, marketplace-service, etc.
 
 ---
 

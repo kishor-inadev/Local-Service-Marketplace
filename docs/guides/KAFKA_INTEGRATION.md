@@ -10,27 +10,27 @@ Your microservices platform now supports **optional Kafka event streaming** for 
 
 ### 1. Kafka Client Library
 Added `kafkajs@^2.2.4` to all relevant services:
-- ✅ request-service
-- ✅ proposal-service  
-- ✅ job-service
+- ✅ marketplace-service
+- ✅ marketplace-service  
+- ✅ marketplace-service
 - ✅ payment-service
-- ✅ notification-service
-- ✅ analytics-service
+- ✅ comms-service
+- ✅ oversight-service
 - ✅ infrastructure-service
 
 ### 2. Event Publishers (Producer Services)
 Services that **publish events** when actions occur:
 
-**request-service** publishes:
+**marketplace-service** publishes:
 - `request_created` - When a new service request is created
 - `request_updated` - When a request is modified
 
-**proposal-service** publishes:
+**marketplace-service** publishes:
 - `proposal_submitted` - When a provider submits a proposal
 - `proposal_accepted` - When a proposal is accepted
 - `proposal_rejected` - When a proposal is rejected
 
-**job-service** publishes:
+**marketplace-service** publishes:
 - `job_created` - When a new job is created
 - `job_started` - When a job begins (status: in_progress)
 - `job_completed` - When a job is finished
@@ -41,12 +41,12 @@ Services that **publish events** when actions occur:
 ### 3. Event Consumers (Consumer Services)
 Services that **listen and react** to events:
 
-**notification-service**:
+**comms-service**:
 - Listens to ALL events
 - Creates user notifications automatically
 - Topics: `request-events`, `proposal-events`, `job-events`, `payment-events`
 
-**analytics-service**:
+**oversight-service**:
 - Listens to ALL events
 - Tracks user activity and metrics
 - Logs all platform actions
@@ -142,9 +142,9 @@ EVENT_BUS_ENABLED=true
 
 Check logs for each service:
 ```powershell
-docker logs auth-service
-docker logs notification-service
-docker logs analytics-service
+docker logs identity-service
+docker logs comms-service
+docker logs oversight-service
 ```
 
 **Expected output:**
@@ -155,8 +155,8 @@ Kafka producer connected successfully
 ### Step 4: Test Event Flow
 
 1. Create a service request via frontend
-2. Check notification-service logs - should see "Received event from request-events: request_created"
-3. Check analytics-service logs - should see event processing
+2. Check comms-service logs - should see "Received event from request-events: request_created"
+3. Check oversight-service logs - should see event processing
 4. Check infrastructure-service logs - should see event storage
 
 ---
@@ -164,14 +164,14 @@ Kafka producer connected successfully
 ## Event Topics
 
 ### request-events
-Published by: `request-service`
+Published by: `marketplace-service`
 
 Events:
 - `request_created`
 - `request_updated`
 
 ### proposal-events
-Published by: `proposal-service`
+Published by: `marketplace-service`
 
 Events:
 - `proposal_submitted`
@@ -179,7 +179,7 @@ Events:
 - `proposal_rejected`
 
 ### job-events
-Published by: `job-service`
+Published by: `marketplace-service`
 
 Events:
 - `job_created`

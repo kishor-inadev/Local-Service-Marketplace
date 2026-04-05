@@ -53,7 +53,7 @@ docker ps
 docker-compose logs -f [service-name]
 
 # Restart specific service
-docker-compose restart auth-service
+docker-compose restart identity-service
 
 # Rebuild and restart
 docker-compose up -d --build
@@ -84,12 +84,12 @@ npm test
 
 ```powershell
 # Check API Gateway
-Invoke-WebRequest -Uri "http://localhost:3500/health"
+Invoke-WebRequest -Uri "http://localhost:3700/health"
 
 # Check specific service
-Invoke-WebRequest -Uri "http://localhost:3001/health"  # Auth service
-Invoke-WebRequest -Uri "http://localhost:3002/health"  # User service
-Invoke-WebRequest -Uri "http://localhost:3003/health"  # Request service
+Invoke-WebRequest -Uri "http://localhost:3001/health"  # identity-service
+Invoke-WebRequest -Uri "http://localhost:3003/health"  # marketplace-service
+Invoke-WebRequest -Uri "http://localhost:3006/health"  # payment-service
 
 # Check all services
 .\scripts\verify-integration.ps1
@@ -102,11 +102,11 @@ Invoke-WebRequest -Uri "http://localhost:3003/health"  # Request service
 ```powershell
 # Test user registration
 $body = @{ name = 'Test User'; email = 'test@example.com'; phone = '+1234567890'; password = 'Test123!@#'; role = 'customer' } | ConvertTo-Json
-Invoke-WebRequest -Uri "http://localhost:3500/api/v1/auth/signup" -Method POST -Headers @{'Content-Type'='application/json'} -Body $body
+Invoke-WebRequest -Uri "http://localhost:3700/api/v1/user/auth/signup" -Method POST -Headers @{'Content-Type'='application/json'} -Body $body
 
 # Test user login
 $body = @{ email = 'test@example.com'; password = 'Test123!@#' } | ConvertTo-Json
-Invoke-WebRequest -Uri "http://localhost:3500/api/v1/auth/login" -Method POST -Headers @{'Content-Type'='application/json'} -Body $body
+Invoke-WebRequest -Uri "http://localhost:3700/api/v1/user/auth/login" -Method POST -Headers @{'Content-Type'='application/json'} -Body $body
 ```
 
 ---
@@ -115,30 +115,25 @@ Invoke-WebRequest -Uri "http://localhost:3500/api/v1/auth/login" -Method POST -H
 
 ```
 Local-Service-Marketplace/
-├── api-gateway/          # API Gateway (Port 3500)
+├── api-gateway/          # API Gateway (Port 3700)
 ├── services/             # Microservices
-│   ├── auth-service/         # Port 3001
-│   ├── user-service/         # Port 3002
-│   ├── request-service/      # Port 3003
-│   ├── proposal-service/     # Port 3004
-│   ├── job-service/          # Port 3005
+│   ├── identity-service/     # Port 3001 (Auth + Users + Providers)
+│   ├── marketplace-service/  # Port 3003 (Requests + Proposals + Jobs + Reviews)
 │   ├── payment-service/      # Port 3006
-│   ├── notification-service/ # Port 3008
-│   ├── review-service/       # Port 3009
-│   └── admin-service/        # Port 3010
+│   ├── comms-service/        # Port 3007 (Notifications + Messaging)
+│   ├── oversight-service/    # Port 3010 (Admin + Analytics)
+│   ├── infrastructure-service/ # Port 3012
+│   ├── email-service/        # Internal 3500
+│   └── sms-service/          # Internal 3000
 ├── frontend/             # Next.js Frontend (Port 3000)
 ├── database/             # Schema and seeding
 ├── docs/                 # Documentation
 │   ├── api/
 │   ├── architecture/
-│   ├── services/
 │   ├── deployment/
-│   ├── guides/
-│   └── archive/
+│   └── guides/
 ├── docker-compose.yml    # Docker orchestration
-├── scripts/generate-production-secrets.ps1
-├── scripts/apply-secrets.ps1
-└── scripts/seed-database.ps1
+└── scripts/              # Utility scripts
 ```
 
 ---
@@ -162,17 +157,14 @@ Local-Service-Marketplace/
 
 | Service | Port | URL |
 |---------|------|-----|
-| API Gateway | 3500 | http://localhost:3500 |
+| API Gateway | 3700 | http://localhost:3700 |
 | Frontend | 3000 | http://localhost:3000 |
-| Auth Service | 3001 | http://localhost:3001 |
-| User Service | 3002 | http://localhost:3002 |
-| Request Service | 3003 | http://localhost:3003 |
-| Proposal Service | 3004 | http://localhost:3004 |
-| Job Service | 3005 | http://localhost:3005 |
-| Payment Service | 3006 | http://localhost:3006 |
-| Notification Service | 3008 | http://localhost:3008 |
-| Review Service | 3009 | http://localhost:3009 |
-| Admin Service | 3010 | http://localhost:3010 |
+| identity-service | 3001 | http://localhost:3001 |
+| marketplace-service | 3003 | http://localhost:3003 |
+| payment-service | 3006 | http://localhost:3006 |
+| comms-service | 3007 | http://localhost:3007 |
+| oversight-service | 3010 | http://localhost:3010 |
+| infrastructure-service | 3012 | http://localhost:3012 |
 | PostgreSQL | 5432 | localhost:5432 |
 | Redis | 6379 | localhost:6379 (when enabled) |
 

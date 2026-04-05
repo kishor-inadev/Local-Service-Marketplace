@@ -34,8 +34,8 @@ docker-compose up -d
 | URL | Service |
 |-----|---------|
 | http://localhost:3000 | Frontend (Next.js) |
-| http://localhost:3500 | API Gateway |
-| http://localhost:3500/health | Health check |
+| http://localhost:3700 | API Gateway |
+| http://localhost:3700/health | Health check |
 
 ### 3. Seed Sample Data (Optional)
 
@@ -56,7 +56,7 @@ Browser
 Frontend (Next.js)          localhost:3000
   |
   v
-API Gateway (NestJS)        localhost:3500
+API Gateway (NestJS)        localhost:3700
   |
   +---> identity-service    localhost:3001   Auth + User profiles
   +---> marketplace-service localhost:3003   Requests + Proposals + Jobs + Reviews
@@ -96,7 +96,7 @@ comms-service
 
 | Service | Docker Port | Local Port |
 |---------|-------------|------------|
-| api-gateway | 3500 | 3500 |
+| api-gateway | 3700 | 3700 |
 | frontend | 3000 | 3000 |
 | PostgreSQL | 5432 | 5432 |
 | Redis | 6379 | 6379 |
@@ -219,7 +219,7 @@ After running tests:
 - **HTML report** - Interactive detailed report in `test-reports/`
 - **JSON report** - Machine-readable results for CI/CD
 
-See [docs/TESTING.md](docs/TESTING.md) for complete documentation.
+See [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) for complete documentation.
 
 ### Collection
 
@@ -348,4 +348,4 @@ docker-compose down -v
 | Database seeding | [docs/DATABASE_SEEDING.md](docs/DATABASE_SEEDING.md) |
 | Kafka integration | [docs/guides/KAFKA_INTEGRATION.md](docs/guides/KAFKA_INTEGRATION.md) |
 | Scaling strategy | [docs/deployment/SCALING_STRATEGY.md](docs/deployment/SCALING_STRATEGY.md) |
-| Full docs index | [docs/00_DOCUMENTATION_INDEX.md](docs/00_DOCUMENTATION_INDEX.md) |
+| Troubleshooting | [docs/TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md) |

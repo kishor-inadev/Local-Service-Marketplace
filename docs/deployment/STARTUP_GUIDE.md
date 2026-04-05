@@ -1,290 +1,173 @@
-# 🚀 Local Service Marketplace - Complete Platform Startup Guide
+# Platform Startup Guide
 
-## Quick Start - Run Everything with Docker Compose
+## Docker Compose (Recommended)
 
 ### Prerequisites
 
-1. **Docker Desktop** installed and running
-   - Download from: https://www.docker.com/products/docker-desktop
-   - Minimum: Docker 20.x, Docker Compose 2.x
-   - Ensure enough resources: 4GB RAM minimum, 8GB recommended
+- Docker Desktop 20.x+ with Docker Compose 2.x+
+- 4 GB RAM minimum (8 GB recommended)
 
-2. **Git** (to clone/navigate the repository)
-
----
-
-## 🎯 One-Command Startup (Recommended)
+### 1. Configure Environment
 
 ```powershell
-# 1. Navigate to project root
-cd "c:\workSpace\Projects\Application\Local Service Marketplace"
-
-# 2. Create environment file (first time only)
-copy .env.example .env
-
-# 3. Start all services
-docker-compose up -d
-
-# 4. Watch logs (optional)
-docker-compose logs -f
+copy .env.example docker.env
 ```
 
-That's it! The entire platform will start:
-- ✅ PostgreSQL Database (port 5432)
-- ✅ Redis Cache (port 6379)
-- ✅ 12 Microservices (ports 3001-3012)
-- ✅ API Gateway (port 3000)
-- ✅ Frontend (port 3001)
+Edit `docker.env` and set:
+- `DATABASE_URL` (or individual `DATABASE_*` vars)
+- `JWT_SECRET` — generate with `openssl rand -base64 48`
+- `JWT_REFRESH_SECRET` — different from JWT_SECRET
+- `GATEWAY_INTERNAL_SECRET` — generate with `openssl rand -base64 48`
+- `MONGO_ROOT_PASSWORD` — for email/sms services
 
----
+### 2. Start Services
 
-## 🌐 Access the Application
-
-Once all services are running (takes 2-3 minutes for first build):
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| **Frontend** | http://localhost:3001 | Main web application |
-| **API Gateway** | http://localhost:3000 | Backend API endpoint |
-| **PostgreSQL** | localhost:5432 | Database (use DB client) |
-| **Redis** | localhost:6379 | Cache/Queue |
-
----
-
-## 📋 Service Ports Map
-
-| Service | Port | Container Name |
-|---------|------|----------------|
-| Auth Service | 3001 | auth-service |
-| User Service | 3002 | user-service |
-| Request Service | 3003 | request-service |
-| Proposal Service | 3004 | proposal-service |
-| Job Service | 3005 | job-service |
-| Payment Service | 3006 | payment-service |
-| Messaging Service | 3007 | messaging-service |
-| Notification Service | 3008 | notification-service |
-| Review Service | 3009 | review-service |
-| Admin Service | 3010 | admin-service |
-| Analytics Service | 3011 | analytics-service |
-| Infrastructure Service | 3012 | infrastructure-service |
-
----
-
-## 🛠️ Docker Commands
-
-### Start Services
 ```powershell
-# Start all services (detached mode)
 docker-compose up -d
+```
 
-# Start specific services only
-docker-compose up -d postgres redis api-gateway frontend
+Wait 1–2 minutes for health checks. Verify:
 
-# Start and rebuild (after code changes)
+```powershell
+docker ps --format "table {{.Names}}\t{{.Status}}"
+```
+
+### Services Started
+
+| Container | Port | Role |
+|-----------|------|------|
+| api-gateway | 3700 | Single entry point for all API calls |
+| identity-service | 3001 | Auth, users, providers |
+| marketplace-service | 3003 | Requests, proposals, jobs, reviews |
+| payment-service | 3006 | Payments, refunds |
+| comms-service | 3007 | Notifications (email + SMS gateway) |
+| oversight-service | 3010 | Admin, analytics |
+| marketplace-postgres | 5432 | PostgreSQL database |
+
+Optional services (enabled via Docker profiles):
+- `infrastructure-service` (3012) — profile: `infrastructure`
+- `email-service` (4000) — profile: `email`
+- `sms-service` (5000) — profile: `sms`
+
+### Access Points
+
+| URL | Description |
+|-----|-------------|
+| http://localhost:3700/health | API Gateway health check |
+| http://localhost:3000 | Frontend (if running locally) |
+
+---
+
+## Frontend (Local Development)
+
+The frontend runs outside Docker for hot reload:
+
+```powershell
+cd frontend
+copy .env.example .env.local
+pnpm install
+pnpm dev
+```
+
+Set in `.env.local`:
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3700
+AUTH_SECRET=<generate with: openssl rand -base64 32>
+NEXTAUTH_URL=http://localhost:3000
+```
+
+---
+
+## Docker Commands
+
+```powershell
+# View logs
+docker-compose logs -f comms-service
+
+# Restart a service
+docker-compose restart identity-service
+
+# Rebuild after code changes
 docker-compose up -d --build
 
-# Start with live logs
-docker-compose up
-```
-
-### Stop Services
-```powershell
-# Stop all services (keeps data)
-docker-compose stop
-
-# Stop and remove containers (keeps volumes/data)
+# Stop (keeps data)
 docker-compose down
 
-# Stop and remove everything including volumes (CAUTION: deletes database)
+# Full reset (deletes all data)
 docker-compose down -v
-```
 
-### View Logs
-```powershell
-# All services
-docker-compose logs -f
-
-# Specific service
-docker-compose logs -f api-gateway
-docker-compose logs -f frontend
-docker-compose logs -f auth-service
-
-# Last 100 lines
-docker-compose logs --tail=100 -f
-```
-
-### Check Status
-```powershell
-# List running containers
-docker-compose ps
-
-# Check service health
-docker-compose ps
-```
-
-### Restart Services
-```powershell
-# Restart all
-docker-compose restart
-
-# Restart specific service
-docker-compose restart api-gateway
-docker-compose restart frontend
-```
-
-### Rebuild After Changes
-```powershell
-# Rebuild specific service
-docker-compose build auth-service
-docker-compose up -d auth-service
-
-# Rebuild everything
-docker-compose build
-docker-compose up -d
+# Enable optional services
+docker-compose --profile email --profile sms up -d
 ```
 
 ---
 
-## 🔍 Troubleshooting
+## Local Development (Without Docker)
 
-### Services not starting?
-
-1. **Check Docker is running**
-   ```powershell
-   docker --version
-   docker-compose --version
-   ```
-
-2. **Check logs for errors**
-   ```powershell
-   docker-compose logs
-   ```
-
-3. **Ensure ports are not in use**
-   ```powershell
-   # Check what's using port 3000
-   netstat -ano | findstr :3000
-   
-   # Kill process if needed
-   taskkill /PID <PID> /F
-   ```
-
-4. **Reset everything**
-   ```powershell
-   docker-compose down -v
-   docker-compose up -d --build
-   ```
-
-### Database connection issues?
+### 1. Start Database Only
 
 ```powershell
-# Check PostgreSQL is healthy
-docker-compose ps postgres
+docker-compose up -d postgres
+```
 
-# Connect to PostgreSQL directly
+### 2. Start Backend Services
+
+```powershell
+# In separate terminals:
+cd services/identity-service && pnpm install && pnpm start:dev
+cd services/marketplace-service && pnpm install && pnpm start:dev
+cd services/payment-service && pnpm install && pnpm start:dev
+cd services/comms-service && pnpm install && pnpm start:dev
+cd services/oversight-service && pnpm install && pnpm start:dev
+cd api-gateway && pnpm install && pnpm start:dev
+```
+
+### 3. Start Frontend
+
+```powershell
+cd frontend && pnpm install && pnpm dev
+```
+
+---
+
+## Troubleshooting
+
+### Services not starting
+
+```powershell
+docker-compose logs                     # Check for errors
+docker-compose down -v && docker-compose up -d --build  # Full reset
+```
+
+### Port conflicts
+
+```powershell
+netstat -ano | findstr :3700           # Check what's using the port
+```
+
+### Database connection issues
+
+```powershell
 docker exec -it marketplace-postgres psql -U postgres -d marketplace
-
-# View database tables
-\dt
 ```
 
-### Frontend can't connect to API?
+### Out of memory
 
-1. Check API Gateway is running:
-   ```powershell
-   docker-compose ps api-gateway
-   curl http://localhost:3000/health
-   ```
-
-2. Check frontend environment:
-   ```powershell
-   docker-compose logs frontend | findstr API_URL
-   ```
-
-### Service taking too long to start?
-
-Services start in order due to health checks. Wait 3-5 minutes for first startup.
-
-```powershell
-# Watch startup progress
-docker-compose logs -f
-```
-
-### Out of memory errors?
-
-Increase Docker Desktop resources:
-1. Docker Desktop → Settings → Resources
-2. Increase Memory to 8GB
-3. Increase CPUs to 4
-4. Apply & Restart
+Increase Docker Desktop resources: Settings → Resources → Memory → 8 GB.
 
 ---
 
-## 🧪 Alternative: Development Mode (Without Docker)
-
-If you prefer to run services locally without Docker:
-
-### 1. Start Database & Redis
-```powershell
-docker-compose up -d postgres redis
-```
-
-### 2. Start Backend Services (in separate terminals)
+## Verify Installation
 
 ```powershell
-# Terminal 1: Auth Service
-cd services/auth-service
-npm install
-npm run start:dev
+# Health check
+curl http://localhost:3700/health
 
-# Terminal 2: User Service
-cd services/user-service
-npm install
-npm run start:dev
-
-# ... repeat for all 12 services
+# Run API tests
+pnpm test:api
 ```
 
-### 3. Start API Gateway
-```powershell
-cd api-gateway
-npm install
-npm run start:dev
-```
-
-### 4. Start Frontend
-```powershell
-cd frontend/nextjs-app
-npm install
-npm run dev
-```
-
----
-
-## 📊 Verify Installation
-
-Once everything is running, verify the installation:
-
-### 1. Check Services Health
-```powershell
-# API Gateway health
-curl http://localhost:3000/health
-
-# Frontend
-curl http://localhost:3001
-```
-
-### 2. Create Test User
-Open browser to http://localhost:3001 and:
-1. Click "Sign Up"
-2. Create a customer account
-3. Login
-
-### 3. Test Core Features
-- ✅ Create a service request
-- ✅ Browse requests
-- ✅ View dashboard
-- ✅ Check notifications
+Then open http://localhost:3000, sign up, and create a service request.
 
 ---
 

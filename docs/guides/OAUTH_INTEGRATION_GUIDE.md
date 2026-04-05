@@ -68,23 +68,23 @@ CREATE INDEX idx_social_accounts_provider ON social_accounts(provider, provider_
 ### Step 1: Install Dependencies
 
 ```bash
-cd services/auth-service
+cd services/identity-service
 npm install passport passport-google-oauth20 passport-facebook @nestjs/passport
 ```
 
 ### Step 2: Environment Variables
 
-Add to `services/auth-service/.env`:
+Add to `services/identity-service/.env`:
 
 ```env
 # OAuth Configuration
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_CALLBACK_URL=http://localhost:3500/api/v1/auth/google/callback
+GOOGLE_CALLBACK_URL=http://localhost:3700/api/v1/user/auth/google/callback
 
 FACEBOOK_APP_ID=your-facebook-app-id
 FACEBOOK_APP_SECRET=your-facebook-app-secret
-FACEBOOK_CALLBACK_URL=http://localhost:3500/api/v1/auth/facebook/callback
+FACEBOOK_CALLBACK_URL=http://localhost:3700/api/v1/user/auth/facebook/callback
 
 # Frontend URLs
 FRONTEND_URL=http://localhost:3000
@@ -94,7 +94,7 @@ OAUTH_FAILURE_REDIRECT=/login?error=oauth_failed
 
 ### Step 3: Create OAuth DTOs
 
-**File**: `services/auth-service/src/modules/auth/dto/oauth.dto.ts`
+**File**: `services/identity-service/src/modules/auth/dto/oauth.dto.ts`
 
 ```typescript
 export class GoogleOAuthDto {
@@ -117,7 +117,7 @@ export class SocialAccountDto {
 
 ### Step 4: Create OAuth Strategy
 
-**File**: `services/auth-service/src/modules/auth/strategies/google.strategy.ts`
+**File**: `services/identity-service/src/modules/auth/strategies/google.strategy.ts`
 
 ```typescript
 import { PassportStrategy } from '@nestjs/passport';
@@ -158,7 +158,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
 }
 ```
 
-**File**: `services/auth-service/src/modules/auth/strategies/facebook.strategy.ts`
+**File**: `services/identity-service/src/modules/auth/strategies/facebook.strategy.ts`
 
 ```typescript
 import { PassportStrategy } from '@nestjs/passport';
@@ -202,7 +202,7 @@ export class FacebookStrategy extends PassportStrategy(Strategy, 'facebook') {
 
 ### Step 5: Update Auth Controller
 
-**File**: `services/auth-service/src/modules/auth/controllers/auth.controller.ts`
+**File**: `services/identity-service/src/modules/auth/controllers/auth.controller.ts`
 
 Add these endpoints:
 
@@ -248,7 +248,7 @@ export class AuthController {
 
 ### Step 6: Update Auth Service
 
-**File**: `services/auth-service/src/modules/auth/services/auth.service.ts`
+**File**: `services/identity-service/src/modules/auth/services/auth.service.ts`
 
 Add social login method:
 
@@ -295,7 +295,7 @@ async handleSocialLogin(socialData: any): Promise<{ access_token: string; user: 
 
 ### Step 7: Create Social Account Repository
 
-**File**: `services/auth-service/src/modules/auth/repositories/social-account.repository.ts`
+**File**: `services/identity-service/src/modules/auth/repositories/social-account.repository.ts`
 
 ```typescript
 import { Injectable } from '@nestjs/common';
@@ -474,8 +474,8 @@ const handleFacebookLogin = () => {
 4. Go to **Credentials** → **Create Credentials** → **OAuth Client ID**
 5. Application type: **Web application**
 6. Authorized redirect URIs:
-   - `http://localhost:3500/api/v1/auth/google/callback`
-   - `https://your-domain.com/api/v1/auth/google/callback`
+   - `http://localhost:3700/api/v1/user/auth/google/callback`
+   - `https://your-domain.com/api/v1/user/auth/google/callback`
 7. Copy **Client ID** and **Client Secret**
 
 ### Facebook OAuth Setup
@@ -487,8 +487,8 @@ const handleFacebookLogin = () => {
    - Copy **App ID** and **App Secret**
 5. Facebook Login → Settings:
    - Valid OAuth Redirect URIs:
-     - `http://localhost:3500/api/v1/auth/facebook/callback`
-     - `https://your-domain.com/api/v1/auth/facebook/callback`
+     - `http://localhost:3700/api/v1/user/auth/facebook/callback`
+     - `https://your-domain.com/api/v1/user/auth/facebook/callback`
 6. App Review → Make app public
 
 ---
@@ -498,7 +498,7 @@ const handleFacebookLogin = () => {
 ### Test Google Login:
 ```bash
 # Start services
-docker-compose up -d auth-service api-gateway
+docker-compose up -d identity-service api-gateway
 
 # Frontend
 cd frontend/nextjs-app
@@ -535,23 +535,23 @@ Add to all relevant `.env` files:
 # Auth Service
 GOOGLE_CLIENT_ID=xxx
 GOOGLE_CLIENT_SECRET=xxx
-GOOGLE_CALLBACK_URL=http://localhost:3500/api/v1/auth/google/callback
+GOOGLE_CALLBACK_URL=http://localhost:3700/api/v1/user/auth/google/callback
 
 FACEBOOK_APP_ID=xxx
 FACEBOOK_APP_SECRET=xxx
-FACEBOOK_CALLBACK_URL=http://localhost:3500/api/v1/auth/facebook/callback
+FACEBOOK_CALLBACK_URL=http://localhost:3700/api/v1/user/auth/facebook/callback
 
 FRONTEND_URL=http://localhost:3000
 
 # Frontend
-NEXT_PUBLIC_API_URL=http://localhost:3500
+NEXT_PUBLIC_API_URL=http://localhost:3700
 ```
 
 ---
 
 ## Completion Checklist
 
-- [ ] Install passport dependencies in auth-service
+- [ ] Install passport dependencies in identity-service
 - [ ] Add OAuth strategies (Google, Facebook)
 - [ ] Create SocialAccountRepository
 - [ ] Update AuthController with OAuth endpoints

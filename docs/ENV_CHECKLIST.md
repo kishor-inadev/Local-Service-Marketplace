@@ -23,10 +23,10 @@ Ensure these match in **docker.env** and **secrets.env**:
 
 ### ✅ Step 3: Service-Specific Configuration
 
-#### auth-service & api-gateway
+#### identity-service & api-gateway
 - [ ] JWT_SECRET matches in both
 - [ ] GATEWAY_INTERNAL_SECRET matches in both
-- [ ] JWT_REFRESH_SECRET set in auth-service
+- [ ] JWT_REFRESH_SECRET set in identity-service
 
 #### payment-service
 - [ ] STRIPE_SECRET_KEY (use `sk_test_` for dev, `sk_live_` for prod)
@@ -37,7 +37,7 @@ Ensure these match in **docker.env** and **secrets.env**:
 - [ ] EMAIL_PASS set (use app password for Gmail)
 - [ ] EMAIL_HOST correct (smtp.gmail.com for Gmail)
 
-#### notification-service
+#### comms-service
 - [ ] EMAIL_SERVICE_URL matches email-service port
 - [ ] SMS_SERVICE_URL matches sms-service port (if enabled)
 
@@ -48,7 +48,7 @@ Ensure these match in **docker.env** and **secrets.env**:
 #### For Docker Deployment:
 ```env
 DATABASE_HOST=postgres
-AUTH_SERVICE_URL=http://auth-service:3001
+AUTH_SERVICE_URL=http://identity-service:3001
 REDIS_URL=redis://redis:6379
 ```
 
@@ -63,7 +63,7 @@ REDIS_URL=redis://localhost:6379
 
 ### ✅ Step 5: Frontend Configuration
 
-- [ ] NEXT_PUBLIC_API_URL=http://localhost:3500 (points to API Gateway)
+- [ ] NEXT_PUBLIC_API_URL=http://localhost:3700 (points to API Gateway)
 - [ ] AUTH_SECRET generated (run: `openssl rand -base64 32`)
 - [ ] NEXTAUTH_URL=http://localhost:3000
 
@@ -128,18 +128,12 @@ docker-compose --profile email up -d
 | Service | Port (External) | Port (Internal) |
 |---------|----------------|-----------------|
 | Frontend | 3000 | 3000 |
-| API Gateway | 3500 | 3000 |
-| auth-service | 3001 | 3001 |
-| user-service | 3002 | 3002 |
-| request-service | 3003 | 3003 |
-| proposal-service | 3004 | 3004 |
-| job-service | 3005 | 3005 |
+| API Gateway | 3700 | 3000 |
+| identity-service | 3001 | 3001 |
+| marketplace-service | 3003 | 3003 |
 | payment-service | 3006 | 3006 |
-| messaging-service | 3007 | 3007 |
-| notification-service | 3008 | 3008 |
-| review-service | 3009 | 3009 |
-| admin-service | 3010 | 3010 |
-| analytics-service | 3011 | 3011 |
+| comms-service | 3007 | 3007 |
+| oversight-service | 3010 | 3010 |
 | infrastructure-service | 3012 | 3012 |
 | email-service | 4000 | 3500 |
 | sms-service | 5000 | 3000 |
@@ -154,7 +148,7 @@ docker-compose --profile email up -d
 ## Common Issues
 
 ### Issue: JWT validation fails
-**Solution**: Ensure JWT_SECRET matches in api-gateway and auth-service
+**Solution**: Ensure JWT_SECRET matches in api-gateway and identity-service
 
 ### Issue: Service can't connect to database
 **Solution**: Check DATABASE_PASSWORD matches across docker.env and services

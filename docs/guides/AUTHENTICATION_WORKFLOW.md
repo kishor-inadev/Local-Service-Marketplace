@@ -28,7 +28,7 @@ This document explains **how authentication, validation, and authorization** wor
                               ↓ Yes
 ┌────────────────────────────────────────────────────────────────┐
 │                   SEND TO API GATEWAY                          │
-│  POST http://localhost:3500/api/v1/auth/signup                │
+│  POST http://localhost:3700/api/v1/user/auth/signup                │
 │  Headers:                                                      │
 │    Content-Type: application/json                             │
 │  Body:                                                         │
@@ -43,8 +43,8 @@ This document explains **how authentication, validation, and authorization** wor
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
 │                        API GATEWAY                             │
-│  • Receives request on port 3500                              │
-│  • Routes to auth-service:3001/auth/signup                    │
+│  • Receives request on port 3700                              │
+│  • Routes to identity-service:3001/auth/signup                    │
 │  • No authentication needed for signup                        │
 └────────────────────────────────────────────────────────────────┘
                               ↓
@@ -80,8 +80,8 @@ This document explains **how authentication, validation, and authorization** wor
 │    payload = { sub: user.id, email, role }                    │
 │    jwt.sign(payload, SECRET, { expiresIn: '7d' })            │
 │                                                                │
-│  Step 7: Send verification email (via notification-service)   │
-│    POST http://notification-service:3008/notifications        │
+│  Step 7: Send verification email (via comms-service)   │
+│    POST http://comms-service:3007/notifications        │
 │    {                                                           │
 │      "user_id": user.id,                                      │
 │      "type": "email_verification",                            │
@@ -122,7 +122,7 @@ This document explains **how authentication, validation, and authorization** wor
 │  Step 4: Log to MongoDB                                       │
 │    collection: email_logs                                     │
 │    status: "sent"                                             │
-│  Step 5: Return message_id to notification-service            │
+│  Step 5: Return message_id to comms-service            │
 └────────────────────────────────────────────────────────────────┘
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
@@ -164,7 +164,7 @@ This document explains **how authentication, validation, and authorization** wor
 ┌────────────────────────────────────────────────────────────────┐
 │                   REDIRECT TO GOOGLE OAUTH                     │
 │  window.location.href =                                        │
-│  "http://localhost:3500/api/v1/auth/google"                   │
+│  "http://localhost:3700/api/v1/user/auth/google"                   │
 └────────────────────────────────────────────────────────────────┘
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
@@ -172,7 +172,7 @@ This document explains **how authentication, validation, and authorization** wor
 │  Redirects to:                                                 │
 │  https://accounts.google.com/o/oauth2/v2/auth?                │
 │    client_id=xxx&                                              │
-│    redirect_uri=http://localhost:3500/.../google/callback&    │
+│    redirect_uri=http://localhost:3700/.../google/callback&    │
 │    response_type=code&                                         │
 │    scope=email+profile                                         │
 └────────────────────────────────────────────────────────────────┘
@@ -340,7 +340,7 @@ This document explains **how authentication, validation, and authorization** wor
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
 │               SEND REQUEST WITH AUTH TOKEN                     │
-│  POST http://localhost:3500/api/v1/requests                   │
+│  POST http://localhost:3700/api/v1/requests                   │
 │  Headers:                                                      │
 │    Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR...           │
 │    Content-Type: application/json                             │
@@ -355,7 +355,7 @@ This document explains **how authentication, validation, and authorization** wor
 ┌────────────────────────────────────────────────────────────────┐
 │                        API GATEWAY                             │
 │  • Extract Authorization header                               │
-│  • Route to request-service:3003/requests                     │
+│  • Route to marketplace-service:3003/requests                     │
 │  • Forward Authorization header                               │
 └────────────────────────────────────────────────────────────────┘
                               ↓
@@ -414,8 +414,8 @@ This document explains **how authentication, validation, and authorization** wor
 │      })                                                       │
 │    }                                                           │
 │                                                                │
-│  Step 4: Notify nearby providers (via notification-service)   │
-│    POST http://notification-service:3008/notifications/bulk   │
+│  Step 4: Notify nearby providers (via comms-service)   │
+│    POST http://comms-service:3007/notifications/bulk   │
 │    {                                                           │
 │      "recipients": [provider_ids],                            │
 │      "type": "new_request",                                   │

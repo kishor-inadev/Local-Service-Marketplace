@@ -16,18 +16,18 @@
 │  │  1. Logging → 2. JWT Auth → 3. Rate Limiting                │  │
 │  │                                                              │  │
 │  │  Routes:                                                     │  │
-│  │  - /auth/*        → auth-service:3001                       │  │
-│  │  - /users/*       → user-service:3002                       │  │
-│  │  - /providers/*   → user-service:3002                       │  │
-│  │  - /requests/*    → request-service:3003                    │  │
-│  │  - /proposals/*   → proposal-service:3004                   │  │
-│  │  - /jobs/*        → job-service:3005                        │  │
+│  │  - /auth/*        → identity-service:3001                   │  │
+│  │  - /users/*       → identity-service:3001                   │  │
+│  │  - /providers/*   → identity-service:3001                   │  │
+│  │  - /requests/*    → marketplace-service:3003                │  │
+│  │  - /proposals/*   → marketplace-service:3003                │  │
+│  │  - /jobs/*        → marketplace-service:3003                │  │
 │  │  - /payments/*    → payment-service:3006                    │  │
-│  │  - /messages/*    → messaging-service:3007                  │  │
-│  │  - /notifications/* → notification-service:3008             │  │
-│  │  - /reviews/*     → review-service:3009                     │  │
-│  │  - /admin/*       → admin-service:3010                      │  │
-│  │  - /analytics/*   → analytics-service:3011                  │  │
+│  │  - /messages/*    → comms-service:3007                      │  │
+│  │  - /notifications/* → comms-service:3007                    │  │
+│  │  - /reviews/*     → marketplace-service:3003                │  │
+│  │  - /admin/*       → oversight-service:3010                  │  │
+│  │  - /analytics/*   → oversight-service:3010                  │  │
 │  │  - /events/*      → infrastructure-service:3012             │  │
 │  └──────────────────────────────────────────────────────────────┘  │
 └─────────────────────────────────────────────────────────────────────┘
@@ -39,18 +39,13 @@
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐            │
-│  │ Auth Service │  │ User Service │  │Request Svc   │            │
-│  │   :3001      │  │   :3002      │  │   :3003      │            │
+│  │Identity Svc  │  │Marketplace   │  │Payment Svc   │            │
+│  │   :3001      │  │   :3003      │  │   :3006      │            │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘            │
 │         │                  │                  │                     │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐            │
-│  │Proposal Svc  │  │  Job Service │  │Payment Svc   │            │
-│  │   :3004      │  │   :3005      │  │   :3006      │            │
-│  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘            │
-│         │                  │                  │                     │
-│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐            │
-│  │Review Svc    │  │ Admin Svc    │  │Analytics Svc │            │
-│  │   :3009      │  │   :3010      │  │   :3011      │            │
+│  │Comms Svc     │  │Oversight Svc │  │Infra Svc     │            │
+│  │   :3007      │  │   :3010      │  │   :3012      │            │
 │  └──────┬───────┘  └──────┬───────┘  └──────┬───────┘            │
 │         │                  │                  │                     │
 └─────────┼──────────────────┼──────────────────┼─────────────────────┘
@@ -73,13 +68,13 @@
 ├─────────────────────────────────────────────────────────────────────┤
 │                                                                     │
 │  ┌───────────────────┐        ┌───────────────────┐               │
-│  │ Messaging Service │◄───────┤  WebSocket Chat   │               │
+│  │  Comms Service    │◄───────┤  WebSocket Chat   │               │
 │  │      :3007        │        │  (Socket.IO)      │               │
 │  └────────┬──────────┘        └───────────────────┘               │
 │           │                                                         │
 │           ▼                                                         │
 │  ┌──────────────────────────────────────────────────┐             │
-│  │        Notification Service :3008                │             │
+│  │        Comms Service :3007                       │             │
 │  │  ┌────────────────────────────────────────────┐  │             │
 │  │  │ Feature Flags:                             │  │             │
 │  │  │ - EMAIL_ENABLED (default: true)            │  │             │

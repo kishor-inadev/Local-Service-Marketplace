@@ -2,7 +2,7 @@
 
 ## Overview
 
-The messaging-service now supports **real-time bidirectional communication** using WebSocket (Socket.IO). This enables instant message delivery, typing indicators, read receipts, and online status tracking.
+The comms-service now supports **real-time bidirectional communication** using WebSocket (Socket.IO). This enables instant message delivery, typing indicators, read receipts, and online status tracking.
 
 ---
 
@@ -57,7 +57,7 @@ PostgreSQL (message storage)
 ### 1. Install Dependencies
 
 \`\`\`bash
-cd services/messaging-service
+cd services/comms-service
 npm install
 \`\`\`
 
@@ -600,7 +600,7 @@ Features:
 - Error handling and logging
 
 Next Steps:
-1. Install dependencies: \`npm install\` in messaging-service
+1. Install dependencies: \`npm install\` in comms-service
 2. Integrate frontend Socket.IO client
 3. Test real-time messaging flow
 4. Configure production: Add JWT validation, Redis adapter, rate limiting

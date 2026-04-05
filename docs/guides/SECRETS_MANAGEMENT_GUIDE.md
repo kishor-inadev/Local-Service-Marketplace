@@ -110,7 +110,7 @@ Update `docker-compose.yml` to use secrets:
 
 ```yaml
 services:
-  auth-service:
+  identity-service:
     environment:
       - JWT_SECRET=${JWT_SECRET}
       - DATABASE_PASSWORD=${DATABASE_PASSWORD}
@@ -161,7 +161,7 @@ services:
    ```bash
    # Option 1: Rolling update
    kubectl rollout restart deployment/api-gateway
-   kubectl rollout restart deployment/auth-service
+   kubectl rollout restart deployment/identity-service
    
    # Option 2: Blue-green deployment
    # Deploy new version with new secrets
@@ -294,7 +294,7 @@ Local-Service-Marketplace/
 ├── .env.production                    # ❌ NEVER commit
 │
 ├── api-gateway/.env.example           # ✅ Template
-├── services/auth-service/.env.example # ✅ Template
+├── services/identity-service/.env.example # ✅ Template
 └── ...
 ```
 
@@ -330,7 +330,7 @@ DATABASE_PASSWORD=your-generated-secret-here
 ### **Docker Compose**
 ```yaml
 services:
-  auth-service:
+  identity-service:
     env_file:
       - secrets.env
     environment:

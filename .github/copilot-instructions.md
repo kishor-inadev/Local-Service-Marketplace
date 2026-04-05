@@ -93,21 +93,19 @@ Repositories handle database queries.
 
 # Microservices
 
-Core services in the platform:
+The platform uses 6 backend microservices (merged from original 13):
 
-auth-service
-user-service
-provider-service
-request-service
-proposal-service
-job-service
-payment-service
-notification-service
-review-service
-messaging-service
-admin-service
-analytics-service
-infrastructure-service
+identity-service (port 3001) — auth + user + provider
+marketplace-service (port 3003) — request + proposal + job + review
+payment-service (port 3006)
+comms-service (port 3007) — notification + messaging
+oversight-service (port 3010) — admin + analytics
+infrastructure-service (port 3012)
+
+Supporting services:
+api-gateway (port 3700) — single entry point
+email-service (internal) — SMTP delivery
+sms-service (internal) — SMS/OTP delivery
 
 Each service must:
 
@@ -120,7 +118,7 @@ Each service must:
 
 # Service Boundaries
 
-Auth Service owns
+identity-service owns
 
 users
 sessions
@@ -129,30 +127,22 @@ password_reset_tokens
 login_attempts
 social_accounts
 user_devices
-
-User Service owns
-
 providers
 provider_services
 provider_availability
 favorites
 locations
 
-Request Service owns
+marketplace-service owns
 
 service_requests
 service_categories
 service_request_search
-
-Proposal Service owns
-
 proposals
-
-Job Service owns
-
 jobs
+reviews
 
-Payment Service owns
+payment-service owns
 
 payments
 refunds
@@ -160,33 +150,23 @@ payment_webhooks
 coupons
 coupon_usage
 
-Review Service owns
-
-reviews
-
-Messaging Service owns
-
-messages
-attachments
-
-Notification Service owns
+comms-service owns
 
 notifications
 notification_deliveries
+messages
+attachments
 
-Admin Service owns
+oversight-service owns
 
 admin_actions
 disputes
 audit_logs
 system_settings
-
-Analytics Service owns
-
 user_activity_logs
 daily_metrics
 
-Infrastructure Service owns
+infrastructure-service owns
 
 events
 background_jobs

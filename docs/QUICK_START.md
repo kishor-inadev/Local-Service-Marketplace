@@ -1,203 +1,112 @@
-# 🚀 Quick Start Guide (5 Minutes)
+# Quick Start Guide
 
-**Local Service Marketplace** - Get up and running in 5 minutes!
+Get the Local Service Marketplace running locally in 5 minutes.
 
 ---
 
 ## Prerequisites
 
-Before you begin, ensure you have installed:
-
-- **Node.js** 18+ ([Download](https://nodejs.org/))
-- **Docker Desktop** ([Download](https://www.docker.com/products/docker-desktop/))
-- **Git** ([Download](https://git-scm.com/downloads))
+- **Docker Desktop** 20.x+ with Docker Compose 2.x+
+- **Node.js** 18+ and **pnpm** 8+
+- 4 GB RAM minimum (8 GB recommended)
 
 ---
 
-## Step 1: Clone & Start Services (2 minutes)
+## Step 1: Configure Environment
 
 ```powershell
-# Clone the repository
-cd "c:\workSpace\Projects\Application"
-cd "Local Service Marketplace"
-
-# Start all services with Docker
-.\scripts\start.ps1
-
-# Wait for all containers to start (30-60 seconds)
-# You should see: "✅ All services are healthy"
-```
-
-### Verify Services Running
-
-```powershell
-docker ps --format "table {{.Names}}\t{{.Status}}"
-```
-
-You should see 14 services running:
-- ✅ api-gateway (port 3500)
-- ✅ auth-service (port 3001)
-- ✅ user-service (port 3002)
-- ✅ request-service (port 3003)
-- ✅ And 10 more services...
-- ✅ marketplace-postgres (port 5432)
-
----
-
-## Step 2: Configure Frontend (2 minutes)
-
-```powershell
-# Navigate to frontend
-cd frontend\nextjs-app
-
 # Copy environment template
-cp .env.example .env.local
+copy .env.example docker.env
 
-# Edit .env.local and add your credentials
+# Generate secure secrets
+openssl rand -base64 48   # → paste as JWT_SECRET
+openssl rand -base64 48   # → paste as JWT_REFRESH_SECRET
+openssl rand -base64 48   # → paste as GATEWAY_INTERNAL_SECRET
 ```
 
-### Required Environment Variables
-
-```bash
-# .env.local
-
-# API Gateway URL (already configured)
-NEXT_PUBLIC_API_URL=http://localhost:3500
-
-# Google Maps API Key (REQUIRED for location features)
-NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_api_key_here
-
-# Optional: Stripe for payments
-NEXT_PUBLIC_STRIPE_PUBLIC_KEY=pk_test_...
-```
-
-### Get Google Maps API Key
-
-1. Go to [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a project (or select existing)
-3. Enable these APIs:
-   - Maps JavaScript API
-   - Places API
-   - Geocoding API
-4. Create credentials → API Key
-5. Copy the key and paste it in `.env.local`
+Edit `docker.env` and set `DATABASE_URL` (or the individual `DATABASE_*` vars), plus the three secrets above.
 
 ---
 
-## Step 3: Start Frontend (1 minute)
+## Step 2: Start Backend Services
 
 ```powershell
-# Install dependencies (first time only)
-npm install
-
-# Start development server
-npm run dev
+docker-compose up -d
 ```
 
-Wait for:
-```
-✓ Ready in 3.2s
-○ Local:   http://localhost:3000
-```
-
----
-
-## Step 4: Access the Platform (30 seconds)
-
-### Frontend
-**URL:** http://localhost:3000
-
-**Test Accounts:**
-```
-Email: test@example.com
-Password: Test123!@#
-```
-
-Or create a new account (instant signup, no email verification needed).
-
-### API Gateway
-**URL:** http://localhost:3500
-
-**Health Check:** http://localhost:3500/api/v1/health
-
-### API Documentation
-All endpoints use the `/api/v1` prefix:
-- `POST /api/v1/auth/login`
-- `GET /api/v1/users`
-- `POST /api/v1/requests`
-- See [api/API_SPECIFICATION.md](api/API_SPECIFICATION.md) for complete list
-
----
-
-## 🎯 Test the Platform (2 minutes)
-
-### 1. Sign Up
-1. Go to http://localhost:3000/signup
-2. Enter email, password, select role (Customer or Provider)
-3. Click "Sign Up"
-4. You're automatically logged in!
-
-### 2. Create a Service Request
-1. Go to **Requests** → **Create Request**
-2. Fill in details:
-   - Description: "Need plumbing work"
-   - Budget: $500
-   - Category: Select from dropdown
-   - **Location**: Click the map or search for an address
-3. Click "Create Request"
-4. ✅ Request created with pinpoint location!
-
-### 3. Browse Providers
-1. Go to **Providers**
-2. Use filters (service type, location, availability)
-3. Click on a provider to see their profile
-4. See their availability calendar
-
-### 4. Real-time Notifications
-1. Watch the notification bell icon in top-right
-2. Badge shows unread count (updated every 30 seconds)
-3. Click to view all notifications
-
----
-
-## 🛠️ Common Commands
-
-### Docker Management
+Wait 1–2 minutes, then verify:
 
 ```powershell
-# Start all services
-.\scripts\start.ps1
-
-# Stop all services
-.\scripts\stop.ps1
-
-# Restart a specific service
-docker-compose restart auth-service
-
-# View logs
-docker logs auth-service --tail 50
-
-# Check service health
 docker ps --format "table {{.Names}}\t{{.Status}}"
 ```
 
-### Frontend Development
+You should see these containers healthy:
+
+| Container | Port | Role |
+|-----------|------|------|
+| api-gateway | 3700 | Single entry point |
+| identity-service | 3001 | Auth + Users |
+| marketplace-service | 3003 | Requests + Proposals + Jobs + Reviews |
+| payment-service | 3006 | Payments + Refunds |
+| comms-service | 3007 | Notifications |
+| oversight-service | 3010 | Admin + Analytics |
+| marketplace-postgres | 5432 | Database |
+
+Health check: http://localhost:3700/health
+
+---
+
+## Step 3: Start Frontend
 
 ```powershell
-cd frontend\nextjs-app
-
-# Development server
-npm run dev
-
-# Build for production
-npm run build
-
-# Run tests
-npm test
-
-# Check for linting errors
-npm run lint
+cd frontend
+copy .env.example .env.local
+pnpm install
+pnpm dev
 ```
+
+Set these in `frontend/.env.local`:
+
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3700
+AUTH_SECRET=<generate with: openssl rand -base64 32>
+NEXTAUTH_URL=http://localhost:3000
+```
+
+Frontend: http://localhost:3000
+
+---
+
+## Step 4: Seed Sample Data (Optional)
+
+```powershell
+.\scripts\seed-database.ps1
+```
+
+Creates 151 users and 1000+ sample records.
+Default admin: `admin@marketplace.com` / `password123`
+
+---
+
+## Test the Platform
+
+1. Go to http://localhost:3000/signup and create an account
+2. Create a service request from the dashboard
+3. Run API tests: `pnpm test:api`
+
+---
+
+## Common Commands
+
+```powershell
+docker-compose logs -f comms-service    # View service logs
+docker-compose restart identity-service # Restart a service
+docker-compose up -d --build            # Rebuild after code changes
+docker-compose down                     # Stop everything
+docker-compose down -v                  # Full reset (deletes data)
+```
+
+For full documentation see [README.md](../README.md).
 
 ### Database Access
 
@@ -298,7 +207,7 @@ After completing this guide, you should have:
 
 - [x] All 14 Docker containers running
 - [x] Frontend accessible at http://localhost:3000
-- [x] API Gateway responding at http://localhost:3500
+- [x] API Gateway responding at http://localhost:3700
 - [x] Google Maps API key configured
 - [x] Able to sign up and log in
 - [x] Created your first service request with location

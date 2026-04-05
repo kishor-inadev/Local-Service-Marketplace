@@ -156,13 +156,13 @@ User clicks "Google" or "Facebook" button
     ↓
 Frontend: loginWithGoogle() or loginWithFacebook()
     ↓
-Redirect to: http://localhost:3500/api/v1/auth/{provider}
+Redirect to: http://localhost:3700/api/v1/user/auth/{provider}
     ↓
 Backend redirects to OAuth provider (Google/Facebook)
     ↓
 User authorizes on OAuth provider
     ↓
-OAuth provider redirects to: /api/v1/auth/{provider}/callback
+OAuth provider redirects to: /api/v1/user/auth/{provider}/callback
     ↓
 Backend:
   - Exchanges auth code for user profile

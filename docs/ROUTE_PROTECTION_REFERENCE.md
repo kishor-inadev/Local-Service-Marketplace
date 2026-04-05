@@ -289,31 +289,31 @@ All routes under `/dashboard` require authentication:
 
 ```bash
 # ✅ Should work (public)
-curl http://localhost:3500/api/v1/requests
-curl http://localhost:3500/api/v1/providers
-curl http://localhost:3500/api/v1/requests/123
-curl http://localhost:3500/health
+curl http://localhost:3700/api/v1/requests
+curl http://localhost:3700/api/v1/providers
+curl http://localhost:3700/api/v1/requests/123
+curl http://localhost:3700/health
 
 # ❌ Should fail (401 Unauthorized)
-curl -X POST http://localhost:3500/api/v1/requests
-curl http://localhost:3500/api/v1/users/me
-curl http://localhost:3500/api/v1/jobs
+curl -X POST http://localhost:3700/api/v1/requests
+curl http://localhost:3700/api/v1/users/me
+curl http://localhost:3700/api/v1/jobs
 ```
 
 ### Test Protected Access (With JWT Token)
 
 ```bash
 # Get JWT token first
-TOKEN=$(curl -X POST http://localhost:3500/api/v1/auth/login \
+TOKEN=$(curl -X POST http://localhost:3700/api/v1/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@test.com","password":"password123"}' \
   | jq -r '.accessToken')
 
 # ✅ Should work with token
-curl http://localhost:3500/api/v1/users/me \
+curl http://localhost:3700/api/v1/users/me \
   -H "Authorization: Bearer $TOKEN"
 
-curl -X POST http://localhost:3500/api/v1/requests \
+curl -X POST http://localhost:3700/api/v1/requests \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"category_id":"123","description":"Test","budget":100}'
@@ -323,15 +323,15 @@ curl -X POST http://localhost:3500/api/v1/requests \
 
 ```bash
 # ✅ GET without auth (public)
-curl http://localhost:3500/api/v1/requests
+curl http://localhost:3700/api/v1/requests
 
 # ❌ POST without auth (should fail)
-curl -X POST http://localhost:3500/api/v1/requests \
+curl -X POST http://localhost:3700/api/v1/requests \
   -H "Content-Type: application/json" \
   -d '{"description":"Test"}'
 
 # ✅ POST with auth (should work)
-curl -X POST http://localhost:3500/api/v1/requests \
+curl -X POST http://localhost:3700/api/v1/requests \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"description":"Test"}'

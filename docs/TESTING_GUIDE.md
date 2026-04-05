@@ -5,7 +5,7 @@
 ### 1. Install WebSocket Dependencies
 
 \`\`\`powershell
-cd "c:\workSpace\Projects\Application\Local Service Marketplace\services\messaging-service"
+cd "c:\workSpace\Projects\Application\Local Service Marketplace\services\comms-service"
 npm install
 \`\`\`
 
@@ -23,7 +23,7 @@ docker-compose up
 
 Or start specific services:
 \`\`\`powershell
-docker-compose up user-service messaging-service notification-service
+docker-compose up identity-service comms-service
 \`\`\`
 
 ---
@@ -264,9 +264,9 @@ curl http://localhost:3007/health
 **Problem:** Cannot connect to WebSocket
 
 **Solutions:**
-1. Check messaging-service is running:
+1. Check comms-service is running:
    \`\`\`powershell
-   docker ps | Select-String messaging-service
+   docker ps | Select-String comms-service
    \`\`\`
 
 2. Verify port 3007 is accessible:
@@ -288,19 +288,19 @@ curl http://localhost:3007/health
 **Problem:** 404 on PATCH requests
 
 **Solutions:**
-1. Make sure user-service is running:
+1. Make sure identity-service is running:
    \`\`\`powershell
-   docker ps | Select-String user-service
+   docker ps | Select-String identity-service
    \`\`\`
 
-2. Verify port 3002:
+2. Verify port 3001:
    \`\`\`powershell
-   curl http://localhost:3002/health
+   curl http://localhost:3001/health
    \`\`\`
 
 3. Check Docker logs:
    \`\`\`powershell
-   docker logs user-service
+   docker logs identity-service
    \`\`\`
 
 ### Validation Errors
@@ -341,7 +341,7 @@ curl http://localhost:3007/health
 
 **Documentation:**
 - ✅ `docs/BACKEND_IMPLEMENTATION_COMPLETE.md` (NEW)
-- ✅ `services/messaging-service/WEBSOCKET_IMPLEMENTATION.md` (NEW)
+- ✅ `services/comms-service/WEBSOCKET_IMPLEMENTATION.md` (NEW)
 
 ---
 
@@ -365,7 +365,7 @@ Your implementation is working when:
 
 1. **Install Dependencies:**
    \`\`\`powershell
-   cd services/messaging-service
+   cd services/comms-service
    npm install
    \`\`\`
 

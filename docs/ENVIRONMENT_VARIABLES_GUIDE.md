@@ -20,10 +20,10 @@ This guide explains all environment variables used across the Local Service Mark
 Update these in **all relevant .env files**:
 
 ```env
-# MUST be the same in api-gateway and auth-service
+# MUST be the same in api-gateway and identity-service
 JWT_SECRET=your-super-secret-jwt-key-change-in-production
 
-# MUST be the same in api-gateway and auth-service
+# MUST be the same in api-gateway and identity-service
 GATEWAY_INTERNAL_SECRET=gateway-internal-secret-change-in-production
 
 # Different from JWT_SECRET
@@ -40,7 +40,7 @@ openssl rand -base64 48
 ## 🔐 Critical Security Variables
 
 ### JWT_SECRET
-**Required in:** api-gateway, auth-service  
+**Required in:** api-gateway, identity-service  
 **Must match:** YES - Same value in both services  
 **Purpose:** Signing and verifying JWT access tokens  
 **Min length:** 32 characters  
@@ -51,7 +51,7 @@ JWT_SECRET=your-super-secret-jwt-key-change-in-production
 ```
 
 ### JWT_REFRESH_SECRET
-**Required in:** auth-service  
+**Required in:** identity-service  
 **Purpose:** Signing refresh tokens (longer-lived than access tokens)  
 **Must be different:** From JWT_SECRET  
 
@@ -60,9 +60,9 @@ JWT_REFRESH_SECRET=your-super-secret-refresh-jwt-key-change-in-production
 ```
 
 ### GATEWAY_INTERNAL_SECRET
-**Required in:** api-gateway, auth-service  
+**Required in:** api-gateway, identity-service  
 **Must match:** YES - Same value in both services  
-**Purpose:** Secure communication between gateway and auth service for token verification  
+**Purpose:** Secure communication between gateway and identity service for token verification  
 **New in:** Token validation feature  
 
 ```env
@@ -78,7 +78,7 @@ GATEWAY_INTERNAL_SECRET=gateway-internal-secret-change-in-production
 ### Application Settings
 ```env
 NODE_ENV=development                    # development | production | test
-PORT=3500                              # Gateway port (frontend calls this)
+PORT=3700                              # Gateway port (frontend calls this)
 SERVICE_NAME=api-gateway
 ```
 
@@ -108,22 +108,15 @@ TOKEN_VALIDATION_STRATEGY=local        # 'local' or 'api'
 ### Microservice URLs
 ```env
 # Local development (use localhost)
-AUTH_SERVICE_URL=http://localhost:3001
-USER_SERVICE_URL=http://localhost:3002
-REQUEST_SERVICE_URL=http://localhost:3003
-PROPOSAL_SERVICE_URL=http://localhost:3004
-JOB_SERVICE_URL=http://localhost:3005
+IDENTITY_SERVICE_URL=http://localhost:3001
+MARKETPLACE_SERVICE_URL=http://localhost:3003
 PAYMENT_SERVICE_URL=http://localhost:3006
-MESSAGING_SERVICE_URL=http://localhost:3007
-NOTIFICATION_SERVICE_URL=http://localhost:3008
-REVIEW_SERVICE_URL=http://localhost:3009
-ADMIN_SERVICE_URL=http://localhost:3010
-ANALYTICS_SERVICE_URL=http://localhost:3011
+COMMS_SERVICE_URL=http://localhost:3007
+OVERSIGHT_SERVICE_URL=http://localhost:3010
 INFRASTRUCTURE_SERVICE_URL=http://localhost:3012
 
 # Docker Compose (use container names)
-AUTH_SERVICE_URL=http://auth-service:3001
-USER_SERVICE_URL=http://user-service:3002
+IDENTITY_SERVICE_URL=http://identity-service:3001
 # ... etc
 ```
 
@@ -151,13 +144,13 @@ RATE_LIMIT_MAX_REQUESTS=100           # Max 100 requests per minute
 
 ## 🔑 Auth Service Environment Variables
 
-**File:** `services/auth-service/.env`
+**File:** `services/identity-service/.env`
 
 ### Application Settings
 ```env
 NODE_ENV=development
 PORT=3001
-SERVICE_NAME=auth-service
+SERVICE_NAME=identity-service
 ```
 
 ### Database
@@ -203,12 +196,12 @@ LOGIN_ATTEMPT_WINDOW=15m
 # Google OAuth
 GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 GOOGLE_CLIENT_SECRET=your-google-client-secret
-GOOGLE_CALLBACK_URL=http://localhost:3500/api/v1/auth/google/callback
+GOOGLE_CALLBACK_URL=http://localhost:3700/api/v1/user/auth/google/callback
 
 # Facebook OAuth
 FACEBOOK_APP_ID=your-facebook-app-id
 FACEBOOK_APP_SECRET=your-facebook-app-secret
-FACEBOOK_CALLBACK_URL=http://localhost:3500/api/v1/auth/facebook/callback
+FACEBOOK_CALLBACK_URL=http://localhost:3700/api/v1/user/auth/facebook/callback
 ```
 
 ### Frontend URL
@@ -218,7 +211,7 @@ FRONTEND_URL=http://localhost:3000     # For OAuth redirects
 
 ### Service Communication
 ```env
-NOTIFICATION_SERVICE_URL=http://localhost:3008  # For sending emails/SMS
+NOTIFICATION_SERVICE_URL=http://localhost:3007  # For sending emails/SMS
 SMS_ENABLED=false                               # Enable SMS notifications
 ```
 
@@ -285,8 +278,7 @@ EVENT_BUS_ENABLED=false                # Enable Kafka events
 
 ### Service Communication
 ```env
-AUTH_SERVICE_URL=http://localhost:3001
-USER_SERVICE_URL=http://localhost:3002
+IDENTITY_SERVICE_URL=http://localhost:3001
 # ... other service URLs as needed
 ```
 
@@ -294,11 +286,11 @@ USER_SERVICE_URL=http://localhost:3002
 
 ## 🎨 Frontend Environment Variables
 
-**File:** `frontend/nextjs-app/.env`
+**File:** `frontend/.env.local`
 
 ### API Configuration
 ```env
-NEXT_PUBLIC_API_URL=http://localhost:3500    # API Gateway URL
+NEXT_PUBLIC_API_URL=http://localhost:3700    # API Gateway URL
 ```
 
 ### Application Settings
@@ -408,8 +400,8 @@ Run verification script:
 
 ### Manual Checks:
 
-- [ ] **JWT_SECRET** is the same in api-gateway and auth-service
-- [ ] **GATEWAY_INTERNAL_SECRET** is the same in api-gateway and auth-service
+- [ ] **JWT_SECRET** is the same in api-gateway and identity-service
+- [ ] **GATEWAY_INTERNAL_SECRET** is the same in api-gateway and identity-service
 - [ ] **JWT_REFRESH_SECRET** is different from JWT_SECRET
 - [ ] All secrets are at least 32 characters
 - [ ] No placeholder values remain in production
@@ -464,13 +456,13 @@ Use:
 ## 🆘 Troubleshooting
 
 ### "JWT verification failed"
-- Verify JWT_SECRET matches in api-gateway and auth-service
+- Verify JWT_SECRET matches in api-gateway and identity-service
 - Check token hasn't expired (default: 15 minutes)
 - Ensure TOKEN_VALIDATION_STRATEGY is correct
 
 ### "Token verification service unavailable"
-- If using TOKEN_VALIDATION_STRATEGY=api, check auth service is running
-- Verify AUTH_SERVICE_URL is correct
+- If using TOKEN_VALIDATION_STRATEGY=api, check identity service is running
+- Verify IDENTITY_SERVICE_URL is correct
 - Check GATEWAY_INTERNAL_SECRET matches in both services
 
 ### "CORS policy error"

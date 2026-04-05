@@ -44,7 +44,7 @@ These scripts reduce Docker image sizes from **~500MB to ~50MB** (90% reduction)
 
 **Output:**
 ```
-[01:58:07] Processing: auth-service
+[01:58:07] Processing: identity-service
 [01:58:07]   [1/4] Backup created: Dockerfile.backup-20260314-015807
 [01:58:07]   [2/4] Optimized Dockerfile prepared
 [01:58:07]   [3/4] .dockerignore prepared
@@ -56,13 +56,13 @@ These scripts reduce Docker image sizes from **~500MB to ~50MB** (90% reduction)
 ### Step 3: Build One Service to Test
 
 ```powershell
-cd services\auth-service
-docker build -t auth-service:test .
+cd services\identity-service
+docker build -t identity-service:test .
 ```
 
 **Check size:**
 ```powershell
-docker images auth-service
+docker images identity-service
 ```
 
 **Expected:** ~50MB instead of ~500MB
@@ -86,8 +86,8 @@ docker-compose build
 
 **Expected output:**
 ```
-auth-service:latest             52.3 MB  ✓ (Green)
-user-service:latest             51.8 MB  ✓ (Green)
+identity-service:latest          52.3 MB  ✓ (Green)
+marketplace-service:latest       51.8 MB  ✓ (Green)
 payment-service:latest          49.2 MB  ✓ (Green)
 ...
 
@@ -113,7 +113,7 @@ Average Size: 52.03 MB per service
 
 **Output:**
 ```
-[01:58:25] Processing: auth-service
+[01:58:25] Processing: identity-service
 [01:58:25]   [OK] Restored from: Dockerfile.backup-20260314-015807
 ```
 
@@ -139,9 +139,9 @@ After confirming everything works, remove backup files:
 ```
 Found 28 backup file(s)
 
-  auth-service:
+  identity-service:
     - Dockerfile.backup-20260314-015807 (0.45 MB)
-  user-service:
+  marketplace-service:
     - Dockerfile.backup-20260314-015807 (0.43 MB)
   ...
 
@@ -295,8 +295,8 @@ graph TD
 .\scripts\optimize-docker-images.ps1
 
 # 3. Test one
-cd services\auth-service
-docker build -t auth-service:test .
+cd services\identity-service
+docker build -t identity-service:test .
 
 # 4. If good, rebuild all
 cd ..\..

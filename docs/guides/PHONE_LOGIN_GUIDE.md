@@ -16,7 +16,7 @@ Users can now login using their phone number in two ways:
 
 ### 1. DTOs Created
 
-**PhoneLoginDto** (`services/auth-service/src/modules/auth/dto/phone-login.dto.ts`):
+**PhoneLoginDto** (`services/identity-service/src/modules/auth/dto/phone-login.dto.ts`):
 ```typescript
 {
   phone: string;     // E.164 format: +1234567890
@@ -24,14 +24,14 @@ Users can now login using their phone number in two ways:
 }
 ```
 
-**PhoneOtpRequestDto** (`services/auth-service/src/modules/auth/dto/phone-otp-request.dto.ts`):
+**PhoneOtpRequestDto** (`services/identity-service/src/modules/auth/dto/phone-otp-request.dto.ts`):
 ```typescript
 {
   phone: string;  // E.164 format: +1234567890
 }
 ```
 
-**PhoneOtpVerifyDto** (`services/auth-service/src/modules/auth/dto/phone-otp-verify.dto.ts`):
+**PhoneOtpVerifyDto** (`services/identity-service/src/modules/auth/dto/phone-otp-verify.dto.ts`):
 ```typescript
 {
   phone: string;  // E.164 format: +1234567890
@@ -41,7 +41,7 @@ Users can now login using their phone number in two ways:
 
 ### 2. SmsClient Service
 
-**File**: `services/auth-service/src/modules/auth/clients/sms.client.ts`
+**File**: `services/identity-service/src/modules/auth/clients/sms.client.ts`
 
 HTTP client for communicating with SMS service:
 
@@ -60,7 +60,7 @@ class SmsClient {
 
 ### 3. UserRepository Updates
 
-**File**: `services/auth-service/src/modules/auth/repositories/user.repository.ts`
+**File**: `services/identity-service/src/modules/auth/repositories/user.repository.ts`
 
 Added method:
 ```typescript
@@ -69,7 +69,7 @@ async findByPhone(phone: string): Promise<User | null>
 
 ### 4. AuthService Methods
 
-**File**: `services/auth-service/src/modules/auth/services/auth.service.ts`
+**File**: `services/identity-service/src/modules/auth/services/auth.service.ts`
 
 #### loginWithPhone(phone: string, password: string, ipAddress?: string)
 - Validates phone and password
@@ -97,7 +97,7 @@ async findByPhone(phone: string): Promise<User | null>
 
 ### 5. AuthController Endpoints
 
-**File**: `services/auth-service/src/modules/auth/controllers/auth.controller.ts`
+**File**: `services/identity-service/src/modules/auth/controllers/auth.controller.ts`
 
 #### POST /auth/phone/login
 Request:
@@ -150,13 +150,13 @@ Response: Same as phone/login (access token + user)
 
 ### 6. Module Configuration
 
-**File**: `services/auth-service/src/modules/auth/auth.module.ts`
+**File**: `services/identity-service/src/modules/auth/auth.module.ts`
 
 Added `SmsClient` to providers.
 
 ### 7. Dependencies
 
-**File**: `services/auth-service/package.json`
+**File**: `services/identity-service/package.json`
 
 Added:
 ```json
@@ -167,7 +167,7 @@ Added:
 
 ### 8. Environment Variables
 
-**File**: `services/auth-service/.env.example`
+**File**: `services/identity-service/.env.example`
 
 ```env
 # SMS Service (for OTP login)
@@ -272,7 +272,7 @@ SMS_API_KEY=change-me-to-a-strong-random-secret
 ### Test Phone + Password Login
 
 ```bash
-curl -X POST http://localhost:3500/api/v1/auth/phone/login \
+curl -X POST http://localhost:3700/api/v1/user/auth/phone/login \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+1234567890",
@@ -293,7 +293,7 @@ Expected response:
 
 **Step 1: Request OTP**
 ```bash
-curl -X POST http://localhost:3500/api/v1/auth/phone/otp/request \
+curl -X POST http://localhost:3700/api/v1/user/auth/phone/otp/request \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+1234567890"
@@ -313,7 +313,7 @@ Expected response:
 
 **Step 3: Verify OTP**
 ```bash
-curl -X POST http://localhost:3500/api/v1/auth/phone/otp/verify \
+curl -X POST http://localhost:3700/api/v1/user/auth/phone/otp/verify \
   -H "Content-Type: application/json" \
   -d '{
     "phone": "+1234567890",
@@ -345,7 +345,7 @@ Expected response: AuthResponseDto (access token + user)
    TWILIO_AUTH_TOKEN=your-auth-token
    TWILIO_FROM_NUMBER=+1234567890
    ```
-4. Restart: `docker-compose restart auth-service sms-service`
+4. Restart: `docker-compose restart identity-service sms-service`
 
 ---
 
@@ -521,18 +521,18 @@ const user = await this.userRepo.create(email, passwordHash, role, phone);
 ## Summary
 
 **Files Created**:
-1. `services/auth-service/src/modules/auth/dto/phone-login.dto.ts`
-2. `services/auth-service/src/modules/auth/dto/phone-otp-request.dto.ts`
-3. `services/auth-service/src/modules/auth/dto/phone-otp-verify.dto.ts`
-4. `services/auth-service/src/modules/auth/clients/sms.client.ts`
+1. `services/identity-service/src/modules/auth/dto/phone-login.dto.ts`
+2. `services/identity-service/src/modules/auth/dto/phone-otp-request.dto.ts`
+3. `services/identity-service/src/modules/auth/dto/phone-otp-verify.dto.ts`
+4. `services/identity-service/src/modules/auth/clients/sms.client.ts`
 
 **Files Modified**:
-1. `services/auth-service/src/modules/auth/repositories/user.repository.ts` - Added findByPhone()
-2. `services/auth-service/src/modules/auth/services/auth.service.ts` - Added 3 phone login methods
-3. `services/auth-service/src/modules/auth/controllers/auth.controller.ts` - Added 3 endpoints
-4. `services/auth-service/src/modules/auth/auth.module.ts` - Added SmsClient provider
-5. `services/auth-service/package.json` - Added axios dependency
-6. `services/auth-service/.env.example` - Added SMS configuration
+1. `services/identity-service/src/modules/auth/repositories/user.repository.ts` - Added findByPhone()
+2. `services/identity-service/src/modules/auth/services/auth.service.ts` - Added 3 phone login methods
+3. `services/identity-service/src/modules/auth/controllers/auth.controller.ts` - Added 3 endpoints
+4. `services/identity-service/src/modules/auth/auth.module.ts` - Added SmsClient provider
+5. `services/identity-service/package.json` - Added axios dependency
+6. `services/identity-service/.env.example` - Added SMS configuration
 7. `frontend/nextjs-app/app/(auth)/login/page.tsx` - Complete redesign with 3 login methods
 
 **API Endpoints**:
@@ -545,8 +545,8 @@ const user = await this.userRepo.create(email, passwordHash, role, phone);
 - Frontend: zod (validation schemas)
 
 **Next Steps**:
-1. Install axios: `cd services/auth-service && npm install axios`
+1. Install axios: `cd services/identity-service && npm install axios`
 2. Enable SMS service: Set SMS_ENABLED=true in .env
 3. Configure SMS provider: Twilio or mock for testing
-4. Rebuild auth-service: `docker-compose build auth-service`
+4. Rebuild identity-service: `docker-compose build identity-service`
 5. Test phone login in browser

@@ -39,12 +39,12 @@ docker --version
 
 ### ❌ Container Exits Immediately
 
-**Error:** `Container marketplace-auth-service exited with code 1`
+**Error:** `Container identity-service exited with code 1`
 
 **Solution:**
 ```powershell
 # 1. Check logs for error details
-docker logs auth-service --tail 50
+docker logs identity-service --tail 50
 
 # 2. Common causes:
 # - Missing environment variables
@@ -52,30 +52,30 @@ docker logs auth-service --tail 50
 # - Port already in use
 
 # 3. Restart with fresh build
-docker-compose stop auth-service
-docker-compose build --no-cache auth-service
-docker-compose up -d auth-service
+docker-compose stop identity-service
+docker-compose build --no-cache identity-service
+docker-compose up -d identity-service
 
 # 4. Check if it's running
-docker ps | grep auth-service
+docker ps | grep identity-service
 ```
 
 ---
 
 ### ❌ Port Already in Use
 
-**Error:** `Bind for 0.0.0.0:3500 failed: port is already allocated`
+**Error:** `Bind for 0.0.0.0:3700 failed: port is already allocated`
 
 **Solution:**
 ```powershell
 # 1. Find what's using the port
-netstat -ano | findstr :3500
+netstat -ano | findstr :3700
 
 # 2. Kill the process (replace PID with actual number)
 taskkill /PID <PID> /F
 
 # 3. Or change the port in docker-compose.yml
-# Change: "3500:3000" to "3501:3000"
+# Change: "3700:3000" to "3701:3000"
 
 # 4. Restart services
 .\scripts\start.ps1
@@ -101,7 +101,7 @@ docker-compose up -d marketplace-postgres
 # 4. Wait 10 seconds for postgres to be ready
 
 # 5. Restart the service that failed
-docker-compose restart request-service
+docker-compose restart marketplace-service
 ```
 
 ---
@@ -220,8 +220,8 @@ npm run dev
 ```
 # Endpoints now use /api/v1 prefix
 
-# Wrong: http://localhost:3500/api/auth/login
-# Correct: http://localhost:3500/api/v1/auth/login
+# Wrong: http://localhost:3700/api/auth/login
+# Correct: http://localhost:3700/api/v1/user/auth/login
 
 # Update your requests to include /api/v1
 ```
@@ -324,7 +324,7 @@ docker exec marketplace-postgres psql -U postgres -d marketplace -c "SELECT emai
 
 # 3. If email_verified is false
 # Check email in console logs (development mode):
-docker logs auth-service | grep "verification"
+docker logs identity-service | grep "verification"
 
 # 4. Or update database directly (dev only):
 docker exec marketplace-postgres psql -U postgres -d marketplace -c "UPDATE users SET email_verified=true WHERE email='test@example.com'"
@@ -344,7 +344,7 @@ docker exec marketplace-postgres psql -U postgres -d marketplace -c "UPDATE user
 # 2. Log in again to get new token
 
 # 3. Check JWT_SECRET matches across services
-docker exec auth-service printenv JWT_SECRET
+docker exec identity-service printenv JWT_SECRET
 docker exec api-gateway printenv JWT_SECRET
 # Should be identical
 
@@ -461,12 +461,12 @@ const { refetch } = useNotifications()
 refetch()
 
 // 3. Check API endpoint
-fetch('http://localhost:3500/api/v1/notifications/unread-count', {
+fetch('http://localhost:3700/api/v1/notifications/unread-count', {
   headers: { Authorization: `Bearer ${token}` }
 })
 
-// 4. Verify notification service is running
-docker ps | grep notification-service
+// 4. Verify comms service is running
+docker ps | grep comms-service
 ```
 
 ---
@@ -518,7 +518,7 @@ EXPLAIN ANALYZE SELECT * FROM service_requests;
 CREATE INDEX idx_requests_user_id ON service_requests(user_id);
 
 # 3. Check for N+1 queries in backend logs
-docker logs request-service | grep "query"
+docker logs marketplace-service | grep "query"
 
 # 4. Enable caching (Redis) for frequently accessed data
 ```
@@ -563,7 +563,7 @@ docker stats
 
 # 2. Limit memory per service in docker-compose.yml
 services:
-  auth-service:
+  identity-service:
     mem_limit: 512m
     memswap_limit: 512m
 
@@ -588,7 +588,7 @@ docker system prune -a
 
 2. **Health Checks:**
    ```powershell
-   curl http://localhost:3500/api/v1/health
+   curl http://localhost:3700/api/v1/health
    ```
 
 3. **Database Status:**

@@ -16,7 +16,7 @@ Both services can be **enabled or disabled independently** via environment varia
 
 ### Auth Service Environment Variables
 
-Location: `services/auth-service/.env`
+Location: `services/identity-service/.env`
 
 #### SMS Service (Twilio)
 
@@ -131,7 +131,7 @@ Frontend shows ONLY Password:
 
 ### Backend Implementation
 
-**File:** `services/auth-service/src/modules/auth/services/auth.service.ts`
+**File:** `services/identity-service/src/modules/auth/services/auth.service.ts`
 
 ```typescript
 isOtpServiceAvailable(type: 'email' | 'phone'): boolean {
@@ -298,9 +298,9 @@ SMS_SERVICE_ENABLED=true
    TWILIO_AUTH_TOKEN=your-token
    TWILIO_PHONE_NUMBER=+1234567890
    ```
-3. Restart auth-service:
+3. Restart identity-service:
    ```bash
-   docker-compose restart auth-service
+   docker-compose restart identity-service
    ```
 
 ### To Disable SMS OTP:
@@ -309,9 +309,9 @@ SMS_SERVICE_ENABLED=true
    ```env
    SMS_SERVICE_ENABLED=false
    ```
-2. Restart auth-service:
+2. Restart identity-service:
    ```bash
-   docker-compose restart auth-service
+   docker-compose restart identity-service
    ```
 
 ---
@@ -323,7 +323,7 @@ SMS_SERVICE_ENABLED=true
 **Check:**
 1. ✅ Is `*_SERVICE_ENABLED=true` in `.env`?
 2. ✅ Are credentials properly set?
-3. ✅ Did you restart the auth-service?
+3. ✅ Did you restart the identity-service?
 4. ✅ Check backend response from `/api/v1/auth/check-identifier`
 
 ### OTP Request Fails
@@ -331,7 +331,7 @@ SMS_SERVICE_ENABLED=true
 **Check:**
 1. ✅ Is the service enabled?
 2. ✅ Are Twilio/SMTP credentials correct?
-3. ✅ Check auth-service logs for errors
+3. ✅ Check identity-service logs for errors
 4. ✅ Verify phone number format (+E.164)
 
 ### OTP Button Shows But Request Fails

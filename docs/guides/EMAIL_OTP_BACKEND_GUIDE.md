@@ -492,7 +492,7 @@ if (requestCount > 10) { // Max 10 OTP requests per hour per IP
 
 ### Test Request OTP
 ```bash
-curl -X POST http://localhost:3500/api/v1/auth/email/otp/request \
+curl -X POST http://localhost:3700/api/v1/auth/email/otp/request \
   -H "Content-Type: application/json" \
   -d '{"email": "user@example.com"}'
 ```
@@ -506,7 +506,7 @@ Expected Response:
 
 ### Test Verify OTP
 ```bash
-curl -X POST http://localhost:3500/api/v1/auth/email/otp/verify \
+curl -X POST http://localhost:3700/api/v1/auth/email/otp/verify \
   -H "Content-Type: application/json" \
   -d '{
     "email": "user@example.com",

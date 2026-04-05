@@ -38,9 +38,9 @@ await notificationService.createNotification(userId, type, message);
 - **Concurrency**: 1 job at a time
 
 **Files**:
-- `services/notification-service/src/queue/queue.module.ts` - Bull configuration
-- `services/notification-service/src/queue/processors/email-queue.processor.ts` - Job processor
-- `services/notification-service/src/notification/services/notification.service.ts` - Job enqueuing
+- `services/comms-service/src/queue/queue.module.ts` - Bull configuration
+- `services/comms-service/src/queue/processors/email-queue.processor.ts` - Job processor
+- `services/comms-service/src/notification/services/notification.service.ts` - Job enqueuing
 
 ---
 
@@ -239,7 +239,7 @@ createBullBoard({
 app.use('/admin/queues', serverAdapter.getRouter());
 ```
 
-Access at: `http://localhost:3008/admin/queues` (notification-service)
+Access at: `http://localhost:3007/admin/queues` (comms-service)
 
 ### Programmatic Monitoring
 
@@ -508,7 +508,7 @@ console.log(`Active: ${activeCount}, Waiting: ${waitingCount}`);
 
 3. Check worker is running:
 ```bash
-docker-compose logs notification-service | grep "Processor"
+docker-compose logs comms-service | grep "Processor"
 ```
 
 ### High Failed Job Rate

@@ -210,16 +210,16 @@ This service **owns** the following data:
 - Coupon usage tracking
 
 This service **does not own**:
-- Job data (managed by job-service)
-- User data (managed by auth-service)
-- Request/Proposal data (managed by request-service/proposal-service)
+- Job data (managed by marketplace-service)
+- User data (managed by identity-service)
+- Request/Proposal data (managed by marketplace-service)
 
 **Important**: Never perform cross-service database joins. Always use HTTP APIs to fetch data from other services.
 
 ## Business Logic
 
 ### Payment Creation
-1. Validates job exists (external call to job-service in production)
+1. Validates job exists (external call to marketplace-service in production)
 2. Applies coupon discount if provided
 3. Creates payment record with "pending" status
 4. Simulates payment gateway integration
@@ -303,16 +303,16 @@ docker-compose logs -f payment-service
 
 ## Integration with Other Services
 
-### Job Service
+### Marketplace Service
 - Payment service requires job ID when creating payments
-- In production, validate job exists via HTTP call to job-service
+- In production, validate job exists via HTTP call to marketplace-service
 
-### Auth Service
+### Identity Service
 - User ID passed via `x-user-id` header
 - In production, implement authentication middleware
 
-### Notification Service
-- Payment status changes should trigger notifications
+### Comms Service
+- Payment status changes should trigger notifications via comms-service
 - Implement event publishing when Kafka/Redis is available
 
 ## Environment Variables

@@ -48,27 +48,21 @@ AI agents must follow these rules:
 # 3. Repository Structure
 
 ```
-marketplace-platform
+Local-Service-Marketplace/
 
-frontend/
-  nextjs-app/
+frontend/              # Next.js application
 
-gateway/
-  api-gateway/
+api-gateway/           # NestJS API Gateway (port 3700)
 
 services/
-  auth-service/
-  user-service/
-  request-service/
-  proposal-service/
-  job-service/
-  payment-service/
-  notification-service/
-  review-service/
-  messaging-service/
-
-workers/
-  background-worker/
+  identity-service/      # Auth + Users + Providers (port 3001)
+  marketplace-service/   # Requests + Proposals + Jobs + Reviews (port 3003)
+  payment-service/       # Payments + Refunds (port 3006)
+  comms-service/         # Notifications + Messaging (port 3007)
+  oversight-service/     # Admin + Analytics (port 3010)
+  infrastructure-service/ # Events + Feature flags (port 3012)
+  email-service/         # SMTP email delivery
+  sms-service/           # SMS/OTP delivery
 
 database/
   schema.sql
