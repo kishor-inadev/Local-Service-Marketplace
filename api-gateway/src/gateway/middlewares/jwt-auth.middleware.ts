@@ -61,12 +61,20 @@ export class JwtAuthMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
 		const path = req.originalUrl.split("?")[0]; // strip query string
 		const method = req.method.toUpperCase();
+		const normalizedPath = path.endsWith("/") && path.length > 1 ? path.slice(0, -1) : path;
+
+		// Public contact submission must be POST only; admin contact read/update routes stay protected.
+		const isPublicContactSubmission = method === "POST" && normalizedPath === "/api/v1/admin/contact";
 
 		// Check if route is fully public (all methods)
-		const isPublicRoute = publicRoutes.some((route) => path.startsWith(route));
+		const isPublicRoute =
+			isPublicContactSubmission ||
+			publicRoutes
+				.filter((route) => route !== "/api/v1/admin/contact")
+				.some((route) => normalizedPath.startsWith(route));
 
 		// Check if route is public for GET requests only
-		const isPublicGetRoute = method === "GET" && publicGetRoutes.some((route) => path.startsWith(route));
+		const isPublicGetRoute = method === "GET" && publicGetRoutes.some((route) => normalizedPath.startsWith(route));
 
 		if (isPublicRoute || isPublicGetRoute) {
 			return next();

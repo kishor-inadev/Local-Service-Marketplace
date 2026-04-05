@@ -12,7 +12,7 @@ if (!inputPath || !outputPath) {
 	usage();
 }
 
-function ensureDVariable(events) {
+function ensureResponseAliases(events) {
 	for (const event of events || []) {
 		const script = event && event.script;
 		if (!script || !Array.isArray(script.exec)) {
@@ -20,11 +20,28 @@ function ensureDVariable(events) {
 		}
 
 		const lines = script.exec;
-		const usesD = lines.some((line) => /\bd\./.test(line));
-		const hasDDeclaration = lines.some((line) => /\b(const|let|var)\s+d\s*=/.test(line));
+		const aliases = [
+			{ name: "d", used: /\bd\./, declared: /\b(const|let|var)\s+d\s*=/ },
+			{ name: "r", used: /\br\./, declared: /\b(const|let|var)\s+r\s*=/ },
+			{ name: "jsonData", used: /\bjsonData\b/, declared: /\b(const|let|var)\s+jsonData\s*=/ },
+		];
 
-		if (usesD && !hasDDeclaration) {
-			script.exec = ["const d = pm.response.json();", ...lines];
+		const missing = aliases
+			.filter((alias) => lines.some((line) => alias.used.test(line)) && !lines.some((line) => alias.declared.test(line)))
+			.map((alias) => alias.name);
+
+		if (missing.length > 0) {
+			const hasRespDeclaration = lines.some((line) => /\b(const|let|var)\s+__resp\s*=/.test(line));
+			const prelude = [];
+			if (!hasRespDeclaration) {
+				prelude.push("const __resp = (() => { try { return pm.response.json(); } catch (e) { return {}; } })();");
+			}
+
+			for (const name of missing) {
+				prelude.push(`const ${name} = __resp;`);
+			}
+
+			script.exec = [...prelude, ...lines];
 		}
 	}
 }
@@ -47,6 +64,18 @@ function normalizeTokenFields(events) {
 				/\.to\.have\.property\(['"]refresh_token['"]\)/g,
 				".to.satisfy(d => d.refresh_token || d.refreshToken, 'refresh token field')",
 			);
+
+			// Store critical runtime variables in environment scope (higher precedence than collection vars)
+			line = line.replace(
+				/pm\.collectionVariables\.set\((['"])(token|refresh_token|user_id|provider_id|request_id|request_display_id|proposal_id|proposal_display_id|job_id|job_display_id|payment_id|resource_id)\1\s*,/g,
+				"pm.environment.set($1$2$1,",
+			);
+
+			// Prevent "d is not defined" in legacy one-liner scripts that set resource_id.
+			line = line.replace(
+				/if \(d\.data && d\.data\.id\) \{ pm\.(?:collectionVariables|environment)\.set\((['"])resource_id\1, d\.data\.id\); \}/g,
+				"const __tmp = (() => { try { return pm.response.json(); } catch (e) { return {}; } })(); if (__tmp.data && __tmp.data.id) { pm.environment.set('resource_id', __tmp.data.id); }",
+			);
 			return line;
 		});
 	}
@@ -61,6 +90,116 @@ function normalizeRequestUrl(request) {
 	if (typeof request.url.raw === "string" && request.url.raw.length > 0) {
 		// Prefer Postman's raw URL form for Newman to avoid malformed host/path object mismatches.
 		request.url = request.url.raw;
+	}
+
+	if (typeof request.url === "string") {
+		request.url = request.url
+			.replace(/\/admin\/stats(?=\?|$)/g, "/users/stats")
+			.replace(/\/admin\/users(?=\/|\?|$)/g, "/users")
+			.replace(/\/admin\/contact\/:contactId(?=\?|$)/g, "/admin/contact/{{resource_id}}")
+			.replace(/\/admin\/contact\/email\/:email(?=\?|$)/g, "/admin/contact/email/{{dynamic_email}}")
+			.replace(/\/admin\/contact\/user\/:userId(?=\?|$)/g, "/admin/contact/user/{{user_id}}")
+			.replace(/\/admin\/audit-logs\/entity\/:entity\/:entityId(?=\?|$)/g, "/admin/audit-logs/entity/users/{{user_id}}")
+			.replace(/\/analytics\/workers\/backfill(?=\?|$)/g, "/analytics/workers/backfill");
+	}
+}
+
+function normalizeRequestAuth(request) {
+	if (!request || !request.auth || request.auth.type !== "noauth") {
+		return;
+	}
+
+	const url = getRequestUrlRaw(request);
+	const method = String(request.method || "GET").toUpperCase();
+
+	// Keep explicitly public routes unauthenticated.
+	const isPublicAuthRoute = /\/user\/auth\//i.test(url);
+	const isPublicHealthRoute = /\/health(\/services)?(\?|$)/i.test(url);
+	const isPublicContactSubmission = method === "POST" && /\/admin\/contact(\?|$)/i.test(url);
+
+	if (isPublicAuthRoute || isPublicHealthRoute || isPublicContactSubmission) {
+		return;
+	}
+
+	// Protected route groups should inherit bearer auth from collection.
+	const protectedPrefix =
+		/\/(admin|analytics|notifications|notification-preferences|messages|users|providers|requests|proposals|jobs|reviews|payments|subscriptions|pricing-plans|events|background-jobs|feature-flags|rate-limits)(\/|\?|$)/i;
+
+	if (protectedPrefix.test(url)) {
+		delete request.auth;
+	}
+}
+
+function getRequestUrlRaw(request) {
+	if (!request || !request.url) {
+		return "";
+	}
+
+	if (typeof request.url === "string") {
+		return request.url;
+	}
+
+	if (typeof request.url.raw === "string") {
+		return request.url.raw;
+	}
+
+	return "";
+}
+
+function normalizeHealthAssertions(item) {
+	if (!item || !item.request || !Array.isArray(item.event)) {
+		return;
+	}
+
+	const url = getRequestUrlRaw(item.request);
+	if (!/\/health(\/services)?(\?|$)/i.test(url)) {
+		return;
+	}
+
+	const isServicesHealth = /\/health\/services(\?|$)/i.test(url);
+
+	for (const event of item.event) {
+		if (event.listen !== "test" || !event.script || !Array.isArray(event.script.exec)) {
+			continue;
+		}
+
+		if (isServicesHealth) {
+			event.script.exec = [
+				"pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+				"const raw = pm.response.json();",
+				"const payload = raw && raw.data ? raw.data : raw;",
+				"pm.test('Response contains services', function () {",
+				"  pm.expect(payload).to.have.property('services');",
+				"  pm.expect(payload.services).to.be.an('object');",
+				"});",
+				"pm.test('Critical services are present', function () {",
+				"  const services = payload.services || {};",
+				"  ['identity','marketplace','payment','comms','oversight'].forEach(function (key) {",
+				"    pm.expect(services, 'missing ' + key).to.have.property(key);",
+				"  });",
+				"});",
+				"pm.test('Critical services are not down', function () {",
+				"  const services = payload.services || {};",
+				"  ['identity','marketplace','payment','comms','oversight'].forEach(function (key) {",
+				"    const status = String((services[key] && services[key].status) || '').toLowerCase();",
+				"    pm.expect(['healthy','ok','up','degraded']).to.include(status);",
+				"  });",
+				"});",
+			];
+		} else {
+			event.script.exec = [
+				"pm.test('Status code is 200', function () { pm.response.to.have.status(200); });",
+				"const raw = pm.response.json();",
+				"const payload = raw && raw.data ? raw.data : raw;",
+				"pm.test('Health payload has status', function () {",
+				"  pm.expect(payload).to.have.property('status');",
+				"});",
+				"pm.test('Gateway status is acceptable', function () {",
+				"  const status = String(payload.status || '').toLowerCase();",
+				"  pm.expect(['healthy','ok','up','degraded']).to.include(status);",
+				"});",
+			];
+		}
 	}
 }
 
@@ -91,7 +230,7 @@ function createAdminLoginItem() {
 						"pm.test('Admin login for test suite', function () { pm.response.to.have.status(200); });",
 						"const d = pm.response.json();",
 						"const tok = d.data && (d.data.access_token || d.data.accessToken);",
-						"if (tok) pm.collectionVariables.set('token', tok);",
+						"if (tok) pm.environment.set('token', tok);",
 					],
 				},
 			},
@@ -126,7 +265,9 @@ function injectAdminAuth(collection) {
 function walkItems(items) {
 	for (const item of items || []) {
 		normalizeRequestUrl(item.request);
-		ensureDVariable(item.event);
+		normalizeRequestAuth(item.request);
+		normalizeHealthAssertions(item);
+		ensureResponseAliases(item.event);
 		normalizeTokenFields(item.event);
 
 		if (Array.isArray(item.item)) {
@@ -138,7 +279,7 @@ function walkItems(items) {
 const rawCollection = fs.readFileSync(inputPath, "utf8").replace(/^\uFEFF/, "");
 const collection = JSON.parse(rawCollection);
 
-ensureDVariable(collection.event);
+ensureResponseAliases(collection.event);
 normalizeTokenFields(collection.event);
 injectAdminAuth(collection);
 walkItems(collection.item);

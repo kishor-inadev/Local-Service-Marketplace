@@ -258,6 +258,20 @@ function Run-Newman {
         "--reporter-json-export", $jsonReport
     )
 
+    # Slow down requests slightly to avoid tripping API rate limits in full-suite runs.
+    $delayRequestMs = 650
+    if ($env:NEWMAN_DELAY_REQUEST_MS) {
+        $parsedDelay = 0
+        if ([int]::TryParse($env:NEWMAN_DELAY_REQUEST_MS, [ref]$parsedDelay) -and $parsedDelay -ge 0) {
+            $delayRequestMs = $parsedDelay
+        }
+    }
+    if ($delayRequestMs -gt 0) {
+        $newmanArgs += "--delay-request"
+        $newmanArgs += "$delayRequestMs"
+        Write-Info "Using Newman delay-request: ${delayRequestMs}ms"
+    }
+
     if ($BaseUrl) {
         $newmanArgs += "--env-var"
         $newmanArgs += "base_url=$BaseUrl"
