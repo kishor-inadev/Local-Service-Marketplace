@@ -119,6 +119,12 @@ class PaymentService {
 		return response.data;
 	}
 
+	async activateSubscription(subscriptionId: string): Promise<Subscription> {
+		const response = await apiClient.post<Subscription>(`/subscriptions/${subscriptionId}/activate`);
+		const payload: any = response.data;
+		return (payload?.data ?? payload) as Subscription;
+	}
+
 	async getActiveSubscription(providerId: string): Promise<Subscription | null> {
 		const response = await apiClient.get<Subscription | null>(`/subscriptions/provider/${providerId}/active`);
 		return response.data;

@@ -11,17 +11,21 @@ import { Loading } from "@/components/ui/Loading";
 import { StatusBadge } from "@/components/ui/Badge";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { adminService } from "@/services/admin-service";
+import { paymentService } from "@/services/payment-service";
 import { formatDate } from "@/utils/helpers";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
-import { ArrowLeft, FileText, Calendar, CheckCircle } from "lucide-react";
+import { ArrowLeft, FileText, Calendar, CheckCircle, AlertTriangle } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
-const RESOLUTION_STATUSES = [
-	{ value: "investigating", label: "Mark as Investigating" },
-	{ value: "resolved", label: "Mark as Resolved" },
-	{ value: "closed", label: "Close Dispute" },
-];
+const RESOLUTION_OUTCOMES = [
+	{ value: "award_customer", label: "Award Customer (issue refund)", requiresRefund: true },
+	{ value: "award_provider", label: "Award Provider (no refund)", requiresRefund: false },
+	{ value: "investigating", label: "Mark as Investigating", requiresRefund: false },
+	{ value: "closed", label: "Close Dispute (no action)", requiresRefund: false },
+] as const;
+
+type OutcomeValue = (typeof RESOLUTION_OUTCOMES)[number]["value"];
 
 export default function AdminDisputeDetailPage() {
 	const params = useParams();
@@ -31,7 +35,7 @@ export default function AdminDisputeDetailPage() {
 	const disputeId = params.id as string;
 
 	const [resolution, setResolution] = useState("");
-	const [newStatus, setNewStatus] = useState("resolved");
+	const [outcome, setOutcome] = useState<OutcomeValue>("award_customer");
 
 	const {
 		data: dispute,
@@ -45,11 +49,34 @@ export default function AdminDisputeDetailPage() {
 	});
 
 	const updateMutation = useMutation({
-		mutationFn: () => {
+		mutationFn: async () => {
 			if (!dispute?.id) {
 				throw new Error("Dispute UUID is not available");
 			}
-			return adminService.updateDispute(dispute.id, { status: newStatus, resolution: resolution || undefined });
+
+			const selectedOutcome = RESOLUTION_OUTCOMES.find((o) => o.value === outcome);
+			const newStatus = outcome === "award_customer" || outcome === "award_provider" ? "resolved" : outcome;
+			const resolutionNote = resolution.trim() || undefined;
+
+			// If awarding the customer, trigger a refund first
+			if (selectedOutcome?.requiresRefund && dispute.job_id) {
+				try {
+					const payments = await paymentService.getPaymentsByJob(dispute.job_id);
+					const completedPayment = payments.find((p) => p.status === "completed");
+					if (completedPayment) {
+						await paymentService.requestRefund(completedPayment.id, {
+							reason: resolutionNote ?? "Dispute resolved in customer's favour",
+						});
+						toast("Refund initiated for the associated payment", { icon: "💳" });
+					}
+				} catch (refundErr: any) {
+					// Non-fatal: proceed with dispute update even if refund lookup fails
+					const msg = refundErr?.response?.data?.message ?? refundErr?.message ?? "Refund error";
+					toast(`Note: ${msg}`, { icon: "⚠️" });
+				}
+			}
+
+			return adminService.updateDispute(dispute.id, { status: newStatus, resolution: resolutionNote });
 		},
 		onSuccess: () => {
 			toast.success("Dispute updated successfully");
@@ -87,7 +114,7 @@ export default function AdminDisputeDetailPage() {
 									<CardHeader>
 										<div className='flex items-start justify-between'>
 											<h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
-											Dispute #{dispute.display_id || dispute.id.slice(0, 8)}
+												Dispute #{dispute.display_id || dispute.id.slice(0, 8)}
 											</h1>
 											<StatusBadge status={dispute.status} />
 										</div>
@@ -134,27 +161,35 @@ export default function AdminDisputeDetailPage() {
 								{dispute.status !== "resolved" && dispute.status !== "closed" && (
 									<Card>
 										<CardHeader>
-											<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Update Status</h2>
+											<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Resolve Dispute</h2>
 										</CardHeader>
 										<CardContent>
 											<div className='space-y-4'>
 												<div>
 													<label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
-														New Status
+														Outcome
 													</label>
 													<select
 														className='w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md focus:ring-2 focus:ring-primary-500 dark:bg-gray-800 dark:text-white'
-														value={newStatus}
-														onChange={(e) => setNewStatus(e.target.value)}>
-														{RESOLUTION_STATUSES.map((s) => (
+														value={outcome}
+														onChange={(e) => setOutcome(e.target.value as OutcomeValue)}>
+														{RESOLUTION_OUTCOMES.map((o) => (
 															<option
-																key={s.value}
-																value={s.value}>
-																{s.label}
+																key={o.value}
+																value={o.value}>
+																{o.label}
 															</option>
 														))}
 													</select>
 												</div>
+												{RESOLUTION_OUTCOMES.find((o) => o.value === outcome)?.requiresRefund && (
+													<div className='flex items-start gap-2 p-3 rounded-md bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700'>
+														<AlertTriangle className='h-4 w-4 mt-0.5 text-amber-600 dark:text-amber-400 shrink-0' />
+														<p className='text-sm text-amber-700 dark:text-amber-300'>
+															A refund will be issued if a completed payment exists for the associated job.
+														</p>
+													</div>
+												)}
 												<div>
 													<label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
 														Resolution Notes
@@ -171,7 +206,11 @@ export default function AdminDisputeDetailPage() {
 													onClick={() => updateMutation.mutate()}
 													isLoading={updateMutation.isPending}
 													disabled={updateMutation.isPending}>
-													Update Dispute
+													{outcome === "award_customer" ?
+														"Award Customer & Issue Refund"
+													: outcome === "award_provider" ?
+														"Award Provider"
+													:	"Update Dispute"}
 												</Button>
 											</div>
 										</CardContent>

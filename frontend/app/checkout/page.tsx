@@ -51,10 +51,23 @@ function CheckoutContent() {
 				throw new Error("Provider profile not found");
 			}
 
-			return paymentService.createSubscription({ provider_id: provider.id, plan_id: selectedPlan.id });
+			// 1. Create subscription (starts in "pending" state)
+			const subscription = await paymentService.createSubscription({
+				provider_id: provider.id,
+				plan_id: selectedPlan.id,
+			});
+
+			// 2. Extract subscription id from standardized or raw response
+			const subscriptionId = (subscription as any)?.data?.id ?? (subscription as any)?.id;
+			if (!subscriptionId) throw new Error("Subscription created but ID not returned");
+
+			// 3. Activate immediately (mock payment env — no real gateway redirect needed)
+			await paymentService.activateSubscription(subscriptionId);
+
+			return subscription;
 		},
 		onSuccess: () => {
-			toast.success("Subscription created. Payment confirmation is pending.");
+			toast.success("Subscription activated successfully!");
 			router.push(`${ROUTES.DASHBOARD_SETTINGS}/subscription`);
 		},
 		onError: (error: any) => {
@@ -62,7 +75,7 @@ function CheckoutContent() {
 				error?.response?.data?.error?.message ||
 				error?.response?.data?.message ||
 				error?.message ||
-				"Failed to create subscription.";
+				"Failed to activate subscription.";
 			toast.error(message);
 		},
 	});
@@ -174,8 +187,11 @@ function CheckoutContent() {
 									<div className='flex items-start gap-3'>
 										<AlertCircle className='mt-0.5 h-4 w-4 flex-shrink-0' />
 										<div>
-											<p className='font-medium mb-1'>This creates your subscription in pending state.</p>
-											<p>You can monitor status, upgrades, and cancellation from subscription settings.</p>
+											<p className='font-medium mb-1'>Instant activation in test/development mode.</p>
+											<p>
+												Your subscription will be active immediately. Manage upgrades and cancellation from subscription
+												settings.
+											</p>
 											{missingProviderProfile && (
 												<p className='mt-2'>
 													A provider profile is required before you can activate a subscription plan.
@@ -197,8 +213,8 @@ function CheckoutContent() {
 									className='w-full'
 									size='lg'>
 									{subscribeMutation.isPending ?
-										"Creating Subscription..."
-									:	`Activate Plan — ${formatCurrency(selectedPlan.price)}`}
+										"Activating Subscription..."
+									:	`Subscribe Now — ${formatCurrency(selectedPlan.price)}`}
 								</Button>
 								<p className='text-xs text-center text-gray-500 dark:text-gray-400 mt-3'>
 									Manage your current plan and subscription history from{" "}
