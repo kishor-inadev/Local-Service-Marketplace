@@ -167,7 +167,7 @@ export default function MyProposalsPage() {
 														<div className='flex items-start justify-between mb-3'>
 															<div>
 																<h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-1'>
-																	Proposal #{proposal.id.substring(0, 8)}
+																Proposal #{proposal.display_id || proposal.id.substring(0, 8)}
 																</h3>
 																<p className='text-sm text-gray-600 dark:text-gray-400'>
 																	For Request #{proposal.request_id?.substring(0, 8)}

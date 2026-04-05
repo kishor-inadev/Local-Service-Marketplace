@@ -116,7 +116,7 @@ export default function JobDetailPage() {
 					{/* Header */}
 					<div className='flex items-start justify-between mb-8'>
 						<div>
-							<h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>Job #{job.id.slice(0, 8)}</h1>
+							<h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>Job #{job.display_id || job.id.slice(0, 8)}</h1>
 							<p className='text-gray-600 dark:text-gray-400'>Created {formatDate(job.created_at)}</p>
 						</div>
 						<StatusBadge status={job.status} />

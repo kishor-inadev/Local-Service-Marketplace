@@ -19,8 +19,11 @@ describe('Marketplace Flow (e2e)', () => {
   const providerId = 'e2e-provider-' + Date.now();
   let categoryId: string;
   let requestId: string;
+  let requestDisplayId: string;
   let proposalId: string;
+  let proposalDisplayId: string;
   let jobId: string;
+  let jobDisplayId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -91,7 +94,10 @@ describe('Marketplace Flow (e2e)', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
       requestId = response.body.data.id;
+      requestDisplayId = response.body.data.display_id;
       expect(requestId).toBeDefined();
+      expect(requestDisplayId).toBeDefined();
+      expect(requestDisplayId).toMatch(/^[A-Z]{2,4}[A-Z0-9]{8}$/);
     });
 
     it('POST /requests should fail without required fields', async () => {
@@ -127,6 +133,27 @@ describe('Marketplace Flow (e2e)', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.id).toBe(requestId);
+      expect(response.body.data.display_id).toBe(requestDisplayId);
+    });
+
+    it('GET /requests/:id should accept display_id path values', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/requests/${requestDisplayId}`)
+        .set('x-user-id', customerId)
+        .set('x-user-role', 'customer')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.id).toBe(requestId);
+      expect(response.body.data.display_id).toBe(requestDisplayId);
+    });
+
+    it('GET /requests/:id should reject invalid id format', async () => {
+      await request(app.getHttpServer())
+        .get('/requests/not-a-valid-id')
+        .set('x-user-id', customerId)
+        .set('x-user-role', 'customer')
+        .expect(400);
     });
 
     it('GET /requests/my should return user requests', async () => {
@@ -159,7 +186,10 @@ describe('Marketplace Flow (e2e)', () => {
       expect(response.body.success).toBe(true);
       expect(response.body.data).toBeDefined();
       proposalId = response.body.data.id;
+      proposalDisplayId = response.body.data.display_id;
       expect(proposalId).toBeDefined();
+      expect(proposalDisplayId).toBeDefined();
+      expect(proposalDisplayId).toMatch(/^[A-Z]{2,4}[A-Z0-9]{8}$/);
     });
 
     it('GET /requests/:requestId/proposals should list proposals for the request', async () => {
@@ -194,6 +224,19 @@ describe('Marketplace Flow (e2e)', () => {
 
       expect(response.body.success).toBe(true);
       expect(response.body.data.id).toBe(proposalId);
+      expect(response.body.data.display_id).toBe(proposalDisplayId);
+    });
+
+    it('GET /proposals/:id should accept display_id path values', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/proposals/${proposalDisplayId}`)
+        .set('x-user-id', providerId)
+        .set('x-user-role', 'provider')
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      expect(response.body.data.id).toBe(proposalId);
+      expect(response.body.data.display_id).toBe(proposalDisplayId);
     });
   });
 
@@ -211,6 +254,7 @@ describe('Marketplace Flow (e2e)', () => {
       expect(response.body.data).toBeDefined();
       // The accept endpoint may return the job or the updated proposal
       jobId = response.body.data.jobId || response.body.data.id;
+      jobDisplayId = response.body.data.job_display_id || response.body.data.display_id;
     });
   });
 
@@ -237,6 +281,12 @@ describe('Marketplace Flow (e2e)', () => {
 
       expect(response.body.success).toBe(true);
       expect(Array.isArray(response.body.data)).toBe(true);
+      if (response.body.data.length > 0) {
+        const createdJob = response.body.data.find((j: any) => j.id === jobId);
+        if (createdJob?.display_id) {
+          jobDisplayId = createdJob.display_id;
+        }
+      }
     });
 
     it('PATCH /jobs/:id/status should update job status', async () => {
@@ -244,6 +294,22 @@ describe('Marketplace Flow (e2e)', () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/jobs/${jobId}/status`)
+        .set('x-user-id', providerId)
+        .set('x-user-role', 'provider')
+        .send({ status: 'in_progress' })
+        .expect(200);
+
+      expect(response.body.success).toBe(true);
+      if (response.body.data?.display_id) {
+        expect(response.body.data.display_id).toMatch(/^[A-Z]{2,4}[A-Z0-9]{8}$/);
+      }
+    });
+
+    it('PATCH /jobs/:id/status should accept display_id path values', async () => {
+      if (!jobDisplayId) return;
+
+      const response = await request(app.getHttpServer())
+        .patch(`/jobs/${jobDisplayId}/status`)
         .set('x-user-id', providerId)
         .set('x-user-role', 'provider')
         .send({ status: 'in_progress' })

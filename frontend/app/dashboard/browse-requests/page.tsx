@@ -141,7 +141,7 @@ export default function BrowseRequestsPage() {
 														<div className='flex items-start justify-between mb-3'>
 															<div>
 																<h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-1'>
-																	Request #{request.id.substring(0, 8)}
+																Request #{request.display_id || request.id.substring(0, 8)}
 																</h3>
 																{request.category && (
 																	<span className='inline-block px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded'>
@@ -192,7 +192,7 @@ export default function BrowseRequestsPage() {
 													<div className='ml-4'>
 														<Button
 															size='sm'
-															onClick={() => router.push(`/requests/${request.id}`)}>
+															onClick={() => router.push(`/requests/${request.display_id || request.id}`)}>
 															View Details
 														</Button>
 													</div>

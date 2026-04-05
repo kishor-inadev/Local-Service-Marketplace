@@ -25,6 +25,7 @@ describe('Auth Flow (e2e)', () => {
   let accessToken: string;
   let refreshToken: string;
   let userId: string;
+  let userDisplayId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -63,7 +64,10 @@ describe('Auth Flow (e2e)', () => {
       expect(response.body.data).toBeDefined();
       expect(response.body.data.user).toBeDefined();
       expect(response.body.data.user.email).toBe(testUser.email);
+      expect(response.body.data.user.display_id).toBeDefined();
+      expect(response.body.data.user.display_id).toMatch(/^[A-Z]{2,4}[A-Z0-9]{8}$/);
       userId = response.body.data.user.id;
+      userDisplayId = response.body.data.user.display_id;
     });
 
     it('POST /auth/register should fail for duplicate email', async () => {
@@ -93,6 +97,8 @@ describe('Auth Flow (e2e)', () => {
       expect(response.body.data.refreshToken).toBeDefined();
       expect(response.body.data.user).toBeDefined();
       expect(response.body.data.user.email).toBe(testUser.email);
+      expect(response.body.data.user.display_id).toBeDefined();
+      expect(response.body.data.user.display_id).toBe(userDisplayId);
 
       accessToken = response.body.data.accessToken;
       refreshToken = response.body.data.refreshToken;
@@ -123,6 +129,8 @@ describe('Auth Flow (e2e)', () => {
       expect(response.body.data).toBeDefined();
       expect(response.body.data.email).toBe(testUser.email);
       expect(response.body.data.name).toBe(testUser.name);
+      expect(response.body.data.display_id).toBeDefined();
+      expect(response.body.data.display_id).toBe(userDisplayId);
     });
 
     it('GET /auth/me should reject requests without token', async () => {

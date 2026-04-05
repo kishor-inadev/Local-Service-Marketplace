@@ -129,9 +129,9 @@ export default function RequestsPage() {
 												<CardContent>
 													<div className='flex items-start justify-between'>
 														<div className='flex-1'>
-															<Link href={`/requests/${request.id}`}>
+															<Link href={`/requests/${request.display_id || request.id}`}>
 																<h3 className='text-lg font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400'>
-																	Request #{request.id.substring(0, 8)}
+															Request #{request.display_id || request.id.substring(0, 8)}
 																</h3>
 															</Link>
 															<p className='text-gray-600 dark:text-gray-400 mt-2 line-clamp-2'>

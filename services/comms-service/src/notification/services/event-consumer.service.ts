@@ -63,83 +63,106 @@ export class EventConsumerService implements OnModuleInit {
   }
 
   private async handleRequestCreated(event: any): Promise<void> {
-    // Create notification for request creation
+    const ref = event.data.requestDisplayId || event.data.displayId || '';
+    const refSuffix = ref ? ` (Ref: ${ref})` : '';
     await this.notificationRepository.createNotification(
       event.data.userId,
       'request',
-      'Your service request has been created successfully'
+      `Your service request has been created successfully${refSuffix}`
     );
   }
 
   private async handleProposalSubmitted(event: any): Promise<void> {
     // Notify request creator about new proposal
+    const requestRef = event.data.requestDisplayId || '';
+    const proposalRef = event.data.proposalDisplayId || event.data.displayId || '';
+    const refParts = [requestRef && `Request: ${requestRef}`, proposalRef && `Proposal: ${proposalRef}`].filter(Boolean);
+    const refSuffix = refParts.length ? ` (${refParts.join(', ')})` : '';
     await this.notificationRepository.createNotification(
       event.data.userId, // This should be the request creator's ID
       'proposal',
-      'A provider has submitted a proposal for your request'
+      `A provider has submitted a proposal for your request${refSuffix}`
     );
   }
 
   private async handleProposalAccepted(event: any): Promise<void> {
     // Notify provider about accepted proposal
+    const jobRef = event.data.jobDisplayId || '';
+    const proposalRef = event.data.proposalDisplayId || event.data.displayId || '';
+    const refParts = [proposalRef && `Proposal: ${proposalRef}`, jobRef && `Job: ${jobRef}`].filter(Boolean);
+    const refSuffix = refParts.length ? ` (${refParts.join(', ')})` : '';
     await this.notificationRepository.createNotification(
       event.data.providerId,
       'proposal',
-      'Your proposal has been accepted'
+      `Your proposal has been accepted${refSuffix}`
     );
   }
 
   private async handleProposalRejected(event: any): Promise<void> {
     // Notify provider about rejected proposal
+    const requestRef = event.data.requestDisplayId || '';
+    const proposalRef = event.data.proposalDisplayId || event.data.displayId || '';
+    const refParts = [proposalRef && `Proposal: ${proposalRef}`, requestRef && `Request: ${requestRef}`].filter(Boolean);
+    const refSuffix = refParts.length ? ` (${refParts.join(', ')})` : '';
     await this.notificationRepository.createNotification(
       event.data.providerId,
       'proposal',
-      'Your proposal was not selected for this request'
+      `Your proposal was not selected for this request${refSuffix}`
     );
   }
 
   private async handleJobCreated(event: any): Promise<void> {
     // Notify provider about job creation
+    const ref = event.data.jobDisplayId || event.data.displayId || '';
+    const refSuffix = ref ? ` (Ref: ${ref})` : '';
     await this.notificationRepository.createNotification(
       event.data.providerId,
       'job',
-      'A new job has been assigned to you'
+      `A new job has been assigned to you${refSuffix}`
     );
   }
 
   private async handleJobStarted(event: any): Promise<void> {
     // Notify customer that job has started
+    const ref = event.data.jobDisplayId || event.data.displayId || '';
+    const refSuffix = ref ? ` (Ref: ${ref})` : '';
     await this.notificationRepository.createNotification(
       event.data.userId, // Customer ID
       'job',
-      'The provider has started working on your job'
+      `The provider has started working on your job${refSuffix}`
     );
   }
 
   private async handleJobCompleted(event: any): Promise<void> {
     // Notify customer that job is completed
+    const ref = event.data.jobDisplayId || event.data.displayId || '';
+    const refSuffix = ref ? ` (Ref: ${ref})` : '';
     await this.notificationRepository.createNotification(
       event.data.userId, // Customer ID
       'job',
-      'Your job has been completed'
+      `Your job has been completed${refSuffix}`
     );
   }
 
   private async handleJobCancelled(event: any): Promise<void> {
     // Notify both provider and customer about cancellation
+    const ref = event.data.jobDisplayId || event.data.displayId || '';
+    const refSuffix = ref ? ` (Ref: ${ref})` : '';
     await this.notificationRepository.createNotification(
       event.data.providerId,
       'job',
-      'A job assigned to you has been cancelled'
+      `A job assigned to you has been cancelled${refSuffix}`
     );
   }
 
   private async handlePaymentCompleted(event: any): Promise<void> {
     // Notify about successful payment
+    const ref = event.data.paymentDisplayId || event.data.displayId || '';
+    const refSuffix = ref ? ` (Ref: ${ref})` : '';
     await this.notificationRepository.createNotification(
       event.data.userId, // Customer ID
       'payment',
-      `Payment of ${event.data.amount} ${event.data.currency} completed successfully`
+      `Payment of ${event.data.amount} ${event.data.currency} completed successfully${refSuffix}`
     );
   }
 }

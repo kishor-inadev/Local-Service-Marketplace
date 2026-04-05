@@ -2,6 +2,7 @@ import { apiClient } from "./api-client";
 
 export interface Job {
 	id: string;
+	display_id?: string;
 	request_id: string;
 	proposal_id?: string;
 	customer_id: string;

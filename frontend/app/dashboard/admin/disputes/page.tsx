@@ -17,7 +17,7 @@ import { SkeletonTable } from '@/components/ui/Skeleton';
 import { useMemo, useState } from "react";
 import type { ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
 
-type DisputeRow = { id: string; job_id?: string; reason?: string; status: string; created_at: string };
+type DisputeRow = { id: string; display_id?: string; job_id?: string; reason?: string; status: string; created_at: string };
 
 const DISPUTE_STATUS_OPTIONS = ["open", "investigating", "resolved", "closed"] as const;
 
@@ -234,7 +234,7 @@ export default function AdminDisputesPage() {
 											header: "Action",
 											align: "right",
 											cell: (row: DisputeRow) => (
-												<Link href={`/dashboard/admin/disputes/${row.id}`}>
+										<Link href={`/dashboard/admin/disputes/${row.display_id || row.id}`}>
 													<Button
 														variant='outline'
 														size='sm'>

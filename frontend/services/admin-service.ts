@@ -2,6 +2,7 @@ import { apiClient } from './api-client';
 
 export interface User {
 	id: string;
+	display_id?: string;
 	email: string;
 	name?: string;
 	role: string;
@@ -34,6 +35,7 @@ export interface AdminCreateUserPayload {
 
 export interface Dispute {
   id: string;
+  display_id?: string;
   job_id: string;
   opened_by: string;
   reason: string;

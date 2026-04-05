@@ -44,6 +44,7 @@ describe('InfrastructureController (e2e)', () => {
           expect(res.body.statusCode).toBe(201);
           expect(res.body.message).toBe('Event created successfully');
           expect(res.body.data).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('display_id');
           expect(res.body.data.eventType).toBe('user_created');
         });
     });
@@ -67,6 +68,9 @@ describe('InfrastructureController (e2e)', () => {
           expect(res.body.statusCode).toBe(200);
           expect(res.body.data).toBeInstanceOf(Array);
           expect(res.body.pagination).toHaveProperty('total');
+          if (res.body.data.length > 0) {
+            expect(res.body.data[0]).toHaveProperty('display_id');
+          }
         });
     });
   });
@@ -100,6 +104,7 @@ describe('InfrastructureController (e2e)', () => {
           expect(res.body.statusCode).toBe(201);
           expect(res.body.message).toBe('Background job created successfully');
           expect(res.body.data).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('display_id');
           expect(res.body.data.jobType).toBe('send_email');
           expect(res.body.data.status).toBe('pending');
         });
@@ -115,6 +120,9 @@ describe('InfrastructureController (e2e)', () => {
           expect(res.body.statusCode).toBe(200);
           expect(res.body.data).toBeInstanceOf(Array);
           expect(res.body.pagination).toHaveProperty('total');
+          if (res.body.data.length > 0) {
+            expect(res.body.data[0]).toHaveProperty('display_id');
+          }
         });
     });
   });

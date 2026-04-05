@@ -67,11 +67,11 @@ export default function JobsPage() {
 								<CardContent>
 									<div className='flex items-start justify-between'>
 										<div className='flex-1'>
-											<Link href={ROUTES.DASHBOARD_JOB_DETAIL(job.id)}>
+											<Link href={ROUTES.DASHBOARD_JOB_DETAIL(job.display_id || job.id)}>
 												<div className='flex items-center gap-3'>
 													<Briefcase className='h-5 w-5 text-gray-400' />
 													<h3 className='text-lg font-semibold text-gray-900 hover:text-primary-600'>
-														Job #{job.id.slice(0, 8)}
+													Job #{job.display_id || job.id.slice(0, 8)}
 													</h3>
 												</div>
 											</Link>

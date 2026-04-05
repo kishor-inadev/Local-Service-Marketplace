@@ -19,7 +19,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/config/constants";
 import type { ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
 
-type UserRow = { id: string; name?: string; email?: string; role?: string; status?: string; created_at: string };
+type UserRow = { id: string; display_id?: string; name?: string; email?: string; role?: string; status?: string; created_at: string };
 
 const USER_ROLE_OPTIONS = ["customer", "provider", "admin"] as const;
 const USER_STATUS_OPTIONS = ["active", "suspended"] as const;
@@ -291,7 +291,7 @@ export default function AdminUsersPage() {
 											header: "Action",
 											align: "right",
 											cell: (row: UserRow) => (
-												<Link href={`/dashboard/admin/users/${row.id}`}>
+										<Link href={`/dashboard/admin/users/${row.display_id || row.id}`}>
 													<Button
 														variant='outline'
 														size='sm'>

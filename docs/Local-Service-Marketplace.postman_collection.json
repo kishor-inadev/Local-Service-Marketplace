@@ -37,12 +37,27 @@
                          "type":  "string"
                      },
                      {
+                         "key":  "request_display_id",
+                         "value":  "",
+                         "type":  "string"
+                     },
+                     {
                          "key":  "proposal_id",
                          "value":  "",
                          "type":  "string"
                      },
                      {
+                         "key":  "proposal_display_id",
+                         "value":  "",
+                         "type":  "string"
+                     },
+                     {
                          "key":  "job_id",
+                         "value":  "",
+                         "type":  "string"
+                     },
+                     {
+                         "key":  "job_display_id",
                          "value":  "",
                          "type":  "string"
                      },
@@ -102,7 +117,48 @@
                       "script":  {
                                      "type":  "text/javascript",
                                      "exec":  [
-                                                  ""
+                                                  "pm.test('Entity responses with id include display_id', function () {",
+                                                  "    const contentType = String(pm.response.headers.get('Content-Type') || '').toLowerCase();",
+                                                  "    if (!contentType.includes('application/json')) return;",
+                                                  "",
+                                                  "    let body;",
+                                                  "    try {",
+                                                  "        body = pm.response.json();",
+                                                  "    } catch (e) {",
+                                                  "        return;",
+                                                  "    }",
+                                                  "",
+                                                  "    const path = pm.request.url.getPath();",
+                                                  "    const displayIdResources = [",
+                                                  "        '/users', '/providers', '/sessions', '/locations',",
+                                                  "        '/requests', '/proposals', '/jobs', '/reviews',",
+                                                  "        '/payments', '/refunds', '/coupons',",
+                                                  "        '/messages', '/notifications',",
+                                                  "        '/disputes', '/admin-actions',",
+                                                  "        '/events', '/background-jobs', '/service-categories'",
+                                                  "    ];",
+                                                  "    if (!displayIdResources.some((segment) => path.includes(segment))) return;",
+                                                  "",
+                                                  "    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;",
+                                                  "    const displayRegex = /^[A-Z]{2,4}[A-Z0-9]{8}$/;",
+                                                  "",
+                                                  "    const checkEntity = (entity) => {",
+                                                  "        if (!entity || typeof entity !== 'object') return;",
+                                                  "        if (typeof entity.id !== 'string') return;",
+                                                  "        if (!uuidRegex.test(entity.id) && !displayRegex.test(entity.id)) return;",
+                                                  "",
+                                                  "        const displayId = entity.display_id || entity.displayId;",
+                                                  "        pm.expect(displayId, 'display_id should exist when id is present').to.be.a('string');",
+                                                  "        pm.expect(displayRegex.test(String(displayId).toUpperCase()), 'display_id format should be PREFIX + 8 alphanumeric chars').to.eql(true);",
+                                                  "    };",
+                                                  "",
+                                                  "    const payload = body && body.data !== undefined ? body.data : body;",
+                                                  "    if (Array.isArray(payload)) {",
+                                                  "        payload.slice(0, 10).forEach(checkEntity);",
+                                                  "    } else {",
+                                                  "        checkEntity(payload);",
+                                                  "    }",
+                                                  "});"
                                               ]
                                  }
                   }
@@ -3418,6 +3474,7 @@
                                                                                     "pm.test(\u0027Request created with ID and fields\u0027, function () {",
                                                                                     "    const jsonData = pm.response.json();",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027id\u0027);",
+                                                                                    "    pm.expect(jsonData.data).to.have.property(\u0027display_id\u0027);",
                                                                                     "    pm.expect(jsonData.data.id).to.be.a(\u0027string\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027description\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027budget\u0027);",
@@ -3436,6 +3493,7 @@
                                                                                     "    const r = pm.response.json();",
                                                                                     "    if (r.data \u0026\u0026 r.data.id) {",
                                                                                     "        pm.collectionVariables.set(\u0027request_id\u0027, r.data.id);",
+                                                                                    "        if (r.data.display_id) pm.collectionVariables.set(\u0027request_display_id\u0027, r.data.display_id);",
                                                                                     "        console.log(\u0027Created request ID:\u0027, r.data.id);",
                                                                                     "    }",
                                                                                     "}"
@@ -3496,6 +3554,7 @@
                                                                                     "    if (jsonData.data.length \u003e 0) {",
                                                                                     "        const request = jsonData.data[0];",
                                                                                     "        pm.expect(request).to.have.property(\u0027id\u0027);",
+                                                                                    "        pm.expect(request).to.have.property(\u0027display_id\u0027);",
                                                                                     "        pm.expect(request).to.have.property(\u0027description\u0027);",
                                                                                     "        pm.expect(request).to.have.property(\u0027status\u0027);",
                                                                                     "        pm.expect(request).to.have.property(\u0027budget\u0027);",
@@ -3545,6 +3604,7 @@
                                                                                     "    pm.expect(jsonData.success).to.be.true;",
                                                                                     "    pm.expect(jsonData.data).to.be.an(\u0027object\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027id\u0027);",
+                                                                                    "    pm.expect(jsonData.data).to.have.property(\u0027display_id\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027description\u0027);",
                                                                                     "});",
                                                                                     "",
@@ -3562,13 +3622,13 @@
                                       "request":  {
                                                       "method":  "GET",
                                                       "url":  {
-                                                                  "raw":  "{{base_url}}/requests/{{request_id}}",
+                                                                  "raw":  "{{base_url}}/requests/{{request_display_id}}",
                                                                   "host":  [
                                                                                "{{base_url}}"
                                                                            ],
                                                                   "path":  [
                                                                                "requests",
-                                                                               "{{request_id}}"
+                                                                               "{{request_display_id}}"
                                                                            ]
                                                               }
                                                   }
@@ -3619,18 +3679,17 @@
                                                   }
                                   },
                                   {
-                                      "name":  "Get Requests by User ID",
+                                      "name":  "Get Request by Invalid ID (Negative)",
                                       "request":  {
                                                       "method":  "GET",
                                                       "url":  {
-                                                                  "raw":  "{{base_url}}/requests/user/{{user_id}}",
+                                                                  "raw":  "{{base_url}}/requests/not-a-valid-id",
                                                                   "host":  [
                                                                                "{{base_url}}"
                                                                            ],
                                                                   "path":  [
                                                                                "requests",
-                                                                               "user",
-                                                                               "{{user_id}}"
+                                                                               "not-a-valid-id"
                                                                            ]
                                                               }
                                                   },
@@ -3640,17 +3699,13 @@
                                                         "script":  {
                                                                        "type":  "text/javascript",
                                                                        "exec":  [
-                                                                                    "pm.test(\"Status 200\", function () { pm.response.to.have.status(200); });",
+                                                                                    "pm.test(\"Status 400\", function () { pm.response.to.have.status(400); });",
                                                                                     "",
-                                                                                    "pm.test(\"Standardized response\", function () {",
+                                                                                    "pm.test(\"Standardized error response\", function () {",
                                                                                     "    const d = pm.response.json();",
-                                                                                    "    pm.expect(d.success).to.be.true;",
-                                                                                    "    pm.expect(d).to.have.property(\"data\");",
-                                                                                    "});",
-                                                                                    "",
-                                                                                    "pm.test(\"Has ID\", function () {",
-                                                                                    "    const d = pm.response.json();",
-                                                                                    "    pm.expect(d.data).to.have.property(\"id\");",
+                                                                                    "    pm.expect(d.success).to.be.false;",
+                                                                                    "    pm.expect(d).to.have.property(\"statusCode\", 400);",
+                                                                                    "    pm.expect(d).to.have.property(\"message\");",
                                                                                     "});"
                                                                                 ]
                                                                    }
@@ -3972,6 +4027,7 @@
                                                                                     "pm.test(\u0027Proposal created with required fields\u0027, function () {",
                                                                                     "    const jsonData = pm.response.json();",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027id\u0027);",
+                                                                                    "    pm.expect(jsonData.data).to.have.property(\u0027display_id\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027request_id\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027provider_id\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027price\u0027);",
@@ -3988,6 +4044,7 @@
                                                                                     "    const r = pm.response.json();",
                                                                                     "    if (r.data \u0026\u0026 r.data.id) {",
                                                                                     "        pm.collectionVariables.set(\u0027proposal_id\u0027, r.data.id);",
+                                                                                    "        if (r.data.display_id) pm.collectionVariables.set(\u0027proposal_display_id\u0027, r.data.display_id);",
                                                                                     "        console.log(\u0027Created proposal ID:\u0027, r.data.id);",
                                                                                     "    }",
                                                                                     "}"
@@ -4067,13 +4124,13 @@
                                       "request":  {
                                                       "method":  "GET",
                                                       "url":  {
-                                                                  "raw":  "{{base_url}}/proposals/{{proposal_id}}",
+                                                                  "raw":  "{{base_url}}/proposals/{{proposal_display_id}}",
                                                                   "host":  [
                                                                                "{{base_url}}"
                                                                            ],
                                                                   "path":  [
                                                                                "proposals",
-                                                                               "{{proposal_id}}"
+                                                                               "{{proposal_display_id}}"
                                                                            ]
                                                               }
                                                   },
@@ -4094,6 +4151,7 @@
                                                                                     "pm.test(\"Has ID\", function () {",
                                                                                     "    const d = pm.response.json();",
                                                                                     "    pm.expect(d.data).to.have.property(\"id\");",
+                                                                                    "    pm.expect(d.data).to.have.property(\"display_id\");",
                                                                                     "});"
                                                                                 ]
                                                                    }
@@ -4233,6 +4291,7 @@
                                                                                     "    pm.expect(jsonData.statusCode).to.eql(201);",
                                                                                     "    pm.expect(jsonData.data).to.be.an(\u0027object\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027id\u0027);",
+                                                                                    "    pm.expect(jsonData.data).to.have.property(\u0027display_id\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027request_id\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027proposal_id\u0027);",
                                                                                     "    pm.expect(jsonData.data).to.have.property(\u0027status\u0027);",
@@ -4248,6 +4307,7 @@
                                                                                     "    const r = pm.response.json();",
                                                                                     "    if (r.data \u0026\u0026 r.data.id) {",
                                                                                     "        pm.collectionVariables.set(\u0027job_id\u0027, r.data.id);",
+                                                                                    "        if (r.data.display_id) pm.collectionVariables.set(\u0027job_display_id\u0027, r.data.display_id);",
                                                                                     "        console.log(\u0027Created job ID:\u0027, r.data.id);",
                                                                                     "    }",
                                                                                     "}"
@@ -4301,6 +4361,7 @@
                                                                                     "    if (jsonData.data.length \u003e 0) {",
                                                                                     "        const job = jsonData.data[0];",
                                                                                     "        pm.expect(job).to.have.property(\u0027id\u0027);",
+                                                                                    "        pm.expect(job).to.have.property(\u0027display_id\u0027);",
                                                                                     "        pm.expect(job).to.have.property(\u0027request_id\u0027);",
                                                                                     "        pm.expect(job).to.have.property(\u0027status\u0027);",
                                                                                     "        pm.expect(job).to.have.property(\u0027provider_id\u0027);",
@@ -4335,13 +4396,13 @@
                                       "request":  {
                                                       "method":  "GET",
                                                       "url":  {
-                                                                  "raw":  "{{base_url}}/jobs/{{job_id}}",
+                                                                  "raw":  "{{base_url}}/jobs/{{job_display_id}}",
                                                                   "host":  [
                                                                                "{{base_url}}"
                                                                            ],
                                                                   "path":  [
                                                                                "jobs",
-                                                                               "{{job_id}}"
+                                                                               "{{job_display_id}}"
                                                                            ]
                                                               }
                                                   },
@@ -4362,6 +4423,7 @@
                                                                                     "pm.test(\"Has ID\", function () {",
                                                                                     "    const d = pm.response.json();",
                                                                                     "    pm.expect(d.data).to.have.property(\"id\");",
+                                                                                    "    pm.expect(d.data).to.have.property(\"display_id\");",
                                                                                     "});"
                                                                                 ]
                                                                    }

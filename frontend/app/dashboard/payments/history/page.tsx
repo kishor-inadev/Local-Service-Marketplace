@@ -187,7 +187,7 @@ export default function PaymentHistoryPage() {
 														Job ID: #{payment.job_id?.slice(0, 8)}
 													</p>
 													<p className='text-sm text-gray-600 dark:text-gray-400'>
-														Transaction ID: #{payment.id.slice(0, 8)}
+															Transaction ID: #{payment.display_id || payment.id.slice(0, 8)}
 													</p>
 													<p className='text-sm text-gray-500 dark:text-gray-500'>{formatDate(payment.created_at)}</p>
 												</div>
@@ -224,7 +224,7 @@ export default function PaymentHistoryPage() {
 														const url = window.URL.createObjectURL(blob);
 														const a = document.createElement('a');
 														a.href = url;
-														a.download = `invoice-${payment.id.slice(0, 8)}.html`;
+														a.download = `invoice-${payment.display_id || payment.id.slice(0, 8)}.html`;
 														document.body.appendChild(a);
 														a.click();
 														window.URL.revokeObjectURL(url);

@@ -2,6 +2,7 @@ import { apiClient } from "./api-client";
 
 export interface Proposal {
 	id: string;
+	display_id?: string;
 	request_id: string;
 	provider_id: string;
 	price: number;

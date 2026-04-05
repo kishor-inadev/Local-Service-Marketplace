@@ -27,6 +27,7 @@ export interface UpdateProfileData {
 
 export interface ProviderProfile {
   id: string;
+  display_id?: string;
   user_id: string;
   business_name: string;
   description: string;

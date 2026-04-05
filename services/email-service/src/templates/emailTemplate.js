@@ -171,7 +171,7 @@ The Local Service Marketplace Team
   // New Request Notification (for Providers)
   newRequest: {
     subject: 'New Service Request in Your Area! 🔔',
-    text: ({ providerName, requestTitle, category, budget, customerName }) => `
+    text: ({ providerName, requestTitle, category, budget, customerName, requestDisplayId }) => `
 Hello ${providerName},
 
 A new service request has been posted in your area:
@@ -179,14 +179,15 @@ A new service request has been posted in your area:
 Title: ${requestTitle}
 Category: ${category}
 Budget: $${budget}
-Customer: ${customerName}
+Customer: ${customerName}${requestDisplayId ? `
+Request ID: ${requestDisplayId}` : ''}
 
 Log in to your dashboard to view details and submit a proposal.
 
 Best regards,
 The Local Service Marketplace Team
     `,
-    html: ({ providerName, requestTitle, category, budget, customerName, requestUrl = 'http://localhost:3000/requests' }) => `
+    html: ({ providerName, requestTitle, category, budget, customerName, requestDisplayId, requestUrl = 'http://localhost:3000/requests' }) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -212,6 +213,7 @@ The Local Service Marketplace Team
       <p><strong>Category:</strong> ${category}</p>
       <p><strong>Budget:</strong> $${budget}</p>
       <p><strong>Customer:</strong> ${customerName}</p>
+      ${requestDisplayId ? `<p><strong>Request ID:</strong> <code style="background:#f3f4f6;padding:2px 6px;border-radius:3px;font-family:monospace">${requestDisplayId}</code></p>` : ''}
     </div>
     <p>Submit your proposal before other providers!</p>
     <a href="${requestUrl}" class="button">View Request & Submit Proposal</a>
@@ -227,21 +229,23 @@ The Local Service Marketplace Team
   // Proposal Received (for Customers)
   proposalReceived: {
     subject: 'New Proposal Received for Your Request 📬',
-    text: ({ customerName, providerName, requestTitle, price, estimatedDuration }) => `
+    text: ({ customerName, providerName, requestTitle, price, estimatedDuration, proposalDisplayId, requestDisplayId }) => `
 Hello ${customerName},
 
 You've received a new proposal for your service request "${requestTitle}":
 
 Provider: ${providerName}
 Price: $${price}
-Estimated Duration: ${estimatedDuration}
+Estimated Duration: ${estimatedDuration}${requestDisplayId ? `
+Request ID: ${requestDisplayId}` : ''}${proposalDisplayId ? `
+Proposal ID: ${proposalDisplayId}` : ''}
 
 Log in to review the proposal and provider's profile.
 
 Best regards,
 The Local Service Marketplace Team
     `,
-    html: ({ customerName, providerName, requestTitle, price, estimatedDuration, proposalUrl = 'http://localhost:3000/dashboard' }) => `
+    html: ({ customerName, providerName, requestTitle, price, estimatedDuration, proposalDisplayId, requestDisplayId, proposalUrl = 'http://localhost:3000/dashboard' }) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -264,6 +268,8 @@ The Local Service Marketplace Team
       <p><strong>Provider:</strong> ${providerName}</p>
       <p><strong>Price:</strong> $${price}</p>
       <p><strong>Estimated Duration:</strong> ${estimatedDuration}</p>
+      ${requestDisplayId ? `<p><strong>Request ID:</strong> <code style="background:#f3f4f6;padding:2px 6px;border-radius:3px;font-family:monospace">${requestDisplayId}</code></p>` : ''}
+      ${proposalDisplayId ? `<p><strong>Proposal ID:</strong> <code style="background:#f3f4f6;padding:2px 6px;border-radius:3px;font-family:monospace">${proposalDisplayId}</code></p>` : ''}
     </div>
     <a href="${proposalUrl}" class="button">Review Proposal</a>
     <div class="footer">
@@ -278,7 +284,7 @@ The Local Service Marketplace Team
   // Job Assigned (for Providers)
   jobAssigned: {
     subject: 'Congratulations! Your Proposal Was Accepted 🎉',
-    text: ({ providerName, requestTitle, customerName, price, startDate }) => `
+    text: ({ providerName, requestTitle, customerName, price, startDate, jobDisplayId }) => `
 Hello ${providerName},
 
 Congratulations! Your proposal has been accepted:
@@ -286,14 +292,15 @@ Congratulations! Your proposal has been accepted:
 Request: ${requestTitle}
 Customer: ${customerName}
 Price: $${price}
-Start Date: ${startDate}
+Start Date: ${startDate}${jobDisplayId ? `
+Job ID: ${jobDisplayId}` : ''}
 
 Log in to view job details and communicate with the customer.
 
 Best regards,
 The Local Service Marketplace Team
     `,
-    html: ({ providerName, requestTitle, customerName, price, startDate, jobUrl = 'http://localhost:3000/jobs' }) => `
+    html: ({ providerName, requestTitle, customerName, price, startDate, jobDisplayId, jobUrl = 'http://localhost:3000/jobs' }) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -317,6 +324,7 @@ The Local Service Marketplace Team
     <p><strong>Customer:</strong> ${customerName}</p>
     <p><strong>Price:</strong> $${price}</p>
     <p><strong>Start Date:</strong> ${startDate}</p>
+    ${jobDisplayId ? `<p><strong>Job ID:</strong> <code style="background:rgba(255,255,255,0.2);padding:2px 8px;border-radius:3px;font-family:monospace;font-size:14px">${jobDisplayId}</code></p>` : ''}
     <a href="${jobUrl}" class="button">View Job Details</a>
     <div class="footer">
       <p>&copy; ${new Date().getFullYear()} Local Service Marketplace</p>
@@ -330,20 +338,21 @@ The Local Service Marketplace Team
   // Payment Received (for Providers)
   paymentReceived: {
     subject: 'Payment Received - ${{amount}} 💰',
-    text: ({ providerName, amount, jobTitle, customerName }) => `
+    text: ({ providerName, amount, jobTitle, customerName, paymentDisplayId }) => `
 Hello ${providerName},
 
 You've received a payment of $${amount} for completing:
 
 Job: ${jobTitle}
-Customer: ${customerName}
+Customer: ${customerName}${paymentDisplayId ? `
+Payment ID: ${paymentDisplayId}` : ''}
 
 The payment will be transferred to your account according to your payout schedule.
 
 Best regards,
 The Local Service Marketplace Team
     `,
-    html: ({ providerName, amount, jobTitle, customerName, dashboardUrl = 'http://localhost:3000/dashboard' }) => `
+    html: ({ providerName, amount, jobTitle, customerName, paymentDisplayId, dashboardUrl = 'http://localhost:3000/dashboard' }) => `
 <!DOCTYPE html>
 <html>
 <head>
@@ -364,6 +373,7 @@ The Local Service Marketplace Team
       <h3 style="color: #10b981; margin-top: 0;">$${amount}</h3>
       <p><strong>Job:</strong> ${jobTitle}</p>
       <p><strong>Customer:</strong> ${customerName}</p>
+      ${paymentDisplayId ? `<p><strong>Payment ID:</strong> <code style="background:#d1fae5;padding:2px 6px;border-radius:3px;font-family:monospace">${paymentDisplayId}</code></p>` : ''}
     </div>
     <p>The payment will be transferred to your account according to your payout schedule.</p>
     <a href="${dashboardUrl}" class="button">View Dashboard</a>
@@ -16911,10 +16921,46 @@ const emailVerificationTemplate = ({ name, username, verifyLink, expiryHours = 2
   };
 };
 
+// ============================================================================
+// MARKETPLACE FUNCTION-BASED TEMPLATE WRAPPERS
+// These wrap the marketplaceTemplates object entries into callable functions
+// that emailService can cache and invoke via renderTemplate(name, data).
+// ============================================================================
+
+const newRequestTemplate = (data) => ({
+  subject: marketplaceTemplates.newRequest.subject,
+  html: marketplaceTemplates.newRequest.html(data),
+  text: marketplaceTemplates.newRequest.text(data),
+});
+
+const proposalReceivedTemplate = (data) => ({
+  subject: marketplaceTemplates.proposalReceived.subject,
+  html: marketplaceTemplates.proposalReceived.html(data),
+  text: marketplaceTemplates.proposalReceived.text(data),
+});
+
+const jobAssignedTemplate = (data) => ({
+  subject: marketplaceTemplates.jobAssigned.subject,
+  html: marketplaceTemplates.jobAssigned.html(data),
+  text: marketplaceTemplates.jobAssigned.text(data),
+});
+
+const paymentReceivedTemplate = (data) => ({
+  subject: marketplaceTemplates.paymentReceived.subject,
+  html: marketplaceTemplates.paymentReceived.html(data),
+  text: marketplaceTemplates.paymentReceived.text(data),
+});
+
 module.exports = {
   // Marketplace-specific email templates
   marketplaceTemplates,
-  
+
+  // Marketplace function-based wrappers (usable by emailService.renderTemplate)
+  newRequestTemplate,
+  proposalReceivedTemplate,
+  jobAssignedTemplate,
+  paymentReceivedTemplate,
+
   // Generic email builder function
   buildEmailHTML,
   

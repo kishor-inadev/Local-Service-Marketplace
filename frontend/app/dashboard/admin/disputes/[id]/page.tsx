@@ -82,7 +82,7 @@ export default function AdminDisputeDetailPage() {
 									<CardHeader>
 										<div className='flex items-start justify-between'>
 											<h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
-												Dispute #{dispute.id.slice(0, 8)}
+											Dispute #{dispute.display_id || dispute.id.slice(0, 8)}
 											</h1>
 											<StatusBadge status={dispute.status} />
 										</div>

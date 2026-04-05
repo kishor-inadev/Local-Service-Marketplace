@@ -5,6 +5,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 
 interface Provider {
   id: string;
+  display_id?: string;
   business_name: string;
   description?: string;
   rating?: number;

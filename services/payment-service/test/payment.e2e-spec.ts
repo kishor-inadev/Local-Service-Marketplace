@@ -66,6 +66,8 @@ describe('PaymentController (e2e)', () => {
 
       expect(response.body.payment).toBeDefined();
       expect(response.body.payment.id).toBeDefined();
+      expect(response.body.payment.display_id).toBeDefined();
+      expect(response.body.payment.display_id).toMatch(/^[A-Z]{2,4}[A-Z0-9]{8}$/);
       expect(response.body.payment.jobId).toBe(jobId);
       expect(response.body.payment.amount).toBe(100);
       expect(response.body.payment.currency).toBe('USD');
@@ -87,6 +89,7 @@ describe('PaymentController (e2e)', () => {
 
       expect(response.body.payment).toBeDefined();
       expect(response.body.payment.amount).toBe(90); // 10% discount
+      expect(response.body.payment.display_id).toBeDefined();
     });
 
     it('should fail with invalid job id', async () => {
@@ -122,6 +125,7 @@ describe('PaymentController (e2e)', () => {
 
       expect(response.body.payment).toBeDefined();
       expect(response.body.payment.id).toBe(paymentId);
+      expect(response.body.payment.display_id).toBeDefined();
       expect(response.body.payment.jobId).toBe(jobId);
     });
 
@@ -141,6 +145,7 @@ describe('PaymentController (e2e)', () => {
       expect(response.body.payments).toBeDefined();
       expect(Array.isArray(response.body.payments)).toBe(true);
       expect(response.body.payments.length).toBeGreaterThan(0);
+      expect(response.body.payments[0].display_id).toBeDefined();
     });
   });
 
@@ -154,6 +159,7 @@ describe('PaymentController (e2e)', () => {
       expect(response.body.refund).toBeDefined();
       expect(response.body.refund.paymentId).toBe(paymentId);
       expect(response.body.refund.status).toBe('completed');
+      expect(response.body.refund.display_id).toBeDefined();
     });
 
     it('should fail to refund non-existent payment', async () => {
@@ -173,6 +179,7 @@ describe('PaymentController (e2e)', () => {
       expect(response.body.refunds).toBeDefined();
       expect(Array.isArray(response.body.refunds)).toBe(true);
       expect(response.body.refunds.length).toBeGreaterThan(0);
+      expect(response.body.refunds[0].display_id).toBeDefined();
     });
   });
 

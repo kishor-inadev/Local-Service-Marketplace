@@ -8,6 +8,7 @@ import { ROUTES } from '@/config/constants';
 
 interface Provider {
   id: string;
+  display_id?: string;
   business_name: string;
   description?: string;
   rating?: number;
@@ -30,7 +31,7 @@ export function ProviderCard({ provider }: ProviderCardProps) {
   const serviceCount = provider.services?.length || 0;
 
   return (
-    <Link href={ROUTES.PROVIDER_DETAIL(provider.id)}>
+    <Link href={ROUTES.PROVIDER_DETAIL(provider.display_id || provider.id)}>
       <Card className="hover:shadow-lg transition-shadow cursor-pointer h-full">
         <CardHeader>
           <div className="flex items-start gap-4">
