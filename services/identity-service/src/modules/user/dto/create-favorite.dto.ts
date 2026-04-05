@@ -1,9 +1,9 @@
-import { IsUUID } from 'class-validator';
+import { IsString } from 'class-validator';
 
 export class CreateFavoriteDto {
-  @IsUUID()
+  @IsString()
   user_id: string;
 
-  @IsUUID()
+  @IsString()
   provider_id: string;
 }

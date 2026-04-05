@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUUID, IsNumber, Min, Max, IsEnum, IsDateString } from "class-validator";
+import { IsOptional, IsString, IsNumber, Min, Max, IsEnum, IsDateString } from "class-validator";
 import { Type } from "class-transformer";
 
 export enum ProposalSortBy {
@@ -21,11 +21,11 @@ export enum ProposalStatus {
 
 export class ProposalQueryDto {
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	request_id?: string;
 
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	provider_id?: string;
 
 	@IsOptional()

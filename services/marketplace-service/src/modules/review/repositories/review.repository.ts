@@ -9,6 +9,8 @@ export class ReviewRepository {
 	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
 	async createReview(createReviewDto: CreateReviewDto): Promise<Review> {
+		const jobId = await resolveId(this.pool, 'jobs', createReviewDto.job_id);
+		const providerId = await resolveId(this.pool, 'providers', createReviewDto.provider_id);
 		const query = `
       INSERT INTO reviews (job_id, user_id, provider_id, rating, comment)
       VALUES ($1, $2, $3, $4, $5)
@@ -16,9 +18,9 @@ export class ReviewRepository {
     `;
 
 		const values = [
-			createReviewDto.job_id,
+			jobId,
 			createReviewDto.user_id,
-			createReviewDto.provider_id,
+			providerId,
 			createReviewDto.rating,
 			createReviewDto.comment,
 		];
@@ -40,6 +42,7 @@ export class ReviewRepository {
 	}
 
 	async getProviderReviews(providerId: string, limit: number = 20, offset: number = 0): Promise<Review[]> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT id, display_id, job_id, user_id, provider_id, rating, comment, created_at
       FROM reviews
@@ -53,6 +56,7 @@ export class ReviewRepository {
 	}
 
 	async getProviderRating(providerId: string): Promise<{ averageRating: number; totalReviews: number }> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT 
         COALESCE(AVG(rating), 0) as "averageRating",
@@ -69,6 +73,7 @@ export class ReviewRepository {
 	}
 
 	async getReviewCount(providerId: string): Promise<number> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT COUNT(*) as count
       FROM reviews
@@ -83,6 +88,7 @@ export class ReviewRepository {
 	 * Get review by job ID
 	 */
 	async getReviewByJobId(jobId: string): Promise<Review | null> {
+		jobId = await resolveId(this.pool, 'jobs', jobId);
 		const query = `
       SELECT id, display_id, job_id, user_id, provider_id, rating, comment, response, response_at, helpful_count, verified_purchase, created_at
       FROM reviews
@@ -137,6 +143,7 @@ export class ReviewRepository {
 	}
 
 	async getVerifiedPurchaseReviews(providerId: string, limit: number = 20): Promise<Review[]> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT * FROM reviews
       WHERE provider_id = $1
@@ -149,6 +156,7 @@ export class ReviewRepository {
 	}
 
 	async getReviewsWithResponses(providerId: string, limit: number = 20): Promise<Review[]> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT * FROM reviews
       WHERE provider_id = $1
@@ -161,6 +169,7 @@ export class ReviewRepository {
 	}
 
 	async getMostHelpfulReviews(providerId: string, limit: number = 10): Promise<Review[]> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT * FROM reviews
       WHERE provider_id = $1
@@ -173,6 +182,7 @@ export class ReviewRepository {
 	}
 
 	async getReviewsByRating(providerId: string, rating: number, limit: number = 20): Promise<Review[]> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT * FROM reviews
       WHERE provider_id = $1

@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsUUID, IsNumber, Min, Max, IsEnum, IsDateString } from "class-validator";
+import { IsOptional, IsString, IsNumber, Min, Max, IsEnum, IsDateString } from "class-validator";
 import { Type } from "class-transformer";
 
 export enum RequestSortBy {
@@ -28,11 +28,11 @@ export enum RequestUrgency {
 
 export class RequestQueryDto {
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	user_id?: string;
 
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	category_id?: string;
 
 	@IsOptional()

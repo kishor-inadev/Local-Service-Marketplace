@@ -12,6 +12,10 @@ export class RequestRepository {
 	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
 	async createRequest(dto: CreateRequestDto): Promise<ServiceRequest> {
+		const [userId, categoryId] = await Promise.all([
+			dto.user_id ? resolveId(this.pool, 'users', dto.user_id) : Promise.resolve(null),
+			resolveId(this.pool, 'service_categories', dto.category_id),
+		]);
 		// First, insert location if provided
 		let locationId: string | null = null;
 		if (dto.location) {
@@ -21,7 +25,7 @@ export class RequestRepository {
         RETURNING id
       `;
 			const locationResult = await this.pool.query(locationQuery, [
-				dto.user_id || null, // Allow null for anonymous requests
+				userId,
 				dto.location.latitude,
 				dto.location.longitude,
 				dto.location.address,
@@ -44,8 +48,8 @@ export class RequestRepository {
     `;
 
 		const values = [
-			dto.user_id || null, // Nullable for anonymous
-			dto.category_id,
+			userId,
+			categoryId,
 			locationId,
 			dto.description,
 			dto.budget,
@@ -63,7 +67,7 @@ export class RequestRepository {
 	}
 
 	async getRequestsPaginated(queryDto: RequestQueryDto): Promise<ServiceRequest[]> {
-		const {
+		let {
 			user_id,
 			category_id,
 			status,
@@ -78,6 +82,11 @@ export class RequestRepository {
 			sortBy = RequestSortBy.CREATED_AT,
 			sortOrder = SortOrder.DESC,
 		} = queryDto;
+
+		[user_id, category_id] = await Promise.all([
+			user_id ? resolveId(this.pool, 'users', user_id) : Promise.resolve(undefined),
+			category_id ? resolveId(this.pool, 'service_categories', category_id) : Promise.resolve(undefined),
+		]);
 
 		let query = `
       SELECT 
@@ -223,7 +232,12 @@ export class RequestRepository {
 	}
 
 	async countRequests(queryDto: RequestQueryDto): Promise<number> {
-		const { user_id, category_id, status, min_budget, max_budget, urgency, created_from, created_to } = queryDto;
+		let { user_id, category_id, status, min_budget, max_budget, urgency, created_from, created_to } = queryDto;
+
+		[user_id, category_id] = await Promise.all([
+			user_id ? resolveId(this.pool, 'users', user_id) : Promise.resolve(undefined),
+			category_id ? resolveId(this.pool, 'service_categories', category_id) : Promise.resolve(undefined),
+		]);
 
 		let query = `
       SELECT COUNT(*)::int AS total

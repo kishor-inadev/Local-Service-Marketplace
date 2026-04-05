@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsUUID } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
 import { AdminListQueryDto } from "./admin-list-query.dto";
 
 export enum DisputeStatusFilter {
@@ -20,11 +20,11 @@ export class DisputeListQueryDto extends AdminListQueryDto {
 	status?: DisputeStatusFilter;
 
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	jobId?: string;
 
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	openedBy?: string;
 
 	@IsOptional()

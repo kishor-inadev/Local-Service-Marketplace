@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsUUID, IsOptional, MinLength, Min, IsObject, ValidateNested, IsArray, IsEnum, IsDateString, ArrayMaxSize, IsUrl } from 'class-validator';
+import { IsString, IsNumber, IsOptional, MinLength, Min, IsObject, ValidateNested, IsArray, IsEnum, IsDateString, ArrayMaxSize, IsUrl } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class LocationDto {
@@ -31,7 +31,7 @@ export class LocationDto {
 
 export class CreateRequestDto {
   @IsOptional()
-  @IsUUID()
+  @IsString()
   user_id?: string;
 
   @IsOptional()
@@ -42,7 +42,7 @@ export class CreateRequestDto {
     phone: string;
   };
 
-  @IsUUID()
+  @IsString()
   category_id: string;
 
   @IsOptional()

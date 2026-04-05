@@ -1,10 +1,10 @@
-import { IsUUID, IsNumber, IsString, IsOptional, Min, IsEnum } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min, IsEnum } from 'class-validator';
 
 export class CreatePaymentDto {
-  @IsUUID()
+  @IsString()
   job_id: string;
 
-  @IsUUID()
+  @IsString()
   provider_id: string;
 
   @IsNumber()

@@ -17,6 +17,7 @@ export class MessageRepository {
   constructor(@Inject('DATABASE_POOL') private pool: Pool) {}
 
   async createMessage(jobId: string, senderId: string, message: string): Promise<Message> {
+    jobId = await resolveId(this.pool, 'jobs', jobId);
     const id = uuidv4();
     const query = `
       INSERT INTO messages (id, job_id, sender_id, message, created_at)
@@ -57,6 +58,7 @@ export class MessageRepository {
     page: number = 1,
     limit: number = 20,
   ): Promise<PaginatedMessages> {
+		jobId = await resolveId(this.pool, 'jobs', jobId);
 		const offset = (page - 1) * limit;
 
 		// Single query: COUNT(*) OVER() avoids a separate COUNT round-trip

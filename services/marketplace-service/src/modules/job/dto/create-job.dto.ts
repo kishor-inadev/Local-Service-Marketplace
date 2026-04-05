@@ -1,17 +1,17 @@
-import { IsUUID, IsOptional, IsNumber, Min } from 'class-validator';
+import { IsString, IsOptional, IsNumber, Min } from 'class-validator';
 
 export class CreateJobDto {
-	@IsUUID()
+	@IsString()
 	request_id: string;
 
-	@IsUUID()
+	@IsString()
 	provider_id: string;
 
 	// Set by controller from authenticated user headers — not accepted from body
 	customer_id?: string;
 
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	proposal_id?: string;
 
 	@IsOptional()

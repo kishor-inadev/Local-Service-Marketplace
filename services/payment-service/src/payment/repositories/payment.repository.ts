@@ -20,6 +20,10 @@ export class PaymentRepository {
 		gateway?: string,
 	): Promise<Payment> {
 		const id = uuidv4();
+		[jobId, providerId] = await Promise.all([
+			resolveId(this.pool, 'jobs', jobId),
+			resolveId(this.pool, 'providers', providerId),
+		]);
 
 		// Calculate platform fee (10%)
 		const platformFee = Math.floor(amount * 0.1);
@@ -148,6 +152,7 @@ export class PaymentRepository {
 	}
 
 	async getPaymentsByJobId(jobId: string): Promise<Payment[]> {
+		jobId = await resolveId(this.pool, 'jobs', jobId);
 		const query = "SELECT * FROM payments WHERE job_id = $1 ORDER BY created_at DESC LIMIT 20";
 		const result = await this.pool.query(query, [jobId]);
 		return result.rows.map(

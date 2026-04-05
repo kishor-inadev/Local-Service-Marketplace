@@ -10,6 +10,8 @@ export class ProposalRepository {
 	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
 	async createProposal(dto: CreateProposalDto): Promise<Proposal> {
+		const requestId = await resolveId(this.pool, 'service_requests', dto.request_id);
+		const providerId = await resolveId(this.pool, 'providers', dto.provider_id);
 		const query = `
       INSERT INTO proposals (
         request_id, provider_id, price, message, 
@@ -20,8 +22,8 @@ export class ProposalRepository {
     `;
 
 		const values = [
-			dto.request_id,
-			dto.provider_id,
+			requestId,
+			providerId,
 			dto.price,
 			dto.message,
 			dto.estimated_hours || null, // ✅ NEW
@@ -34,6 +36,7 @@ export class ProposalRepository {
 	}
 
 	async getProposalsForRequest(requestId: string, limit = 20): Promise<Proposal[]> {
+		requestId = await resolveId(this.pool, 'service_requests', requestId);
 		const query = `
       SELECT id, display_id, request_id, provider_id, price, message, status, created_at
       FROM proposals
@@ -133,6 +136,7 @@ export class ProposalRepository {
 	}
 
 	async getProposalsByProvider(providerId: string): Promise<Proposal[]> {
+		providerId = await resolveId(this.pool, 'providers', providerId);
 		const query = `
       SELECT id, display_id, request_id, provider_id, price, message, status, created_at
       FROM proposals
@@ -146,7 +150,7 @@ export class ProposalRepository {
 	}
 
 	async getProposalsPaginated(queryDto: ProposalQueryDto): Promise<Proposal[]> {
-		const {
+		let {
 			request_id,
 			provider_id,
 			status,
@@ -160,6 +164,11 @@ export class ProposalRepository {
 			sortBy = ProposalSortBy.CREATED_AT,
 			sortOrder = SortOrder.DESC,
 		} = queryDto;
+
+		[request_id, provider_id] = await Promise.all([
+			request_id ? resolveId(this.pool, 'service_requests', request_id) : Promise.resolve(undefined),
+			provider_id ? resolveId(this.pool, 'providers', provider_id) : Promise.resolve(undefined),
+		]);
 
 		let query = `
       SELECT id, display_id, request_id, provider_id, price, message, status, created_at
@@ -236,7 +245,12 @@ export class ProposalRepository {
 	}
 
 	async countProposals(queryDto: ProposalQueryDto): Promise<number> {
-		const { request_id, provider_id, status, min_price, max_price, created_from, created_to } = queryDto;
+		let { request_id, provider_id, status, min_price, max_price, created_from, created_to } = queryDto;
+
+		[request_id, provider_id] = await Promise.all([
+			request_id ? resolveId(this.pool, 'service_requests', request_id) : Promise.resolve(undefined),
+			provider_id ? resolveId(this.pool, 'providers', provider_id) : Promise.resolve(undefined),
+		]);
 
 		let query = `
       SELECT COUNT(*)::int AS total
@@ -287,6 +301,10 @@ export class ProposalRepository {
 	}
 
 	async hasExistingProposal(requestId: string, providerId: string): Promise<boolean> {
+		[requestId, providerId] = await Promise.all([
+			resolveId(this.pool, 'service_requests', requestId),
+			resolveId(this.pool, 'providers', providerId),
+		]);
 		const query = `
       SELECT 1 FROM proposals
       WHERE request_id = $1 AND provider_id = $2

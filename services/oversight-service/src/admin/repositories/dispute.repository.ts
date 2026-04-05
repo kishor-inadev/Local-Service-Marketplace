@@ -95,7 +95,12 @@ export class DisputeRepository {
 	}
 
 	async findDisputes(queryDto: DisputeListQueryDto, pagination: ResolvedPagination): Promise<Dispute[]> {
-		const { whereClause, values, nextIndex } = this.buildWhereClause(queryDto);
+		const resolvedQuery = {
+			...queryDto,
+			jobId: queryDto.jobId ? await resolveId(this.pool, 'jobs', queryDto.jobId) : undefined,
+			openedBy: queryDto.openedBy ? await resolveId(this.pool, 'users', queryDto.openedBy) : undefined,
+		};
+		const { whereClause, values, nextIndex } = this.buildWhereClause(resolvedQuery);
 		const sortColumn = this.getSortColumn(queryDto.sortBy);
 		const sortOrder = queryDto.sortOrder?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
@@ -113,7 +118,12 @@ export class DisputeRepository {
 	}
 
 	async countDisputes(queryDto: DisputeListQueryDto): Promise<number> {
-		const { whereClause, values } = this.buildWhereClause(queryDto);
+		const resolvedQuery = {
+			...queryDto,
+			jobId: queryDto.jobId ? await resolveId(this.pool, 'jobs', queryDto.jobId) : undefined,
+			openedBy: queryDto.openedBy ? await resolveId(this.pool, 'users', queryDto.openedBy) : undefined,
+		};
+		const { whereClause, values } = this.buildWhereClause(resolvedQuery);
 		const query = `SELECT COUNT(*)::int AS total FROM disputes ${whereClause}`;
 		const result = await this.pool.query(query, values);
 		return result.rows[0]?.total || 0;

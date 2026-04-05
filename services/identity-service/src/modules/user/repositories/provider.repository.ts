@@ -30,6 +30,7 @@ export class ProviderRepository {
 	}
 
 	async findByUserId(userId: string): Promise<Provider | null> {
+		userId = await resolveId(this.pool, 'users', userId);
 		const query = "SELECT * FROM providers WHERE user_id = $1 AND deleted_at IS NULL";
 		const result = await this.pool.query(query, [userId]);
 		return result.rows[0] || null;
@@ -80,6 +81,10 @@ export class ProviderRepository {
 		maxRating?: number,
 		userId?: string,
 	): Promise<Provider[]> {
+		[categoryId, userId] = await Promise.all([
+			categoryId ? resolveId(this.pool, 'service_categories', categoryId) : Promise.resolve(undefined),
+			userId ? resolveId(this.pool, 'users', userId) : Promise.resolve(undefined),
+		]);
 		const conditions: string[] = ["providers.deleted_at IS NULL"];
 		const values: any[] = [];
 		let paramCount = 1;
@@ -179,6 +184,10 @@ export class ProviderRepository {
 		maxRating?: number,
 		userId?: string,
 	): Promise<number> {
+		[categoryId, userId] = await Promise.all([
+			categoryId ? resolveId(this.pool, 'service_categories', categoryId) : Promise.resolve(undefined),
+			userId ? resolveId(this.pool, 'users', userId) : Promise.resolve(undefined),
+		]);
 		const conditions: string[] = ["providers.deleted_at IS NULL"];
 		const values: any[] = [];
 		let paramCount = 1;

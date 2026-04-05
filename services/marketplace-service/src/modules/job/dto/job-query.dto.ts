@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsNumber, Min, Max, IsEnum, IsDateString, IsUUID } from "class-validator";
+import { IsOptional, IsString, IsNumber, Min, Max, IsEnum, IsDateString } from "class-validator";
 import { Type } from "class-transformer";
 
 export enum JobSortBy {
@@ -23,15 +23,15 @@ export enum JobStatusQuery {
 
 export class JobQueryDto {
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	provider_id?: string;
 
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	customer_id?: string;
 
 	@IsOptional()
-	@IsUUID()
+	@IsString()
 	request_id?: string;
 
 	@IsOptional()

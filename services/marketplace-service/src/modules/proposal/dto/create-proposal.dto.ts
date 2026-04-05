@@ -1,10 +1,10 @@
-import { IsString, IsNumber, IsUUID, MinLength, Min, IsOptional, IsDateString } from 'class-validator';
+import { IsString, IsNumber, MinLength, Min, IsOptional, IsDateString } from 'class-validator';
 
 export class CreateProposalDto {
-  @IsUUID()
+  @IsString()
   request_id: string;
 
-  @IsUUID()
+  @IsString()
   provider_id: string;
 
   @IsNumber()

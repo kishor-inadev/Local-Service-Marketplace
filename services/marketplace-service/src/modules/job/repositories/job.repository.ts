@@ -11,6 +11,11 @@ export class JobRepository {
 	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
 	async createJob(dto: CreateJobDto): Promise<Job> {
+		const [requestId, providerId, proposalId] = await Promise.all([
+			resolveId(this.pool, 'service_requests', dto.request_id),
+			resolveId(this.pool, 'providers', dto.provider_id),
+			dto.proposal_id ? resolveId(this.pool, 'proposals', dto.proposal_id) : Promise.resolve(null),
+		]);
 		const query = `
       INSERT INTO jobs (
         request_id, provider_id, customer_id, proposal_id, status, started_at
@@ -20,10 +25,10 @@ export class JobRepository {
     `;
 
 		const values = [
-			dto.request_id,
-			dto.provider_id,
+			requestId,
+			providerId,
 			dto.customer_id, // ✅ NEW
-			dto.proposal_id || null, // ✅ NEW
+			proposalId, // ✅ NEW
 		];
 
 		const result = await this.pool.query(query, values);
@@ -67,6 +72,7 @@ export class JobRepository {
 	}
 
 	async getJobByRequestId(requestId: string): Promise<Job | null> {
+		requestId = await resolveId(this.pool, 'service_requests', requestId);
 		const query = `
       SELECT id, display_id, request_id, provider_id, status, started_at, completed_at
       FROM jobs
@@ -78,7 +84,7 @@ export class JobRepository {
 	}
 
 	async getJobsPaginated(queryDto: JobQueryDto): Promise<Job[]> {
-		const {
+		let {
 			provider_id,
 			customer_id,
 			request_id,
@@ -93,6 +99,12 @@ export class JobRepository {
 			sortBy = JobSortBy.STARTED_AT,
 			sortOrder = SortOrder.DESC,
 		} = queryDto;
+
+		[provider_id, customer_id, request_id] = await Promise.all([
+			provider_id ? resolveId(this.pool, 'providers', provider_id) : Promise.resolve(undefined),
+			customer_id ? resolveId(this.pool, 'users', customer_id) : Promise.resolve(undefined),
+			request_id ? resolveId(this.pool, 'service_requests', request_id) : Promise.resolve(undefined),
+		]);
 
 		let query = `
       SELECT *
@@ -201,8 +213,14 @@ export class JobRepository {
 	}
 
 	async countJobs(queryDto: JobQueryDto): Promise<number> {
-		const { provider_id, customer_id, request_id, status, started_from, started_to, completed_from, completed_to } =
+		let { provider_id, customer_id, request_id, status, started_from, started_to, completed_from, completed_to } =
 			queryDto;
+
+		[provider_id, customer_id, request_id] = await Promise.all([
+			provider_id ? resolveId(this.pool, 'providers', provider_id) : Promise.resolve(undefined),
+			customer_id ? resolveId(this.pool, 'users', customer_id) : Promise.resolve(undefined),
+			request_id ? resolveId(this.pool, 'service_requests', request_id) : Promise.resolve(undefined),
+		]);
 
 		let query = `SELECT COUNT(*)::int AS total FROM jobs WHERE 1=1`;
 		const values: any[] = [];

@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsUUID, IsArray, IsNumber, Min, Max, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsNumber, Min, Max, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 class AvailabilitySlotDto {
@@ -15,7 +15,7 @@ class AvailabilitySlotDto {
 }
 
 export class CreateProviderDto {
-  @IsUUID()
+  @IsString()
   user_id: string;
 
   @IsString()
@@ -26,7 +26,7 @@ export class CreateProviderDto {
   description?: string;
 
   @IsArray()
-  @IsUUID('4', { each: true })
+  @IsString({ each: true })
   @IsOptional()
   service_categories?: string[];
 
