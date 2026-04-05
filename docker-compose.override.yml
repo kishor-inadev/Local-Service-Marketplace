@@ -40,6 +40,7 @@ services:
       - RESERVE_POOL_SIZE=5
       - RESERVE_POOL_TIMEOUT=3
       - SERVER_RESET_QUERY=DISCARD ALL
+      - AUTH_TYPE=scram-sha-256
       - IGNORE_STARTUP_PARAMETERS=extra_float_digits
       - LOG_CONNECTIONS=0
       - LOG_DISCONNECTIONS=0
@@ -164,4 +165,10 @@ services:
     depends_on:
       pgbouncer:
         condition: service_healthy
+
+  # ---------------------------------------------------------------------------
+  # api-gateway
+  # ---------------------------------------------------------------------------
+  # Host port configured via API_GATEWAY_PORT in .env (default: 3700)
+  # Set to 3800 to avoid Windows Hyper-V excluded port range
 

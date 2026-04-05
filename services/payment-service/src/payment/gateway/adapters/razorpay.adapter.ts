@@ -37,10 +37,15 @@ export class RazorpayAdapter implements IGatewayAdapter {
 	constructor(private readonly configService: ConfigService) {
 		const keyId = this.configService.get<string>("RAZORPAY_KEY_ID", "");
 		const keySecret = this.configService.get<string>("RAZORPAY_KEY_SECRET", "");
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const Razorpay = require("razorpay");
-		this.razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
-		this.logger.log("RazorpayAdapter initialised");
+		if (keyId && keySecret) {
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const Razorpay = require("razorpay");
+			this.razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
+			this.logger.log("RazorpayAdapter initialised");
+		} else {
+			this.razorpay = null;
+			this.logger.warn("RazorpayAdapter: RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET missing — adapter disabled");
+		}
 	}
 
 	async charge(params: ChargeParams): Promise<ChargeResult> {

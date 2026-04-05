@@ -33,10 +33,15 @@ export class StripeAdapter implements IGatewayAdapter {
 
 	constructor(private readonly configService: ConfigService) {
 		const secretKey = this.configService.get<string>("STRIPE_SECRET_KEY", "");
-		// eslint-disable-next-line @typescript-eslint/no-var-requires
-		const StripeSDK = require("stripe");
-		this.stripe = new StripeSDK(secretKey, { apiVersion: "2025-05-28.basil" });
-		this.logger.log("StripeAdapter initialised");
+		if (secretKey) {
+			// eslint-disable-next-line @typescript-eslint/no-var-requires
+			const StripeSDK = require("stripe");
+			this.stripe = new StripeSDK(secretKey, { apiVersion: "2025-05-28.basil" });
+			this.logger.log("StripeAdapter initialised");
+		} else {
+			this.stripe = null;
+			this.logger.warn("StripeAdapter: STRIPE_SECRET_KEY missing — adapter disabled");
+		}
 	}
 
 	async charge(params: ChargeParams): Promise<ChargeResult> {

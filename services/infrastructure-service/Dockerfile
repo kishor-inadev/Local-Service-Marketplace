@@ -54,4 +54,4 @@ EXPOSE 3012
 USER node
 
 # Start the application
-CMD ["node", "dist/main"]
+CMD ["node", "dist/src/main"]

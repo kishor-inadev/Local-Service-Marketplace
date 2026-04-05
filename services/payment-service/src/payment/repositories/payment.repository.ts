@@ -435,10 +435,8 @@ export class PaymentRepository {
 
 		let query = `
       SELECT 
-        p.*,
-        u.name as customer_name
+        p.*
       FROM payments p
-      LEFT JOIN users u ON p.user_id = u.id
       WHERE p.provider_id = $1
     `;
 

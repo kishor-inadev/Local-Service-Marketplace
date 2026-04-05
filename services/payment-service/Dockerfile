@@ -39,8 +39,10 @@ RUN pnpm install --prod
 
 COPY --from=builder /app/dist ./dist
 
+RUN mkdir -p logs
+
 EXPOSE 3006
 
 USER node
 
-CMD ["node", "dist/main.js"]
+CMD ["node", "dist/src/main.js"]

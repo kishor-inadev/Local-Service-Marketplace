@@ -23,7 +23,7 @@ export default function FavoritesPage() {
 
   const { data: favorites, isLoading, error, refetch } = useQuery({
     queryKey: ['favorites', user?.id],
-    queryFn: () => favoriteService.getFavorites(user!.id),
+    queryFn: () => favoriteService.getFavorites(user?.id ?? ''),
     enabled: !!user?.id,
   });
 

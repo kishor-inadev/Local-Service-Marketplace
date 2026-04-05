@@ -35,6 +35,8 @@ export class JwtAuthGuard implements CanActivate {
       if (!receivedHmac || receivedHmac !== expectedHmac) {
         throw new UnauthorizedException('Invalid gateway signature.');
       }
+    } else if (process.env.NODE_ENV === 'production') {
+      throw new UnauthorizedException('Server misconfiguration: gateway secret not set.');
     }
 
     // Attach user info to request object for use in controllers/services

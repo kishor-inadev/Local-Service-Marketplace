@@ -43,6 +43,15 @@ async function bootstrap() {
   process.once('SIGTERM', () => shutdown('SIGTERM'));
   process.once('SIGINT', () => shutdown('SIGINT'));
 
+  // Catch unhandled errors to prevent silent crashes
+  process.on('unhandledRejection', (reason) => {
+    logger.error('Unhandled Rejection', { reason });
+  });
+  process.on('uncaughtException', (err) => {
+    logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
+    process.exit(1);
+  });
+
   const port = process.env.PORT || 3012;
   await app.listen(port);
 

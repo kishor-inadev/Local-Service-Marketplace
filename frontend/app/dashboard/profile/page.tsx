@@ -40,13 +40,13 @@ export default function ProfilePage() {
 
   const { data: providerProfile, isLoading: providerLoading } = useQuery({
     queryKey: ['my-provider-profile', user?.id],
-    queryFn: () => getProviderProfile(user!.id),
+    queryFn: () => getProviderProfile(user?.id ?? ''),
     enabled: isAuthenticated && isProvider && !!user?.id,
   });
 
   const { data: reviews } = useQuery({
     queryKey: ['my-provider-reviews', user?.id],
-    queryFn: () => getProviderReviews(user!.id),
+    queryFn: () => getProviderReviews(user?.id ?? ''),
     enabled: isAuthenticated && isProvider && !!user?.id,
   });
 

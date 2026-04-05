@@ -545,7 +545,7 @@ services:
     #   - frontend
     #   - gateway
     ports:
-      - "3700:3000"
+      - "${API_GATEWAY_PORT:-3700}:3000"
     environment:
       - NODE_ENV=production
       - PORT=3000

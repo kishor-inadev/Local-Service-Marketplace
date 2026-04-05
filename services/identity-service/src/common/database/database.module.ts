@@ -36,6 +36,11 @@ const databasePoolFactory = {
 			throw error;
 		}
 
+		// Handle runtime pool errors (e.g. lost connections) to prevent crashes
+		pool.on('error', (err) => {
+			logger.error('Unexpected database pool error', err);
+		});
+
 		return pool;
 	},
 	inject: [ConfigService],
