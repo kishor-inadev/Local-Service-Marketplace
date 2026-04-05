@@ -255,6 +255,17 @@ export class PaymentService {
 		const limit = queryDto.limit || 20;
 
 		const result = await this.paymentRepository.getProviderTransactions(providerId, queryDto);
+
+		// Fetch customer names via identity-service API (no cross-service DB joins)
+		const userIds = [...new Set(result.data.map((t: any) => t.user_id).filter(Boolean))];
+		const userNameMap: Record<string, string> = {};
+		await Promise.all(
+			userIds.map(async (userId: string) => {
+				const user = await this.userClient.getUserById(userId);
+				if (user?.name) userNameMap[userId] = user.name;
+			}),
+		);
+
 		const data = result.data.map((t: any) => ({
 			id: t.id,
 			job_id: t.job_id,
@@ -268,7 +279,7 @@ export class PaymentService {
 			currency: t.currency || "USD",
 			created_at: t.created_at,
 			paid_at: t.paid_at || null,
-			customer_name: t.customer_name || "Unknown",
+			customer_name: userNameMap[t.user_id] || "Unknown",
 		}));
 
 		if (queryDto.cursor) {
