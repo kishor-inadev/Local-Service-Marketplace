@@ -53,7 +53,7 @@ describe("JobService.createJob", () => {
 		proposal_id: "prop-1",
 		provider_id: "prov-1",
 		customer_id: "cust-1",
-		status: "pending",
+		status: "scheduled",
 		...overrides,
 	});
 

@@ -11,6 +11,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 	({ label, error, options, className, ...props }, ref) => {
 		const generatedId = useId();
 		const selectId = props.id || generatedId;
+		const errorId = `${selectId}-error`;
 		return (
 			<div className='w-full'>
 				{label && (
@@ -24,6 +25,8 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 				<select
 					ref={ref}
 					id={selectId}
+					aria-invalid={error ? "true" : undefined}
+					aria-describedby={error ? errorId : undefined}
 					className={cn(
 						"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
 						error && "border-red-500 focus:ring-red-500 focus:border-red-500",
@@ -40,7 +43,14 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 						</option>
 					))}
 				</select>
-				{error && <p className='mt-1 text-sm text-red-600'>{error}</p>}
+				{error && (
+					<p
+						id={errorId}
+						role='alert'
+						className='mt-1 text-sm text-red-600'>
+						{error}
+					</p>
+				)}
 			</div>
 		);
 	},

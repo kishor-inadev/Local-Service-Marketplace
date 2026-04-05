@@ -14,7 +14,7 @@ export class JobRepository {
       INSERT INTO jobs (
         request_id, provider_id, customer_id, proposal_id, status, started_at
       )
-      VALUES ($1, $2, $3, $4, 'pending', NOW())
+      VALUES ($1, $2, $3, $4, 'scheduled', NOW())
       RETURNING *
     `;
 

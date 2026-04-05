@@ -11,6 +11,8 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 	({ label, error, helperText, className, ...props }, ref) => {
 		const generatedId = useId();
 		const inputId = props.id || generatedId;
+		const errorId = `${inputId}-error`;
+		const helperId = `${inputId}-helper`;
 		return (
 			<div className='w-full'>
 				{label && (
@@ -25,6 +27,13 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 					ref={ref}
 					id={inputId}
 					suppressHydrationWarning
+					aria-invalid={error ? "true" : undefined}
+					aria-describedby={
+						error ? errorId
+						: helperText ?
+							helperId
+						:	undefined
+					}
 					className={cn(
 						"w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
 						error && "border-red-500 focus:ring-red-500 focus:border-red-500",
@@ -33,8 +42,21 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 					)}
 					{...props}
 				/>
-				{error && <p className='mt-1 text-sm text-red-600 dark:text-red-400'>{error}</p>}
-				{helperText && !error && <p className='mt-1 text-sm text-gray-500 dark:text-gray-400'>{helperText}</p>}
+				{error && (
+					<p
+						id={errorId}
+						role='alert'
+						className='mt-1 text-sm text-red-600 dark:text-red-400'>
+						{error}
+					</p>
+				)}
+				{helperText && !error && (
+					<p
+						id={helperId}
+						className='mt-1 text-sm text-gray-500 dark:text-gray-400'>
+						{helperText}
+					</p>
+				)}
 			</div>
 		);
 	},

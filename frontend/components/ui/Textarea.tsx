@@ -11,6 +11,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 	({ label, error, helperText, className, ...props }, ref) => {
 		const generatedId = useId();
 		const textareaId = props.id || generatedId;
+		const errorId = `${textareaId}-error`;
+		const helperId = `${textareaId}-helper`;
 		return (
 			<div className='w-full'>
 				{label && (
@@ -24,6 +26,13 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 				<textarea
 					ref={ref}
 					id={textareaId}
+					aria-invalid={error ? "true" : undefined}
+					aria-describedby={
+						error ? errorId
+						: helperText ?
+							helperId
+						:	undefined
+					}
 					className={cn(
 						"w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500",
 						error && "border-red-500 focus:ring-red-500 focus:border-red-500",
@@ -33,8 +42,21 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
 					rows={4}
 					{...props}
 				/>
-				{error && <p className='mt-1 text-sm text-red-600'>{error}</p>}
-				{helperText && !error && <p className='mt-1 text-sm text-gray-500'>{helperText}</p>}
+				{error && (
+					<p
+						id={errorId}
+						role='alert'
+						className='mt-1 text-sm text-red-600'>
+						{error}
+					</p>
+				)}
+				{helperText && !error && (
+					<p
+						id={helperId}
+						className='mt-1 text-sm text-gray-500'>
+						{helperText}
+					</p>
+				)}
 			</div>
 		);
 	},

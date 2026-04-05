@@ -18,7 +18,6 @@ export enum JobStatusQuery {
 	COMPLETED = "completed",
 	CANCELLED = "cancelled",
 	DISPUTED = "disputed",
-	PENDING = "pending",
 }
 
 export class JobQueryDto {

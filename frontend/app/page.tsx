@@ -286,8 +286,40 @@ const faqs = [
 ];
 
 export default function HomePage() {
+	const jsonLd = {
+		"@context": "https://schema.org",
+		"@type": "WebSite",
+		name: "Local Service Marketplace",
+		url: SITE_URL,
+		description:
+			"Connect with verified, licensed professionals in your neighborhood. Post your request free, get multiple quotes, and hire with confidence.",
+		potentialAction: {
+			"@type": "SearchAction",
+			target: `${SITE_URL}/search?q={search_term_string}`,
+			"query-input": "required name=search_term_string",
+		},
+	};
+
+	const orgJsonLd = {
+		"@context": "https://schema.org",
+		"@type": "Organization",
+		name: "Local Service Marketplace",
+		url: SITE_URL,
+		logo: `${SITE_URL}/logo.png`,
+		sameAs: [],
+		contactPoint: { "@type": "ContactPoint", contactType: "customer service", availableLanguage: "English" },
+	};
+
 	return (
 		<Layout>
+			<script
+				type='application/ld+json'
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+			/>
+			<script
+				type='application/ld+json'
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}
+			/>
 			<div className='bg-white dark:bg-gray-950'>
 				{/* Hero Section */}
 				<div className='relative isolate overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900'>

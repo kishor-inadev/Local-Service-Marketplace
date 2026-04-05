@@ -4,6 +4,7 @@ import { AppModule } from './app.module';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { HttpExceptionFilter } from './common/filters/http-exception.filter';
 import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
+import { MetricsInterceptor } from "./common/interceptors/metrics.interceptor";
 import helmet from 'helmet';
 
 async function bootstrap() {
@@ -19,7 +20,7 @@ async function bootstrap() {
 	app.useLogger(app.get(WINSTON_MODULE_NEST_PROVIDER));
 
 	// Global response transform interceptor (wraps all responses)
-	app.useGlobalInterceptors(new ResponseTransformInterceptor());
+	app.useGlobalInterceptors(new MetricsInterceptor(), new ResponseTransformInterceptor());
 
 	// Global exception filter
 	app.useGlobalFilters(new HttpExceptionFilter());
