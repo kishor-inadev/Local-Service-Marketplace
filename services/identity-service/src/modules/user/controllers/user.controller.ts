@@ -93,6 +93,18 @@ export class UserController {
 	}
 
 	/**
+	 * Update current authenticated user's profile
+	 * PATCH /users/me
+	 */
+	@UseGuards(JwtAuthGuard)
+	@Patch("me")
+	@HttpCode(HttpStatus.OK)
+	async updateMyProfile(@Request() req: any, @Body() updateUserDto: UpdateUserDto): Promise<UserResponseDto> {
+		this.logger.info("PATCH /users/me", { context: "UserController", user_id: req.user.userId });
+		return this.userService.updateUser(req.user.userId, updateUserDto);
+	}
+
+	/**
 	 * Admin: get user by ID
 	 * GET /users/:id
 	 */
