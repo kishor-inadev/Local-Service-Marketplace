@@ -1,17 +1,17 @@
-import { Module, Global, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { Pool } from 'pg';
+import { Module, Global, Logger, OnModuleDestroy, Inject } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { Pool } from "pg";
 
-const logger = new Logger('DatabaseModule');
+const logger = new Logger("DatabaseModule");
 
-export const DATABASE_POOL = 'DATABASE_POOL';
+export const DATABASE_POOL = "DATABASE_POOL";
 
 const databasePoolFactory = {
-  provide: DATABASE_POOL,
-  useFactory: async (configService: ConfigService) => {
-    const connectionString = configService.get<string>("DATABASE_URL");
+	provide: DATABASE_POOL,
+	useFactory: async (configService: ConfigService) => {
+		const connectionString = configService.get<string>("DATABASE_URL");
 		const sslEnabled = configService.get<string>("DATABASE_SSL") === "true";
-    const pool = new Pool({
+		const pool = new Pool({
 			...(connectionString ?
 				{ connectionString }
 			:	{
@@ -22,28 +22,32 @@ const databasePoolFactory = {
 					database: configService.get<string>("DATABASE_NAME"),
 				}),
 			ssl: sslEnabled || connectionString?.includes("sslmode=require") ? { rejectUnauthorized: false } : false,
-			max: 20,
+			max: configService.get<number>("DB_POOL_MAX") || 20,
 			idleTimeoutMillis: 30000,
 			connectionTimeoutMillis: 2000,
 		});
 
-    // Test connection
-    try {
-      await pool.query('SELECT NOW()');
-      logger.log('Database connected successfully');
-    } catch (error) {
-      logger.error('Database connection failed:', error);
-      throw error;
-    }
+		// Test connection
+		try {
+			await pool.query("SELECT NOW()");
+			logger.log("Database connected successfully");
+		} catch (error) {
+			logger.error("Database connection failed:", error);
+			throw error;
+		}
 
-    return pool;
-  },
-  inject: [ConfigService],
+		return pool;
+	},
+	inject: [ConfigService],
 };
 
 @Global()
-@Module({
-  providers: [databasePoolFactory],
-  exports: [DATABASE_POOL],
-})
-export class DatabaseModule {}
+@Module({ providers: [databasePoolFactory], exports: [DATABASE_POOL] })
+export class DatabaseModule implements OnModuleDestroy {
+	constructor(@Inject(DATABASE_POOL) private readonly pool: Pool) {}
+
+	async onModuleDestroy() {
+		await this.pool.end();
+		logger.log("Database pool closed");
+	}
+}

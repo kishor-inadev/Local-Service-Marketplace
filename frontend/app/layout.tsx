@@ -9,11 +9,10 @@ import { WebVitals } from '@/components/performance/WebVitals';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: {
-    default: 'Local Service Marketplace',
-    template: '%s | Local Service Marketplace',
-  },
-  description: 'Connect with local service providers in your area. Find trusted professionals for home repairs, cleaning, tutoring, and more.',
+	metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"),
+	title: { default: "Local Service Marketplace", template: "%s | Local Service Marketplace" },
+	description:
+		"Connect with local service providers in your area. Find trusted professionals for home repairs, cleaning, tutoring, and more.",
 };
 
 export default function RootLayout({

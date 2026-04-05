@@ -46,3 +46,14 @@ export function LoadingOverlay() {
     </div>
   );
 }
+
+export function RouteLoading({ text = "Loading..." }: { text?: string }) {
+	return (
+		<div className='min-h-[60vh] flex items-center justify-center'>
+			<Loading
+				size='lg'
+				text={text}
+			/>
+		</div>
+	);
+}

@@ -82,7 +82,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       request: {
         method: request.method,
         url: request.url,
-        body: request.body,
+        body: this.redactSensitiveFields(request.body),
         params: request.params,
         query: request.query,
       },
@@ -117,5 +117,17 @@ export class HttpExceptionFilter implements ExceptionFilter {
       default:
         return 'UNKNOWN_ERROR';
     }
+  }
+
+  private redactSensitiveFields(body: any): any {
+    if (!body || typeof body !== 'object') return body;
+    const sensitivePattern = /password|token|secret|credit|card|cvv|ssn|authorization/i;
+    const redacted = { ...body };
+    for (const key of Object.keys(redacted)) {
+      if (sensitivePattern.test(key)) {
+        redacted[key] = '[REDACTED]';
+      }
+    }
+    return redacted;
   }
 }

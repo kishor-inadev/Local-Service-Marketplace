@@ -57,7 +57,11 @@ export function LocationPicker({
   }, []);
 
   const loadGoogleMaps = () => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyBMockKey123456789';
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+		if (!apiKey) {
+			console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Map features will be unavailable.");
+			return;
+		}
     const script = document.createElement('script');
     script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
     script.async = true;
@@ -386,7 +390,11 @@ export function LocationMap({
     if (typeof window !== 'undefined' && typeof google !== 'undefined') {
       initMap();
     } else {
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'AIzaSyBMockKey123456789';
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+			if (!apiKey) {
+				console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Map features will be unavailable.");
+				return;
+			}
       const script = document.createElement('script');
       script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
       script.async = true;

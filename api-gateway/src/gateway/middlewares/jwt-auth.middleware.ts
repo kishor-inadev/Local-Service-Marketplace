@@ -30,9 +30,30 @@ export class JwtAuthMiddleware implements NestMiddleware {
     private readonly configService: ConfigService,
   ) {
     this.authServiceUrl = this.configService.get<string>('AUTH_SERVICE_URL', 'http://localhost:3001');
-    this.gatewaySecret = this.configService.get<string>('GATEWAY_INTERNAL_SECRET', 'gateway-internal-secret-change-in-production');
-    this.jwtSecret = this.configService.get<string>('JWT_SECRET', 'your-super-secret-jwt-key-change-in-production');
+    this.gatewaySecret = this.configService.get<string>("GATEWAY_INTERNAL_SECRET", "");
+		this.jwtSecret = this.configService.get<string>("JWT_SECRET", "");
     this.validationStrategy = this.configService.get<'local' | 'api'>('TOKEN_VALIDATION_STRATEGY', 'local');
+
+    // Fail fast in production if critical secrets are missing
+    const nodeEnv = this.configService.get<string>('NODE_ENV', 'development');
+    if (nodeEnv === 'production') {
+      if (!this.gatewaySecret) {
+        throw new Error('GATEWAY_INTERNAL_SECRET must be set in production');
+      }
+      if (!this.jwtSecret) {
+        throw new Error('JWT_SECRET must be set in production');
+      }
+    } else {
+      // Development fallbacks with warnings
+      if (!this.gatewaySecret) {
+        this.gatewaySecret = 'gateway-internal-secret-dev-only';
+        this.logger.warn('GATEWAY_INTERNAL_SECRET not set — using insecure dev default', 'JwtAuthMiddleware');
+      }
+      if (!this.jwtSecret) {
+        this.jwtSecret = 'jwt-secret-dev-only';
+        this.logger.warn('JWT_SECRET not set — using insecure dev default', 'JwtAuthMiddleware');
+      }
+    }
     
     this.logger.log(`JWT validation strategy: ${this.validationStrategy}`, 'JwtAuthMiddleware');
   }

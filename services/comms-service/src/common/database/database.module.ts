@@ -1,12 +1,12 @@
-import { Module, Global, Logger } from '@nestjs/common';
-import { Pool } from 'pg';
+import { Module, Global, Logger, OnModuleDestroy, Inject } from "@nestjs/common";
+import { Pool } from "pg";
 
-const logger = new Logger('DatabaseModule');
+const logger = new Logger("DatabaseModule");
 
 const databasePoolFactory = async () => {
-  const connectionString = process.env.DATABASE_URL;
+	const connectionString = process.env.DATABASE_URL;
 	const sslEnabled = process.env.DATABASE_SSL === "true";
-  const pool = new Pool({
+	const pool = new Pool({
 		...(connectionString ?
 			{ connectionString }
 		:	{
@@ -17,32 +17,31 @@ const databasePoolFactory = async () => {
 				password: process.env.DATABASE_PASSWORD,
 			}),
 		ssl: sslEnabled || connectionString?.includes("sslmode=require") ? { rejectUnauthorized: false } : false,
-		max: 20,
+		max: parseInt(process.env.DB_POOL_MAX || "20", 10),
 		idleTimeoutMillis: 30000,
 		connectionTimeoutMillis: 2000,
 	});
 
-  // Test the connection
-  try {
-    const client = await pool.connect();
-    logger.log('Database connected successfully');
-    client.release();
-  } catch (error) {
-    logger.error('Database connection failed:', error);
-    throw error;
-  }
+	// Test the connection
+	try {
+		const client = await pool.connect();
+		logger.log("Database connected successfully");
+		client.release();
+	} catch (error) {
+		logger.error("Database connection failed:", error);
+		throw error;
+	}
 
-  return pool;
+	return pool;
 };
 
 @Global()
-@Module({
-  providers: [
-    {
-      provide: 'DATABASE_POOL',
-      useFactory: databasePoolFactory,
-    },
-  ],
-  exports: ['DATABASE_POOL'],
-})
-export class DatabaseModule {}
+@Module({ providers: [{ provide: "DATABASE_POOL", useFactory: databasePoolFactory }], exports: ["DATABASE_POOL"] })
+export class DatabaseModule implements OnModuleDestroy {
+	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
+
+	async onModuleDestroy() {
+		await this.pool.end();
+		logger.log("Database pool closed");
+	}
+}

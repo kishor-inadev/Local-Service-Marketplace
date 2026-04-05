@@ -43,7 +43,9 @@ export function Navbar() {
   }, [userMenuOpen]);
 
   return (
-		<nav className='bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700'>
+		<nav
+			aria-label='Main navigation'
+			className='bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700'>
 			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 				<div className='flex justify-between h-16'>
 					{/* Logo */}
@@ -156,6 +158,7 @@ export function Navbar() {
 								{isNotificationsEnabled() && (
 									<Link
 										href={ROUTES.DASHBOARD_NOTIFICATIONS}
+										aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
 										className='relative p-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'>
 										<Bell className='h-5 w-5' />
 										{unreadCount > 0 && (
@@ -172,6 +175,8 @@ export function Navbar() {
 									ref={userMenuRef}>
 									<button
 										onClick={() => setUserMenuOpen(!userMenuOpen)}
+										aria-expanded={userMenuOpen}
+										aria-haspopup='true'
 										className='flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'>
 										<User className='h-5 w-5' />
 										<span className='text-sm font-medium'>{user?.name || user?.email}</span>
@@ -247,6 +252,8 @@ export function Navbar() {
 					<div className='md:hidden flex items-center'>
 						<button
 							onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+							aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+							aria-expanded={mobileMenuOpen}
 							className='p-2 text-gray-600 dark:text-gray-300'>
 							{mobileMenuOpen ?
 								<X className='h-6 w-6' />
