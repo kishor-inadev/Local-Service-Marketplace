@@ -10,7 +10,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3)
+RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3 --force)
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

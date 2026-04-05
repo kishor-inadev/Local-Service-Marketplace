@@ -4,7 +4,7 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3)
+RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3 --force)
 
 COPY package*.json pnpm-lock.yaml* ./
 
@@ -25,7 +25,7 @@ FROM node:20-alpine
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3)
+RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3 --force)
 
 COPY package*.json pnpm-lock.yaml* ./
 

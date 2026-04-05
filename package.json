@@ -4,6 +4,7 @@
   "private": true,
   "description": "Microservices-based Local Service Marketplace",
   "scripts": {
+    "dev": "pnpm start:dev",
     "install:all": "pnpm install",
     "build:all": "pnpm -r build",
     "start:dev": "pnpm -r --parallel start:dev",
