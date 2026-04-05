@@ -90,7 +90,7 @@ export class ProviderService {
       variables: {
         name: business_name,
         message: 'Your provider profile has been created successfully!',
-        dashboardUrl: `${process.env.FRONTEND_URL}/provider/dashboard`,
+        dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/provider/dashboard`,
       },
     }).catch(err => {
       this.logger.error('Failed to send provider welcome notification', {

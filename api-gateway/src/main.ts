@@ -85,6 +85,15 @@ async function bootstrap() {
 	process.once("SIGTERM", () => shutdown("SIGTERM"));
 	process.once("SIGINT", () => shutdown("SIGINT"));
 
+	// Catch unhandled errors to prevent silent crashes
+	process.on('unhandledRejection', (reason) => {
+		logger.error('Unhandled Rejection', { reason });
+	});
+	process.on('uncaughtException', (err) => {
+		logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
+		process.exit(1);
+	});
+
 	logger.log(`API Gateway is running on port ${port}`);
 	logger.log(`Environment: ${process.env.NODE_ENV || "development"}`);
 }

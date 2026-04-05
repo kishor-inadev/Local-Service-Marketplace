@@ -34,7 +34,7 @@ export class ReviewService {
 					variables: {
 						serviceName: "New Review Received",
 						message: `You received a ${review.rating}-star review: ${review.comment || "No comment provided"}`,
-						reviewUrl: `${process.env.FRONTEND_URL}/reviews/${review.id}`,
+						reviewUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/reviews/${review.id}`,
 					},
 				})
 				.catch((err) => {

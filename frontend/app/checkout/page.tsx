@@ -59,14 +59,18 @@ function CheckoutContent() {
 	const selectedPlan: PricingPlan | undefined = plans?.find((p) => p.id === planId) ?? plans?.[0];
 
 	const subscribeMutation = useMutation({
-		mutationFn: () =>
-			paymentService.createPayment({
-				job_id: selectedPlan!.id, // subscription payments use plan id as reference
-				provider_id: user!.id,
-				amount: selectedPlan!.price,
+		mutationFn: () => {
+			if (!selectedPlan || !user) {
+				return Promise.reject(new Error('Plan or user not available'));
+			}
+			return paymentService.createPayment({
+				job_id: selectedPlan.id, // subscription payments use plan id as reference
+				provider_id: user.id,
+				amount: selectedPlan.price,
 				currency: "USD",
 				payment_method: "subscription",
-			}),
+			});
+		},
 		onSuccess: (payment: Payment) => {
 			const gr = payment.gateway_response;
 
