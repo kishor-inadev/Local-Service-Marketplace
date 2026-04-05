@@ -181,6 +181,8 @@ services:
     depends_on:
       identity-service:
         condition: service_healthy
+      comms-service:
+        condition: service_healthy
     networks:
       - marketplace-network
     healthcheck:

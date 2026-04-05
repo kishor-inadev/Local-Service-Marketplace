@@ -51,10 +51,16 @@ const createOAuthProviders = (configService: ConfigService) => {
 		PassportModule.register({ defaultStrategy: "jwt" }),
 		JwtModule.registerAsync({
 			imports: [ConfigModule],
-			useFactory: async (configService: ConfigService) => ({
-				secret: configService.get<string>("JWT_SECRET"),
-				signOptions: { expiresIn: configService.get<string>("JWT_EXPIRATION", "15m") },
-			}),
+			useFactory: async (configService: ConfigService) => {
+				const secret = configService.get<string>("JWT_SECRET");
+				if (!secret) {
+					throw new Error("JWT_SECRET environment variable is required but not set");
+				}
+				return {
+					secret,
+					signOptions: { expiresIn: configService.get<string>("JWT_EXPIRATION", "15m") },
+				};
+			},
 			inject: [ConfigService],
 		}),
 	],
