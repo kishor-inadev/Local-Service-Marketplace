@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   All,
   Req,
   Res,
@@ -18,6 +19,51 @@ export class GatewayController {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
   ) {}
+
+  /**
+   * Gateway self health check – exposed under /api/v1/health so Newman tests
+   * can reach it without going through the proxy catch-all.
+   * Returns raw JSON (bypasses ResponseTransformInterceptor via @Res).
+   */
+  @Get('health')
+  async gatewayHealth(@Res() res: Response): Promise<void> {
+    (res as any).status(200).json({
+      status: 'healthy',
+      gateway: 'api-gateway',
+      timestamp: new Date().toISOString(),
+      uptime: process.uptime(),
+    });
+  }
+
+  /**
+   * Aggregate health of all downstream microservices.
+   * Always returns HTTP 200; use the `status` field to detect degraded state.
+   */
+  @Get('health/services')
+  async servicesHealth(@Res() res: Response): Promise<void> {
+    const rawHealth = await this.gatewayService.healthCheck();
+    const serviceMap: Record<string, string> = {
+      'identity-service': 'identity',
+      'marketplace-service': 'marketplace',
+      'payment-service': 'payment',
+      'comms-service': 'comms',
+      'oversight-service': 'oversight',
+    };
+    const services: Record<string, any> = {};
+    for (const [key, shortKey] of Object.entries(serviceMap)) {
+      if (rawHealth[key]) {
+        services[shortKey] = rawHealth[key];
+      }
+    }
+    const allHealthy = Object.values(services).every(
+      (s: any) => s?.status === 'healthy',
+    );
+    (res as any).status(200).json({
+      status: allHealthy ? 'healthy' : 'degraded',
+      timestamp: new Date().toISOString(),
+      services,
+    });
+  }
 
   /**
    * Catch-all route handler

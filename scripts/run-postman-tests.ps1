@@ -68,14 +68,22 @@ function Get-GatewayPort {
         return $env:API_GATEWAY_PORT
     }
 
-    return "3700"
+    # Read .env file for API_GATEWAY_PORT
+    if (Test-Path ".env") {
+        $envLine = Get-Content ".env" | Select-String -Pattern '^API_GATEWAY_PORT=(.+)' | Select-Object -First 1
+        if ($envLine -and $envLine.Matches.Groups[1].Value) {
+            return $envLine.Matches.Groups[1].Value.Trim()
+        }
+    }
+
+    return "3800"
 }
 
 $GatewayPort = Get-GatewayPort
 
 # Constants
-$GATEWAY_HEALTH_URL = "http://localhost:$GatewayPort/health"
-$SERVICES_HEALTH_URL = "http://localhost:$GatewayPort/health/services"
+$GATEWAY_HEALTH_URL = "http://127.0.0.1:$GatewayPort/health"
+$SERVICES_HEALTH_URL = "http://127.0.0.1:$GatewayPort/health/services"
 $MAX_WAIT_SECONDS = 120
 $WAIT_INTERVAL = 5
 
@@ -260,8 +268,8 @@ function Run-Newman {
     Write-Info "--------------------------------------------------"
     Write-Info ""
 
-    # Run Newman directly to avoid pnpm proxy-related runtime issues.
-    & newman @newmanArgs | Out-Host
+    # Use pnpm-proxied newman to ensure local node_modules/.bin is used.
+    & pnpm newman @newmanArgs | Out-Host
     $exitCode = $LASTEXITCODE
 
     Write-Info ""
