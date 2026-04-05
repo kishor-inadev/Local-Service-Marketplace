@@ -72,7 +72,7 @@ export class NotificationService {
 			return notification;
 		}
 
-		const updatedNotification = await this.notificationRepository.markAsRead(id);
+		const updatedNotification = await this.notificationRepository.markAsRead(notification.id);
 		this.logger.log(`Notification ${id} marked as read successfully`, "NotificationService");
 		return updatedNotification;
 	}
@@ -89,8 +89,8 @@ export class NotificationService {
 
 	async deleteNotification(id: string, userId: string): Promise<void> {
 		this.logger.log(`Deleting notification ${id}`, "NotificationService");
-		await this.getNotificationById(id, userId); // throws 404 if not found, 403 if not owner
-		await this.notificationRepository.deleteNotification(id);
+		const notification = await this.getNotificationById(id, userId); // throws 404 if not found, 403 if not owner
+		await this.notificationRepository.deleteNotification(notification.id);
 	}
 
 	// ========== NEW METHODS: Direct Email/SMS via HTTP ==========

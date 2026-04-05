@@ -4,6 +4,7 @@ import { BackgroundJob } from '../entities/background-job.entity';
 import { CreateBackgroundJobDto } from '../dto/create-background-job.dto';
 import { BackgroundJobQueryDto, BackgroundJobSortBy } from "../dto/background-job-query.dto";
 import { ResolvedPagination } from "../../common/pagination/list-query-validation.util";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class BackgroundJobRepository {
@@ -13,7 +14,7 @@ export class BackgroundJobRepository {
 		const query = `
       INSERT INTO background_jobs (job_type, payload, status, attempts)
       VALUES ($1, $2, 'pending', 0)
-      RETURNING id, job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
+      RETURNING id, display_id as "displayId", job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
     `;
 
 		const values = [createJobDto.jobType, createJobDto.payload || null];
@@ -23,8 +24,9 @@ export class BackgroundJobRepository {
 	}
 
 	async getJobById(id: string): Promise<BackgroundJob | null> {
+		id = await resolveId(this.pool, 'background_jobs', id);
 		const query = `
-      SELECT id, job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
+      SELECT id, display_id as "displayId", job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
       FROM background_jobs
       WHERE id = $1
     `;
@@ -35,7 +37,7 @@ export class BackgroundJobRepository {
 
 	async getAllJobs(limit: number = 100, offset: number = 0): Promise<BackgroundJob[]> {
 		const query = `
-      SELECT id, job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
+      SELECT id, display_id as "displayId", job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
       FROM background_jobs
       ORDER BY attempts ASC
       LIMIT $1 OFFSET $2
@@ -50,7 +52,7 @@ export class BackgroundJobRepository {
 		const sortColumn = this.getSortColumn(queryDto.sortBy);
 		const sortOrder = queryDto.sortOrder?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 		const query = `
-      SELECT id, job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
+      SELECT id, display_id as "displayId", job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
       FROM background_jobs
       ${whereClause}
       ORDER BY ${sortColumn} ${sortOrder} NULLS LAST, id ${sortOrder}
@@ -70,7 +72,7 @@ export class BackgroundJobRepository {
 
 	async getJobsByStatus(status: string): Promise<BackgroundJob[]> {
 		const query = `
-      SELECT id, job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
+      SELECT id, display_id as "displayId", job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
       FROM background_jobs
       WHERE status = $1
       ORDER BY attempts ASC
@@ -81,11 +83,12 @@ export class BackgroundJobRepository {
 	}
 
 	async updateJobStatus(id: string, status: string): Promise<BackgroundJob | null> {
+		id = await resolveId(this.pool, 'background_jobs', id);
 		const query = `
       UPDATE background_jobs
       SET status = $1
       WHERE id = $2
-      RETURNING id, job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
+      RETURNING id, display_id as "displayId", job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
     `;
 
 		const result = await this.pool.query(query, [status, id]);
@@ -93,11 +96,12 @@ export class BackgroundJobRepository {
 	}
 
 	async incrementJobAttempts(id: string): Promise<BackgroundJob | null> {
+		id = await resolveId(this.pool, 'background_jobs', id);
 		const query = `
       UPDATE background_jobs
       SET attempts = attempts + 1
       WHERE id = $1
-      RETURNING id, job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
+      RETURNING id, display_id as "displayId", job_type as "jobType", payload, status, attempts, last_error as "lastError", created_at as "createdAt", updated_at as "updatedAt", scheduled_for as "scheduledFor"
     `;
 
 		const result = await this.pool.query(query, [id]);
@@ -105,6 +109,7 @@ export class BackgroundJobRepository {
 	}
 
 	async deleteJob(id: string): Promise<void> {
+		id = await resolveId(this.pool, 'background_jobs', id);
 		const query = `DELETE FROM background_jobs WHERE id = $1`;
 		await this.pool.query(query, [id]);
 	}

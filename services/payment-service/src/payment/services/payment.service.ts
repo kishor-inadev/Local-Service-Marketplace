@@ -167,7 +167,7 @@ export class PaymentService {
 			throw new BadRequestException("Cannot change status of refunded payment");
 		}
 
-		return this.paymentRepository.updatePaymentStatus(id, status, transactionId);
+		return this.paymentRepository.updatePaymentStatus(payment.id, status, transactionId);
 	}
 
 	async getPaymentsByUser(userId: string): Promise<Payment[]> {

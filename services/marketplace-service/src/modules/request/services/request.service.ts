@@ -223,7 +223,7 @@ export class RequestService {
 			throw new BadRequestException("Budget must be a positive number");
 		}
 
-		const updatedRequest = await this.requestRepository.updateRequest(id, dto);
+		const updatedRequest = await this.requestRepository.updateRequest(existingRequest.id, dto);
 
 		this.logger.log(`Request updated successfully: ${id}`, RequestService.name);
 
@@ -247,7 +247,7 @@ export class RequestService {
 
 		// Invalidate cache
 		if (this.redisService.isCacheEnabled()) {
-			await this.redisService.del(`request:${id}`);
+			await this.redisService.del(`request:${existingRequest.id}`);
 		}
 
 		// Publish event to Kafka if enabled
@@ -274,7 +274,7 @@ export class RequestService {
 			throw new NotFoundException("Request not found");
 		}
 
-		await this.requestRepository.deleteRequest(id);
+		await this.requestRepository.deleteRequest(request.id);
 
 		this.logger.log(`Request deleted successfully: ${id}`, RequestService.name);
 	}

@@ -5,6 +5,7 @@ import { Location as LocationEntity } from '../entities/location.entity';
 import { CreateRequestDto } from '../dto/create-request.dto';
 import { UpdateRequestDto } from '../dto/update-request.dto';
 import { RequestQueryDto, RequestSortBy, SortOrder } from "../dto/request-query.dto";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class RequestRepository {
@@ -80,7 +81,7 @@ export class RequestRepository {
 
 		let query = `
       SELECT 
-        r.id, r.user_id, r.category_id, r.location_id, r.description, r.budget, r.status, 
+        r.id, r.display_id, r.user_id, r.category_id, r.location_id, r.description, r.budget, r.status, 
         r.images, r.preferred_date, r.urgency, r.expiry_date, r.view_count, 
         r.guest_name, r.guest_email, r.guest_phone,
         r.created_at, r.updated_at,
@@ -163,6 +164,7 @@ export class RequestRepository {
 		return result.rows.map((row) => {
 			const request: ServiceRequest = {
 				id: row.id,
+				display_id: row.display_id,
 				user_id: row.user_id,
 				category_id: row.category_id,
 				location_id: row.location_id,
@@ -277,9 +279,10 @@ export class RequestRepository {
 	}
 
 	async getRequestById(id: string): Promise<ServiceRequest | null> {
+		id = await resolveId(this.pool, 'service_requests', id);
 		const query = `
       SELECT 
-        r.id, r.user_id, r.category_id, r.location_id, r.description, r.budget, r.status,
+        r.id, r.display_id, r.user_id, r.category_id, r.location_id, r.description, r.budget, r.status,
         r.images, r.preferred_date, r.urgency, r.expiry_date, r.view_count, r.created_at, r.updated_at,
         l.id as loc_id, l.latitude, l.longitude, l.address, l.city, l.state, l.zip_code, l.country, l.created_at as loc_created_at
       FROM service_requests r
@@ -296,6 +299,7 @@ export class RequestRepository {
 		const row = result.rows[0];
 		const request: ServiceRequest = {
 			id: row.id,
+			display_id: row.display_id,
 			user_id: row.user_id,
 			category_id: row.category_id,
 			location_id: row.location_id,
@@ -368,7 +372,7 @@ export class RequestRepository {
       UPDATE service_requests
       SET ${updates.join(", ")}
       WHERE id = $${paramIndex++}
-      RETURNING id, user_id, category_id, location_id, description, budget, status, created_at
+      RETURNING id, display_id, user_id, category_id, location_id, description, budget, status, created_at
     `;
 
 		values.push(id);
@@ -387,7 +391,7 @@ export class RequestRepository {
 	async getRequestsByUser(userId: string): Promise<ServiceRequest[]> {
 		const query = `
       SELECT 
-        r.id, r.user_id, r.category_id, r.location_id, r.description, r.budget, r.status,
+        r.id, r.display_id, r.user_id, r.category_id, r.location_id, r.description, r.budget, r.status,
         r.images, r.preferred_date, r.urgency, r.expiry_date, r.view_count, r.created_at, r.updated_at,
         l.id as loc_id, l.latitude, l.longitude, l.address, l.city, l.state, l.zip_code, l.country, l.created_at as loc_created_at
       FROM service_requests r
@@ -401,6 +405,7 @@ export class RequestRepository {
 		return result.rows.map((row) => {
 			const request: ServiceRequest = {
 				id: row.id,
+				display_id: row.display_id,
 				user_id: row.user_id,
 				category_id: row.category_id,
 				location_id: row.location_id,

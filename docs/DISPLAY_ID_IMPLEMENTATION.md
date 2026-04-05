@@ -41,7 +41,6 @@ UUID internal primary keys are kept. `display_id` is an additional column for hu
 | sessions | `SES` | `SESG6W3F9YR` |
 | locations | `LOC` | `LOCP2K8T5NM` |
 | subscriptions | `SUB` | `SUBR4K7P9WL` |
-| coupons | `CPN` | `CPNM2J8T5FQ` |
 | admin_actions | `ADM` | `ADMX9K4R2PL` |
 | background_jobs | `BGJ` | `BGJL5T8K3WX` |
 
@@ -514,6 +513,161 @@ FROM (
   SELECT id, 'SUB' || string_agg(substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', floor(random()*36+1)::INT, 1), '') AS did
   FROM subscriptions, generate_series(1,8) WHERE display_id IS NULL GROUP BY id
 ) subq WHERE subscriptions.id = subq.id AND subscriptions.display_id IS NULL;
+
+
+-- =============================================================================
+-- SESSIONS
+-- =============================================================================
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS display_id VARCHAR(11) UNIQUE;
+
+CREATE OR REPLACE FUNCTION set_sessions_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL THEN
+    LOOP
+      candidate := generate_display_id('SES');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM sessions WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_sessions_display_id ON sessions;
+CREATE TRIGGER trg_sessions_display_id
+  BEFORE INSERT ON sessions
+  FOR EACH ROW EXECUTE FUNCTION set_sessions_display_id();
+
+UPDATE sessions SET display_id = subq.did
+FROM (
+  SELECT id, 'SES' || string_agg(substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', floor(random()*36+1)::INT, 1), '') AS did
+  FROM sessions, generate_series(1,8) WHERE display_id IS NULL GROUP BY id
+) subq WHERE sessions.id = subq.id AND sessions.display_id IS NULL;
+
+
+-- =============================================================================
+-- LOCATIONS
+-- =============================================================================
+ALTER TABLE locations ADD COLUMN IF NOT EXISTS display_id VARCHAR(11) UNIQUE;
+
+CREATE OR REPLACE FUNCTION set_locations_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL THEN
+    LOOP
+      candidate := generate_display_id('LOC');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM locations WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_locations_display_id ON locations;
+CREATE TRIGGER trg_locations_display_id
+  BEFORE INSERT ON locations
+  FOR EACH ROW EXECUTE FUNCTION set_locations_display_id();
+
+UPDATE locations SET display_id = subq.did
+FROM (
+  SELECT id, 'LOC' || string_agg(substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', floor(random()*36+1)::INT, 1), '') AS did
+  FROM locations, generate_series(1,8) WHERE display_id IS NULL GROUP BY id
+) subq WHERE locations.id = subq.id AND locations.display_id IS NULL;
+
+
+-- =============================================================================
+-- ADMIN_ACTIONS
+-- =============================================================================
+ALTER TABLE admin_actions ADD COLUMN IF NOT EXISTS display_id VARCHAR(11) UNIQUE;
+
+CREATE OR REPLACE FUNCTION set_admin_actions_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL THEN
+    LOOP
+      candidate := generate_display_id('ADM');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM admin_actions WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_admin_actions_display_id ON admin_actions;
+CREATE TRIGGER trg_admin_actions_display_id
+  BEFORE INSERT ON admin_actions
+  FOR EACH ROW EXECUTE FUNCTION set_admin_actions_display_id();
+
+UPDATE admin_actions SET display_id = subq.did
+FROM (
+  SELECT id, 'ADM' || string_agg(substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', floor(random()*36+1)::INT, 1), '') AS did
+  FROM admin_actions, generate_series(1,8) WHERE display_id IS NULL GROUP BY id
+) subq WHERE admin_actions.id = subq.id AND admin_actions.display_id IS NULL;
+
+
+-- =============================================================================
+-- BACKGROUND_JOBS
+-- =============================================================================
+ALTER TABLE background_jobs ADD COLUMN IF NOT EXISTS display_id VARCHAR(11) UNIQUE;
+
+CREATE OR REPLACE FUNCTION set_background_jobs_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL THEN
+    LOOP
+      candidate := generate_display_id('BGJ');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM background_jobs WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_background_jobs_display_id ON background_jobs;
+CREATE TRIGGER trg_background_jobs_display_id
+  BEFORE INSERT ON background_jobs
+  FOR EACH ROW EXECUTE FUNCTION set_background_jobs_display_id();
+
+UPDATE background_jobs SET display_id = subq.did
+FROM (
+  SELECT id, 'BGJ' || string_agg(substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', floor(random()*36+1)::INT, 1), '') AS did
+  FROM background_jobs, generate_series(1,8) WHERE display_id IS NULL GROUP BY id
+) subq WHERE background_jobs.id = subq.id AND background_jobs.display_id IS NULL;
+
+
+-- =============================================================================
+-- EVENTS
+-- =============================================================================
+ALTER TABLE events ADD COLUMN IF NOT EXISTS display_id VARCHAR(11) UNIQUE;
+
+CREATE OR REPLACE FUNCTION set_events_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL THEN
+    LOOP
+      candidate := generate_display_id('EVT');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM events WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+DROP TRIGGER IF EXISTS trg_events_display_id ON events;
+CREATE TRIGGER trg_events_display_id
+  BEFORE INSERT ON events
+  FOR EACH ROW EXECUTE FUNCTION set_events_display_id();
+
+UPDATE events SET display_id = subq.did
+FROM (
+  SELECT id, 'EVT' || string_agg(substr('ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789', floor(random()*36+1)::INT, 1), '') AS did
+  FROM events, generate_series(1,8) WHERE display_id IS NULL GROUP BY id
+) subq WHERE events.id = subq.id AND events.display_id IS NULL;
 ```
 
 ### Step 1.3 — Indexes for Fast Lookup
@@ -534,9 +688,83 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_refunds_display_id             ON refunds(
 CREATE UNIQUE INDEX IF NOT EXISTS idx_coupons_display_id             ON coupons(display_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_service_categories_display_id  ON service_categories(display_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_display_id       ON subscriptions(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_display_id            ON sessions(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_locations_display_id           ON locations(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_actions_display_id       ON admin_actions(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_background_jobs_display_id     ON background_jobs(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_events_display_id              ON events(display_id);
 ```
 
-### Step 1.4 — Verify Migration
+### Step 1.4 — Enforce NOT NULL after backfill
+
+After backfill completes successfully (all rows have a value), tighten the constraint:
+
+```sql
+ALTER TABLE users             ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE providers         ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE service_requests  ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE proposals         ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE jobs              ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE payments          ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE reviews           ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE messages          ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE notifications     ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE disputes          ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE refunds           ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE coupons           ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE service_categories ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE subscriptions     ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE sessions          ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE locations         ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE admin_actions     ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE background_jobs   ALTER COLUMN display_id SET NOT NULL;
+ALTER TABLE events            ALTER COLUMN display_id SET NOT NULL;
+```
+
+### Step 1.5 — Tables intentionally excluded
+
+The following 31 tables do **not** need `display_id` because they are internal infrastructure,
+security tokens, or pure join/config tables with no user-facing reference requirement:
+
+| Table | Reason |
+|---|---|
+| `email_verification_tokens` | Short-lived token, expires |
+| `password_reset_tokens` | Short-lived token, expires |
+| `magic_link_tokens` | Short-lived token, expires |
+| `two_factor_secrets` | Security secret, never exposed |
+| `login_attempts` | Internal security tracking |
+| `login_history` | Internal audit, not user-referenced |
+| `social_accounts` | OAuth mapping, internal only |
+| `user_devices` | Push token registry, internal |
+| `rate_limits` | Infrastructure counter |
+| `feature_flags` | Config key/value store |
+| `system_settings` | Config key/value store |
+| `coupon_usage` | Join table (coupon ↔ user) |
+| `payment_webhooks` | Webhook log, references gateway trx ID |
+| `notification_deliveries` | Internal delivery tracking |
+| `notification_preferences` | User setting, referenced by user_id |
+| `provider_availability` | Schedule slots, not referenced externally |
+| `provider_documents` | Uploaded docs, referenced by file URL |
+| `provider_review_aggregates` | Computed aggregate, not a record |
+| `service_request_search` | Denormalised search replica — mirrors `service_requests.display_id` |
+| `saved_payment_methods` | Vault reference, internal |
+| `account_deletion_requests` | Admin workflow, short lifecycle |
+| `contact_messages` | Support inbox, not customer-referenced |
+| `audit_logs` | Internal append-only log |
+| `user_activity_logs` | Internal append-only log |
+| `daily_metrics` | Computed aggregates |
+| `pricing_plans` | Admin-managed, referenced by slug |
+| `unsubscribes` | References email address |
+| `provider_portfolio` | Media items, referenced by URL |
+| `provider_services` | Service listing row, referenced by category |
+| `favorites` | Join table (user ↔ provider) |
+| `attachments` | Media items, referenced by URL |
+
+> **Note on `service_request_search`:** This table is a denormalised replica of `service_requests`
+> for full-text search. When updating a `service_request` row, also update the matching row in
+> `service_request_search` to include the same `display_id` value.
+
+### Step 1.6 — Verify Migration
 
 ```sql
 -- Should return 0 for every table
@@ -546,7 +774,19 @@ UNION ALL SELECT 'service_requests' , count(*) FROM service_requests WHERE displ
 UNION ALL SELECT 'proposals'        , count(*) FROM proposals        WHERE display_id IS NULL
 UNION ALL SELECT 'jobs'             , count(*) FROM jobs             WHERE display_id IS NULL
 UNION ALL SELECT 'payments'         , count(*) FROM payments         WHERE display_id IS NULL
-UNION ALL SELECT 'reviews'          , count(*) FROM reviews          WHERE display_id IS NULL;
+UNION ALL SELECT 'reviews'          , count(*) FROM reviews          WHERE display_id IS NULL
+UNION ALL SELECT 'messages'         , count(*) FROM messages         WHERE display_id IS NULL
+UNION ALL SELECT 'notifications'    , count(*) FROM notifications    WHERE display_id IS NULL
+UNION ALL SELECT 'disputes'         , count(*) FROM disputes         WHERE display_id IS NULL
+UNION ALL SELECT 'refunds'          , count(*) FROM refunds          WHERE display_id IS NULL
+UNION ALL SELECT 'coupons'          , count(*) FROM coupons          WHERE display_id IS NULL
+UNION ALL SELECT 'service_categories', count(*) FROM service_categories WHERE display_id IS NULL
+UNION ALL SELECT 'subscriptions'    , count(*) FROM subscriptions    WHERE display_id IS NULL
+UNION ALL SELECT 'sessions'         , count(*) FROM sessions         WHERE display_id IS NULL
+UNION ALL SELECT 'locations'        , count(*) FROM locations        WHERE display_id IS NULL
+UNION ALL SELECT 'admin_actions'    , count(*) FROM admin_actions    WHERE display_id IS NULL
+UNION ALL SELECT 'background_jobs'  , count(*) FROM background_jobs  WHERE display_id IS NULL
+UNION ALL SELECT 'events'           , count(*) FROM events           WHERE display_id IS NULL;
 
 -- Sample display IDs
 SELECT display_id FROM users LIMIT 5;
@@ -576,11 +816,23 @@ import { NotFoundException } from '@nestjs/common';
  * Usage:
  *   const uuid = await resolveId(pool, 'jobs', jobId);
  */
+// SECURITY: table name must be validated against a known whitelist — never pass raw user input
+const ALLOWED_TABLES = new Set([
+  'users', 'providers', 'service_requests', 'proposals', 'jobs',
+  'payments', 'reviews', 'messages', 'notifications', 'disputes',
+  'refunds', 'coupons', 'service_categories', 'subscriptions',
+  'sessions', 'locations', 'admin_actions', 'background_jobs', 'events',
+]);
+
 export async function resolveId(
   pool: Pool,
   table: string,
   idOrDisplayId: string,
 ): Promise<string> {
+  if (!ALLOWED_TABLES.has(table)) {
+    throw new Error(`resolveId: unknown table '${table}'`);
+  }
+
   const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
     idOrDisplayId,
   );
@@ -589,7 +841,7 @@ export async function resolveId(
     return idOrDisplayId; // Already a UUID, return as-is
   }
 
-  // lookup by display_id
+  // lookup by display_id — table name is safe because it passed the whitelist above
   const result = await pool.query(
     `SELECT id FROM ${table} WHERE display_id = $1`,
     [idOrDisplayId.toUpperCase()],
@@ -673,9 +925,12 @@ const DISPLAY_ID_REGEX = /^[A-Z]{2,4}[A-Z0-9]{8}$/;
 export class FlexibleIdPipe implements PipeTransform {
   transform(value: string) {
     if (!value) throw new BadRequestException('ID is required');
+    if (UUID_REGEX.test(value)) {
+      return value.toLowerCase(); // keep UUID lowercase (PostgreSQL convention)
+    }
     const upper = value.toUpperCase();
-    if (UUID_REGEX.test(value) || DISPLAY_ID_REGEX.test(upper)) {
-      return upper; // normalise to uppercase for display_id lookups
+    if (DISPLAY_ID_REGEX.test(upper)) {
+      return upper; // normalise display_id to uppercase
     }
     throw new BadRequestException(
       `Invalid ID format: must be a UUID or a display ID (e.g. JOB4R2F9HYZ)`,
@@ -1031,7 +1286,99 @@ await this.notificationClient.send({
 
 ---
 
-## Part 8: Schema.sql — Permanent Integration
+## Part 8: Migration File
+
+The project uses numbered migration files in `database/migrations/`. The last file is
+`015_add_gateway_to_payments.sql`. Save all SQL from Part 1 as:
+
+```
+database/migrations/016_add_display_ids.sql
+```
+
+Apply it against the live database:
+
+```bash
+docker exec -i marketplace-postgres psql -U postgres -d marketplace \
+  < database/migrations/016_add_display_ids.sql
+```
+
+Also update `database/schema.sql` for future fresh installs:
+- Add `display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT ''` inside each affected `CREATE TABLE`
+- Add `generate_display_id()` function after the extensions block
+- Add all trigger functions and `CREATE TRIGGER` statements after the table definitions
+
+---
+
+## Part 9: Backend — Per-Service File Checklist
+
+### identity-service
+
+Files to update:
+- `src/modules/user/repositories/user.repository.ts` — add `display_id` to SELECT, add `findByDisplayId`
+- `src/modules/user/repositories/provider.repository.ts` — same pattern for providers table
+- `src/modules/user/controllers/user.controller.ts` — replace `ParseUUIDPipe` with `FlexibleIdPipe`
+- `src/modules/user/controllers/provider.controller.ts` — same
+- `src/modules/session/repositories/session.repository.ts` — add `display_id` to SELECT
+- `src/modules/location/repositories/location.repository.ts` — add `display_id` to SELECT
+- Create `src/common/utils/resolve-id.util.ts`
+- Create `src/common/pipes/flexible-id.pipe.ts`
+
+### marketplace-service
+
+Files to update:
+- `src/modules/request/repositories/request.repository.ts`
+- `src/modules/proposal/repositories/proposal.repository.ts`
+- `src/modules/job/repositories/job.repository.ts`
+- `src/modules/review/repositories/review.repository.ts`
+- All matching controllers (replace `ParseUUIDPipe`)
+- Create `src/common/utils/resolve-id.util.ts`
+- Create `src/common/pipes/flexible-id.pipe.ts`
+
+> Also: when updating `service_requests`, mirror `display_id` into `service_request_search`:
+> ```sql
+> UPDATE service_request_search SET display_id = sr.display_id
+> FROM service_requests sr WHERE service_request_search.request_id = sr.id;
+> ```
+
+### payment-service
+
+Files to update:
+- `src/modules/payment/repositories/payment.repository.ts`
+- `src/modules/refund/repositories/refund.repository.ts`
+- `src/modules/coupon/repositories/coupon.repository.ts`
+- All matching controllers
+- Create `src/common/utils/resolve-id.util.ts`
+- Create `src/common/pipes/flexible-id.pipe.ts`
+
+### comms-service
+
+Files to update:
+- `src/notification/repositories/notification.repository.ts` (or equivalent)
+- `src/message/repositories/message.repository.ts`
+- `src/notification/services/email-worker.service.ts` — include `display_id` in email body (see Part 7)
+- Create `src/common/utils/resolve-id.util.ts`
+- Create `src/common/pipes/flexible-id.pipe.ts`
+
+### oversight-service
+
+Files to update:
+- `src/modules/dispute/repositories/dispute.repository.ts`
+- `src/modules/admin/repositories/admin-action.repository.ts`
+- All matching controllers
+- Create `src/common/utils/resolve-id.util.ts`
+- Create `src/common/pipes/flexible-id.pipe.ts`
+
+### infrastructure-service
+
+Files to update:
+- `src/modules/event/repositories/event.repository.ts`
+- `src/modules/background-job/repositories/background-job.repository.ts`
+- Create `src/common/utils/resolve-id.util.ts`
+- Create `src/common/pipes/flexible-id.pipe.ts`
+
+---
+
+## Part 10: Schema.sql — Permanent Integration
 
 Also update `database/schema.sql` to include `display_id` in the initial table definitions
 so any fresh database setup includes it from day one.
@@ -1042,41 +1389,48 @@ so any fresh database setup includes it from day one.
 -- Example for users table in schema.sql
 CREATE TABLE IF NOT EXISTS users (
   id                  UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  display_id          VARCHAR(11) UNIQUE,     -- <-- ADD THIS LINE
+  display_id          VARCHAR(11) UNIQUE NOT NULL DEFAULT '',  -- <-- ADD THIS LINE
   email               VARCHAR(255) UNIQUE NOT NULL,
   -- ...rest of columns
 );
 
--- After all table definitions, add:
--- 1. The generate_display_id function
+-- After all table definitions, add (in order):
+-- 1. The generate_display_id() function
 -- 2. All trigger functions
--- 3. All triggers
+-- 3. All CREATE TRIGGER statements
 -- (copy from Part 1 of this guide)
 ```
 
 ---
 
-## Part 9: Implementation Order
+## Part 11: Implementation Order
 
 Follow this order to avoid breaking changes:
 
-1. **Database first** — Run the SQL in Part 1 against the live DB. Zero downtime (adds columns, existing data unaffected until backfill).
-2. **Backfill** — Run the `UPDATE` statements to populate all existing rows.
-3. **Verify** — Run the verification query in Step 1.4.
-4. **Backend repositories** — Add `display_id` to all SELECT queries and add `findByDisplayId` methods.
-5. **Backend controllers** — Replace `ParseUUIDPipe` with `FlexibleIdPipe`, update service layer.
-6. **API test** — Confirm responses include `display_id`, and that `/jobs/JOBX5T7J2QR` works.
-7. **Frontend types** — Add `display_id` to all TypeScript interfaces.
-8. **Frontend display** — Show `display_id` in badges, tables, detail pages.
-9. **Frontend navigation** — Use `display_id` in route URLs.
-10. **Frontend search** — Pass `display_id` as search query to backend.
-11. **Email templates** — Include `display_id` in subjects and body.
-12. **schema.sql** — Update so future fresh installs include it from the start.
-13. **Tests** — Update existing tests to expect `display_id` in responses, add tests for lookup by display_id.
+1. **Create migration file** — Save all SQL from Part 1 as `database/migrations/016_add_display_ids.sql`.
+2. **Apply to DB** — `docker exec -i marketplace-postgres psql -U postgres -d marketplace < database/migrations/016_add_display_ids.sql`
+3. **Enforce NOT NULL** — Run the `ALTER TABLE ... SET NOT NULL` statements from Step 1.4.
+4. **Verify** — Run the verification query in Step 1.6.
+5. **Backend utilities** — Create `resolve-id.util.ts` and `flexible-id.pipe.ts` in each service's `src/common/`.
+6. **Backend repositories** — Add `display_id` to all SELECT queries and add `findByDisplayId` methods (see Part 9 checklist).
+7. **Backend controllers** — Replace `ParseUUIDPipe` with `FlexibleIdPipe`; service layer calls `resolveId()` before DB lookup.
+8. **API test** — Confirm responses include `display_id`, and that `/jobs/JOBX5T7J2QR` works alongside UUID.
+9. **Frontend types** — Add `display_id` to all TypeScript interfaces.
+10. **Frontend display** — Show `display_id` badges in tables, detail pages, with copy-to-clipboard.
+11. **Frontend navigation** — Use `display_id` in route URLs. Existing UUID bookmarks continue to work because `FlexibleIdPipe` accepts both — no breakage.
+12. **Frontend search** — Pass `display_id` as search query to backend.
+13. **Email templates** — Include `display_id` in subjects and body (see Part 7).
+14. **SMS notifications** — Update transactional SMS in `sms-service` to include display_id as reference (e.g. "Job JOBX5T7J2QR confirmed").
+15. **schema.sql** — Update so future fresh installs include it from day one (see Part 10).
+16. **Postman collection** — Update `docs/Local-Service-Marketplace.postman_collection.json`:
+    - Add assertions that responses contain a `display_id` field
+    - Add requests using display_id in the URL (e.g. `GET /jobs/{{jobDisplayId}}`)
+    - Add negative test: `GET /jobs/NOTANID` expects HTTP 400
+17. **Unit/integration tests** — Update Jest specs to assert `display_id` is present; add `findByDisplayId()` and `findByIdOrDisplayId()` test cases.
 
 ---
 
-## Part 10: Testing Checklist
+## Part 12: Testing Checklist
 
 After implementation, verify the following:
 

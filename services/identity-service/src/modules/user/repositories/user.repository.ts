@@ -3,6 +3,7 @@ import { Pool } from "pg";
 import { DATABASE_POOL } from "@/common/database/database.module";
 import { User } from "../entities/user.entity";
 import { AdminCreateUserDto } from "../dto/admin-create-user.dto";
+import { resolveId } from "@/common/utils/resolve-id.util";
 import { AdminUserListQueryDto, AdminUserSortBy } from "../dto/admin-user-list-query.dto";
 
 @Injectable()
@@ -26,9 +27,10 @@ export class UserRepository {
 	}
 
 	async findById(id: string): Promise<User | null> {
+		id = await resolveId(this.pool, 'users', id);
 		// Excludes password_hash — use findByEmail for auth lookups that need it
 		const query = `
-      SELECT id, email, name, phone, role, status, email_verified, profile_picture_url,
+      SELECT id, display_id, email, name, phone, role, status, email_verified, profile_picture_url,
              timezone, language, created_at, updated_at, last_login_at, deleted_at
       FROM users WHERE id = $1 AND deleted_at IS NULL
     `;
@@ -142,7 +144,7 @@ export class UserRepository {
 		const sortOrder = queryDto.sortOrder?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
 		const query = `
-      SELECT id, email, name, phone, role, status, email_verified, profile_picture_url,
+      SELECT id, display_id, email, name, phone, role, status, email_verified, profile_picture_url,
              timezone, language, created_at, updated_at, last_login_at, deleted_at
       FROM users
       ${whereClause}
@@ -194,6 +196,7 @@ export class UserRepository {
 	}
 
 	async updateStatus(userId: string, status: "active" | "suspended"): Promise<User | null> {
+		userId = await resolveId(this.pool, 'users', userId);
 		const query = `
       UPDATE users
       SET status = $1, updated_at = now()
@@ -206,6 +209,7 @@ export class UserRepository {
 	}
 
 	async updatePassword(userId: string, passwordHash: string): Promise<User | null> {
+		userId = await resolveId(this.pool, 'users', userId);
 		const query = `
       UPDATE users
       SET password_hash = $1, updated_at = now()
@@ -218,6 +222,7 @@ export class UserRepository {
 	}
 
 	async softDelete(userId: string): Promise<User | null> {
+		userId = await resolveId(this.pool, 'users', userId);
 		const query = `
       UPDATE users
       SET status = 'deleted', deleted_at = now(), updated_at = now()
@@ -230,6 +235,7 @@ export class UserRepository {
 	}
 
 	async restore(userId: string): Promise<User | null> {
+		userId = await resolveId(this.pool, 'users', userId);
 		const query = `
       UPDATE users
       SET status = 'active', deleted_at = NULL, updated_at = now()

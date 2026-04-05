@@ -12,8 +12,8 @@ import {
 	HttpCode,
 	HttpStatus,
 	UseGuards,
-	ParseUUIDPipe,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -24,7 +24,7 @@ import { UpdateJobStatusDto } from "../dto/update-job-status.dto";
 import { BackgroundJobQueryDto } from "../dto/background-job-query.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Roles("admin")
 @Controller("background-jobs")
 export class BackgroundJobController {
 	constructor(
@@ -66,7 +66,7 @@ export class BackgroundJobController {
 	}
 
 	@Get(":id")
-	async getJobById(@Param("id", ParseUUIDPipe) id: string) {
+	async getJobById(@Param("id", FlexibleIdPipe) id: string) {
 		this.logger.log(`GET /background-jobs/${id} - Retrieve job by ID`, "BackgroundJobController");
 
 		const job = await this.backgroundJobService.getJobById(id);
@@ -76,7 +76,7 @@ export class BackgroundJobController {
 
 	@Patch(":id/status")
 	@HttpCode(HttpStatus.OK)
-	async updateJobStatus(@Param("id", ParseUUIDPipe) id: string, @Body() updateJobStatusDto: UpdateJobStatusDto) {
+	async updateJobStatus(@Param("id", FlexibleIdPipe) id: string, @Body() updateJobStatusDto: UpdateJobStatusDto) {
 		this.logger.log(`PATCH /background-jobs/${id}/status - Update job status`, "BackgroundJobController");
 
 		const job = await this.backgroundJobService.updateJobStatus(id, updateJobStatusDto.status);
@@ -86,7 +86,7 @@ export class BackgroundJobController {
 
 	@Delete(":id")
 	@HttpCode(HttpStatus.OK)
-	async deleteJob(@Param("id", ParseUUIDPipe) id: string) {
+	async deleteJob(@Param("id", FlexibleIdPipe) id: string) {
 		this.logger.log(`DELETE /background-jobs/${id} - Delete job`, "BackgroundJobController");
 
 		await this.backgroundJobService.deleteJob(id);

@@ -73,14 +73,14 @@ export class DisputeService {
 		}
 
 		// Update dispute
-		const updatedDispute = await this.disputeRepository.updateDispute(id, normalizedStatus, resolution, adminId);
+		const updatedDispute = await this.disputeRepository.updateDispute(existingDispute.id, normalizedStatus, resolution, adminId);
 
 		// Log admin action
 		await this.adminActionRepository.createAdminAction(
 			adminId,
 			"resolve_dispute",
 			"dispute",
-			id,
+			existingDispute.id,
 			`Status: ${normalizedStatus}, Resolution: ${resolution}`,
 		);
 

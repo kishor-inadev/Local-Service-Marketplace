@@ -1,13 +1,5 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Query,
-  ParseUUIDPipe,
-  ParseFloatPipe,
-  ParseIntPipe,
-  UseGuards
-} from '@nestjs/common';
+import { Controller, Get, Param, Query, ParseFloatPipe, ParseIntPipe, UseGuards } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { ProviderReviewAggregateService } from '../services/provider-review-aggregate.service';
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 
@@ -17,7 +9,7 @@ export class ProviderReviewAggregateController {
 	constructor(private readonly aggregateService: ProviderReviewAggregateService) {}
 
 	@Get("provider/:providerId")
-	async getProviderAggregate(@Param("providerId", ParseUUIDPipe) providerId: string) {
+	async getProviderAggregate(@Param("providerId", FlexibleIdPipe) providerId: string) {
 		const aggregate = await this.aggregateService.getProviderAggregate(providerId);
 
 		// Transform field names for frontend compatibility
@@ -37,14 +29,14 @@ export class ProviderReviewAggregateController {
 	}
 
 	@Get("provider/:providerId/distribution")
-	async getRatingDistribution(@Param("providerId", ParseUUIDPipe) providerId: string) {
+	async getRatingDistribution(@Param("providerId", FlexibleIdPipe) providerId: string) {
 		const distribution = await this.aggregateService.getRatingDistribution(providerId);
 
 		return { message: "Rating distribution retrieved successfully", data: distribution };
 	}
 
 	@Get("provider/:providerId/trust-badge")
-	async checkTrustBadge(@Param("providerId", ParseUUIDPipe) providerId: string) {
+	async checkTrustBadge(@Param("providerId", FlexibleIdPipe) providerId: string) {
 		const eligibility = await this.aggregateService.checkTrustBadgeEligibility(providerId);
 
 		return { message: "Trust badge eligibility retrieved successfully", data: eligibility };

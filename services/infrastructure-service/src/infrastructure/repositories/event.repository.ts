@@ -4,6 +4,7 @@ import { Event } from '../entities/event.entity';
 import { CreateEventDto } from '../dto/create-event.dto';
 import { EventQueryDto, EventSortBy } from "../dto/event-query.dto";
 import { ResolvedPagination } from "../../common/pagination/list-query-validation.util";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class EventRepository {
@@ -13,7 +14,7 @@ export class EventRepository {
 		const query = `
       INSERT INTO events (event_type, payload)
       VALUES ($1, $2)
-      RETURNING id, event_type as "eventType", payload, created_at as "createdAt"
+      RETURNING id, display_id as "displayId", event_type as "eventType", payload, created_at as "createdAt"
     `;
 
 		const values = [createEventDto.eventType, createEventDto.payload || null];
@@ -24,7 +25,7 @@ export class EventRepository {
 
 	async getAllEvents(limit: number = 100, offset: number = 0): Promise<Event[]> {
 		const query = `
-      SELECT id, event_type as "eventType", payload, created_at as "createdAt"
+      SELECT id, display_id as "displayId", event_type as "eventType", payload, created_at as "createdAt"
       FROM events
       ORDER BY created_at DESC
       LIMIT $1 OFFSET $2
@@ -39,7 +40,7 @@ export class EventRepository {
 		const sortColumn = this.getSortColumn(queryDto.sortBy);
 		const sortOrder = queryDto.sortOrder?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 		const query = `
-      SELECT id, event_type as "eventType", payload, created_at as "createdAt"
+      SELECT id, display_id as "displayId", event_type as "eventType", payload, created_at as "createdAt"
       FROM events
       ${whereClause}
       ORDER BY ${sortColumn} ${sortOrder}, id ${sortOrder}
@@ -58,8 +59,9 @@ export class EventRepository {
 	}
 
 	async getEventById(id: string): Promise<Event | null> {
+		id = await resolveId(this.pool, 'events', id);
 		const query = `
-      SELECT id, event_type as "eventType", payload, created_at as "createdAt"
+      SELECT id, display_id as "displayId", event_type as "eventType", payload, created_at as "createdAt"
       FROM events
       WHERE id = $1
     `;
@@ -70,7 +72,7 @@ export class EventRepository {
 
 	async getEventsByType(eventType: string, limit: number = 100): Promise<Event[]> {
 		const query = `
-      SELECT id, event_type as "eventType", payload, created_at as "createdAt"
+      SELECT id, display_id as "displayId", event_type as "eventType", payload, created_at as "createdAt"
       FROM events
       WHERE event_type = $1
       ORDER BY created_at DESC

@@ -15,6 +15,7 @@ import {
 	HttpCode,
 	HttpStatus,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { MessageService } from "./services/message.service";
 import { AttachmentService } from "./services/attachment.service";
@@ -45,7 +46,7 @@ export class MessagingController {
 
 	@Get("jobs/:jobId")
 	async getMessagesForJob(
-		@Param("jobId", ParseUUIDPipe) jobId: string,
+		@Param("jobId", FlexibleIdPipe) jobId: string,
 		@Query("page", new ParseIntPipe({ optional: true })) page: number = 1,
 		@Query("limit", new ParseIntPipe({ optional: true })) limit: number = 20,
 	) {
@@ -76,7 +77,7 @@ export class MessagingController {
 	}
 
 	@Get("attachments/message/:messageId")
-	async getAttachmentsByMessage(@Param("messageId", ParseUUIDPipe) messageId: string) {
+	async getAttachmentsByMessage(@Param("messageId", FlexibleIdPipe) messageId: string) {
 		this.logger.log(`GET /messages/attachments/message/${messageId} - Get attachments`, "MessagingController");
 		const attachments = await this.attachmentService.getAttachmentsByMessageId(messageId);
 		return { data: attachments, total: attachments.length, page: 1, limit: attachments.length || 1 };
@@ -90,7 +91,7 @@ export class MessagingController {
 	}
 
 	@Get(":id")
-	async getMessage(@Param("id", ParseUUIDPipe) id: string) {
+	async getMessage(@Param("id", FlexibleIdPipe) id: string) {
 		this.logger.log(`GET /messages/${id} - Get message`, "MessagingController");
 		const item = await this.messageService.getMessageById(id);
 		return { success: true, data: item, message: "Message retrieved successfully" };
@@ -98,7 +99,7 @@ export class MessagingController {
 
 	@Patch(":id/read")
 	@HttpCode(HttpStatus.OK)
-	async markAsRead(@Param("id", ParseUUIDPipe) id: string) {
+	async markAsRead(@Param("id", FlexibleIdPipe) id: string) {
 		this.logger.log(`PATCH /messages/${id}/read - Mark as read`, "MessagingController");
 		const item = await this.messageService.markMessageAsRead(id);
 		return { success: true, data: item, message: "Message marked as read" };

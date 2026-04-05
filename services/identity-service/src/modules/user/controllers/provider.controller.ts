@@ -1,18 +1,18 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Body,
-  Param,
-  Query,
-  HttpCode,
-  HttpStatus,
-  Inject,
-  UseGuards,
-  ParseUUIDPipe,
-} from '@nestjs/common';
+	Controller,
+	Get,
+	Post,
+	Patch,
+	Delete,
+	Body,
+	Param,
+	Query,
+	HttpCode,
+	HttpStatus,
+	Inject,
+	UseGuards,
+} from "@nestjs/common";
+import { FlexibleIdPipe } from "../../../common/pipes/flexible-id.pipe";
 import { WINSTON_MODULE_PROVIDER } from 'nest-winston';
 import { Logger } from 'winston';
 import { ProviderService } from '../services/provider.service';
@@ -28,117 +28,94 @@ import { RolesGuard } from '../../../common/guards/roles.guard';
 import { Roles } from '../../../common/decorators/roles.decorator';
 
 @UseGuards(JwtAuthGuard)
-@Controller('providers')
+@Controller("providers")
 export class ProviderController {
-  constructor(
-    private readonly providerService: ProviderService,
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) { }
+	constructor(
+		private readonly providerService: ProviderService,
+		@Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+	) {}
 
-  @Post()
-  @HttpCode(HttpStatus.CREATED)
-  async createProvider(
-    @Body() createProviderDto: CreateProviderDto,
-  ): Promise<ProviderResponseDto> {
-    this.logger.info('POST /providers', {
-      context: 'ProviderController',
-      user_id: createProviderDto.user_id,
-    });
-    return this.providerService.createProvider(createProviderDto);
-  }
+	@Post()
+	@HttpCode(HttpStatus.CREATED)
+	async createProvider(@Body() createProviderDto: CreateProviderDto): Promise<ProviderResponseDto> {
+		this.logger.info("POST /providers", { context: "ProviderController", user_id: createProviderDto.user_id });
+		return this.providerService.createProvider(createProviderDto);
+	}
 
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  async getProvider(@Param('id', ParseUUIDPipe) id: string): Promise<ProviderResponseDto> {
-    this.logger.info('GET /providers/:id', {
-      context: 'ProviderController',
-      provider_id: id,
-    });
-    return this.providerService.getProvider(id);
-  }
+	@Get(":id")
+	@HttpCode(HttpStatus.OK)
+	async getProvider(@Param("id", FlexibleIdPipe) id: string): Promise<ProviderResponseDto> {
+		this.logger.info("GET /providers/:id", { context: "ProviderController", provider_id: id });
+		return this.providerService.getProvider(id);
+	}
 
-  @Get()
-  @HttpCode(HttpStatus.OK)
-  async getProviders(
-    @Query() queryDto: ProviderQueryDto,
-  ): Promise<PaginatedResponseDto<ProviderResponseDto>> {
-    this.logger.info('GET /providers', {
-      context: 'ProviderController',
-      query: queryDto,
-    });
-    return this.providerService.getProviders(queryDto);
-  }
+	@Get()
+	@HttpCode(HttpStatus.OK)
+	async getProviders(@Query() queryDto: ProviderQueryDto): Promise<PaginatedResponseDto<ProviderResponseDto>> {
+		this.logger.info("GET /providers", { context: "ProviderController", query: queryDto });
+		return this.providerService.getProviders(queryDto);
+	}
 
-  @Roles('provider', 'admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  async updateProvider(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() updateProviderDto: UpdateProviderDto,
-  ): Promise<ProviderResponseDto> {
-    this.logger.info('PATCH /providers/:id', {
-      context: 'ProviderController',
-      provider_id: id,
-    });
-    return this.providerService.updateProvider(id, updateProviderDto);
-  }
+	@Roles("provider", "admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id")
+	@HttpCode(HttpStatus.OK)
+	async updateProvider(
+		@Param("id", FlexibleIdPipe) id: string,
+		@Body() updateProviderDto: UpdateProviderDto,
+	): Promise<ProviderResponseDto> {
+		this.logger.info("PATCH /providers/:id", { context: "ProviderController", provider_id: id });
+		return this.providerService.updateProvider(id, updateProviderDto);
+	}
 
-  @Roles('provider', 'admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Delete(':id')
-  @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteProvider(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
-    this.logger.info('DELETE /providers/:id', {
-      context: 'ProviderController',
-      provider_id: id,
-    });
-    return this.providerService.deleteProvider(id);
-  }
+	@Roles("provider", "admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Delete(":id")
+	@HttpCode(HttpStatus.NO_CONTENT)
+	async deleteProvider(@Param("id", FlexibleIdPipe) id: string): Promise<void> {
+		this.logger.info("DELETE /providers/:id", { context: "ProviderController", provider_id: id });
+		return this.providerService.deleteProvider(id);
+	}
 
-  /**
-   * Update provider service categories
-   * PATCH /providers/:id/services
-   */
-  @Roles('provider', 'admin')
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Patch(':id/services')
-  @HttpCode(HttpStatus.OK)
-  async updateProviderServices(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateProviderServicesDto,
-  ): Promise<ProviderResponseDto> {
-    this.logger.info('PATCH /providers/:id/services', {
-      context: 'ProviderController',
-      provider_id: id,
-      service_count: dto.service_categories.length,
-    });
+	/**
+	 * Update provider service categories
+	 * PATCH /providers/:id/services
+	 */
+	@Roles("provider", "admin")
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Patch(":id/services")
+	@HttpCode(HttpStatus.OK)
+	async updateProviderServices(
+		@Param("id", FlexibleIdPipe) id: string,
+		@Body() dto: UpdateProviderServicesDto,
+	): Promise<ProviderResponseDto> {
+		this.logger.info("PATCH /providers/:id/services", {
+			context: "ProviderController",
+			provider_id: id,
+			service_count: dto.service_categories.length,
+		});
 
-    // Use the existing updateProvider method with only service_categories
-    return this.providerService.updateProvider(id, {
-      service_categories: dto.service_categories,
-    });
-  }
+		// Use the existing updateProvider method with only service_categories
+		return this.providerService.updateProvider(id, { service_categories: dto.service_categories });
+	}
 
-  /**
-   * Update provider availability schedule
-   * PATCH /providers/:id/availability
-   */
-  @Patch(':id/availability')
-  @HttpCode(HttpStatus.OK)
-  async updateProviderAvailability(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Body() dto: UpdateProviderAvailabilityDto,
-  ): Promise<ProviderResponseDto> {
-    this.logger.info('PATCH /providers/:id/availability', {
-      context: 'ProviderController',
-      provider_id: id,
-      slot_count: dto.availability.length,
-    });
+	/**
+	 * Update provider availability schedule
+	 * PATCH /providers/:id/availability
+	 */
+	@Patch(":id/availability")
+	@HttpCode(HttpStatus.OK)
+	async updateProviderAvailability(
+		@Param("id", FlexibleIdPipe) id: string,
+		@Body() dto: UpdateProviderAvailabilityDto,
+	): Promise<ProviderResponseDto> {
+		this.logger.info("PATCH /providers/:id/availability", {
+			context: "ProviderController",
+			provider_id: id,
+			slot_count: dto.availability.length,
+		});
 
-    // Use the existing updateProvider method with only availability
-    return this.providerService.updateProvider(id, {
-      availability: dto.availability,
-    });
-  }
+		// Use the existing updateProvider method with only availability
+		return this.providerService.updateProvider(id, { availability: dto.availability });
+	}
 }

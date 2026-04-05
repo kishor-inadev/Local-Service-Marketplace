@@ -139,7 +139,7 @@ export class UserService {
 		}
 
 		const updatedUser = await this.userRepository.update(
-			id,
+			user.id,
 			updateUserDto.name,
 			updateUserDto.email,
 			updateUserDto.phone,

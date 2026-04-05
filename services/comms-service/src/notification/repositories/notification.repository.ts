@@ -2,6 +2,7 @@ import { Injectable, Inject } from "@nestjs/common";
 import { Pool } from "pg";
 import { Notification } from "../entities/notification.entity";
 import { v4 as uuidv4 } from "uuid";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class NotificationRepository {
@@ -18,6 +19,7 @@ export class NotificationRepository {
 		const result = await this.pool.query(query, values);
 		return new Notification({
 			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
 			user_id: result.rows[0].user_id,
 			type: result.rows[0].type,
 			message: result.rows[0].message,
@@ -27,6 +29,7 @@ export class NotificationRepository {
 	}
 
 	async getNotificationById(id: string): Promise<Notification | null> {
+		id = await resolveId(this.pool, 'notifications', id);
 		const query = "SELECT * FROM notifications WHERE id = $1";
 		const result = await this.pool.query(query, [id]);
 		if (result.rows.length === 0) {
@@ -34,6 +37,7 @@ export class NotificationRepository {
 		}
 		return new Notification({
 			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
 			user_id: result.rows[0].user_id,
 			type: result.rows[0].type,
 			message: result.rows[0].message,
@@ -54,6 +58,7 @@ export class NotificationRepository {
 			(row) =>
 				new Notification({
 					id: row.id,
+					display_id: row.display_id,
 					user_id: row.user_id,
 					type: row.type,
 					message: row.message,
@@ -73,6 +78,7 @@ export class NotificationRepository {
 		const result = await this.pool.query(query, [id]);
 		return new Notification({
 			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
 			user_id: result.rows[0].user_id,
 			type: result.rows[0].type,
 			message: result.rows[0].message,

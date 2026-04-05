@@ -7,12 +7,12 @@ import {
 	Query,
 	Request,
 	ParseIntPipe,
-	ParseUUIDPipe,
 	DefaultValuePipe,
 	UseGuards,
 	HttpCode,
 	HttpStatus,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { ReviewService } from "./services/review.service";
 import { ReviewRepository } from "./repositories/review.repository";
 import { CreateReviewDto } from "./dto/create-review.dto";
@@ -37,8 +37,8 @@ export class ReviewController {
 		return review;
 	}
 
-	@Get(":id([0-9a-fA-F-]{36})")
-	async getReviewById(@Param("id", ParseUUIDPipe) id: string) {
+	@Get(":id")
+	async getReviewById(@Param("id", FlexibleIdPipe) id: string) {
 		const review = await this.reviewService.getReviewById(id);
 		return review;
 	}
@@ -48,7 +48,7 @@ export class ReviewController {
 	 * GET /jobs/:jobId/review
 	 */
 	@Get("jobs/:jobId/review")
-	async getJobReview(@Param("jobId", ParseUUIDPipe) jobId: string) {
+	async getJobReview(@Param("jobId", FlexibleIdPipe) jobId: string) {
 		const review = await this.reviewRepository.getReviewByJobId(jobId);
 
 		if (!review) {
@@ -64,7 +64,11 @@ export class ReviewController {
 	 */
 	@Post(":id/respond")
 	@HttpCode(HttpStatus.OK)
-	async respondToReview(@Param("id", ParseUUIDPipe) id: string, @Body() respondReviewDto: RespondReviewDto, @Request() req: any) {
+	async respondToReview(
+		@Param("id", FlexibleIdPipe) id: string,
+		@Body() respondReviewDto: RespondReviewDto,
+		@Request() req: any,
+	) {
 		const providerId = req.user.providerId;
 		if (!providerId) {
 			throw new ForbiddenException("Only providers can respond to reviews");
@@ -80,7 +84,7 @@ export class ReviewController {
 	 */
 	@Post(":id/helpful")
 	@HttpCode(HttpStatus.OK)
-	async markHelpful(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
+	async markHelpful(@Param("id", FlexibleIdPipe) id: string, @Request() req: any) {
 		const review = await this.reviewRepository.incrementHelpfulCount(id);
 
 		return review;
@@ -91,7 +95,7 @@ export class ReviewController {
 	 */
 	@Get("provider/:providerId")
 	async getProviderReviews(
-		@Param("providerId", ParseUUIDPipe) providerId: string,
+		@Param("providerId", FlexibleIdPipe) providerId: string,
 		@Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
 		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
 	) {
@@ -114,7 +118,7 @@ export class ReviewController {
 	 * GET /reviews/provider/:providerId/rating
 	 */
 	@Get("provider/:providerId/rating")
-	async getProviderRating(@Param("providerId", ParseUUIDPipe) providerId: string) {
+	async getProviderRating(@Param("providerId", FlexibleIdPipe) providerId: string) {
 		return this.reviewService.getProviderRating(providerId);
 	}
 }

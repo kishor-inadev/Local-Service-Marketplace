@@ -4,6 +4,7 @@ import { Job } from '../entities/job.entity';
 import { CreateJobDto } from '../dto/create-job.dto';
 import { JobStatus } from '../dto/update-job-status.dto';
 import { JobQueryDto, JobSortBy, SortOrder } from "../dto/job-query.dto";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class JobRepository {
@@ -30,6 +31,7 @@ export class JobRepository {
 	}
 
 	async getJobById(id: string): Promise<Job | null> {
+		id = await resolveId(this.pool, 'jobs', id);
 		const query = `
       SELECT *
       FROM jobs
@@ -66,7 +68,7 @@ export class JobRepository {
 
 	async getJobByRequestId(requestId: string): Promise<Job | null> {
 		const query = `
-      SELECT id, request_id, provider_id, status, started_at, completed_at
+      SELECT id, display_id, request_id, provider_id, status, started_at, completed_at
       FROM jobs
       WHERE request_id = $1
     `;

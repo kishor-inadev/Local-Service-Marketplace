@@ -8,11 +8,11 @@ import {
 	Request,
 	Headers,
 	Res,
-	ParseUUIDPipe,
 	UseGuards,
 	HttpCode,
 	HttpStatus,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { Response } from 'express';
 import { PaymentService } from '../services/payment.service';
 import { RefundService } from '../services/refund.service';
@@ -82,7 +82,7 @@ export class PaymentController {
 
 	@Get("jobs/:jobId")
 	@UseGuards(JwtAuthGuard)
-	async getPaymentsByJob(@Param("jobId", ParseUUIDPipe) jobId: string) {
+	async getPaymentsByJob(@Param("jobId", FlexibleIdPipe) jobId: string) {
 		const payments = await this.paymentService.getPaymentsByJobId(jobId);
 		return { data: payments, total: payments.length, page: 1, limit: payments.length || 1 };
 	}
@@ -90,7 +90,7 @@ export class PaymentController {
 	@Get("provider/:providerId/summary")
 	@UseGuards(JwtAuthGuard)
 	async getProviderEarningsSummary(
-		@Param("providerId", ParseUUIDPipe) providerId: string,
+		@Param("providerId", FlexibleIdPipe) providerId: string,
 		@Request() req: any,
 		@Query("start_date") startDate?: string,
 		@Query("end_date") endDate?: string,
@@ -107,7 +107,7 @@ export class PaymentController {
 	@Get("provider/:providerId/transactions")
 	@UseGuards(JwtAuthGuard)
 	async getProviderTransactions(
-		@Param("providerId", ParseUUIDPipe) providerId: string,
+		@Param("providerId", FlexibleIdPipe) providerId: string,
 		@Request() req: any,
 		@Query() queryDto: TransactionQueryDto,
 	) {
@@ -117,9 +117,9 @@ export class PaymentController {
 		return this.paymentService.getProviderTransactions(providerId, queryDto);
 	}
 
-	@Get(":id([0-9a-fA-F-]{36})")
+	@Get(":id")
 	@UseGuards(JwtAuthGuard)
-	async getPaymentById(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
+	async getPaymentById(@Param("id", FlexibleIdPipe) id: string, @Request() req: any) {
 		const payment = await this.paymentService.getPaymentById(id);
 		if (req.user.role !== "admin" && payment.user_id !== req.user.userId && payment.provider_id !== req.user.userId) {
 			throw new ForbiddenException("Access denied");
@@ -137,7 +137,7 @@ export class PaymentController {
 	 */
 	@Get(":id/status")
 	@UseGuards(JwtAuthGuard)
-	async getPaymentStatus(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
+	async getPaymentStatus(@Param("id", FlexibleIdPipe) id: string, @Request() req: any) {
 		const payment = await this.paymentService.getPaymentById(id);
 		if (req.user.role !== "admin" && payment.user_id !== req.user.userId && payment.provider_id !== req.user.userId) {
 			throw new ForbiddenException("Access denied");
@@ -162,7 +162,7 @@ export class PaymentController {
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.CREATED)
 	async requestRefund(
-		@Param("id", ParseUUIDPipe) id: string,
+		@Param("id", FlexibleIdPipe) id: string,
 		@Body() requestRefundDto: RequestRefundDto,
 		@Request() req: any,
 	) {
@@ -186,7 +186,7 @@ export class PaymentController {
 	 */
 	@Get(":id/invoice")
 	@UseGuards(JwtAuthGuard)
-	async getInvoice(@Param("id", ParseUUIDPipe) id: string, @Request() req: any) {
+	async getInvoice(@Param("id", FlexibleIdPipe) id: string, @Request() req: any) {
 		const payment = await this.paymentService.getPaymentById(id);
 		if (req.user.role !== "admin" && payment.user_id !== req.user.userId && payment.provider_id !== req.user.userId) {
 			throw new ForbiddenException("Access denied");
@@ -201,11 +201,7 @@ export class PaymentController {
 	 */
 	@Get(":id/invoice/download")
 	@UseGuards(JwtAuthGuard)
-	async downloadInvoice(
-		@Param("id", ParseUUIDPipe) id: string,
-		@Request() req: any,
-		@Res() res: Response,
-	) {
+	async downloadInvoice(@Param("id", FlexibleIdPipe) id: string, @Request() req: any, @Res() res: Response) {
 		const payment = await this.paymentService.getPaymentById(id);
 		if (req.user.role !== "admin" && payment.user_id !== req.user.userId && payment.provider_id !== req.user.userId) {
 			throw new ForbiddenException("Access denied");

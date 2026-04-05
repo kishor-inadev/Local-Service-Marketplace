@@ -146,13 +146,13 @@ export class JobService {
 			throw new BadRequestException("Cannot update status of cancelled job");
 		}
 
-		const job = await this.jobRepository.updateJobStatus(id, dto.status);
+		const job = await this.jobRepository.updateJobStatus(existingJob.id, dto.status);
 
-		this.logger.log(`Job status updated successfully: ${id}`, JobService.name);
+		this.logger.log(`Job status updated successfully: ${existingJob.id}`, JobService.name);
 
 		// Invalidate cache
 		if (this.redisService.isCacheEnabled()) {
-			await this.redisService.del(`job:${id}`);
+			await this.redisService.del(`job:${existingJob.id}`);
 		}
 
 		// Publish event to Kafka if enabled
@@ -198,13 +198,13 @@ export class JobService {
 			throw new BadRequestException("Cannot complete a cancelled job");
 		}
 
-		const job = await this.jobRepository.completeJob(id);
+		const job = await this.jobRepository.completeJob(existingJob.id);
 
-		this.logger.log(`Job completed successfully: ${id}`, JobService.name);
+		this.logger.log(`Job completed successfully: ${existingJob.id}`, JobService.name);
 
 		// Invalidate cache
 		if (this.redisService.isCacheEnabled()) {
-			await this.redisService.del(`job:${id}`);
+			await this.redisService.del(`job:${existingJob.id}`);
 		}
 
 		// Publish event to Kafka if enabled

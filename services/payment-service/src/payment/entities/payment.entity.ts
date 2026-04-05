@@ -1,5 +1,6 @@
 export class Payment {
 	id: string;
+	display_id: string;
 	job_id: string;
 	user_id: string;
 	provider_id: string;

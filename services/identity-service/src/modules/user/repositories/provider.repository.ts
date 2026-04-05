@@ -3,6 +3,7 @@ import { Pool } from 'pg';
 import { DATABASE_POOL } from '@/common/database/database.module';
 import { Provider } from '../entities/provider.entity';
 import { ProviderSortBy, SortOrder, ProviderVerificationStatus } from "../dto/provider-query.dto";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class ProviderRepository {
@@ -22,6 +23,7 @@ export class ProviderRepository {
 	}
 
 	async findById(id: string): Promise<Provider | null> {
+		id = await resolveId(this.pool, 'providers', id);
 		const query = "SELECT * FROM providers WHERE id = $1 AND deleted_at IS NULL";
 		const result = await this.pool.query(query, [id]);
 		return result.rows[0] || null;

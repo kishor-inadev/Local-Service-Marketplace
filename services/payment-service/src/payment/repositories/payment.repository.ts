@@ -3,6 +3,7 @@ import { Pool } from 'pg';
 import { Payment } from '../entities/payment.entity';
 import { v4 as uuidv4 } from 'uuid';
 import { TransactionQueryDto, TransactionSortBy, SortOrder } from "../dto/transaction-query.dto";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class PaymentRepository {
@@ -49,6 +50,7 @@ export class PaymentRepository {
 		const result = await this.pool.query(query, values);
 		return new Payment({
 			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
 			job_id: result.rows[0].job_id,
 			user_id: result.rows[0].user_id,
 			provider_id: result.rows[0].provider_id,
@@ -66,6 +68,7 @@ export class PaymentRepository {
 	}
 
 	async getPaymentById(id: string): Promise<Payment | null> {
+		id = await resolveId(this.pool, 'payments', id);
 		const query = "SELECT * FROM payments WHERE id = $1";
 		const result = await this.pool.query(query, [id]);
 		if (result.rows.length === 0) {
@@ -73,6 +76,7 @@ export class PaymentRepository {
 		}
 		return new Payment({
 			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
 			job_id: result.rows[0].job_id,
 			amount: parseFloat(result.rows[0].amount),
 			currency: result.rows[0].currency,
@@ -90,6 +94,7 @@ export class PaymentRepository {
 		}
 		return new Payment({
 			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
 			job_id: result.rows[0].job_id,
 			user_id: result.rows[0].user_id,
 			provider_id: result.rows[0].provider_id,
@@ -125,6 +130,7 @@ export class PaymentRepository {
 		const result = await this.pool.query(query, [status, transactionId, failedReason, id]);
 		return new Payment({
 			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
 			job_id: result.rows[0].job_id,
 			user_id: result.rows[0].user_id,
 			provider_id: result.rows[0].provider_id,
@@ -148,6 +154,7 @@ export class PaymentRepository {
 			(row) =>
 				new Payment({
 					id: row.id,
+					display_id: row.display_id,
 					job_id: row.job_id,
 					amount: parseFloat(row.amount),
 					currency: row.currency,
@@ -171,6 +178,7 @@ export class PaymentRepository {
 			(row) =>
 				new Payment({
 					id: row.id,
+					display_id: row.display_id,
 					job_id: row.job_id,
 					user_id: row.user_id,
 					provider_id: row.provider_id,
@@ -259,6 +267,7 @@ export class PaymentRepository {
 			(row) =>
 				new Payment({
 					id: row.id,
+					display_id: row.display_id,
 					job_id: row.job_id,
 					user_id: row.user_id,
 					provider_id: row.provider_id,
@@ -322,6 +331,7 @@ export class PaymentRepository {
 			(row) =>
 				new Payment({
 					id: row.id,
+					display_id: row.display_id,
 					job_id: row.job_id,
 					user_id: row.user_id,
 					provider_id: row.provider_id,
@@ -351,6 +361,7 @@ export class PaymentRepository {
 			(row) =>
 				new Payment({
 					id: row.id,
+					display_id: row.display_id,
 					job_id: row.job_id,
 					user_id: row.user_id,
 					provider_id: row.provider_id,

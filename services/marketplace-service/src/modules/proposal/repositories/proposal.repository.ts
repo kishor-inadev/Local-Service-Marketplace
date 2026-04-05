@@ -3,6 +3,7 @@ import { Pool } from 'pg';
 import { Proposal } from '../entities/proposal.entity';
 import { CreateProposalDto } from '../dto/create-proposal.dto';
 import { ProposalQueryDto, ProposalSortBy, SortOrder } from "../dto/proposal-query.dto";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class ProposalRepository {
@@ -34,7 +35,7 @@ export class ProposalRepository {
 
 	async getProposalsForRequest(requestId: string, limit = 20): Promise<Proposal[]> {
 		const query = `
-      SELECT id, request_id, provider_id, price, message, status, created_at
+      SELECT id, display_id, request_id, provider_id, price, message, status, created_at
       FROM proposals
       WHERE request_id = $1
       ORDER BY created_at DESC
@@ -46,8 +47,9 @@ export class ProposalRepository {
 	}
 
 	async getProposalById(id: string): Promise<Proposal | null> {
+		id = await resolveId(this.pool, 'proposals', id);
 		const query = `
-      SELECT p.id, p.request_id, p.provider_id, p.price, p.message, p.status, p.created_at,
+      SELECT p.id, p.display_id, p.request_id, p.provider_id, p.price, p.message, p.status, p.created_at,
              sr.user_id AS customer_id
       FROM proposals p
       JOIN service_requests sr ON sr.id = p.request_id
@@ -63,7 +65,7 @@ export class ProposalRepository {
       UPDATE proposals
       SET status = 'accepted'
       WHERE id = $1
-      RETURNING id, request_id, provider_id, price, message, status, created_at
+      RETURNING id, display_id, request_id, provider_id, price, message, status, created_at
     `;
 
 		const result = await this.pool.query(query, [id]);
@@ -132,7 +134,7 @@ export class ProposalRepository {
 
 	async getProposalsByProvider(providerId: string): Promise<Proposal[]> {
 		const query = `
-      SELECT id, request_id, provider_id, price, message, status, created_at
+      SELECT id, display_id, request_id, provider_id, price, message, status, created_at
       FROM proposals
       WHERE provider_id = $1
       ORDER BY created_at DESC
@@ -160,7 +162,7 @@ export class ProposalRepository {
 		} = queryDto;
 
 		let query = `
-      SELECT id, request_id, provider_id, price, message, status, created_at
+      SELECT id, display_id, request_id, provider_id, price, message, status, created_at
       FROM proposals
       WHERE 1=1
     `;
@@ -296,7 +298,7 @@ export class ProposalRepository {
 
 	async getProposalsByCustomer(userId: string): Promise<Proposal[]> {
 		const query = `
-      SELECT p.id, p.request_id, p.provider_id, p.price, p.message, p.status, p.created_at
+      SELECT p.id, p.display_id, p.request_id, p.provider_id, p.price, p.message, p.status, p.created_at
       FROM proposals p
       INNER JOIN service_requests sr ON p.request_id = sr.id
       WHERE sr.user_id = $1
@@ -312,7 +314,7 @@ export class ProposalRepository {
 		// NOTE: providers table is owned by identity-service. In a fully separated DB
 		// setup, this should call the identity-service API to resolve provider_id first.
 		const query = `
-      SELECT p.id, p.request_id, p.provider_id, p.price, p.message, p.status, p.created_at
+      SELECT p.id, p.display_id, p.request_id, p.provider_id, p.price, p.message, p.status, p.created_at
       FROM proposals p
       INNER JOIN providers prov ON p.provider_id = prov.id
       WHERE prov.user_id = $1

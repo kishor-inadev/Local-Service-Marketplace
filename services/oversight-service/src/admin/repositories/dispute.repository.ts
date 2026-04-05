@@ -3,12 +3,14 @@ import { Pool } from 'pg';
 import { Dispute } from '../entities/dispute.entity';
 import { DisputeListQueryDto, DisputeSortBy } from "../dto/dispute-list-query.dto";
 import { ResolvedPagination } from "../../common/pagination/list-query-validation.util";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class DisputeRepository {
 	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
 	async getDisputeById(id: string): Promise<Dispute | null> {
+		id = await resolveId(this.pool, 'disputes', id);
 		const query = `
       SELECT id, job_id, opened_by, reason, status, 
              resolution, resolved_by, resolved_at, created_at

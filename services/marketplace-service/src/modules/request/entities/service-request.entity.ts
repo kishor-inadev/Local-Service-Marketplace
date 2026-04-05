@@ -2,6 +2,7 @@ import { Location } from './location.entity';
 
 export class ServiceRequest {
   id: string;
+  display_id: string;
   user_id?: string | null;              // Optional for anonymous requests
   category_id: string;
   location_id?: string;

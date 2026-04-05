@@ -9,10 +9,10 @@ import {
 	Query,
 	HttpCode,
 	HttpStatus,
-	ParseUUIDPipe,
 	UseGuards,
 	Req,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { RequestService } from "../services/request.service";
 import { CreateRequestDto } from "../dto/create-request.dto";
 import { UpdateRequestDto } from "../dto/update-request.dto";
@@ -53,9 +53,9 @@ export class RequestController {
 
 	// Public — anyone can browse a single request
 	@UseGuards(JwtAuthGuard)
-	@Get(":id([0-9a-fA-F-]{36})")
+	@Get(":id")
 	@HttpCode(HttpStatus.OK)
-	async getRequestById(@Param("id", ParseUUIDPipe) id: string): Promise<RequestResponseDto> {
+	async getRequestById(@Param("id", FlexibleIdPipe) id: string): Promise<RequestResponseDto> {
 		return this.requestService.getRequestById(id);
 	}
 
@@ -72,10 +72,10 @@ export class RequestController {
 
 	// Authenticated — owner can update their own request
 	@UseGuards(JwtAuthGuard)
-	@Patch(":id([0-9a-fA-F-]{36})")
+	@Patch(":id")
 	@HttpCode(HttpStatus.OK)
 	async updateRequest(
-		@Param("id", ParseUUIDPipe) id: string,
+		@Param("id", FlexibleIdPipe) id: string,
 		@Body() updateRequestDto: UpdateRequestDto,
 		@Req() req: any,
 	): Promise<RequestResponseDto> {
@@ -85,9 +85,9 @@ export class RequestController {
 	// Admin only — hard delete
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
-	@Delete(":id([0-9a-fA-F-]{36})")
+	@Delete(":id")
 	@HttpCode(HttpStatus.NO_CONTENT)
-	async deleteRequest(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
+	async deleteRequest(@Param("id", FlexibleIdPipe) id: string): Promise<void> {
 		return this.requestService.deleteRequest(id);
 	}
 
@@ -96,7 +96,7 @@ export class RequestController {
 	@Get("user/:userId")
 	@HttpCode(HttpStatus.OK)
 	async getRequestsByUser(
-		@Param("userId", ParseUUIDPipe) userId: string,
+		@Param("userId", FlexibleIdPipe) userId: string,
 		@Req() req: any,
 	): Promise<{ data: RequestResponseDto[]; total: number; page: number; limit: number }> {
 		if (req.user.role !== "admin" && req.user.userId !== userId) {

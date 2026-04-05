@@ -1,17 +1,17 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Param,
-  Body,
-  Request,
-  ParseUUIDPipe,
-  Query,
-  UseGuards,
-  HttpCode,
-  HttpStatus
-} from '@nestjs/common';
+	Controller,
+	Get,
+	Post,
+	Put,
+	Param,
+	Body,
+	Request,
+	Query,
+	UseGuards,
+	HttpCode,
+	HttpStatus,
+} from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { SubscriptionService } from '../services/subscription.service';
 import { CreateSubscriptionDto } from '../dto/create-subscription.dto';
 import { UpgradeSubscriptionDto } from '../dto/upgrade-subscription.dto';
@@ -39,7 +39,7 @@ export class SubscriptionController {
 
 	@Post(":subscriptionId/activate")
 	@HttpCode(HttpStatus.OK)
-	async activateSubscription(@Param("subscriptionId", ParseUUIDPipe) subscriptionId: string, @Request() req: any) {
+	async activateSubscription(@Param("subscriptionId", FlexibleIdPipe) subscriptionId: string, @Request() req: any) {
 		// Called after successful payment
 		const subscription = await this.subscriptionService.activateSubscription(subscriptionId);
 
@@ -48,21 +48,21 @@ export class SubscriptionController {
 
 	@Get("provider/:providerId")
 	async getProviderSubscriptions(
-		@Param("providerId", ParseUUIDPipe) providerId: string,
+		@Param("providerId", FlexibleIdPipe) providerId: string,
 		@Query() queryDto: SubscriptionQueryDto,
 	) {
 		return this.subscriptionService.getProviderSubscriptionsPaginated(providerId, queryDto);
 	}
 
 	@Get("provider/:providerId/active")
-	async getActiveSubscription(@Param("providerId", ParseUUIDPipe) providerId: string, @Request() req: any) {
+	async getActiveSubscription(@Param("providerId", FlexibleIdPipe) providerId: string, @Request() req: any) {
 		const subscription = await this.subscriptionService.getActiveSubscription(providerId);
 
 		return { success: true, data: subscription, message: "Active subscription retrieved successfully" };
 	}
 
 	@Put(":subscriptionId/cancel")
-	async cancelSubscription(@Param("subscriptionId", ParseUUIDPipe) subscriptionId: string, @Request() req: any) {
+	async cancelSubscription(@Param("subscriptionId", FlexibleIdPipe) subscriptionId: string, @Request() req: any) {
 		const subscription = await this.subscriptionService.cancelSubscription(subscriptionId, req.user.userId);
 
 		return {
@@ -75,7 +75,7 @@ export class SubscriptionController {
 	@Post("provider/:providerId/upgrade")
 	@HttpCode(HttpStatus.OK)
 	async upgradeSubscription(
-		@Param("providerId", ParseUUIDPipe) providerId: string,
+		@Param("providerId", FlexibleIdPipe) providerId: string,
 		@Body() upgradeData: UpgradeSubscriptionDto,
 		@Request() req: any,
 	) {
@@ -96,7 +96,7 @@ export class SubscriptionController {
 	}
 
 	@Get("provider/:providerId/status")
-	async checkSubscriptionStatus(@Param("providerId", ParseUUIDPipe) providerId: string) {
+	async checkSubscriptionStatus(@Param("providerId", FlexibleIdPipe) providerId: string) {
 		const hasActive = await this.subscriptionService.checkProviderHasActiveSubscription(providerId);
 
 		return { success: true, data: { provider_id: providerId, has_active_subscription: hasActive } };

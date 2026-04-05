@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Pool } from 'pg';
 import { Message } from '../entities/message.entity';
 import { v4 as uuidv4 } from 'uuid';
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 export interface PaginatedMessages {
   data: Message[];
@@ -25,27 +26,30 @@ export class MessageRepository {
     const values = [id, jobId, senderId, message];
     const result = await this.pool.query(query, values);
     return new Message({
-      id: result.rows[0].id,
-      job_id: result.rows[0].job_id,
-      sender_id: result.rows[0].sender_id,
-      message: result.rows[0].message,
-      created_at: result.rows[0].created_at,
-    });
+			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
+			job_id: result.rows[0].job_id,
+			sender_id: result.rows[0].sender_id,
+			message: result.rows[0].message,
+			created_at: result.rows[0].created_at,
+		});
   }
 
   async getMessageById(id: string): Promise<Message | null> {
+    id = await resolveId(this.pool, 'messages', id);
     const query = 'SELECT * FROM messages WHERE id = $1';
     const result = await this.pool.query(query, [id]);
     if (result.rows.length === 0) {
       return null;
     }
     return new Message({
-      id: result.rows[0].id,
-      job_id: result.rows[0].job_id,
-      sender_id: result.rows[0].sender_id,
-      message: result.rows[0].message,
-      created_at: result.rows[0].created_at,
-    });
+			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
+			job_id: result.rows[0].job_id,
+			sender_id: result.rows[0].sender_id,
+			message: result.rows[0].message,
+			created_at: result.rows[0].created_at,
+		});
   }
 
   async getMessagesForJob(
@@ -70,6 +74,7 @@ export class MessageRepository {
 			(row) =>
 				new Message({
 					id: row.id,
+					display_id: row.display_id,
 					job_id: row.job_id,
 					sender_id: row.sender_id,
 					message: row.message,
@@ -143,16 +148,17 @@ export class MessageRepository {
     `;
     const result = await this.pool.query(query, [messageId]);
     return new Message({
-      id: result.rows[0].id,
-      job_id: result.rows[0].job_id,
-      sender_id: result.rows[0].sender_id,
-      message: result.rows[0].message,
-      read: result.rows[0].read,
-      read_at: result.rows[0].read_at,
-      edited: result.rows[0].edited,
-      edited_at: result.rows[0].edited_at,
-      created_at: result.rows[0].created_at,
-    });
+			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
+			job_id: result.rows[0].job_id,
+			sender_id: result.rows[0].sender_id,
+			message: result.rows[0].message,
+			read: result.rows[0].read,
+			read_at: result.rows[0].read_at,
+			edited: result.rows[0].edited,
+			edited_at: result.rows[0].edited_at,
+			created_at: result.rows[0].created_at,
+		});
   }
 
   async markMultipleAsRead(messageIds: string[]): Promise<void> {
@@ -173,16 +179,17 @@ export class MessageRepository {
     `;
     const result = await this.pool.query(query, [newMessage, messageId]);
     return new Message({
-      id: result.rows[0].id,
-      job_id: result.rows[0].job_id,
-      sender_id: result.rows[0].sender_id,
-      message: result.rows[0].message,
-      read: result.rows[0].read,
-      read_at: result.rows[0].read_at,
-      edited: result.rows[0].edited,
-      edited_at: result.rows[0].edited_at,
-      created_at: result.rows[0].created_at,
-    });
+			id: result.rows[0].id,
+			display_id: result.rows[0].display_id,
+			job_id: result.rows[0].job_id,
+			sender_id: result.rows[0].sender_id,
+			message: result.rows[0].message,
+			read: result.rows[0].read,
+			read_at: result.rows[0].read_at,
+			edited: result.rows[0].edited,
+			edited_at: result.rows[0].edited_at,
+			created_at: result.rows[0].created_at,
+		});
   }
 
   async getUnreadMessages(jobId: string, userId: string): Promise<Message[]> {
@@ -194,17 +201,21 @@ export class MessageRepository {
       ORDER BY created_at ASC
     `;
     const result = await this.pool.query(query, [jobId, userId]);
-    return result.rows.map(row => new Message({
-      id: row.id,
-      job_id: row.job_id,
-      sender_id: row.sender_id,
-      message: row.message,
-      read: row.read,
-      read_at: row.read_at,
-      edited: row.edited,
-      edited_at: row.edited_at,
-      created_at: row.created_at,
-    }));
+    return result.rows.map(
+			(row) =>
+				new Message({
+					id: row.id,
+					display_id: row.display_id,
+					job_id: row.job_id,
+					sender_id: row.sender_id,
+					message: row.message,
+					read: row.read,
+					read_at: row.read_at,
+					edited: row.edited,
+					edited_at: row.edited_at,
+					created_at: row.created_at,
+				}),
+		);
   }
 
   async getUnreadCount(jobId: string, userId: string): Promise<number> {
@@ -227,17 +238,21 @@ export class MessageRepository {
       ORDER BY edited_at DESC
     `;
     const result = await this.pool.query(query, [jobId]);
-    return result.rows.map(row => new Message({
-      id: row.id,
-      job_id: row.job_id,
-      sender_id: row.sender_id,
-      message: row.message,
-      read: row.read,
-      read_at: row.read_at,
-      edited: row.edited,
-      edited_at: row.edited_at,
-      created_at: row.created_at,
-    }));
+    return result.rows.map(
+			(row) =>
+				new Message({
+					id: row.id,
+					display_id: row.display_id,
+					job_id: row.job_id,
+					sender_id: row.sender_id,
+					message: row.message,
+					read: row.read,
+					read_at: row.read_at,
+					edited: row.edited,
+					edited_at: row.edited_at,
+					created_at: row.created_at,
+				}),
+		);
   }
 
   async getConversationStats(jobId: string): Promise<any> {

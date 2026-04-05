@@ -126,30 +126,30 @@ export class ProviderService {
 
     // Update basic info
     if (business_name !== undefined || description !== undefined) {
-      await this.providerRepo.update(providerId, business_name, description);
+      await this.providerRepo.update(provider.id, business_name, description);
     }
 
     // Update service categories
     if (service_categories !== undefined) {
-      await this.providerServiceRepo.replaceServices(providerId, service_categories);
+      await this.providerServiceRepo.replaceServices(provider.id, service_categories);
     }
 
     // Update availability
     if (availability !== undefined) {
-      await this.providerAvailabilityRepo.replaceAvailability(providerId, availability);
+      await this.providerAvailabilityRepo.replaceAvailability(provider.id, availability);
     }
 
     this.logger.info('Provider updated successfully', {
       context: 'ProviderService',
-      provider_id: providerId,
+      provider_id: provider.id,
     });
 
     // Invalidate cache for this provider
     if (this.redisService.isCacheEnabled()) {
-      await this.redisService.del(`provider:${providerId}`);
+      await this.redisService.del(`provider:${provider.id}`);
     }
 
-    return this.getProvider(providerId);
+    return this.getProvider(provider.id);
   }
 
   async getProvider(providerId: string): Promise<ProviderResponseDto> {
@@ -178,10 +178,10 @@ export class ProviderService {
     }
 
     // Get services
-    const services = await this.providerServiceRepo.findByProviderId(providerId);
+    const services = await this.providerServiceRepo.findByProviderId(provider.id);
 
     // Get availability
-    const availability = await this.providerAvailabilityRepo.findByProviderId(providerId);
+    const availability = await this.providerAvailabilityRepo.findByProviderId(provider.id);
 
     const response = {
       id: provider.id,
@@ -201,7 +201,7 @@ export class ProviderService {
 
     // Cache the result
     if (this.redisService.isCacheEnabled()) {
-      const cacheKey = `provider:${providerId}`;
+      const cacheKey = `provider:${provider.id}`;
       await this.redisService.set(cacheKey, JSON.stringify(response), this.PROVIDER_CACHE_TTL);
     }
 
@@ -336,11 +336,11 @@ export class ProviderService {
     }
 
     // Delete related records
-    await this.providerServiceRepo.deleteByProviderId(providerId);
-    await this.providerAvailabilityRepo.deleteByProviderId(providerId);
+    await this.providerServiceRepo.deleteByProviderId(provider.id);
+    await this.providerAvailabilityRepo.deleteByProviderId(provider.id);
 
     // Delete provider
-    await this.providerRepo.delete(providerId);
+    await this.providerRepo.delete(provider.id);
 
     this.logger.info('Provider deleted successfully', {
       context: 'ProviderService',

@@ -21,6 +21,7 @@ export class RefundRepository {
     const result = await this.pool.query(query, values);
     return new Refund({
       id: result.rows[0].id,
+      display_id: result.rows[0].display_id,
       payment_id: result.rows[0].payment_id,
       amount: parseFloat(result.rows[0].amount),
       status: result.rows[0].status,
@@ -36,6 +37,7 @@ export class RefundRepository {
     }
     return new Refund({
       id: result.rows[0].id,
+      display_id: result.rows[0].display_id,
       payment_id: result.rows[0].payment_id,
       amount: parseFloat(result.rows[0].amount),
       status: result.rows[0].status,
@@ -56,6 +58,7 @@ export class RefundRepository {
     const result = await this.pool.query(query, [status, id]);
     return new Refund({
       id: result.rows[0].id,
+      display_id: result.rows[0].display_id,
       payment_id: result.rows[0].payment_id,
       amount: parseFloat(result.rows[0].amount),
       status: result.rows[0].status,
@@ -70,6 +73,7 @@ export class RefundRepository {
       (row) =>
         new Refund({
           id: row.id,
+          display_id: row.display_id,
           payment_id: row.payment_id,
           amount: parseFloat(row.amount),
           status: row.status,

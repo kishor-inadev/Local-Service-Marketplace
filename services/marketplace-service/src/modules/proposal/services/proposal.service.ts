@@ -142,7 +142,7 @@ export class ProposalService {
 			throw new BadRequestException(`Cannot accept proposal with status: ${existingProposal.status}`);
 		}
 
-		const proposal = await this.proposalRepository.acceptProposal(id);
+		const proposal = await this.proposalRepository.acceptProposal(existingProposal.id);
 
 		this.logger.log(`Proposal accepted successfully: ${id}`, ProposalService.name);
 
@@ -204,7 +204,7 @@ export class ProposalService {
 			throw new BadRequestException(`Cannot reject proposal with status: ${existingProposal.status}`);
 		}
 
-		const proposal = await this.proposalRepository.rejectProposal(id);
+		const proposal = await this.proposalRepository.rejectProposal(existingProposal.id);
 
 		this.logger.log(`Proposal rejected successfully: ${id}`, ProposalService.name);
 
@@ -290,7 +290,7 @@ export class ProposalService {
 			throw new BadRequestException(`Cannot withdraw proposal with status: ${existingProposal.status}`);
 		}
 
-		const proposal = await this.proposalRepository.withdrawProposal(id, userId);
+		const proposal = await this.proposalRepository.withdrawProposal(existingProposal.id, userId);
 		if (!proposal) {
 			throw new NotFoundException("Proposal not found");
 		}

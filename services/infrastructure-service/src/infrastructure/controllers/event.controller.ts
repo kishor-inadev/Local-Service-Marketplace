@@ -11,8 +11,8 @@ import {
 	HttpStatus,
 	UseGuards,
 	Delete,
-	ParseUUIDPipe,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
 import { RolesGuard } from '@/common/guards/roles.guard';
@@ -22,7 +22,7 @@ import { CreateEventDto } from "../dto/create-event.dto";
 import { EventQueryDto } from "../dto/event-query.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles('admin')
+@Roles("admin")
 @Controller("events")
 export class EventController {
 	constructor(
@@ -57,7 +57,7 @@ export class EventController {
 	}
 
 	@Get(":id")
-	async getEventById(@Param("id", ParseUUIDPipe) id: string) {
+	async getEventById(@Param("id", FlexibleIdPipe) id: string) {
 		this.logger.log(`GET /events/${id} - Retrieve event by ID`, "EventController");
 
 		const event = await this.eventService.getEventById(id);

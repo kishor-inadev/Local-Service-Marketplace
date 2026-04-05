@@ -8,11 +8,11 @@ import {
 	Query,
 	HttpCode,
 	HttpStatus,
-	ParseUUIDPipe,
 	UseGuards,
 	BadRequestException,
 	Request,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { JobService } from "../services/job.service";
 import { CreateJobDto } from "../dto/create-job.dto";
 import { UpdateJobStatusDto } from "../dto/update-job-status.dto";
@@ -59,32 +59,32 @@ export class JobController {
 		return this.jobService.getJobs(queryDto);
 	}
 
-	@Get(":id([0-9a-fA-F-]{36})")
+	@Get(":id")
 	@HttpCode(HttpStatus.OK)
-	async getJobById(@Param("id", ParseUUIDPipe) id: string): Promise<JobResponseDto> {
+	async getJobById(@Param("id", FlexibleIdPipe) id: string): Promise<JobResponseDto> {
 		return this.jobService.getJobById(id);
 	}
 
-	@Patch(":id([0-9a-fA-F-]{36})/status")
+	@Patch(":id/status")
 	@HttpCode(HttpStatus.OK)
 	async updateJobStatus(
-		@Param("id", ParseUUIDPipe) id: string,
+		@Param("id", FlexibleIdPipe) id: string,
 		@Body() updateJobStatusDto: UpdateJobStatusDto,
 		@Request() req: any,
 	): Promise<JobResponseDto> {
 		return this.jobService.updateJobStatus(id, updateJobStatusDto, req.user.userId, req.user.role);
 	}
 
-	@Post(":id([0-9a-fA-F-]{36})/complete")
+	@Post(":id/complete")
 	@HttpCode(HttpStatus.OK)
-	async completeJob(@Param("id", ParseUUIDPipe) id: string, @Request() req: any): Promise<JobResponseDto> {
+	async completeJob(@Param("id", FlexibleIdPipe) id: string, @Request() req: any): Promise<JobResponseDto> {
 		return this.jobService.completeJob(id, req.user.userId, req.user.role);
 	}
 
 	@Get("provider/:providerId")
 	@HttpCode(HttpStatus.OK)
 	async getJobsByProvider(
-		@Param("providerId", ParseUUIDPipe) providerId: string,
+		@Param("providerId", FlexibleIdPipe) providerId: string,
 	): Promise<{ data: JobResponseDto[]; total: number; page: number; limit: number }> {
 		const result = await this.jobService.getJobsByProvider(providerId);
 		return { ...result, page: 1, limit: result.data.length || 1 };

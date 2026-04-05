@@ -19,6 +19,7 @@ import {
 	HttpStatus,
 	ParseUUIDPipe,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "../../../common/pipes/flexible-id.pipe";
 import { randomUUID } from "crypto";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
@@ -465,7 +466,10 @@ export class AuthController {
 
 	@Delete("sessions/:sessionId")
 	@UseGuards(JwtAuthGuard)
-	async revokeSession(@Req() req: Request, @Param("sessionId", ParseUUIDPipe) sessionId: string): Promise<{ result: string }> {
+	async revokeSession(
+		@Req() req: Request,
+		@Param("sessionId", FlexibleIdPipe) sessionId: string,
+	): Promise<{ result: string }> {
 		await this.authService.revokeSession(req.user["sub"], sessionId);
 		return { result: "Session revoked" };
 	}
@@ -485,7 +489,10 @@ export class AuthController {
 
 	@Delete("devices/:deviceId")
 	@UseGuards(JwtAuthGuard)
-	async removeDevice(@Req() req: Request, @Param("deviceId", ParseUUIDPipe) deviceId: string): Promise<{ result: string }> {
+	async removeDevice(
+		@Req() req: Request,
+		@Param("deviceId", ParseUUIDPipe) deviceId: string,
+	): Promise<{ result: string }> {
 		await this.authService.removeDevice(req.user["sub"], deviceId);
 		return { result: "Device removed" };
 	}
@@ -494,10 +501,7 @@ export class AuthController {
 	@Post("change-password")
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async changePassword(
-		@Body() dto: ChangePasswordDto,
-		@Req() req: Request,
-	): Promise<{ result: string }> {
+	async changePassword(@Body() dto: ChangePasswordDto, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.changePassword(req.user["sub"], dto.currentPassword, dto.newPassword);
 		return { result: "Password changed successfully" };
 	}
@@ -512,10 +516,7 @@ export class AuthController {
 	@Post("account/deactivate")
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async deactivateAccount(
-		@Body() dto: DeactivateAccountDto,
-		@Req() req: Request,
-	): Promise<{ result: string }> {
+	async deactivateAccount(@Body() dto: DeactivateAccountDto, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.deactivateAccount(req.user["sub"], dto.password, dto.reason);
 		return { result: "Account deactivated" };
 	}
@@ -523,10 +524,7 @@ export class AuthController {
 	@Delete("account")
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async requestAccountDeletion(
-		@Body() dto: DeleteAccountDto,
-		@Req() req: Request,
-	): Promise<{ result: string }> {
+	async requestAccountDeletion(@Body() dto: DeleteAccountDto, @Req() req: Request): Promise<{ result: string }> {
 		await this.authService.requestAccountDeletion(req.user["sub"], dto.password, dto.reason);
 		return { result: "Account deletion requested. You have 30 days to cancel." };
 	}

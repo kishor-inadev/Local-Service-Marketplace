@@ -2,6 +2,7 @@ import { Injectable, Inject, NotFoundException } from "@nestjs/common";
 import { Pool } from "pg";
 import { Review } from "../entities/review.entity";
 import { CreateReviewDto } from "../dto/create-review.dto";
+import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class ReviewRepository {
@@ -11,7 +12,7 @@ export class ReviewRepository {
 		const query = `
       INSERT INTO reviews (job_id, user_id, provider_id, rating, comment)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, job_id, user_id, provider_id, rating, comment, created_at
+      RETURNING id, display_id, job_id, user_id, provider_id, rating, comment, created_at
     `;
 
 		const values = [
@@ -27,8 +28,9 @@ export class ReviewRepository {
 	}
 
 	async getReviewById(id: string): Promise<Review | null> {
+		id = await resolveId(this.pool, 'reviews', id);
 		const query = `
-      SELECT id, job_id, user_id, provider_id, rating, comment, created_at
+      SELECT id, display_id, job_id, user_id, provider_id, rating, comment, created_at
       FROM reviews
       WHERE id = $1
     `;
@@ -39,7 +41,7 @@ export class ReviewRepository {
 
 	async getProviderReviews(providerId: string, limit: number = 20, offset: number = 0): Promise<Review[]> {
 		const query = `
-      SELECT id, job_id, user_id, provider_id, rating, comment, created_at
+      SELECT id, display_id, job_id, user_id, provider_id, rating, comment, created_at
       FROM reviews
       WHERE provider_id = $1
       ORDER BY created_at DESC
@@ -82,7 +84,7 @@ export class ReviewRepository {
 	 */
 	async getReviewByJobId(jobId: string): Promise<Review | null> {
 		const query = `
-      SELECT id, job_id, user_id, provider_id, rating, comment, response, response_at, helpful_count, verified_purchase, created_at
+      SELECT id, display_id, job_id, user_id, provider_id, rating, comment, response, response_at, helpful_count, verified_purchase, created_at
       FROM reviews
       WHERE job_id = $1
       LIMIT 1

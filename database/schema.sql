@@ -13,6 +13,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   email VARCHAR(255) UNIQUE NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
   name VARCHAR(255),
   phone VARCHAR(20) CHECK (phone IS NULL OR phone ~ '^\+?[0-9]{10,15}$'),
@@ -41,6 +42,7 @@ CREATE INDEX idx_users_phone ON users(phone) WHERE phone IS NOT NULL;
 
 CREATE TABLE sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   refresh_token TEXT,
   ip_address TEXT,
@@ -201,6 +203,7 @@ CREATE INDEX idx_account_deletion_requests_requested_at ON account_deletion_requ
 
 CREATE TABLE providers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   business_name VARCHAR(255) NOT NULL,
   description TEXT,
@@ -229,6 +232,7 @@ CREATE INDEX idx_providers_total_jobs ON providers(total_jobs_completed DESC);
 
 CREATE TABLE service_categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   name VARCHAR(100) UNIQUE NOT NULL,
   description TEXT,
   icon TEXT,
@@ -267,6 +271,7 @@ CREATE INDEX idx_provider_availability_composite ON provider_availability(provid
 
 CREATE TABLE locations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Nullable for anonymous requests
   latitude DECIMAL(10, 8) NOT NULL,
   longitude DECIMAL(11, 8) NOT NULL,
@@ -288,6 +293,7 @@ CREATE INDEX idx_locations_geo ON locations USING GIST(ST_MakePoint(longitude, l
 
 CREATE TABLE service_requests (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Nullable to allow anonymous requests
   category_id UUID NOT NULL REFERENCES service_categories(id),
   location_id UUID REFERENCES locations(id),
@@ -334,6 +340,7 @@ CREATE INDEX idx_service_requests_budget_status ON service_requests(budget, stat
 
 CREATE TABLE proposals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   request_id UUID NOT NULL REFERENCES service_requests(id) ON DELETE CASCADE,
   provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
   price BIGINT NOT NULL CHECK (price > 0),
@@ -363,6 +370,7 @@ CREATE INDEX idx_proposals_status_created_at ON proposals(status, created_at DES
 
 CREATE TABLE jobs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   request_id UUID NOT NULL REFERENCES service_requests(id),
   provider_id UUID NOT NULL REFERENCES providers(id),
   customer_id UUID NOT NULL REFERENCES users(id),
@@ -395,6 +403,7 @@ CREATE INDEX idx_jobs_completed_at ON jobs(completed_at DESC) WHERE completed_at
 
 CREATE TABLE payments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   job_id UUID NOT NULL REFERENCES jobs(id),
   user_id UUID NOT NULL REFERENCES users(id),
   provider_id UUID NOT NULL REFERENCES providers(id),
@@ -442,6 +451,7 @@ CREATE INDEX idx_payment_webhooks_gateway_event ON payment_webhooks(gateway, eve
 
 CREATE TABLE refunds (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
   amount BIGINT NOT NULL CHECK (amount > 0),
   status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'failed')),
@@ -458,6 +468,7 @@ CREATE INDEX idx_refunds_status ON refunds(status);
 
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   job_id UUID NOT NULL REFERENCES jobs(id),
   user_id UUID NOT NULL REFERENCES users(id),
   provider_id UUID NOT NULL REFERENCES providers(id),
@@ -484,6 +495,7 @@ CREATE UNIQUE INDEX idx_reviews_job_user_unique ON reviews(job_id, user_id);
 
 CREATE TABLE messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES users(id),
   message TEXT NOT NULL,
@@ -507,6 +519,7 @@ CREATE INDEX idx_messages_job_read_created ON messages(job_id, read, created_at 
 
 CREATE TABLE notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
   message TEXT NOT NULL,
@@ -571,6 +584,7 @@ CREATE INDEX idx_attachments_message_id ON attachments(message_id);
 
 CREATE TABLE coupons (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   code VARCHAR(50) UNIQUE NOT NULL,
   discount_percent INT NOT NULL CHECK (discount_percent > 0 AND discount_percent <= 100),
   max_uses INT,
@@ -602,6 +616,7 @@ CREATE INDEX idx_coupon_usage_coupon_id ON coupon_usage(coupon_id);
 
 CREATE TABLE disputes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   job_id UUID NOT NULL REFERENCES jobs(id),
   opened_by UUID NOT NULL REFERENCES users(id),
   reason TEXT NOT NULL,
@@ -661,6 +676,7 @@ CREATE INDEX idx_user_activity_user_action ON user_activity_logs(user_id, action
 
 CREATE TABLE events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   event_type TEXT NOT NULL,
   payload JSONB NOT NULL,
   created_at TIMESTAMP DEFAULT now() NOT NULL
@@ -675,6 +691,7 @@ CREATE INDEX idx_events_created_at ON events(created_at DESC);
 
 CREATE TABLE background_jobs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   job_type TEXT NOT NULL,
   payload JSONB NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
@@ -756,6 +773,7 @@ CREATE TABLE system_settings (
 
 CREATE TABLE admin_actions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   admin_id UUID NOT NULL REFERENCES users(id),
   action TEXT NOT NULL,
   target_type TEXT NOT NULL,
@@ -1221,6 +1239,7 @@ CREATE TABLE pricing_plans (
 
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
   provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
   plan_id UUID NOT NULL REFERENCES pricing_plans(id),
   status TEXT NOT NULL CHECK (status IN ('active', 'cancelled', 'expired', 'pending')),
@@ -1306,3 +1325,293 @@ CREATE INDEX IF NOT EXISTS idx_users_name_trgm
 DROP INDEX IF EXISTS idx_messages_job_created;
 CREATE INDEX idx_messages_job_created
   ON messages(job_id, created_at ASC) INCLUDE (message, sender_id);
+
+-- =====================================================
+-- DISPLAY ID SYSTEM
+-- =====================================================
+
+-- Shared random alphanumeric generator (PREFIX + 8 chars, A-Z0-9)
+CREATE OR REPLACE FUNCTION generate_display_id(prefix TEXT)
+RETURNS TEXT AS $$
+DECLARE
+  chars  TEXT := 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  result TEXT := prefix;
+  i      INT;
+BEGIN
+  FOR i IN 1..8 LOOP
+    result := result || substr(chars, floor(random() * 36 + 1)::INT, 1);
+  END LOOP;
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Per-table trigger functions with collision-retry
+CREATE OR REPLACE FUNCTION set_users_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('USR');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM users WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_sessions_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('SES');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM sessions WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_providers_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('PRV');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM providers WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_service_categories_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('CAT');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM service_categories WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_locations_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('LOC');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM locations WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_service_requests_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('REQ');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM service_requests WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_proposals_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('PRP');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM proposals WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_jobs_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('JOB');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM jobs WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_payments_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('PAY');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM payments WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_refunds_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('RFD');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM refunds WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_reviews_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('REV');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM reviews WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_messages_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('MSG');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM messages WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_notifications_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('NTF');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM notifications WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_coupons_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('CPN');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM coupons WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_disputes_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('DSP');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM disputes WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_events_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('EVT');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM events WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_background_jobs_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('BGJ');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM background_jobs WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_admin_actions_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('ADM');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM admin_actions WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION set_subscriptions_display_id() RETURNS TRIGGER AS $$
+DECLARE candidate TEXT;
+BEGIN
+  IF NEW.display_id IS NULL OR NEW.display_id = '' THEN
+    LOOP candidate := generate_display_id('SUB');
+      EXIT WHEN NOT EXISTS (SELECT 1 FROM subscriptions WHERE display_id = candidate);
+    END LOOP;
+    NEW.display_id := candidate;
+  END IF; RETURN NEW;
+END; $$ LANGUAGE plpgsql;
+
+-- Attach triggers
+CREATE TRIGGER trg_users_display_id
+  BEFORE INSERT ON users FOR EACH ROW EXECUTE FUNCTION set_users_display_id();
+CREATE TRIGGER trg_sessions_display_id
+  BEFORE INSERT ON sessions FOR EACH ROW EXECUTE FUNCTION set_sessions_display_id();
+CREATE TRIGGER trg_providers_display_id
+  BEFORE INSERT ON providers FOR EACH ROW EXECUTE FUNCTION set_providers_display_id();
+CREATE TRIGGER trg_service_categories_display_id
+  BEFORE INSERT ON service_categories FOR EACH ROW EXECUTE FUNCTION set_service_categories_display_id();
+CREATE TRIGGER trg_locations_display_id
+  BEFORE INSERT ON locations FOR EACH ROW EXECUTE FUNCTION set_locations_display_id();
+CREATE TRIGGER trg_service_requests_display_id
+  BEFORE INSERT ON service_requests FOR EACH ROW EXECUTE FUNCTION set_service_requests_display_id();
+CREATE TRIGGER trg_proposals_display_id
+  BEFORE INSERT ON proposals FOR EACH ROW EXECUTE FUNCTION set_proposals_display_id();
+CREATE TRIGGER trg_jobs_display_id
+  BEFORE INSERT ON jobs FOR EACH ROW EXECUTE FUNCTION set_jobs_display_id();
+CREATE TRIGGER trg_payments_display_id
+  BEFORE INSERT ON payments FOR EACH ROW EXECUTE FUNCTION set_payments_display_id();
+CREATE TRIGGER trg_refunds_display_id
+  BEFORE INSERT ON refunds FOR EACH ROW EXECUTE FUNCTION set_refunds_display_id();
+CREATE TRIGGER trg_reviews_display_id
+  BEFORE INSERT ON reviews FOR EACH ROW EXECUTE FUNCTION set_reviews_display_id();
+CREATE TRIGGER trg_messages_display_id
+  BEFORE INSERT ON messages FOR EACH ROW EXECUTE FUNCTION set_messages_display_id();
+CREATE TRIGGER trg_notifications_display_id
+  BEFORE INSERT ON notifications FOR EACH ROW EXECUTE FUNCTION set_notifications_display_id();
+CREATE TRIGGER trg_coupons_display_id
+  BEFORE INSERT ON coupons FOR EACH ROW EXECUTE FUNCTION set_coupons_display_id();
+CREATE TRIGGER trg_disputes_display_id
+  BEFORE INSERT ON disputes FOR EACH ROW EXECUTE FUNCTION set_disputes_display_id();
+CREATE TRIGGER trg_events_display_id
+  BEFORE INSERT ON events FOR EACH ROW EXECUTE FUNCTION set_events_display_id();
+CREATE TRIGGER trg_background_jobs_display_id
+  BEFORE INSERT ON background_jobs FOR EACH ROW EXECUTE FUNCTION set_background_jobs_display_id();
+CREATE TRIGGER trg_admin_actions_display_id
+  BEFORE INSERT ON admin_actions FOR EACH ROW EXECUTE FUNCTION set_admin_actions_display_id();
+CREATE TRIGGER trg_subscriptions_display_id
+  BEFORE INSERT ON subscriptions FOR EACH ROW EXECUTE FUNCTION set_subscriptions_display_id();
+
+-- Unique indexes for display_id lookups
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_display_id              ON users(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_sessions_display_id           ON sessions(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_providers_display_id          ON providers(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_service_categories_display_id ON service_categories(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_locations_display_id          ON locations(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_service_requests_display_id   ON service_requests(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_proposals_display_id          ON proposals(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_jobs_display_id               ON jobs(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_payments_display_id           ON payments(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_refunds_display_id            ON refunds(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_reviews_display_id            ON reviews(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_messages_display_id           ON messages(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_notifications_display_id      ON notifications(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_coupons_display_id            ON coupons(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_disputes_display_id           ON disputes(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_events_display_id             ON events(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_background_jobs_display_id    ON background_jobs(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_admin_actions_display_id      ON admin_actions(display_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_subscriptions_display_id      ON subscriptions(display_id);

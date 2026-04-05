@@ -43,7 +43,7 @@ export class MessageService {
 		if (!message) {
 			throw new NotFoundException("Message not found");
 		}
-		return this.messageRepository.markAsRead(id);
+		return this.messageRepository.markAsRead(message.id);
 	}
 
 	async deleteMessage(id: string): Promise<void> {

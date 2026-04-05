@@ -1,5 +1,6 @@
 export class Message {
   id: string;
+  display_id: string;
   job_id: string;
   sender_id: string;
   message: string;

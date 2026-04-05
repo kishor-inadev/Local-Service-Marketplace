@@ -8,11 +8,11 @@ import {
 	Query,
 	HttpCode,
 	HttpStatus,
-	ParseUUIDPipe,
 	UseGuards,
 	BadRequestException,
 	Request,
 } from "@nestjs/common";
+import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { ProposalService } from "../services/proposal.service";
 import { CreateProposalDto } from "../dto/create-proposal.dto";
 import { UpdateProposalDto } from "../dto/update-proposal.dto";
@@ -56,42 +56,42 @@ export class ProposalController {
 	@Get("requests/:requestId/proposals")
 	@HttpCode(HttpStatus.OK)
 	async getProposalsForRequest(
-		@Param("requestId", ParseUUIDPipe) requestId: string,
+		@Param("requestId", FlexibleIdPipe) requestId: string,
 	): Promise<PaginatedProposalResponseDto> {
 		return this.proposalService.getProposalsForRequest(requestId);
 	}
 
-	@Post("proposals/:id([0-9a-fA-F-]{36})/accept")
+	@Post("proposals/:id/accept")
 	@HttpCode(HttpStatus.OK)
-	async acceptProposal(@Param("id", ParseUUIDPipe) id: string, @Request() req: any): Promise<ProposalResponseDto> {
+	async acceptProposal(@Param("id", FlexibleIdPipe) id: string, @Request() req: any): Promise<ProposalResponseDto> {
 		return this.proposalService.acceptProposal(id, req.user.userId, req.user.role);
 	}
 
-	@Post("proposals/:id([0-9a-fA-F-]{36})/reject")
+	@Post("proposals/:id/reject")
 	@HttpCode(HttpStatus.OK)
-	async rejectProposal(@Param("id", ParseUUIDPipe) id: string, @Request() req: any): Promise<ProposalResponseDto> {
+	async rejectProposal(@Param("id", FlexibleIdPipe) id: string, @Request() req: any): Promise<ProposalResponseDto> {
 		return this.proposalService.rejectProposal(id, req.user.userId, req.user.role);
 	}
 
-	@Post("proposals/:id([0-9a-fA-F-]{36})/withdraw")
+	@Post("proposals/:id/withdraw")
 	@HttpCode(HttpStatus.OK)
-	async withdrawProposal(@Param("id", ParseUUIDPipe) id: string, @Request() req: any): Promise<ProposalResponseDto> {
+	async withdrawProposal(@Param("id", FlexibleIdPipe) id: string, @Request() req: any): Promise<ProposalResponseDto> {
 		return this.proposalService.withdrawProposal(id, req.user.userId);
 	}
 
-	@Patch("proposals/:id([0-9a-fA-F-]{36})")
+	@Patch("proposals/:id")
 	@HttpCode(HttpStatus.OK)
 	async updateProposal(
-		@Param("id", ParseUUIDPipe) id: string,
+		@Param("id", FlexibleIdPipe) id: string,
 		@Body() body: UpdateProposalDto,
 		@Request() req: any,
 	): Promise<ProposalResponseDto> {
 		return this.proposalService.updateProposal(id, req.user.userId, body);
 	}
 
-	@Get("proposals/:id([0-9a-fA-F-]{36})")
+	@Get("proposals/:id")
 	@HttpCode(HttpStatus.OK)
-	async getProposalById(@Param("id", ParseUUIDPipe) id: string): Promise<ProposalResponseDto> {
+	async getProposalById(@Param("id", FlexibleIdPipe) id: string): Promise<ProposalResponseDto> {
 		return this.proposalService.getProposalById(id);
 	}
 }
