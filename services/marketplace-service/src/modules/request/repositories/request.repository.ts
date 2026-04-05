@@ -501,12 +501,12 @@ export class RequestRepository {
       SELECT * FROM service_requests
       WHERE expiry_date IS NOT NULL
         AND expiry_date > NOW()
-        AND expiry_date <= NOW() + INTERVAL '${hours} hours'
+        AND expiry_date <= NOW() + ($1 * INTERVAL '1 hour')
         AND status = 'open'
         AND deleted_at IS NULL
       ORDER BY expiry_date ASC
     `;
-		const result = await this.pool.query(query);
+		const result = await this.pool.query(query, [hours]);
 		return result.rows;
 	}
 

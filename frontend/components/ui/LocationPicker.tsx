@@ -43,6 +43,8 @@ export function LocationPicker({
   const autocompleteRef = useRef<any>(null);
   const geocoderRef = useRef<any>(null);
 
+  const [mapUnavailable, setMapUnavailable] = useState(false);
+
   // Initialize map
   useEffect(() => {
     if (!mapRef.current || map) return;
@@ -59,7 +61,7 @@ export function LocationPicker({
   const loadGoogleMaps = () => {
     const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 		if (!apiKey) {
-			console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Map features will be unavailable.");
+			setMapUnavailable(true);
 			return;
 		}
     const script = document.createElement('script');
@@ -275,7 +277,26 @@ export function LocationPicker({
         </label>
       )}
 
-      {/* Search Input */}
+      {mapUnavailable ? (
+        <div className="w-full h-80 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
+          <div className="text-center p-6">
+            <MapPin className="h-10 w-10 text-gray-400 mx-auto mb-3" />
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300">Map is not available</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">Please enter your address manually below</p>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                onChange({ lat: 0, lng: 0, address: e.target.value });
+              }}
+              placeholder="Enter your full address..."
+              className="mt-3 w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+            />
+          </div>
+        </div>
+      ) : (
+      <>
       <div className="relative mb-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
@@ -358,6 +379,9 @@ export function LocationPicker({
             </div>
           </div>
         </div>
+      )}
+
+      </>
       )}
 
       {error && (

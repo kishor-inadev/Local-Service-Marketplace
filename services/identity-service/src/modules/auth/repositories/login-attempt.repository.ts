@@ -37,18 +37,18 @@ export class LoginAttemptRepository {
       FROM login_attempts
       WHERE email = $1 
         AND success = false 
-        AND created_at > NOW() - INTERVAL '${windowMinutes} minutes'
+        AND created_at > NOW() - ($2 * INTERVAL '1 minute')
     `;
-    const result = await this.pool.query(query, [email]);
+    const result = await this.pool.query(query, [email, windowMinutes]);
     return parseInt(result.rows[0].count, 10);
   }
 
   async deleteOldAttempts(daysOld: number = 30): Promise<void> {
     const query = `
       DELETE FROM login_attempts 
-      WHERE created_at < NOW() - INTERVAL '${daysOld} days'
+      WHERE created_at < NOW() - ($1 * INTERVAL '1 day')
     `;
-    await this.pool.query(query);
+    await this.pool.query(query, [daysOld]);
   }
 
   // ✅ NEW: Advanced query methods
@@ -61,9 +61,9 @@ export class LoginAttemptRepository {
       FROM login_attempts
       WHERE location = $1
         AND success = false
-        AND created_at > NOW() - INTERVAL '${minutes} minutes'
+        AND created_at > NOW() - ($2 * INTERVAL '1 minute')
     `;
-    const result = await this.pool.query(query, [location]);
+    const result = await this.pool.query(query, [location, minutes]);
     return parseInt(result.rows[0].count, 10);
   }
 
@@ -75,9 +75,9 @@ export class LoginAttemptRepository {
       SELECT COUNT(*) as count
       FROM login_attempts
       WHERE user_agent = $1
-        AND created_at > NOW() - INTERVAL '${minutes} minutes'
+        AND created_at > NOW() - ($2 * INTERVAL '1 minute')
     `;
-    const result = await this.pool.query(query, [userAgent]);
+    const result = await this.pool.query(query, [userAgent, minutes]);
     return parseInt(result.rows[0].count, 10);
   }
 
@@ -87,12 +87,12 @@ export class LoginAttemptRepository {
              MAX(created_at) as last_attempt
       FROM login_attempts
       WHERE success = false
-        AND created_at > NOW() - INTERVAL '${minutes} minutes'
+        AND created_at > NOW() - ($1 * INTERVAL '1 minute')
       GROUP BY ip_address
-      HAVING COUNT(*) >= $1
+      HAVING COUNT(*) >= $2
       ORDER BY attempt_count DESC
     `;
-    const result = await this.pool.query(query, [minAttempts]);
+    const result = await this.pool.query(query, [minutes, minAttempts]);
     return result.rows;
   }
 }

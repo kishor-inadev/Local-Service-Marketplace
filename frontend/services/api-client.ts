@@ -153,7 +153,7 @@ class ApiClient {
         toast.error(`Validation Error: ${errorMessage}`);
         break;
       case 401:
-        // Don't show toast here - handled by useAuth hook
+        toast.error('Session expired. Please log in again.');
         break;
       case 403:
         toast.error('Access Denied');

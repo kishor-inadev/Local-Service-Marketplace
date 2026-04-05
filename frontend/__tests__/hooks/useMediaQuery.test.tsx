@@ -39,8 +39,8 @@ describe("useMediaQuery Hook", () => {
 	});
 
 	it("updates when media query changes", () => {
-		let changeHandler: (e: { matches: boolean }) => void;
-		addEventListenerMock.mockImplementation((_event: string, handler: (e: { matches: boolean }) => void) => {
+		let changeHandler: (e: MediaQueryListEvent) => void;
+		addEventListenerMock.mockImplementation((_event: string, handler: (e: MediaQueryListEvent) => void) => {
 			changeHandler = handler;
 		});
 
@@ -48,7 +48,14 @@ describe("useMediaQuery Hook", () => {
 		expect(result.current).toBe(false);
 
 		act(() => {
-			changeHandler({ matches: true });
+			// Update the mock so re-evaluation also returns true
+			matchMediaMock.mockImplementation((query: string) => ({
+				matches: true,
+				media: query,
+				addEventListener: addEventListenerMock,
+				removeEventListener: removeEventListenerMock,
+			}));
+			changeHandler({ matches: true } as MediaQueryListEvent);
 		});
 		expect(result.current).toBe(true);
 	});

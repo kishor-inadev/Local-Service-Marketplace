@@ -1,4 +1,4 @@
-import { Injectable, Inject, LoggerService } from '@nestjs/common';
+import { Injectable, Inject, LoggerService, NotFoundException } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -40,8 +40,8 @@ export class GatewayService {
 			const serviceConfig = servicesConfig[serviceName];
 
 			if (!serviceConfig) {
-				this.logger.error(`No service configuration found for path: ${path}`, "GatewayService");
-				throw new ServiceUnavailableException("Service not available");
+				this.logger.warn(`No service configuration found for path: ${path}`, "GatewayService");
+				throw new NotFoundException(`No resource found at ${path}`);
 			}
 
 			// Strip /api/v1 prefix if present (microservices don't have this prefix)

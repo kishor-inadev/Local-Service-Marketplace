@@ -22,8 +22,8 @@ describe("Pagination Component", () => {
 
 	it("renders pagination when totalPages > 1", () => {
 		render(<Pagination {...defaultProps} />);
-		expect(screen.getByText("1")).toBeInTheDocument();
-		expect(screen.getByText("5")).toBeInTheDocument();
+		expect(screen.getAllByText("1").length).toBeGreaterThanOrEqual(1);
+		expect(screen.getAllByText("5").length).toBeGreaterThanOrEqual(1);
 	});
 
 	it("disables previous button on first page", () => {
@@ -87,7 +87,7 @@ describe("Pagination Component", () => {
 				onPageChange={onPageChange}
 			/>,
 		);
-		fireEvent.click(screen.getByText("3"));
+		fireEvent.click(screen.getAllByText("3")[0]);
 		expect(onPageChange).toHaveBeenCalledWith(3);
 	});
 
@@ -98,8 +98,10 @@ describe("Pagination Component", () => {
 				currentPage={3}
 			/>,
 		);
-		const currentBtn = screen.getByText("3");
-		expect(currentBtn.className).toContain("primary");
+		const allThrees = screen.getAllByText("3");
+		const currentBtn = allThrees.find((el) => el.tagName === "BUTTON");
+		expect(currentBtn).toBeDefined();
+		expect(currentBtn!.className).toContain("bg-primary-600");
 	});
 
 	it("shows ellipsis for many pages", () => {
@@ -123,6 +125,6 @@ describe("Pagination Component", () => {
 				leftContent={<span>Showing 1-10 of 10</span>}
 			/>,
 		);
-		expect(screen.getByText("Showing 1-10 of 10")).toBeInTheDocument();
+		expect(screen.getAllByText("Showing 1-10 of 10").length).toBeGreaterThanOrEqual(1);
 	});
 });

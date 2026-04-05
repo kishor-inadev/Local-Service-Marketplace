@@ -370,7 +370,7 @@ CREATE TABLE jobs (
   actual_amount BIGINT,
   cancelled_by UUID REFERENCES users(id),
   cancellation_reason TEXT,
-  status TEXT NOT NULL DEFAULT 'scheduled' CHECK (status IN ('scheduled', 'in_progress', 'completed', 'cancelled', 'disputed')),
+  status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'scheduled', 'in_progress', 'completed', 'cancelled', 'disputed')),
   started_at TIMESTAMP,
   completed_at TIMESTAMP CHECK (completed_at IS NULL OR completed_at >= started_at),
   created_at TIMESTAMP DEFAULT now() NOT NULL,
