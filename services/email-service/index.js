@@ -80,7 +80,9 @@ async function startWorker() {
     );
 
     if (!emailConnection?.success) {
-      throw new Error(`Email service verification failed: ${emailConnection?.error || 'Unknown error'}`);
+      logger.warn(
+        `SMTP verification failed — email sending will be unavailable: ${emailConnection?.error || 'Unknown error'}`
+      );
     }
 
     // Create Express app
