@@ -119,6 +119,7 @@ export const publicRoutes = [
 	"/api/v1/admin/contact", // Contact form submission (public)
 	"/api/v1/categories", // List service categories (public browsing)
 	"/api/v1/requests", // Create service requests (public - allows guests)
+	"/api/v1/review-aggregates/provider/", // View provider review aggregates (public)
 
 	// ============================================
 	// Health & Monitoring
