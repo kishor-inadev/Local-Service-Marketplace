@@ -259,6 +259,7 @@ export class AuthService {
 			refreshToken,
 			user: {
 				id: user.id,
+				display_id: user.display_id,
 				email: user.email,
 				name: user.name,
 				role: user.role,
@@ -328,6 +329,7 @@ export class AuthService {
 			refreshToken,
 			user: {
 				id: user.id,
+				display_id: user.display_id,
 				email: user.email,
 				name: user.name,
 				role: user.role,
@@ -440,6 +442,7 @@ export class AuthService {
 
 		return {
 			id: user.id,
+			display_id: user.display_id,
 			email: user.email,
 			name: user.name,
 			phone: user.phone,
@@ -474,6 +477,7 @@ export class AuthService {
 
 		return {
 			id: updatedUser.id,
+			display_id: updatedUser.display_id,
 			email: updatedUser.email,
 			name: updatedUser.name,
 			phone: updatedUser.phone,
@@ -587,6 +591,7 @@ export class AuthService {
 			refreshToken: jwtRefreshToken,
 			user: {
 				id: user.id,
+				display_id: user.display_id,
 				email: user.email,
 				name: user.name,
 				role: user.role,
@@ -662,6 +667,7 @@ export class AuthService {
 			refreshToken,
 			user: {
 				id: user.id,
+				display_id: user.display_id,
 				email: user.email,
 				name: user.name,
 				role: user.role,
@@ -777,6 +783,7 @@ export class AuthService {
 				refreshToken,
 				user: {
 					id: user.id,
+					display_id: user.display_id,
 					email: user.email,
 					name: user.name,
 					role: user.role,

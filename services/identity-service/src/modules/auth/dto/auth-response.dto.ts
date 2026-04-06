@@ -5,6 +5,7 @@ export class AuthResponseDto {
 	user: {
 		id: string;
 		email: string;
+		display_id?: string;
 		name?: string;
 		role: string;
 		email_verified: boolean;

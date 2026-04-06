@@ -157,6 +157,7 @@ export class UserService {
 	private mapToDto(user: User): UserResponseDto {
 		return {
 			id: user.id,
+			displayId: user.display_id,
 			email: user.email,
 			name: user.name,
 			phone: user.phone,
