@@ -159,7 +159,7 @@ export class GatewayService {
       sanitized['x-request-id'] = crypto.randomUUID();
     }
 
-    // Add user context headers from decoded JWT
+    // Add user context headers (anonymous for public routes, authenticated for protected routes)
     if (user) {
 			// Extract user information from JWT payload
 			sanitized["x-user-id"] = user.userId || user.sub || user.id || "";
@@ -188,6 +188,25 @@ export class GatewayService {
 
 			this.logger.log(
 				`Added user context headers: userId=${sanitized["x-user-id"]}, role=${sanitized["x-user-role"]}`,
+				"GatewayService",
+			);
+		} else {
+			// Anonymous user for public routes
+			sanitized["x-user-id"] = "anonymous";
+			sanitized["x-user-email"] = "anonymous@example.com";
+			sanitized["x-user-role"] = "anonymous";
+
+			// Sign anonymous user context headers
+			if (this.gatewaySecret) {
+				const hmacPayload = `anonymous:anonymous@example.com:anonymous`;
+				sanitized["x-gateway-hmac"] = crypto
+					.createHmac("sha256", this.gatewaySecret)
+					.update(hmacPayload)
+					.digest("hex");
+			}
+
+			this.logger.log(
+				"Added anonymous user context headers for public route",
 				"GatewayService",
 			);
 		}
