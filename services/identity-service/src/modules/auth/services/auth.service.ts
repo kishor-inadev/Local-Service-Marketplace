@@ -890,6 +890,7 @@ export class AuthService {
 			refreshToken,
 			user: {
 				id: user.id,
+				display_id: user.display_id,
 				email: user.email,
 				name: user.name,
 				role: user.role,
