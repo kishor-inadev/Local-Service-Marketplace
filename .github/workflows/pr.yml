@@ -78,7 +78,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm lint --if-present
+        run: pnpm run --if-present lint
 
       - name: Test
         run: pnpm test --passWithNoTests --ci
@@ -111,7 +111,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm lint --if-present
+        run: pnpm run --if-present lint
 
       - name: Test
         run: pnpm test --passWithNoTests --ci
