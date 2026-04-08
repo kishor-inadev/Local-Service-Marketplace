@@ -51,8 +51,8 @@ COPY --from=builder /app/dist ./dist
 RUN mkdir -p logs
 
 # Create non-root user
-RUN groupadd -g 1001 nodejs && \
-    useradd -m -u 1001 -g nodejs nestjs
+RUN addgroup -g 1001 nodejs && \
+    adduser -D -u 1001 -G nodejs nestjs
 
 # Give ownership of logs directory to nestjs user
 RUN chown -R nestjs:nodejs logs

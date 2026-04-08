@@ -43,8 +43,8 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN groupadd -g 1001 nodejs
-RUN useradd -m -u 1001 -g nodejs nextjs
+RUN addgroup -g 1001 nodejs
+RUN adduser -D -u 1001 -G nodejs nextjs
 
 # Copy necessary files
 COPY --from=builder /app/public ./public
