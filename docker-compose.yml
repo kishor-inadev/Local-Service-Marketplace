@@ -134,7 +134,7 @@ services:
     networks:
       - marketplace-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {if (r.statusCode !== 200) throw new Error(r.statusCode)})"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) }).on('error', () => { process.exit(1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -186,7 +186,7 @@ services:
     networks:
       - marketplace-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3003/health || exit 1"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/health', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) }).on('error', () => { process.exit(1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -263,7 +263,7 @@ services:
     networks:
       - marketplace-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3006/health || exit 1"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3006/health', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) }).on('error', () => { process.exit(1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -298,9 +298,9 @@ services:
       - DATABASE_NAME=${DATABASE_NAME}
       - DATABASE_SSL=${DATABASE_SSL:-true}
       - REDIS_URL=redis://redis:6379
-      - EMAIL_SERVICE_URL=http://email-service:3500
+      - EMAIL_SERVICE_URL=${EMAIL_SERVICE_URL:-https://email-microservice-seven.vercel.app}
       - EMAIL_ENABLED=${EMAIL_ENABLED:-true}
-      - SMS_SERVICE_URL=http://sms-service:3000
+      - SMS_SERVICE_URL=${SMS_SERVICE_URL:-https://sms-delivery-service.vercel.app}
       - SMS_ENABLED=${SMS_ENABLED:-false}
       - SMS_API_KEY=${SMS_API_KEY:-change-me-to-a-strong-random-secret}
       - IN_APP_NOTIFICATIONS_ENABLED=${IN_APP_NOTIFICATIONS_ENABLED:-false}
@@ -317,7 +317,7 @@ services:
     networks:
       - marketplace-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3007/health || exit 1"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3007/health', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) }).on('error', () => { process.exit(1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -362,7 +362,7 @@ services:
     networks:
       - marketplace-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3010/health || exit 1"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3010/health', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) }).on('error', () => { process.exit(1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -413,7 +413,7 @@ services:
     networks:
       - marketplace-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3012/health || exit 1"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3012/health', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) }).on('error', () => { process.exit(1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -424,117 +424,6 @@ services:
           cpus: '0.5'
           memory: 256M
 
-  # Shared MongoDB for all services
-  mongo:
-    image: bitnami/mongodb
-    container_name: mongo
-    restart: unless-stopped
-    ports:
-      - "27017:27017"
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USERNAME:?MONGO_ROOT_USERNAME must be set}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?MONGO_ROOT_PASSWORD must be set}
-    volumes:
-      - mongo_data:/data/db
-    networks:
-      - marketplace-network
-    healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # Email Microservice
-  email-service:
-    build:
-      context: ./services/email-service
-      dockerfile: Dockerfile
-    image: lsmp-email-service:latest
-    container_name: email-service
-    restart: unless-stopped
-    profiles:
-      - email
-    ports:
-      - "4000:3500"
-    environment:
-      - NODE_ENV=production
-      - PORT=3500
-      - LOG_LEVEL=info
-      - ENABLE_LOGGING=true
-      - ENABLE_FILE_LOGS=false
-      - CORS_ORIGIN=*
-      - MONGO_URL=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/email_service?authSource=admin
-      - MONGO_MAX_POOL_SIZE=50
-      - MONGO_MIN_POOL_SIZE=10
-      - ENABLE_KAFKA=${EVENT_BUS_ENABLED:-false}
-      - KAFKA_BROKERS=${KAFKA_BROKERS:-kafka:29092}
-      - KAFKA_CLIENT_ID=email-service
-      - KAFKA_GROUP_ID=email-service-consumer-group
-      - KAFKA_TOPIC_SEND=email.notification.send
-      - KAFKA_TOPIC_SUCCESS=email.notification.delivered
-      - KAFKA_TOPIC_FAILED=email.notification.failed
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-noreply@marketplace.com}
-      - DEFAULT_FROM_NAME=${DEFAULT_FROM_NAME:-Local Service Marketplace}
-      - EMAIL_HOST=${EMAIL_HOST:-smtp.gmail.com}
-      - EMAIL_PORT=${EMAIL_PORT:-587}
-      - EMAIL_SECURE=${EMAIL_SECURE:-false}
-      - EMAIL_USER=${EMAIL_USER}
-      - EMAIL_PASS=${EMAIL_PASS}
-      - FALLBACK_EMAIL_HOST=${FALLBACK_EMAIL_HOST:-smtp.gmail.com}
-      - FALLBACK_EMAIL_PORT=${FALLBACK_EMAIL_PORT:-587}
-      - FALLBACK_EMAIL_USER=${FALLBACK_EMAIL_USER:-}
-      - FALLBACK_EMAIL_PASS=${FALLBACK_EMAIL_PASS:-}
-    depends_on:
-      mongo:
-        condition: service_healthy
-    networks:
-      - marketplace-network
-
-  # SMS Microservice
-  sms-service:
-    build:
-      context: ./services/sms-service
-      dockerfile: Dockerfile
-    image: lsmp-sms-service:latest
-    container_name: sms-service
-    restart: unless-stopped
-    profiles:
-      - sms
-    ports:
-      - "5000:3000"
-    environment:
-      - NODE_ENV=production
-      - PORT=3000
-      - API_PREFIX=/api/v1
-      - TENANCY_ENABLED=false
-      - DEFAULT_TENANT_ID=marketplace
-      - API_KEY=${SMS_API_KEY:-change-me-to-a-strong-random-secret}
-      - MONGODB_URI=mongodb://${MONGO_ROOT_USERNAME}:${MONGO_ROOT_PASSWORD}@mongo:27017/sms_service?authSource=admin
-      - SMS_PROVIDER=${SMS_PROVIDER:-mock}
-      - SMS_FALLBACK_PROVIDER=${SMS_FALLBACK_PROVIDER:-}
-      - OTP_LENGTH=6
-      - OTP_EXPIRY_MINUTES=10
-      - OTP_MAX_ATTEMPTS=5
-      - SMS_MAX_RETRY_ATTEMPTS=3
-      - RATE_LIMIT_WINDOW_MS=900000
-      - RATE_LIMIT_MAX=100
-      # Twilio (when SMS_PROVIDER=twilio)
-      - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID:-}
-      - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN:-}
-      - TWILIO_FROM_NUMBER=${TWILIO_FROM_NUMBER:-}
-      # AWS SNS (when SMS_PROVIDER=awssns)
-      - AWS_REGION=${AWS_REGION:-us-east-1}
-      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
-      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
-      # Vonage (when SMS_PROVIDER=vonage)
-      - VONAGE_API_KEY=${VONAGE_API_KEY:-}
-      - VONAGE_API_SECRET=${VONAGE_API_SECRET:-}
-      - VONAGE_FROM_NUMBER=${VONAGE_FROM_NUMBER:-}
-    depends_on:
-      mongo:
-        condition: service_healthy
-    networks:
-      - marketplace-network
 
   # API Gateway
   api-gateway:
@@ -568,8 +457,8 @@ services:
       - ADMIN_SERVICE_URL=http://oversight-service:3010
       - ANALYTICS_SERVICE_URL=http://oversight-service:3010
       - INFRASTRUCTURE_SERVICE_URL=http://infrastructure-service:3012
-      - EMAIL_SERVICE_URL=http://email-service:3500
-      - SMS_SERVICE_URL=http://sms-service:3000
+      - EMAIL_SERVICE_URL=${EMAIL_SERVICE_URL:-https://email-microservice-seven.vercel.app}
+      - SMS_SERVICE_URL=${SMS_SERVICE_URL:-https://sms-delivery-service.vercel.app}
       - RATE_LIMIT_WINDOW_MS=60000
       - RATE_LIMIT_MAX_REQUESTS=100
       # Feature Flags for Optional Services
@@ -591,7 +480,7 @@ services:
     networks:
       - marketplace-network
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/health', (r) => { if (r.statusCode !== 200) throw new Error(r.statusCode) }).on('error', () => { process.exit(1) })"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -609,8 +498,7 @@ volumes:
     driver: local
   redis_data:
     driver: local
-  mongo_data:
-    driver: local
+
 
 networks:
   marketplace-network:
