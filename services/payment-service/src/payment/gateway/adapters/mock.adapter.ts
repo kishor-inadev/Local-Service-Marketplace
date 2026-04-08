@@ -1,11 +1,11 @@
 import { Injectable, Logger } from "@nestjs/common";
 import {
-	IGatewayAdapter,
-	ChargeParams,
-	ChargeResult,
-	RefundParams,
-	RefundResult,
-	ParsedWebhookEvent,
+  IGatewayAdapter,
+  ChargeParams,
+  ChargeResult,
+  RefundParams,
+  RefundResult,
+  ParsedWebhookEvent,
 } from "../interfaces/gateway-adapter.interface";
 
 /**
@@ -20,39 +20,54 @@ import {
  */
 @Injectable()
 export class MockAdapter implements IGatewayAdapter {
-	private readonly logger = new Logger(MockAdapter.name);
-	readonly gatewayName = "mock";
+  private readonly logger = new Logger(MockAdapter.name);
+  readonly gatewayName = "mock";
 
-	async charge(params: ChargeParams): Promise<ChargeResult> {
-		const transactionId = `txn_mock_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
-		this.logger.warn(`[MOCK GATEWAY] Charging ${params.amount} ${params.currency} → ${transactionId}`);
-		return {
-			transactionId,
-			status: "succeeded",
-			gatewayResponse: { mock: true, amount: params.amount, currency: params.currency },
-		};
-	}
+  async charge(params: ChargeParams): Promise<ChargeResult> {
+    const transactionId = `txn_mock_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    this.logger.warn(
+      `[MOCK GATEWAY] Charging ${params.amount} ${params.currency} → ${transactionId}`,
+    );
+    return {
+      transactionId,
+      status: "succeeded",
+      gatewayResponse: {
+        mock: true,
+        amount: params.amount,
+        currency: params.currency,
+      },
+    };
+  }
 
-	async refund(params: RefundParams): Promise<RefundResult> {
-		const refundId = `ref_mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-		this.logger.warn(`[MOCK GATEWAY] Refunding ${params.transactionId} → ${refundId}`);
-		return { refundId, status: "succeeded" };
-	}
+  async refund(params: RefundParams): Promise<RefundResult> {
+    const refundId = `ref_mock_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+    this.logger.warn(
+      `[MOCK GATEWAY] Refunding ${params.transactionId} → ${refundId}`,
+    );
+    return { refundId, status: "succeeded" };
+  }
 
-	async getPaymentStatus(transactionId: string): Promise<ChargeResult> {
-		return { transactionId, status: "succeeded", gatewayResponse: { mock: true } };
-	}
+  async getPaymentStatus(transactionId: string): Promise<ChargeResult> {
+    return {
+      transactionId,
+      status: "succeeded",
+      gatewayResponse: { mock: true },
+    };
+  }
 
-	// eslint-disable-next-line @typescript-eslint/no-unused-vars
-	verifyWebhookSignature(_rawBody: Buffer, _headers: Record<string, string>): boolean {
-		return true; // mock mode — always valid
-	}
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  verifyWebhookSignature(
+    _rawBody: Buffer,
+    _headers: Record<string, string>,
+  ): boolean {
+    return true; // mock mode — always valid
+  }
 
-	parseWebhookEvent(payload: Record<string, any>): ParsedWebhookEvent {
-		return {
-			eventType: "payment.succeeded",
-			transactionId: payload.transactionId ?? payload.transaction_id,
-			paymentId: payload.paymentId ?? payload.payment_id,
-		};
-	}
+  parseWebhookEvent(payload: Record<string, any>): ParsedWebhookEvent {
+    return {
+      eventType: "payment.succeeded",
+      transactionId: payload.transactionId ?? payload.transaction_id,
+      paymentId: payload.paymentId ?? payload.payment_id,
+    };
+  }
 }

@@ -1,4 +1,12 @@
-import { IsString, IsNumber, IsEnum, IsOptional, IsBoolean, Min, MinLength } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+  Min,
+  MinLength,
+} from "class-validator";
 
 export class UpdatePricingPlanDto {
   @IsOptional()
@@ -16,8 +24,8 @@ export class UpdatePricingPlanDto {
   price?: number;
 
   @IsOptional()
-  @IsEnum(['monthly', 'yearly'])
-  billing_period?: 'monthly' | 'yearly';
+  @IsEnum(["monthly", "yearly"])
+  billing_period?: "monthly" | "yearly";
 
   @IsOptional()
   features?: any;

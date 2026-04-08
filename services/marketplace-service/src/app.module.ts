@@ -14,20 +14,20 @@ import { AnalyticsModule } from "./common/analytics/analytics.module";
 import { HealthController } from "./common/health/health.controller";
 
 @Module({
-	imports: [
-		ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
-		LoggerModule,
-		DatabaseModule,
-		RedisModule,
-		KafkaModule,
-		NotificationModule,
-		UserModule,
-		AnalyticsModule,
-		RequestModule,
-		ProposalModule,
-		JobModule,
-		ReviewModule,
-	],
-	controllers: [HealthController],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
+    LoggerModule,
+    DatabaseModule,
+    RedisModule,
+    KafkaModule,
+    NotificationModule,
+    UserModule,
+    AnalyticsModule,
+    RequestModule,
+    ProposalModule,
+    JobModule,
+    ReviewModule,
+  ],
+  controllers: [HealthController],
 })
 export class AppModule {}

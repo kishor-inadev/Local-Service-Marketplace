@@ -1,9 +1,9 @@
-import * as Sentry from '@sentry/node';
-import { ProfilingIntegration } from '@sentry/profiling-node';
+import * as Sentry from "@sentry/node";
+import { ProfilingIntegration } from "@sentry/profiling-node";
 
 /**
  * Initialize Sentry for error tracking and performance monitoring
- * 
+ *
  * SETUP INSTRUCTIONS:
  * 1. Sign up at https://sentry.io
  * 2. Create a new project for "Node.js"
@@ -15,13 +15,16 @@ import { ProfilingIntegration } from '@sentry/profiling-node';
 
 export function initializeSentry() {
   const dsn = process.env.SENTRY_DSN;
-  const environment = process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || 'development';
-  const serviceName = process.env.SERVICE_NAME || 'api-gateway';
+  const environment =
+    process.env.SENTRY_ENVIRONMENT || process.env.NODE_ENV || "development";
+  const serviceName = process.env.SERVICE_NAME || "api-gateway";
 
   // Only initialize if DSN is provided
   if (!dsn) {
-    console.warn('[Sentry] SENTRY_DSN not set - error tracking disabled');
-    console.warn('[Sentry] To enable: Sign up at https://sentry.io and add SENTRY_DSN to .env');
+    console.warn("[Sentry] SENTRY_DSN not set - error tracking disabled");
+    console.warn(
+      "[Sentry] To enable: Sign up at https://sentry.io and add SENTRY_DSN to .env",
+    );
     return false;
   }
 
@@ -29,22 +32,20 @@ export function initializeSentry() {
     Sentry.init({
       dsn,
       environment,
-      
+
       // Service identification
       serverName: serviceName,
-      
+
       // Release tracking (for deployment correlation)
       release: process.env.SENTRY_RELEASE || process.env.npm_package_version,
-      
+
       // Performance monitoring
-      tracesSampleRate: environment === 'production' ? 0.1 : 1.0, // 10% in prod, 100% in dev
-      
+      tracesSampleRate: environment === "production" ? 0.1 : 1.0, // 10% in prod, 100% in dev
+
       // Profiling (helps identify performance bottlenecks)
-      profilesSampleRate: environment === 'production' ? 0.1 : 1.0,
-      integrations: [
-        new ProfilingIntegration(),
-      ],
-      
+      profilesSampleRate: environment === "production" ? 0.1 : 1.0,
+      integrations: [new ProfilingIntegration()],
+
       // Attach breadcrumbs for better debugging context
       attachStacktrace: true,
     });
@@ -52,7 +53,7 @@ export function initializeSentry() {
     console.log(`[Sentry] ✅ Initialized for ${serviceName} (${environment})`);
     return true;
   } catch (error) {
-    console.error('[Sentry] ❌ Failed to initialize:', error);
+    console.error("[Sentry] ❌ Failed to initialize:", error);
     return false;
   }
 }
@@ -67,7 +68,7 @@ export function captureException(error: Error, context?: Record<string, any>) {
       extra: context,
     });
   } else {
-    console.error('[Error]', error, context);
+    console.error("[Error]", error, context);
   }
 }
 
@@ -75,7 +76,11 @@ export function captureException(error: Error, context?: Record<string, any>) {
  * Capture a message (for warnings, custom events)
  * Usage: captureMessage('Payment processed', 'info', { amount: 100 })
  */
-export function captureMessage(message: string, level: Sentry.SeverityLevel = 'info', context?: Record<string, any>) {
+export function captureMessage(
+  message: string,
+  level: Sentry.SeverityLevel = "info",
+  context?: Record<string, any>,
+) {
   if (process.env.SENTRY_DSN) {
     Sentry.captureMessage(message, {
       level,
@@ -90,7 +95,9 @@ export function captureMessage(message: string, level: Sentry.SeverityLevel = 'i
  * Set user context for error reporting
  * Usage: setUser({ id: '123', email: 'user@example.com' })
  */
-export function setUser(user: { id: string; email?: string; username?: string } | null) {
+export function setUser(
+  user: { id: string; email?: string; username?: string } | null,
+) {
   if (process.env.SENTRY_DSN) {
     Sentry.setUser(user);
   }
@@ -115,7 +122,7 @@ export function addBreadcrumb(message: string, data?: Record<string, any>) {
     Sentry.addBreadcrumb({
       message,
       data,
-      level: 'info',
+      level: "info",
     });
   }
 }

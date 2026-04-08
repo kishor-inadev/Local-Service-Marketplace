@@ -1,4 +1,4 @@
-import { Job } from '../entities/job.entity';
+import { Job } from "../entities/job.entity";
 
 export class JobResponseDto {
   id: string;
@@ -21,19 +21,26 @@ export class JobResponseDto {
 }
 
 export class PaginatedJobResponseDto {
-	data: JobResponseDto[];
-	total?: number;
+  data: JobResponseDto[];
+  total?: number;
   page?: number;
   limit?: number;
-	nextCursor?: string;
-	hasMore?: boolean;
+  nextCursor?: string;
+  hasMore?: boolean;
 
-  constructor(data: JobResponseDto[], nextCursor?: string, hasMore = false, total?: number, page?: number, limit?: number) {
-		this.data = data;
-		this.total = total;
+  constructor(
+    data: JobResponseDto[],
+    nextCursor?: string,
+    hasMore = false,
+    total?: number,
+    page?: number,
+    limit?: number,
+  ) {
+    this.data = data;
+    this.total = total;
     this.page = page;
     this.limit = limit;
-		this.nextCursor = nextCursor;
-		this.hasMore = hasMore;
-	}
+    this.nextCursor = nextCursor;
+    this.hasMore = hasMore;
+  }
 }

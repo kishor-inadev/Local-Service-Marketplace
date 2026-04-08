@@ -10,5 +10,3 @@ export class ProviderReviewAggregate {
   last_review_at?: Date;
   updated_at?: Date;
 }
-
-

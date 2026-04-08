@@ -10,19 +10,19 @@ import { QueueModule } from "./queue/queue.module";
 import { HealthController } from "./common/health/health.controller";
 
 @Module({
-	imports: [
-		ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
-		ThrottlerModule.forRoot([
-			{ name: "email", ttl: 60000, limit: 10 },
-			{ name: "sms", ttl: 3600000, limit: 5 },
-		]),
-		LoggerModule,
-		DatabaseModule,
-		QueueModule,
-		KafkaModule,
-		NotificationModule,
-		MessagingModule,
-	],
-	controllers: [HealthController],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
+    ThrottlerModule.forRoot([
+      { name: "email", ttl: 60000, limit: 10 },
+      { name: "sms", ttl: 3600000, limit: 5 },
+    ]),
+    LoggerModule,
+    DatabaseModule,
+    QueueModule,
+    KafkaModule,
+    NotificationModule,
+    MessagingModule,
+  ],
+  controllers: [HealthController],
 })
 export class AppModule {}

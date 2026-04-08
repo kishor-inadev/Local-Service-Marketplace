@@ -1,6 +1,12 @@
-import { Injectable, Inject, LoggerService, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Kafka, Producer } from 'kafkajs';
+import {
+  Injectable,
+  Inject,
+  LoggerService,
+  OnModuleInit,
+  OnModuleDestroy,
+} from "@nestjs/common";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { Kafka, Producer } from "kafkajs";
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
@@ -10,13 +16,14 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
   private isConnected: boolean = false;
 
   constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
   ) {
-    this.isEnabled = process.env.EVENT_BUS_ENABLED === 'true';
-    
+    this.isEnabled = process.env.EVENT_BUS_ENABLED === "true";
+
     if (this.isEnabled) {
-      const brokers = process.env.KAFKA_BROKERS?.split(',') || ['kafka:29092'];
-      const clientId = process.env.KAFKA_CLIENT_ID || 'payment-service';
+      const brokers = process.env.KAFKA_BROKERS?.split(",") || ["kafka:29092"];
+      const clientId = process.env.KAFKA_CLIENT_ID || "payment-service";
 
       this.kafka = new Kafka({
         clientId,
@@ -36,24 +43,27 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       try {
         await this.producer.connect();
         this.isConnected = true;
-        this.logger.log('Kafka producer connected successfully', 'KafkaService');
+        this.logger.log(
+          "Kafka producer connected successfully",
+          "KafkaService",
+        );
       } catch (error) {
         this.logger.error(
           `Failed to connect to Kafka: ${error.message}. Events will not be published.`,
           error.stack,
-          'KafkaService',
+          "KafkaService",
         );
         this.isEnabled = false;
       }
     } else {
-      this.logger.log('Kafka event bus is disabled', 'KafkaService');
+      this.logger.log("Kafka event bus is disabled", "KafkaService");
     }
   }
 
   async onModuleDestroy() {
     if (this.isConnected) {
       await this.producer.disconnect();
-      this.logger.log('Kafka producer disconnected', 'KafkaService');
+      this.logger.log("Kafka producer disconnected", "KafkaService");
     }
   }
 
@@ -61,7 +71,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     if (!this.isEnabled || !this.isConnected) {
       this.logger.debug(
         `Kafka disabled - event not published: ${topic}`,
-        'KafkaService',
+        "KafkaService",
       );
       return;
     }
@@ -80,13 +90,13 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
       this.logger.log(
         `Event published to topic ${topic}: ${event.eventType || topic}`,
-        'KafkaService',
+        "KafkaService",
       );
     } catch (error) {
       this.logger.error(
         `Failed to publish event to ${topic}: ${error.message}`,
         error.stack,
-        'KafkaService',
+        "KafkaService",
       );
     }
   }

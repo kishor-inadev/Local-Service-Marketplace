@@ -1,9 +1,9 @@
-import { Process, Processor } from '@nestjs/bull';
-import { Job } from 'bull';
-import { Inject, LoggerService } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { NotificationDeliveryRepository } from '../../notification/repositories/notification-delivery.repository';
-import { NotificationRepository } from '../../notification/repositories/notification.repository';
+import { Process, Processor } from "@nestjs/bull";
+import { Job } from "bull";
+import { Inject, LoggerService } from "@nestjs/common";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { NotificationDeliveryRepository } from "../../notification/repositories/notification-delivery.repository";
+import { NotificationRepository } from "../../notification/repositories/notification.repository";
 
 export interface EmailJobData {
   deliveryId: string;
@@ -13,21 +13,22 @@ export interface EmailJobData {
   message: string;
 }
 
-@Processor('email-queue')
+@Processor("email-queue")
 export class EmailQueueProcessor {
   constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly notificationRepository: NotificationRepository,
   ) {}
 
-  @Process('send-email')
+  @Process("send-email")
   async handleSendEmail(job: Job<EmailJobData>): Promise<void> {
     const { deliveryId, notificationId, userId, type, message } = job.data;
 
     this.logger.log(
       `Processing email job for delivery ${deliveryId}`,
-      'EmailQueueProcessor',
+      "EmailQueueProcessor",
     );
 
     try {
@@ -35,28 +36,32 @@ export class EmailQueueProcessor {
       await this.sendEmail(userId, type, message);
 
       // Mark delivery as sent
-      await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'sent');
+      await this.deliveryRepository.updateDeliveryStatus(deliveryId, "sent");
 
       this.logger.log(
         `Email sent successfully for delivery ${deliveryId}`,
-        'EmailQueueProcessor',
+        "EmailQueueProcessor",
       );
     } catch (error) {
       this.logger.error(
         `Failed to send email for delivery ${deliveryId}: ${error.message}`,
         error.stack,
-        'EmailQueueProcessor',
+        "EmailQueueProcessor",
       );
 
       // Mark delivery as failed
-      await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
+      await this.deliveryRepository.updateDeliveryStatus(deliveryId, "failed");
 
       // Rethrow to trigger Bull's retry mechanism
       throw error;
     }
   }
 
-  private async sendEmail(userId: string, type: string, message: string): Promise<void> {
+  private async sendEmail(
+    userId: string,
+    type: string,
+    message: string,
+  ): Promise<void> {
     // Simulate email sending with delay
     await new Promise((resolve) => setTimeout(resolve, 100));
 
@@ -71,7 +76,7 @@ export class EmailQueueProcessor {
 
     this.logger.log(
       `Email sent to user ${userId} with type ${type}`,
-      'EmailQueueProcessor',
+      "EmailQueueProcessor",
     );
   }
 }

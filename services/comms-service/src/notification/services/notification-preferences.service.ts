@@ -1,15 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { NotificationPreferencesRepository } from '../repositories/notification-preferences.repository';
-import { UpdateNotificationPreferencesDto } from '../dto/update-notification-preferences.dto';
-import { NotificationPreferences } from '../entities/notification-preferences.entity';
+import { Injectable, NotFoundException } from "@nestjs/common";
+import { NotificationPreferencesRepository } from "../repositories/notification-preferences.repository";
+import { UpdateNotificationPreferencesDto } from "../dto/update-notification-preferences.dto";
+import { NotificationPreferences } from "../entities/notification-preferences.entity";
 
 @Injectable()
 export class NotificationPreferencesService {
   constructor(
-    private readonly preferencesRepository: NotificationPreferencesRepository
+    private readonly preferencesRepository: NotificationPreferencesRepository,
   ) {}
 
-  async createDefaultPreferences(userId: string): Promise<NotificationPreferences> {
+  async createDefaultPreferences(
+    userId: string,
+  ): Promise<NotificationPreferences> {
     // Create default notification preferences when user signs up
     // Most notifications enabled by default, except marketing
     return this.preferencesRepository.create(userId);
@@ -28,7 +30,7 @@ export class NotificationPreferencesService {
 
   async updatePreferences(
     userId: string,
-    dto: UpdateNotificationPreferencesDto
+    dto: UpdateNotificationPreferencesDto,
   ): Promise<NotificationPreferences> {
     const preferences = await this.getPreferences(userId);
 
@@ -37,24 +39,26 @@ export class NotificationPreferencesService {
 
   async checkNotificationEnabled(
     userId: string,
-    notificationType: keyof UpdateNotificationPreferencesDto
+    notificationType: keyof UpdateNotificationPreferencesDto,
   ): Promise<boolean> {
     const preferences = await this.getPreferences(userId);
     return preferences[notificationType] ?? true; // Default to true if not set
   }
 
   async getUsersForNotification(
-    notificationType: keyof UpdateNotificationPreferencesDto
+    notificationType: keyof UpdateNotificationPreferencesDto,
   ): Promise<NotificationPreferences[]> {
     // Get all users who have this notification type enabled
     // Used for bulk notifications
     return this.preferencesRepository.getUsersWithPreference(
       notificationType as string,
-      true
+      true,
     );
   }
 
-  async disableAllNotifications(userId: string): Promise<NotificationPreferences> {
+  async disableAllNotifications(
+    userId: string,
+  ): Promise<NotificationPreferences> {
     const preferences = await this.getPreferences(userId);
 
     return this.preferencesRepository.update(preferences.id, {
@@ -67,11 +71,13 @@ export class NotificationPreferencesService {
       job_updates: false,
       payment_alerts: false,
       review_alerts: false,
-      message_alerts: false
+      message_alerts: false,
     });
   }
 
-  async enableAllNotifications(userId: string): Promise<NotificationPreferences> {
+  async enableAllNotifications(
+    userId: string,
+  ): Promise<NotificationPreferences> {
     const preferences = await this.getPreferences(userId);
 
     return this.preferencesRepository.update(preferences.id, {
@@ -84,7 +90,7 @@ export class NotificationPreferencesService {
       job_updates: true,
       payment_alerts: true,
       review_alerts: true,
-      message_alerts: true
+      message_alerts: true,
     });
   }
 }

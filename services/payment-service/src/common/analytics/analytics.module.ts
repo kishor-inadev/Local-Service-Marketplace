@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { AnalyticsClient } from './analytics.client';
+import { Module } from "@nestjs/common";
+import { AnalyticsClient } from "./analytics.client";
 
 @Module({
   providers: [AnalyticsClient],

@@ -1,10 +1,18 @@
-import { IsString, IsNumber, IsUUID, IsOptional, MinLength, Min, IsEnum } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsUUID,
+  IsOptional,
+  MinLength,
+  Min,
+  IsEnum,
+} from "class-validator";
 
 export enum RequestStatus {
-  PENDING = 'pending',
-  IN_PROGRESS = 'in_progress',
-  COMPLETED = 'completed',
-  CANCELLED = 'cancelled',
+  PENDING = "pending",
+  IN_PROGRESS = "in_progress",
+  COMPLETED = "completed",
+  CANCELLED = "cancelled",
 }
 
 export class UpdateRequestDto {

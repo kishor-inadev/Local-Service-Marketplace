@@ -9,16 +9,16 @@ import { PayUbizAdapter } from "./adapters/payubiz.adapter";
 import { InstamojoAdapter } from "./adapters/instamojo.adapter";
 
 @Module({
-	imports: [ConfigModule],
-	providers: [
-		StripeAdapter,
-		RazorpayAdapter,
-		PayPalAdapter,
-		MockAdapter,
-		PayUbizAdapter,
-		InstamojoAdapter,
-		PaymentGatewayService,
-	],
-	exports: [PaymentGatewayService],
+  imports: [ConfigModule],
+  providers: [
+    StripeAdapter,
+    RazorpayAdapter,
+    PayPalAdapter,
+    MockAdapter,
+    PayUbizAdapter,
+    InstamojoAdapter,
+    PaymentGatewayService,
+  ],
+  exports: [PaymentGatewayService],
 })
 export class PaymentGatewayModule {}

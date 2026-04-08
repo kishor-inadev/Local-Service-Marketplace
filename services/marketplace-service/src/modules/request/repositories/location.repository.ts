@@ -1,10 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { Location } from '../entities/location.entity';
+import { Injectable, Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { Location } from "../entities/location.entity";
 
 @Injectable()
 export class LocationRepository {
-  constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
   async createLocation(data: {
     user_id: string;
@@ -30,7 +30,7 @@ export class LocationRepository {
       data.city || null,
       data.state || null,
       data.zip_code || null,
-      data.country || 'US',
+      data.country || "US",
     ];
 
     const result = await this.pool.query(query, values);
@@ -38,18 +38,22 @@ export class LocationRepository {
   }
 
   async getLocationById(id: string): Promise<Location | null> {
-    const query = 'SELECT * FROM locations WHERE id = $1';
+    const query = "SELECT * FROM locations WHERE id = $1";
     const result = await this.pool.query(query, [id]);
     return result.rows[0] || null;
   }
 
   async getLocationsByUserId(userId: string): Promise<Location[]> {
-    const query = 'SELECT * FROM locations WHERE user_id = $1 ORDER BY created_at DESC';
+    const query =
+      "SELECT * FROM locations WHERE user_id = $1 ORDER BY created_at DESC";
     const result = await this.pool.query(query, [userId]);
     return result.rows;
   }
 
-  async updateLocation(id: string, data: Partial<Location>): Promise<Location | null> {
+  async updateLocation(
+    id: string,
+    data: Partial<Location>,
+  ): Promise<Location | null> {
     const fields: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;
@@ -90,7 +94,7 @@ export class LocationRepository {
     values.push(id);
     const query = `
       UPDATE locations
-      SET ${fields.join(', ')}
+      SET ${fields.join(", ")}
       WHERE id = $${paramIndex}
       RETURNING *
     `;
@@ -100,7 +104,7 @@ export class LocationRepository {
   }
 
   async deleteLocation(id: string): Promise<boolean> {
-    const query = 'DELETE FROM locations WHERE id = $1';
+    const query = "DELETE FROM locations WHERE id = $1";
     const result = await this.pool.query(query, [id]);
     return result.rowCount > 0;
   }

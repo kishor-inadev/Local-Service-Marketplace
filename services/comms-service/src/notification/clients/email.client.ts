@@ -1,7 +1,7 @@
-import { Injectable, Inject, LoggerService } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import axios, { AxiosInstance } from 'axios';
+import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import axios, { AxiosInstance } from "axios";
 
 @Injectable()
 export class EmailClient {
@@ -10,23 +10,28 @@ export class EmailClient {
   private readonly emailEnabled: boolean;
 
   constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
     private readonly configService: ConfigService,
   ) {
-    this.emailServiceUrl = this.configService.get<string>("EMAIL_SERVICE_URL", "http://email-service:3500");
-    this.emailEnabled = this.configService.get<string>('EMAIL_ENABLED', 'true') === 'true';
+    this.emailServiceUrl = this.configService.get<string>(
+      "EMAIL_SERVICE_URL",
+      "http://email-service:3500",
+    );
+    this.emailEnabled =
+      this.configService.get<string>("EMAIL_ENABLED", "true") === "true";
 
     this.httpClient = axios.create({
       baseURL: this.emailServiceUrl,
       timeout: 10000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     this.logger.log(
       `EmailClient initialized - URL: ${this.emailServiceUrl}, Enabled: ${this.emailEnabled}`,
-      'EmailClient',
+      "EmailClient",
     );
   }
 
@@ -39,29 +44,35 @@ export class EmailClient {
     variables?: Record<string, any>;
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     if (!this.emailEnabled) {
-      this.logger.warn('Email service is disabled. Skipping email send.', 'EmailClient');
-      return { success: false, error: 'Email service disabled' };
+      this.logger.warn(
+        "Email service is disabled. Skipping email send.",
+        "EmailClient",
+      );
+      return { success: false, error: "Email service disabled" };
     }
 
     try {
-      this.logger.log(`Sending email to ${options.to}`, 'EmailClient');
+      this.logger.log(`Sending email to ${options.to}`, "EmailClient");
 
       const response = await this.httpClient.post("/send-email", {
-				to: options.to,
-				subject: options.subject,
-				text: options.text,
-				html: options.html,
-				template: options.template,
-				variables: options.variables,
-			});
+        to: options.to,
+        subject: options.subject,
+        text: options.text,
+        html: options.html,
+        template: options.template,
+        variables: options.variables,
+      });
 
-      this.logger.log(`Email sent successfully to ${options.to}`, 'EmailClient');
+      this.logger.log(
+        `Email sent successfully to ${options.to}`,
+        "EmailClient",
+      );
       return { success: true, messageId: response.data?.messageId };
     } catch (error) {
       this.logger.error(
         `Failed to send email to ${options.to}: ${error.message}`,
         error.stack,
-        'EmailClient',
+        "EmailClient",
       );
       return { success: false, error: error.message };
     }
@@ -73,22 +84,35 @@ export class EmailClient {
     variables: Record<string, any>,
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     if (!this.emailEnabled) {
-      this.logger.warn('Email service is disabled. Skipping template email send.', 'EmailClient');
-      return { success: false, error: 'Email service disabled' };
+      this.logger.warn(
+        "Email service is disabled. Skipping template email send.",
+        "EmailClient",
+      );
+      return { success: false, error: "Email service disabled" };
     }
 
     try {
-      this.logger.log(`Sending template email (${template}) to ${to}`, 'EmailClient');
+      this.logger.log(
+        `Sending template email (${template}) to ${to}`,
+        "EmailClient",
+      );
 
-      const response = await this.httpClient.post("/send-email", { to, template, variables });
+      const response = await this.httpClient.post("/send-email", {
+        to,
+        template,
+        variables,
+      });
 
-      this.logger.log(`Template email sent successfully to ${to}`, 'EmailClient');
+      this.logger.log(
+        `Template email sent successfully to ${to}`,
+        "EmailClient",
+      );
       return { success: true, messageId: response.data?.messageId };
     } catch (error) {
       this.logger.error(
         `Failed to send template email to ${to}: ${error.message}`,
         error.stack,
-        'EmailClient',
+        "EmailClient",
       );
       return { success: false, error: error.message };
     }
@@ -103,10 +127,13 @@ export class EmailClient {
     }
 
     try {
-      await this.httpClient.get('/health');
+      await this.httpClient.get("/health");
       return true;
     } catch (error) {
-      this.logger.error(`Email service health check failed: ${error.message}`, 'EmailClient');
+      this.logger.error(
+        `Email service health check failed: ${error.message}`,
+        "EmailClient",
+      );
       return false;
     }
   }

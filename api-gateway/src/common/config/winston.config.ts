@@ -1,7 +1,8 @@
-import * as winston from 'winston';
-import { redactFormat } from './log-redaction';
+import * as winston from "winston";
+import { redactFormat } from "./log-redaction";
 
-const isServerless = !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
+const isServerless =
+  !!process.env.VERCEL || !!process.env.AWS_LAMBDA_FUNCTION_NAME;
 
 const transports: winston.transport[] = [
   new winston.transports.Console({
@@ -18,15 +19,15 @@ const transports: winston.transport[] = [
 if (!isServerless) {
   transports.push(
     new winston.transports.File({
-      filename: 'logs/error.log',
-      level: 'error',
+      filename: "logs/error.log",
+      level: "error",
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json(),
       ),
     }),
     new winston.transports.File({
-      filename: 'logs/combined.log',
+      filename: "logs/combined.log",
       format: winston.format.combine(
         winston.format.timestamp(),
         winston.format.json(),

@@ -1,8 +1,8 @@
-import { Controller, Get, Inject, LoggerService } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { GatewayService } from '../services/gateway.service';
+import { Controller, Get, Inject, LoggerService } from "@nestjs/common";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { GatewayService } from "../services/gateway.service";
 
-@Controller('health')
+@Controller("health")
 export class HealthController {
   constructor(
     private readonly gatewayService: GatewayService,
@@ -15,12 +15,12 @@ export class HealthController {
    */
   @Get()
   async healthCheck(): Promise<any> {
-    this.logger.log('Health check requested', 'HealthController');
+    this.logger.log("Health check requested", "HealthController");
 
     return {
-      status: 'healthy',
+      status: "healthy",
       timestamp: new Date().toISOString(),
-      gateway: 'api-gateway',
+      gateway: "api-gateway",
       uptime: process.uptime(),
     };
   }
@@ -28,18 +28,18 @@ export class HealthController {
   /**
    * Check all microservices health
    */
-  @Get('services')
+  @Get("services")
   async servicesHealthCheck(): Promise<any> {
-    this.logger.log('Services health check requested', 'HealthController');
+    this.logger.log("Services health check requested", "HealthController");
 
     const servicesHealth = await this.gatewayService.healthCheck();
 
     const allHealthy = Object.values(servicesHealth).every(
-      (service: any) => service.status === 'healthy',
+      (service: any) => service.status === "healthy",
     );
 
     return {
-      status: allHealthy ? 'healthy' : 'degraded',
+      status: allHealthy ? "healthy" : "degraded",
       timestamp: new Date().toISOString(),
       services: servicesHealth,
     };

@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Min, IsEnum } from 'class-validator';
+import { IsString, IsNumber, IsOptional, Min, IsEnum } from "class-validator";
 
 export class CreatePaymentDto {
   @IsString()
@@ -11,12 +11,12 @@ export class CreatePaymentDto {
   @Min(0.01)
   amount: number;
 
-  @IsEnum(['USD', 'EUR', 'GBP', 'INR'])
+  @IsEnum(["USD", "EUR", "GBP", "INR"])
   currency: string;
 
   @IsOptional()
-  @IsEnum(['card', 'bank_transfer', 'wallet', 'cash'])
-  payment_method?: 'card' | 'bank_transfer' | 'wallet' | 'cash';
+  @IsEnum(["card", "bank_transfer", "wallet", "cash"])
+  payment_method?: "card" | "bank_transfer" | "wallet" | "cash";
 
   @IsOptional()
   @IsString()

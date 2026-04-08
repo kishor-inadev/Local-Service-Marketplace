@@ -9,9 +9,18 @@ import { NotificationModule } from "../../common/notification/notification.modul
 import { UserModule } from "../../common/user/user.module";
 
 @Module({
-	imports: [NotificationModule, UserModule],
-	controllers: [ReviewController, ProviderReviewAggregateController],
-	providers: [ReviewService, ProviderReviewAggregateService, ReviewRepository, ProviderReviewAggregateRepository],
-	exports: [ReviewService, ProviderReviewAggregateService, ProviderReviewAggregateRepository],
+  imports: [NotificationModule, UserModule],
+  controllers: [ReviewController, ProviderReviewAggregateController],
+  providers: [
+    ReviewService,
+    ProviderReviewAggregateService,
+    ReviewRepository,
+    ProviderReviewAggregateRepository,
+  ],
+  exports: [
+    ReviewService,
+    ProviderReviewAggregateService,
+    ProviderReviewAggregateRepository,
+  ],
 })
 export class ReviewModule {}

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance } from 'axios';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios, { AxiosInstance } from "axios";
 
 export interface SendEmailNotificationOptions {
   to: string;
@@ -23,17 +23,19 @@ export class NotificationClient {
 
   constructor(private configService: ConfigService) {
     const notificationServiceUrl = this.configService.get<string>(
-      'NOTIFICATION_SERVICE_URL',
-      'http://comms-service:3007',
+      "NOTIFICATION_SERVICE_URL",
+      "http://comms-service:3007",
     );
-    this.emailEnabled = this.configService.get<string>('EMAIL_ENABLED', 'true') === 'true';
-    this.smsEnabled = this.configService.get<string>('SMS_ENABLED', 'false') === 'true';
+    this.emailEnabled =
+      this.configService.get<string>("EMAIL_ENABLED", "true") === "true";
+    this.smsEnabled =
+      this.configService.get<string>("SMS_ENABLED", "false") === "true";
 
     this.client = axios.create({
       baseURL: notificationServiceUrl,
       timeout: 15000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
@@ -44,14 +46,16 @@ export class NotificationClient {
 
   async sendEmail(options: SendEmailNotificationOptions): Promise<boolean> {
     if (!this.emailEnabled) {
-      this.logger.debug('Email notifications disabled, skipping email send');
+      this.logger.debug("Email notifications disabled, skipping email send");
       return false;
     }
 
     try {
-      this.logger.log(`Sending email to ${options.to} using template ${options.template}`);
+      this.logger.log(
+        `Sending email to ${options.to} using template ${options.template}`,
+      );
 
-      await this.client.post('/notifications/email/send', {
+      await this.client.post("/notifications/email/send", {
         to: options.to,
         template: options.template,
         variables: options.variables,
@@ -70,17 +74,17 @@ export class NotificationClient {
 
   async sendSms(options: SendSmsNotificationOptions): Promise<boolean> {
     if (!this.smsEnabled) {
-      this.logger.debug('SMS notifications disabled, skipping SMS send');
+      this.logger.debug("SMS notifications disabled, skipping SMS send");
       return false;
     }
 
     try {
       this.logger.log(`Sending SMS to ${options.phone}`);
 
-      await this.client.post('/notifications/sms/send', {
+      await this.client.post("/notifications/sms/send", {
         phone: options.phone,
         message: options.message,
-        purpose: options.purpose || 'notification',
+        purpose: options.purpose || "notification",
       });
 
       this.logger.log(`SMS sent successfully to ${options.phone}`);

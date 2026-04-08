@@ -1,4 +1,4 @@
-import { IsString, IsUUID, IsUrl, IsOptional, IsNumber } from 'class-validator';
+import { IsString, IsUUID, IsUrl, IsOptional, IsNumber } from "class-validator";
 
 export class CreateAttachmentDto {
   @IsUUID()

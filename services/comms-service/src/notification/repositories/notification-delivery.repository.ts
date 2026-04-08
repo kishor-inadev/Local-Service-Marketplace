@@ -1,11 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { NotificationDelivery } from '../entities/notification-delivery.entity';
-import { v4 as uuidv4 } from 'uuid';
+import { Injectable, Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { NotificationDelivery } from "../entities/notification-delivery.entity";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class NotificationDeliveryRepository {
-  constructor(@Inject('DATABASE_POOL') private pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private pool: Pool) {}
 
   async createDelivery(
     notificationId: string,
@@ -29,7 +29,7 @@ export class NotificationDeliveryRepository {
   }
 
   async getDeliveryById(id: string): Promise<NotificationDelivery | null> {
-    const query = 'SELECT * FROM notification_deliveries WHERE id = $1';
+    const query = "SELECT * FROM notification_deliveries WHERE id = $1";
     const result = await this.pool.query(query, [id]);
     if (result.rows.length === 0) {
       return null;
@@ -42,8 +42,11 @@ export class NotificationDeliveryRepository {
     });
   }
 
-  async getDeliveriesByNotificationId(notificationId: string): Promise<NotificationDelivery[]> {
-    const query = "SELECT * FROM notification_deliveries WHERE notification_id = $1 ORDER BY created_at ASC";
+  async getDeliveriesByNotificationId(
+    notificationId: string,
+  ): Promise<NotificationDelivery[]> {
+    const query =
+      "SELECT * FROM notification_deliveries WHERE notification_id = $1 ORDER BY created_at ASC";
     const result = await this.pool.query(query, [notificationId]);
     return result.rows.map(
       (row) =>
@@ -56,7 +59,10 @@ export class NotificationDeliveryRepository {
     );
   }
 
-  async updateDeliveryStatus(id: string, status: string): Promise<NotificationDelivery> {
+  async updateDeliveryStatus(
+    id: string,
+    status: string,
+  ): Promise<NotificationDelivery> {
     const query = `
       UPDATE notification_deliveries 
       SET status = $1 
@@ -73,8 +79,9 @@ export class NotificationDeliveryRepository {
   }
 
   async getPendingDeliveries(): Promise<NotificationDelivery[]> {
-    const query = "SELECT * FROM notification_deliveries WHERE status = $1 ORDER BY created_at ASC LIMIT 100";
-    const result = await this.pool.query(query, ['pending']);
+    const query =
+      "SELECT * FROM notification_deliveries WHERE status = $1 ORDER BY created_at ASC LIMIT 100";
+    const result = await this.pool.query(query, ["pending"]);
     return result.rows.map(
       (row) =>
         new NotificationDelivery({

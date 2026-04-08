@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance } from 'axios';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios, { AxiosInstance } from "axios";
 
 export interface UserData {
   id: string;
@@ -18,21 +18,29 @@ export class UserClient {
   private readonly enabled: boolean;
 
   constructor(private configService: ConfigService) {
-    this.userServiceUrl = this.configService.get<string>("USER_SERVICE_URL", "http://identity-service:3001");
-    this.enabled = this.configService.get<boolean>('USER_SERVICE_ENABLED', true);
+    this.userServiceUrl = this.configService.get<string>(
+      "USER_SERVICE_URL",
+      "http://identity-service:3001",
+    );
+    this.enabled = this.configService.get<boolean>(
+      "USER_SERVICE_ENABLED",
+      true,
+    );
 
     this.httpClient = axios.create({
       baseURL: this.userServiceUrl,
       timeout: 5000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     if (this.enabled) {
-      this.logger.log(`UserClient initialized with URL: ${this.userServiceUrl}`);
+      this.logger.log(
+        `UserClient initialized with URL: ${this.userServiceUrl}`,
+      );
     } else {
-      this.logger.warn('UserClient is disabled');
+      this.logger.warn("UserClient is disabled");
     }
   }
 
@@ -70,7 +78,7 @@ export class UserClient {
     }
 
     try {
-      await this.httpClient.get('/health');
+      await this.httpClient.get("/health");
       return true;
     } catch (error) {
       this.logger.error(`User service health check failed: ${error.message}`);

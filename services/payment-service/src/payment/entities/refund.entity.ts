@@ -3,7 +3,7 @@ export class Refund {
   display_id: string;
   payment_id: string;
   amount: number;
-  status: 'pending' | 'completed' | 'failed';
+  status: "pending" | "completed" | "failed";
   reason?: string;
   created_at: Date;
 

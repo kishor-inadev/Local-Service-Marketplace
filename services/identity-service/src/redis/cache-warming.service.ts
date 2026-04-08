@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  OnModuleInit,
-  Inject,
-} from "@nestjs/common";
+import { Injectable, OnModuleInit, Inject } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { RedisService } from "./redis.service";

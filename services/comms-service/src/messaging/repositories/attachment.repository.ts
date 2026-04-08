@@ -1,11 +1,11 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { Attachment } from '../entities/attachment.entity';
-import { v4 as uuidv4 } from 'uuid';
+import { Injectable, Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { Attachment } from "../entities/attachment.entity";
+import { v4 as uuidv4 } from "uuid";
 
 @Injectable()
 export class AttachmentRepository {
-  constructor(@Inject('DATABASE_POOL') private pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private pool: Pool) {}
 
   async createAttachment(
     messageId: string,
@@ -34,7 +34,7 @@ export class AttachmentRepository {
   }
 
   async getAttachmentById(id: string): Promise<Attachment | null> {
-    const query = 'SELECT * FROM attachments WHERE id = $1';
+    const query = "SELECT * FROM attachments WHERE id = $1";
     const result = await this.pool.query(query, [id]);
     if (result.rows.length === 0) {
       return null;
@@ -51,7 +51,8 @@ export class AttachmentRepository {
   }
 
   async getAttachmentsByMessageId(messageId: string): Promise<Attachment[]> {
-    const query = "SELECT * FROM attachments WHERE message_id = $1 ORDER BY created_at ASC";
+    const query =
+      "SELECT * FROM attachments WHERE message_id = $1 ORDER BY created_at ASC";
     const result = await this.pool.query(query, [messageId]);
     return result.rows.map(
       (row) =>
@@ -68,7 +69,7 @@ export class AttachmentRepository {
   }
 
   async deleteAttachment(id: string): Promise<void> {
-    const query = 'DELETE FROM attachments WHERE id = $1';
+    const query = "DELETE FROM attachments WHERE id = $1";
     await this.pool.query(query, [id]);
   }
 }

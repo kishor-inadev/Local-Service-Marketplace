@@ -78,9 +78,7 @@ export class ProviderDocumentService {
     return { data, total: data.length };
   }
 
-  async getDocumentById(
-    documentId: string,
-  ): Promise<ProviderDocument> {
+  async getDocumentById(documentId: string): Promise<ProviderDocument> {
     const document = await this.documentRepository.findById(documentId);
 
     if (!document) {
@@ -162,6 +160,4 @@ export class ProviderDocumentService {
       missing_required_documents: missingTypes,
     };
   }
-}
-}
 }

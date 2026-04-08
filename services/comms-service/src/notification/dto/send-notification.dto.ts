@@ -1,9 +1,15 @@
-import { IsString, IsNotEmpty, IsEnum, IsOptional, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsNotEmpty,
+  IsEnum,
+  IsOptional,
+  IsObject,
+} from "class-validator";
 
 export enum NotificationChannel {
-  EMAIL = 'email',
-  SMS = 'sms',
-  BOTH = 'both',
+  EMAIL = "email",
+  SMS = "sms",
+  BOTH = "both",
 }
 
 export class SendNotificationDto {

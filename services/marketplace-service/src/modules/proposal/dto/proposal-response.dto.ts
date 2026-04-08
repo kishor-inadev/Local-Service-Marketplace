@@ -1,4 +1,4 @@
-import { Proposal } from '../entities/proposal.entity';
+import { Proposal } from "../entities/proposal.entity";
 
 export class ProposalResponseDto {
   id: string;
@@ -23,19 +23,26 @@ export class ProposalResponseDto {
 }
 
 export class PaginatedProposalResponseDto {
-	data: ProposalResponseDto[];
-	total?: number;
+  data: ProposalResponseDto[];
+  total?: number;
   page?: number;
   limit?: number;
-	nextCursor?: string;
-	hasMore?: boolean;
+  nextCursor?: string;
+  hasMore?: boolean;
 
-  constructor(data: ProposalResponseDto[], nextCursor?: string, hasMore = false, total?: number, page?: number, limit?: number) {
-		this.data = data;
-		this.total = total;
+  constructor(
+    data: ProposalResponseDto[],
+    nextCursor?: string,
+    hasMore = false,
+    total?: number,
+    page?: number,
+    limit?: number,
+  ) {
+    this.data = data;
+    this.total = total;
     this.page = page;
     this.limit = limit;
-		this.nextCursor = nextCursor;
-		this.hasMore = hasMore;
-	}
+    this.nextCursor = nextCursor;
+    this.hasMore = hasMore;
+  }
 }

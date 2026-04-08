@@ -58,9 +58,7 @@ export class ProviderPortfolioService {
     return { data, total: data.length };
   }
 
-  async getPortfolioItemById(
-    itemId: string,
-  ): Promise<ProviderPortfolio> {
+  async getPortfolioItemById(itemId: string): Promise<ProviderPortfolio> {
     const item = await this.portfolioRepository.findById(itemId);
 
     if (!item) {
@@ -134,6 +132,4 @@ export class ProviderPortfolioService {
 
     return this.portfolioRepository.findByProvider(providerId);
   }
-}
- }
 }

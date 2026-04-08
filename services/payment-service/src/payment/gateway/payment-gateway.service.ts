@@ -1,11 +1,11 @@
-﻿import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { StripeAdapter } from './adapters/stripe.adapter';
-import { RazorpayAdapter } from './adapters/razorpay.adapter';
-import { PayPalAdapter } from './adapters/paypal.adapter';
-import { MockAdapter } from './adapters/mock.adapter';
-import { PayUbizAdapter } from './adapters/payubiz.adapter';
-import { InstamojoAdapter } from './adapters/instamojo.adapter';
+﻿import { Injectable, Logger, OnModuleInit } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { StripeAdapter } from "./adapters/stripe.adapter";
+import { RazorpayAdapter } from "./adapters/razorpay.adapter";
+import { PayPalAdapter } from "./adapters/paypal.adapter";
+import { MockAdapter } from "./adapters/mock.adapter";
+import { PayUbizAdapter } from "./adapters/payubiz.adapter";
+import { InstamojoAdapter } from "./adapters/instamojo.adapter";
 import {
   IGatewayAdapter,
   ChargeParams,
@@ -13,18 +13,24 @@ import {
   RefundParams,
   RefundResult,
   ParsedWebhookEvent,
-} from './interfaces/gateway-adapter.interface';
+} from "./interfaces/gateway-adapter.interface";
 
 export type SupportedGateway =
-  | 'stripe'
-  | 'razorpay'
-  | 'paypal'
-  | 'payubiz'
-  | 'instamojo'
-  | 'mock';
+  | "stripe"
+  | "razorpay"
+  | "paypal"
+  | "payubiz"
+  | "instamojo"
+  | "mock";
 
 // Re-export interface types for consumers
-export { ChargeParams, ChargeResult, RefundParams, RefundResult, ParsedWebhookEvent };
+export {
+  ChargeParams,
+  ChargeResult,
+  RefundParams,
+  RefundResult,
+  ParsedWebhookEvent,
+};
 
 /**
  * PaymentGatewayService
@@ -61,7 +67,9 @@ export class PaymentGatewayService implements OnModuleInit {
 
   onModuleInit(): void {
     this.defaultAdapter = this.resolveDefaultAdapter();
-    this.logger.log(`Default payment gateway: "${this.defaultAdapter.gatewayName}"`);
+    this.logger.log(
+      `Default payment gateway: "${this.defaultAdapter.gatewayName}"`,
+    );
     this.logger.log(
       `Available gateways: stripe, razorpay, paypal, payubiz, instamojo, mock`,
     );
@@ -73,7 +81,7 @@ export class PaymentGatewayService implements OnModuleInit {
 
   private resolveDefaultAdapter(): IGatewayAdapter {
     const requested = (
-      this.configService.get<string>('PAYMENT_GATEWAY', 'mock') as string
+      this.configService.get<string>("PAYMENT_GATEWAY", "mock") as string
     ).toLowerCase() as SupportedGateway;
     return this.getValidatedAdapter(requested);
   }
@@ -83,50 +91,69 @@ export class PaymentGatewayService implements OnModuleInit {
    */
   private getValidatedAdapter(name: string): IGatewayAdapter {
     switch (name.toLowerCase() as SupportedGateway) {
-      case 'stripe': {
-        const key = this.configService.get<string>('STRIPE_SECRET_KEY', '');
-        if (!key || !key.startsWith('sk_')) {
-          this.logger.warn(`[stripe] STRIPE_SECRET_KEY missing/invalid. Falling back to mock.`);
+      case "stripe": {
+        const key = this.configService.get<string>("STRIPE_SECRET_KEY", "");
+        if (!key || !key.startsWith("sk_")) {
+          this.logger.warn(
+            `[stripe] STRIPE_SECRET_KEY missing/invalid. Falling back to mock.`,
+          );
           return this.mockAdapter;
         }
         return this.stripeAdapter;
       }
 
-      case 'razorpay': {
-        const keyId = this.configService.get<string>('RAZORPAY_KEY_ID', '');
-        const keySecret = this.configService.get<string>('RAZORPAY_KEY_SECRET', '');
+      case "razorpay": {
+        const keyId = this.configService.get<string>("RAZORPAY_KEY_ID", "");
+        const keySecret = this.configService.get<string>(
+          "RAZORPAY_KEY_SECRET",
+          "",
+        );
         if (!keyId || !keySecret) {
-          this.logger.warn(`[razorpay] RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET missing. Falling back to mock.`);
+          this.logger.warn(
+            `[razorpay] RAZORPAY_KEY_ID / RAZORPAY_KEY_SECRET missing. Falling back to mock.`,
+          );
           return this.mockAdapter;
         }
         return this.razorpayAdapter;
       }
 
-      case 'paypal': {
-        const clientId = this.configService.get<string>('PAYPAL_CLIENT_ID', '');
-        const clientSecret = this.configService.get<string>('PAYPAL_CLIENT_SECRET', '');
+      case "paypal": {
+        const clientId = this.configService.get<string>("PAYPAL_CLIENT_ID", "");
+        const clientSecret = this.configService.get<string>(
+          "PAYPAL_CLIENT_SECRET",
+          "",
+        );
         if (!clientId || !clientSecret) {
-          this.logger.warn(`[paypal] PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET missing. Falling back to mock.`);
+          this.logger.warn(
+            `[paypal] PAYPAL_CLIENT_ID / PAYPAL_CLIENT_SECRET missing. Falling back to mock.`,
+          );
           return this.mockAdapter;
         }
         return this.paypalAdapter;
       }
 
-      case 'payubiz': {
-        const key = this.configService.get<string>('PAYU_KEY', '');
-        const salt = this.configService.get<string>('PAYU_SALT', '');
+      case "payubiz": {
+        const key = this.configService.get<string>("PAYU_KEY", "");
+        const salt = this.configService.get<string>("PAYU_SALT", "");
         if (!key || !salt) {
-          this.logger.warn(`[payubiz] PAYU_KEY / PAYU_SALT missing. Falling back to mock.`);
+          this.logger.warn(
+            `[payubiz] PAYU_KEY / PAYU_SALT missing. Falling back to mock.`,
+          );
           return this.mockAdapter;
         }
         return this.payubizAdapter;
       }
 
-      case 'instamojo': {
-        const apiKey = this.configService.get<string>('INSTAMOJO_API_KEY', '');
-        const authToken = this.configService.get<string>('INSTAMOJO_AUTH_TOKEN', '');
+      case "instamojo": {
+        const apiKey = this.configService.get<string>("INSTAMOJO_API_KEY", "");
+        const authToken = this.configService.get<string>(
+          "INSTAMOJO_AUTH_TOKEN",
+          "",
+        );
         if (!apiKey || !authToken) {
-          this.logger.warn(`[instamojo] INSTAMOJO_API_KEY / INSTAMOJO_AUTH_TOKEN missing. Falling back to mock.`);
+          this.logger.warn(
+            `[instamojo] INSTAMOJO_API_KEY / INSTAMOJO_AUTH_TOKEN missing. Falling back to mock.`,
+          );
           return this.mockAdapter;
         }
         return this.instamojoAdapter;
@@ -151,7 +178,7 @@ export class PaymentGatewayService implements OnModuleInit {
    * Used to validate the X-Payment-Gateway header value.
    */
   getSupportedGateways(): SupportedGateway[] {
-    return ['stripe', 'razorpay', 'paypal', 'payubiz', 'instamojo', 'mock'];
+    return ["stripe", "razorpay", "paypal", "payubiz", "instamojo", "mock"];
   }
 
   /**
@@ -169,7 +196,10 @@ export class PaymentGatewayService implements OnModuleInit {
    *                 Falls back to mock if credentials are missing.
    * @param params   Charge parameters.
    */
-  async chargeWith(gateway: string, params: ChargeParams): Promise<ChargeResult> {
+  async chargeWith(
+    gateway: string,
+    params: ChargeParams,
+  ): Promise<ChargeResult> {
     const adapter = this.getValidatedAdapter(gateway);
     this.logger.log(
       `[${adapter.gatewayName}] charge ${params.amount} ${params.currency}`,
@@ -183,9 +213,14 @@ export class PaymentGatewayService implements OnModuleInit {
   }
 
   /** Issue a refund via a specific gateway. */
-  async refundWith(gateway: string, params: RefundParams): Promise<RefundResult> {
+  async refundWith(
+    gateway: string,
+    params: RefundParams,
+  ): Promise<RefundResult> {
     const adapter = this.getValidatedAdapter(gateway);
-    this.logger.log(`[${adapter.gatewayName}] refunding ${params.transactionId}`);
+    this.logger.log(
+      `[${adapter.gatewayName}] refunding ${params.transactionId}`,
+    );
     return adapter.refund(params);
   }
 
@@ -200,7 +235,10 @@ export class PaymentGatewayService implements OnModuleInit {
     rawBody: Buffer,
     headers: Record<string, string>,
   ): boolean {
-    return this.getAdapterByName(gateway).verifyWebhookSignature(rawBody, headers);
+    return this.getAdapterByName(gateway).verifyWebhookSignature(
+      rawBody,
+      headers,
+    );
   }
 
   /** Parse a webhook payload for a specific gateway into a normalised event. */
@@ -213,7 +251,7 @@ export class PaymentGatewayService implements OnModuleInit {
 
   /** Whether the env-default gateway is the mock adapter. */
   isMockMode(): boolean {
-    return this.defaultAdapter.gatewayName === 'mock';
+    return this.defaultAdapter.gatewayName === "mock";
   }
 
   // ---------------------------------------------------------------------------
@@ -223,12 +261,18 @@ export class PaymentGatewayService implements OnModuleInit {
   /** Return an adapter by name without credential validation (used for parsing/verification). */
   private getAdapterByName(name: string): IGatewayAdapter {
     switch (name.toLowerCase()) {
-      case 'stripe':    return this.stripeAdapter;
-      case 'razorpay':  return this.razorpayAdapter;
-      case 'paypal':    return this.paypalAdapter;
-      case 'payubiz':   return this.payubizAdapter;
-      case 'instamojo': return this.instamojoAdapter;
-      default:          return this.mockAdapter;
+      case "stripe":
+        return this.stripeAdapter;
+      case "razorpay":
+        return this.razorpayAdapter;
+      case "paypal":
+        return this.paypalAdapter;
+      case "payubiz":
+        return this.payubizAdapter;
+      case "instamojo":
+        return this.instamojoAdapter;
+      default:
+        return this.mockAdapter;
     }
   }
 }

@@ -3,7 +3,7 @@ export class PricingPlan {
   name: string;
   description?: string;
   price: number;
-  billing_period: 'monthly' | 'yearly';
+  billing_period: "monthly" | "yearly";
   features?: any;
   active: boolean;
   created_at: Date;

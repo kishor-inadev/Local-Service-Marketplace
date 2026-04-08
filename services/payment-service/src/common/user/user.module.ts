@@ -1,5 +1,5 @@
-import { Module } from '@nestjs/common';
-import { UserClient } from './user.client';
+import { Module } from "@nestjs/common";
+import { UserClient } from "./user.client";
 
 @Module({
   providers: [UserClient],

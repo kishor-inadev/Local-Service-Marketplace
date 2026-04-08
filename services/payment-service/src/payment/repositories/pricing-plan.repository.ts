@@ -1,16 +1,16 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { PricingPlan } from '../entities/pricing-plan.entity';
+import { Injectable, Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { PricingPlan } from "../entities/pricing-plan.entity";
 
 @Injectable()
 export class PricingPlanRepository {
-  constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
   async create(data: {
     name: string;
     description?: string;
     price: number;
-    billing_period: 'monthly' | 'yearly';
+    billing_period: "monthly" | "yearly";
     features?: any;
     active?: boolean;
   }): Promise<PricingPlan> {
@@ -28,7 +28,7 @@ export class PricingPlanRepository {
       data.price,
       data.billing_period,
       data.features ? JSON.stringify(data.features) : null,
-      data.active !== undefined ? data.active : true
+      data.active !== undefined ? data.active : true,
     ];
 
     const result = await this.pool.query(query, values);
@@ -43,13 +43,13 @@ export class PricingPlanRepository {
 
   async findAll(activeOnly: boolean = true): Promise<PricingPlan[]> {
     let query = `SELECT * FROM pricing_plans`;
-    
+
     if (activeOnly) {
       query += ` WHERE active = true`;
     }
-    
+
     query += ` ORDER BY price ASC`;
-    
+
     const result = await this.pool.query(query);
     return result.rows;
   }
@@ -60,8 +60,8 @@ export class PricingPlanRepository {
     let paramIndex = 1;
 
     Object.keys(data).forEach((key) => {
-      if (data[key] !== undefined && key !== 'id' && key !== 'created_at') {
-        if (key === 'features') {
+      if (data[key] !== undefined && key !== "id" && key !== "created_at") {
+        if (key === "features") {
           updates.push(`${key} = $${paramIndex++}`);
           values.push(JSON.stringify(data[key]));
         } else {
@@ -78,7 +78,7 @@ export class PricingPlanRepository {
     values.push(id);
     const query = `
       UPDATE pricing_plans
-      SET ${updates.join(', ')}
+      SET ${updates.join(", ")}
       WHERE id = $${paramIndex}
       RETURNING *
     `;

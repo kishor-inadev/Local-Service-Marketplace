@@ -1,5 +1,18 @@
-import { IsString, IsNumber, IsOptional, MinLength, Min, IsObject, ValidateNested, IsArray, IsEnum, IsDateString, ArrayMaxSize, IsUrl } from 'class-validator';
-import { Type } from 'class-transformer';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  MinLength,
+  Min,
+  IsObject,
+  ValidateNested,
+  IsArray,
+  IsEnum,
+  IsDateString,
+  ArrayMaxSize,
+  IsUrl,
+} from "class-validator";
+import { Type } from "class-transformer";
 
 export class LocationDto {
   @IsNumber()
@@ -70,8 +83,8 @@ export class CreateRequestDto {
   preferred_date?: string;
 
   @IsOptional()
-  @IsEnum(['low', 'medium', 'high', 'urgent'])
-  urgency?: 'low' | 'medium' | 'high' | 'urgent';
+  @IsEnum(["low", "medium", "high", "urgent"])
+  urgency?: "low" | "medium" | "high" | "urgent";
 
   @IsOptional()
   @IsDateString()

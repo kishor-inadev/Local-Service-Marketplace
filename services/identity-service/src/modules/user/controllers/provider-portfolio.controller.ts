@@ -85,10 +85,7 @@ export class ProviderPortfolioController {
     @Param("itemId", ParseUUIDPipe) itemId: string,
     @Request() req: any,
   ) {
-    const item = await this.portfolioService.getPortfolioItemById(
-      itemId,
-      req.user?.userId,
-    );
+    const item = await this.portfolioService.getPortfolioItemById(itemId);
 
     // Transform image_url to images array for frontend compatibility
     const transformedItem = { ...item, images: [item.image_url] };

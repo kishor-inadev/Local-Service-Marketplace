@@ -226,7 +226,7 @@ export default function ProfilePage() {
 												<div className='flex items-center justify-between'>
 													<span className='text-gray-600 dark:text-gray-400'>Average Rating</span>
 													<span className='text-2xl font-bold text-primary-600 dark:text-primary-400'>
-														{providerProfile.rating.toFixed(1)}
+														{Number(providerProfile.rating).toFixed(1)}
 													</span>
 												</div>
 											:	null}

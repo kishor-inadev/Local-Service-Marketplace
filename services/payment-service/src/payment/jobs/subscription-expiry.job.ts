@@ -1,13 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
-import { SubscriptionRepository } from '../repositories/subscription.repository';
-import { NotificationClient } from '../../common/notification/notification.client';
+import { Injectable } from "@nestjs/common";
+import { Cron, CronExpression } from "@nestjs/schedule";
+import { SubscriptionRepository } from "../repositories/subscription.repository";
+import { NotificationClient } from "../../common/notification/notification.client";
 
 @Injectable()
 export class SubscriptionExpiryJob {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
-    private readonly notificationClient: NotificationClient
+    private readonly notificationClient: NotificationClient,
   ) {}
 
   /**
@@ -15,38 +15,49 @@ export class SubscriptionExpiryJob {
    */
   @Cron(CronExpression.EVERY_DAY_AT_10AM)
   async checkExpiringSubscriptions(): Promise<void> {
-    console.log('[SubscriptionExpiryJob] Checking for expiring subscriptions...');
+    console.log(
+      "[SubscriptionExpiryJob] Checking for expiring subscriptions...",
+    );
 
     try {
       // Get subscriptions expiring in 7 days
-      const expiringSubscriptions = await this.subscriptionRepository.getExpiringSubscriptions(7);
+      const expiringSubscriptions =
+        await this.subscriptionRepository.getExpiringSubscriptions(7);
 
-      console.log(`[SubscriptionExpiryJob] Found ${expiringSubscriptions.length} expiring subscriptions`);
+      console.log(
+        `[SubscriptionExpiryJob] Found ${expiringSubscriptions.length} expiring subscriptions`,
+      );
 
       // Send renewal reminders
       for (const subscription of expiringSubscriptions) {
         const daysUntilExpiry = Math.ceil(
-          (new Date(subscription.expires_at).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+          (new Date(subscription.expires_at).getTime() - Date.now()) /
+            (1000 * 60 * 60 * 24),
         );
 
         // Send notification to provider
         await this.notificationClient.sendEmail({
           to: subscription.provider_id,
-          template: 'subscriptionExpiring',
+          template: "subscriptionExpiring",
           variables: {
             daysUntilExpiry: daysUntilExpiry.toString(),
             subscription_id: subscription.id,
             plan_id: subscription.plan_id,
-            expires_at: subscription.expires_at
-          }
+            expires_at: subscription.expires_at,
+          },
         });
 
-        console.log(`[SubscriptionExpiryJob] Renewal reminder sent for subscription ${subscription.id}`);
+        console.log(
+          `[SubscriptionExpiryJob] Renewal reminder sent for subscription ${subscription.id}`,
+        );
       }
 
-      console.log('[SubscriptionExpiryJob] Completed successfully');
+      console.log("[SubscriptionExpiryJob] Completed successfully");
     } catch (error) {
-      console.error('[SubscriptionExpiryJob] Error checking expiring subscriptions:', error);
+      console.error(
+        "[SubscriptionExpiryJob] Error checking expiring subscriptions:",
+        error,
+      );
     }
   }
 
@@ -55,19 +66,25 @@ export class SubscriptionExpiryJob {
    */
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async expireOldSubscriptions(): Promise<void> {
-    console.log('[SubscriptionExpiryJob] Expiring old subscriptions...');
+    console.log("[SubscriptionExpiryJob] Expiring old subscriptions...");
 
     try {
-      const expiredCount = await this.subscriptionRepository.expireOldSubscriptions();
+      const expiredCount =
+        await this.subscriptionRepository.expireOldSubscriptions();
 
-      console.log(`[SubscriptionExpiryJob] Expired ${expiredCount} subscriptions`);
+      console.log(
+        `[SubscriptionExpiryJob] Expired ${expiredCount} subscriptions`,
+      );
 
       // Note: Individual notifications are handled in the service layer
       // when subscription status changes
 
-      console.log('[SubscriptionExpiryJob] Expiry process completed');
+      console.log("[SubscriptionExpiryJob] Expiry process completed");
     } catch (error) {
-      console.error('[SubscriptionExpiryJob] Error expiring subscriptions:', error);
+      console.error(
+        "[SubscriptionExpiryJob] Error expiring subscriptions:",
+        error,
+      );
     }
   }
 
@@ -76,32 +93,40 @@ export class SubscriptionExpiryJob {
    */
   @Cron(CronExpression.EVERY_6_HOURS)
   async sendFinalReminders(): Promise<void> {
-    console.log('[SubscriptionExpiryJob] Sending final expiry reminders...');
+    console.log("[SubscriptionExpiryJob] Sending final expiry reminders...");
 
     try {
       // Get subscriptions expiring in 1 day
-      const expiringTomorrow = await this.subscriptionRepository.getExpiringSubscriptions(1);
+      const expiringTomorrow =
+        await this.subscriptionRepository.getExpiringSubscriptions(1);
 
-      console.log(`[SubscriptionExpiryJob] Found ${expiringTomorrow.length} subscriptions expiring tomorrow`);
+      console.log(
+        `[SubscriptionExpiryJob] Found ${expiringTomorrow.length} subscriptions expiring tomorrow`,
+      );
 
       for (const subscription of expiringTomorrow) {
         // Send urgent notification
         await this.notificationClient.sendEmail({
           to: subscription.provider_id,
-          template: 'subscriptionExpiringUrgent',
+          template: "subscriptionExpiringUrgent",
           variables: {
             subscription_id: subscription.id,
             plan_id: subscription.plan_id,
-            expires_at: subscription.expires_at
-          }
+            expires_at: subscription.expires_at,
+          },
         });
 
-        console.log(`[SubscriptionExpiryJob] Final reminder sent for subscription ${subscription.id}`);
+        console.log(
+          `[SubscriptionExpiryJob] Final reminder sent for subscription ${subscription.id}`,
+        );
       }
 
-      console.log('[SubscriptionExpiryJob] Final reminders completed');
+      console.log("[SubscriptionExpiryJob] Final reminders completed");
     } catch (error) {
-      console.error('[SubscriptionExpiryJob] Error sending final reminders:', error);
+      console.error(
+        "[SubscriptionExpiryJob] Error sending final reminders:",
+        error,
+      );
     }
   }
 }

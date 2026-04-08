@@ -1,8 +1,8 @@
-import { Injectable, Inject, LoggerService } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { PaymentRepository } from '../repositories/payment.repository';
-import { UserClient } from '../../common/user/user.client';
-import { NotFoundException } from '../../common/exceptions/http.exceptions';
+import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { PaymentRepository } from "../repositories/payment.repository";
+import { UserClient } from "../../common/user/user.client";
+import { NotFoundException } from "../../common/exceptions/http.exceptions";
 
 export interface InvoiceData {
   invoice_number: string;
@@ -39,34 +39,44 @@ export interface InvoiceData {
 @Injectable()
 export class InvoiceService {
   constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
     private readonly paymentRepository: PaymentRepository,
     private readonly userClient: UserClient,
   ) {}
 
-  async generateInvoice(paymentId: string, requestingUserId: string): Promise<InvoiceData> {
-    this.logger.log(`Generating invoice for payment ${paymentId}`, 'InvoiceService');
+  async generateInvoice(
+    paymentId: string,
+    requestingUserId: string,
+  ): Promise<InvoiceData> {
+    this.logger.log(
+      `Generating invoice for payment ${paymentId}`,
+      "InvoiceService",
+    );
 
     const payment = await this.paymentRepository.getPaymentById(paymentId);
     if (!payment) {
-      throw new NotFoundException('Payment not found');
+      throw new NotFoundException("Payment not found");
     }
 
     // Fetch customer and provider details
     const [customer, provider] = await Promise.all([
       this.userClient.getUserById(payment.user_id).catch(() => ({
         id: payment.user_id,
-        name: 'Customer',
-        email: 'N/A',
+        name: "Customer",
+        email: "N/A",
       })),
       this.userClient.getUserById(payment.provider_id).catch(() => ({
         id: payment.provider_id,
-        name: 'Provider',
-        email: 'N/A',
+        name: "Provider",
+        email: "N/A",
       })),
     ]);
 
-    const createdAtStr = payment.created_at instanceof Date ? payment.created_at.toISOString() : String(payment.created_at);
+    const createdAtStr =
+      payment.created_at instanceof Date
+        ? payment.created_at.toISOString()
+        : String(payment.created_at);
     const invoiceNumber = this.generateInvoiceNumber(payment.id, createdAtStr);
 
     return {
@@ -74,53 +84,60 @@ export class InvoiceService {
       issue_date: new Date().toISOString(),
       payment: {
         id: payment.id,
-        amount: typeof payment.amount === 'string' ? parseFloat(payment.amount) : payment.amount,
-        currency: payment.currency || 'INR',
+        amount:
+          typeof payment.amount === "string"
+            ? parseFloat(payment.amount)
+            : payment.amount,
+        currency: payment.currency || "INR",
         status: payment.status,
-        payment_method: payment.payment_method || 'card',
-        transaction_id: payment.transaction_id || '',
-        gateway: payment.gateway || 'mock',
-        paid_at: payment.paid_at ? (payment.paid_at instanceof Date ? payment.paid_at.toISOString() : String(payment.paid_at)) : null,
+        payment_method: payment.payment_method || "card",
+        transaction_id: payment.transaction_id || "",
+        gateway: payment.gateway || "mock",
+        paid_at: payment.paid_at
+          ? payment.paid_at instanceof Date
+            ? payment.paid_at.toISOString()
+            : String(payment.paid_at)
+          : null,
         created_at: createdAtStr,
       },
       customer: {
         id: customer.id,
-        name: customer.name || 'Customer',
-        email: customer.email || 'N/A',
+        name: customer.name || "Customer",
+        email: customer.email || "N/A",
       },
       provider: {
         id: provider.id,
-        name: provider.name || 'Provider',
-        email: provider.email || 'N/A',
+        name: provider.name || "Provider",
+        email: provider.email || "N/A",
       },
       job_id: payment.job_id,
       platform: {
-        name: 'Local Service Marketplace',
-        address: 'Platform Operator Address',
-        email: 'billing@marketplace.com',
+        name: "Local Service Marketplace",
+        address: "Platform Operator Address",
+        email: "billing@marketplace.com",
       },
     };
   }
 
   generateInvoiceHtml(invoice: InvoiceData): string {
-    const formattedAmount = new Intl.NumberFormat('en-IN', {
-      style: 'currency',
+    const formattedAmount = new Intl.NumberFormat("en-IN", {
+      style: "currency",
       currency: invoice.payment.currency,
     }).format(invoice.payment.amount);
 
-    const issueDate = new Date(invoice.issue_date).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
+    const issueDate = new Date(invoice.issue_date).toLocaleDateString("en-IN", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
     });
 
     const paidDate = invoice.payment.paid_at
-      ? new Date(invoice.payment.paid_at).toLocaleDateString('en-IN', {
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
+      ? new Date(invoice.payment.paid_at).toLocaleDateString("en-IN", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
         })
-      : 'Pending';
+      : "Pending";
 
     return `<!DOCTYPE html>
 <html lang="en">
@@ -209,7 +226,7 @@ export class InvoiceService {
       <span class="status status-${invoice.payment.status}">${invoice.payment.status}</span>
     </p>
     <p style="margin-top: 8px; font-size: 14px; color: #666;">
-      <strong>Transaction ID:</strong> ${invoice.payment.transaction_id || 'N/A'}<br>
+      <strong>Transaction ID:</strong> ${invoice.payment.transaction_id || "N/A"}<br>
       <strong>Gateway:</strong> ${invoice.payment.gateway}<br>
       <strong>Paid:</strong> ${paidDate}
     </p>
@@ -226,8 +243,8 @@ export class InvoiceService {
   private generateInvoiceNumber(paymentId: string, createdAt: string): string {
     const date = new Date(createdAt);
     const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const shortId = paymentId.replace(/-/g, '').substring(0, 8).toUpperCase();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const shortId = paymentId.replace(/-/g, "").substring(0, 8).toUpperCase();
     return `INV-${year}${month}-${shortId}`;
   }
 }

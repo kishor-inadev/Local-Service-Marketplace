@@ -1,4 +1,4 @@
-import { IsBoolean, IsOptional, IsUUID } from 'class-validator';
+import { IsBoolean, IsOptional, IsUUID } from "class-validator";
 
 export class UpdateNotificationPreferencesDto {
   @IsOptional()

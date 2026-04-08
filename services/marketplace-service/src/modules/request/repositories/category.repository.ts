@@ -1,10 +1,10 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { ServiceCategory } from '../entities/service-category.entity';
+import { Injectable, Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { ServiceCategory } from "../entities/service-category.entity";
 
 @Injectable()
 export class CategoryRepository {
-  constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
   async getAllCategories(): Promise<ServiceCategory[]> {
     const query = `
@@ -45,7 +45,10 @@ export class CategoryRepository {
     return result.rows.length > 0;
   }
 
-  async searchCategories(searchTerm: string, limit: number = 10): Promise<ServiceCategory[]> {
+  async searchCategories(
+    searchTerm: string,
+    limit: number = 10,
+  ): Promise<ServiceCategory[]> {
     const query = `
       SELECT id, name, created_at
       FROM service_categories

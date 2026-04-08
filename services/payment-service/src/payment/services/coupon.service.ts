@@ -1,27 +1,31 @@
-import { Injectable, Inject, LoggerService } from '@nestjs/common';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { CouponRepository } from '../repositories/coupon.repository';
-import { Coupon } from '../entities/coupon.entity';
-import { NotFoundException, BadRequestException } from '../../common/exceptions/http.exceptions';
+import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { CouponRepository } from "../repositories/coupon.repository";
+import { Coupon } from "../entities/coupon.entity";
+import {
+  NotFoundException,
+  BadRequestException,
+} from "../../common/exceptions/http.exceptions";
 
 @Injectable()
 export class CouponService {
   constructor(
-    @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
     private readonly couponRepository: CouponRepository,
   ) {}
 
   async validateCoupon(code: string): Promise<Coupon> {
-    this.logger.log(`Validating coupon ${code}`, 'CouponService');
+    this.logger.log(`Validating coupon ${code}`, "CouponService");
 
     const coupon = await this.couponRepository.getCouponByCode(code);
     if (!coupon) {
-      throw new NotFoundException('Coupon not found');
+      throw new NotFoundException("Coupon not found");
     }
 
     // Check if coupon is expired
     if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
-      throw new BadRequestException('Coupon has expired');
+      throw new BadRequestException("Coupon has expired");
     }
 
     return coupon;
@@ -31,15 +35,21 @@ export class CouponService {
     const coupon = await this.validateCoupon(code);
 
     // Check if user has already used this coupon
-    const alreadyUsed = await this.couponRepository.isCouponUsedByUser(coupon.id, userId);
+    const alreadyUsed = await this.couponRepository.isCouponUsedByUser(
+      coupon.id,
+      userId,
+    );
     if (alreadyUsed) {
-      throw new BadRequestException('Coupon has already been used');
+      throw new BadRequestException("Coupon has already been used");
     }
 
     // Record coupon usage
     await this.couponRepository.recordCouponUsage(coupon.id, userId);
 
-    this.logger.log(`Coupon ${code} applied for user ${userId}`, 'CouponService');
+    this.logger.log(
+      `Coupon ${code} applied for user ${userId}`,
+      "CouponService",
+    );
     return coupon.discount_percent;
   }
 

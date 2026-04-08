@@ -1,19 +1,22 @@
 import { PipeTransform, Injectable, BadRequestException } from "@nestjs/common";
 
-const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_REGEX =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const DISPLAY_ID_REGEX = /^[A-Z]{2,4}[A-Z0-9]{8}$/;
 
 @Injectable()
 export class FlexibleIdPipe implements PipeTransform {
-	transform(value: string) {
-		if (!value) throw new BadRequestException("ID is required");
-		if (UUID_REGEX.test(value)) {
-			return value.toLowerCase(); // keep UUID lowercase (PostgreSQL convention)
-		}
-		const upper = value.toUpperCase();
-		if (DISPLAY_ID_REGEX.test(upper)) {
-			return upper; // normalise display_id to uppercase
-		}
-		throw new BadRequestException(`Invalid ID format: must be a UUID or a display ID (e.g. NTF4R2F9HYZ)`);
-	}
+  transform(value: string) {
+    if (!value) throw new BadRequestException("ID is required");
+    if (UUID_REGEX.test(value)) {
+      return value.toLowerCase(); // keep UUID lowercase (PostgreSQL convention)
+    }
+    const upper = value.toUpperCase();
+    if (DISPLAY_ID_REGEX.test(upper)) {
+      return upper; // normalise display_id to uppercase
+    }
+    throw new BadRequestException(
+      `Invalid ID format: must be a UUID or a display ID (e.g. NTF4R2F9HYZ)`,
+    );
+  }
 }

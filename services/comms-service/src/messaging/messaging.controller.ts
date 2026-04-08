@@ -1,19 +1,19 @@
 import {
-	Controller,
-	Post,
-	Get,
-	Patch,
-	Body,
-	Param,
-	Query,
-	Request,
-	Inject,
-	LoggerService,
-	ParseIntPipe,
-	ParseUUIDPipe,
-	UseGuards,
-	HttpCode,
-	HttpStatus,
+  Controller,
+  Post,
+  Get,
+  Patch,
+  Body,
+  Param,
+  Query,
+  Request,
+  Inject,
+  LoggerService,
+  ParseIntPipe,
+  ParseUUIDPipe,
+  UseGuards,
+  HttpCode,
+  HttpStatus,
 } from "@nestjs/common";
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
@@ -27,82 +27,135 @@ import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 @UseGuards(JwtAuthGuard)
 @Controller("messages")
 export class MessagingController {
-	constructor(
-		@Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
-		private readonly messageService: MessageService,
-		private readonly attachmentService: AttachmentService,
-	) {}
+  constructor(
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
+    private readonly messageService: MessageService,
+    private readonly attachmentService: AttachmentService,
+  ) {}
 
-	@Post()
-	@HttpCode(HttpStatus.CREATED)
-	async createMessage(@Body() createMessageDto: CreateMessageDto, @Request() req: any) {
-		this.logger.log("POST /messages - Create message", "MessagingController");
-		const item = await this.messageService.createMessage(
-			createMessageDto.job_id,
-			req.user.userId,
-			createMessageDto.message,
-		);
-		return { success: true, data: item, message: "Message sent successfully" };
-	}
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  async createMessage(
+    @Body() createMessageDto: CreateMessageDto,
+    @Request() req: any,
+  ) {
+    this.logger.log("POST /messages - Create message", "MessagingController");
+    const item = await this.messageService.createMessage(
+      createMessageDto.job_id,
+      req.user.userId,
+      createMessageDto.message,
+    );
+    return { success: true, data: item, message: "Message sent successfully" };
+  }
 
-	@Get("jobs/:jobId")
-	async getMessagesForJob(
-		@Param("jobId", FlexibleIdPipe) jobId: string,
-		@Query("page", new ParseIntPipe({ optional: true })) page: number = 1,
-		@Query("limit", new ParseIntPipe({ optional: true })) limit: number = 20,
-	) {
-		this.logger.log(`GET /messages/jobs/${jobId}/messages - Get conversation`, "MessagingController");
-		const result = await this.messageService.getMessagesForJob(jobId, page, limit);
-		return result;
-	}
+  @Get("jobs/:jobId")
+  async getMessagesForJob(
+    @Param("jobId", FlexibleIdPipe) jobId: string,
+    @Query("page", new ParseIntPipe({ optional: true })) page: number = 1,
+    @Query("limit", new ParseIntPipe({ optional: true })) limit: number = 20,
+  ) {
+    this.logger.log(
+      `GET /messages/jobs/${jobId}/messages - Get conversation`,
+      "MessagingController",
+    );
+    const result = await this.messageService.getMessagesForJob(
+      jobId,
+      page,
+      limit,
+    );
+    return result;
+  }
 
-	@Get("conversations")
-	async getConversations(@Request() req: any) {
-		this.logger.log(`GET /messages/conversations - Get user conversations`, "MessagingController");
-		const conversations = await this.messageService.getUserConversations(req.user.userId);
-		return { data: conversations, total: conversations.length, page: 1, limit: conversations.length || 1 };
-	}
+  @Get("conversations")
+  async getConversations(@Request() req: any) {
+    this.logger.log(
+      `GET /messages/conversations - Get user conversations`,
+      "MessagingController",
+    );
+    const conversations = await this.messageService.getUserConversations(
+      req.user.userId,
+    );
+    return {
+      data: conversations,
+      total: conversations.length,
+      page: 1,
+      limit: conversations.length || 1,
+    };
+  }
 
-	@Post("attachments")
-	@HttpCode(HttpStatus.CREATED)
-	async createAttachment(@Body() createAttachmentDto: CreateAttachmentDto) {
-		this.logger.log("POST /messages/attachments - Create attachment", "MessagingController");
-		const attachment = await this.attachmentService.createAttachment(
-			createAttachmentDto.message_id,
-			createAttachmentDto.file_url,
-			createAttachmentDto.file_name,
-			createAttachmentDto.file_size,
-			createAttachmentDto.mime_type,
-		);
-		return { success: true, data: attachment, message: "Attachment uploaded successfully" };
-	}
+  @Post("attachments")
+  @HttpCode(HttpStatus.CREATED)
+  async createAttachment(@Body() createAttachmentDto: CreateAttachmentDto) {
+    this.logger.log(
+      "POST /messages/attachments - Create attachment",
+      "MessagingController",
+    );
+    const attachment = await this.attachmentService.createAttachment(
+      createAttachmentDto.message_id,
+      createAttachmentDto.file_url,
+      createAttachmentDto.file_name,
+      createAttachmentDto.file_size,
+      createAttachmentDto.mime_type,
+    );
+    return {
+      success: true,
+      data: attachment,
+      message: "Attachment uploaded successfully",
+    };
+  }
 
-	@Get("attachments/message/:messageId")
-	async getAttachmentsByMessage(@Param("messageId", FlexibleIdPipe) messageId: string) {
-		this.logger.log(`GET /messages/attachments/message/${messageId} - Get attachments`, "MessagingController");
-		const attachments = await this.attachmentService.getAttachmentsByMessageId(messageId);
-		return { data: attachments, total: attachments.length, page: 1, limit: attachments.length || 1 };
-	}
+  @Get("attachments/message/:messageId")
+  async getAttachmentsByMessage(
+    @Param("messageId", FlexibleIdPipe) messageId: string,
+  ) {
+    this.logger.log(
+      `GET /messages/attachments/message/${messageId} - Get attachments`,
+      "MessagingController",
+    );
+    const attachments =
+      await this.attachmentService.getAttachmentsByMessageId(messageId);
+    return {
+      data: attachments,
+      total: attachments.length,
+      page: 1,
+      limit: attachments.length || 1,
+    };
+  }
 
-	@Get("attachments/:id")
-	async getAttachment(@Param("id", ParseUUIDPipe) id: string) {
-		this.logger.log(`GET /messages/attachments/${id} - Get attachment`, "MessagingController");
-		const attachment = await this.attachmentService.getAttachmentById(id);
-		return { success: true, data: attachment, message: "Attachment retrieved successfully" };
-	}
+  @Get("attachments/:id")
+  async getAttachment(@Param("id", ParseUUIDPipe) id: string) {
+    this.logger.log(
+      `GET /messages/attachments/${id} - Get attachment`,
+      "MessagingController",
+    );
+    const attachment = await this.attachmentService.getAttachmentById(id);
+    return {
+      success: true,
+      data: attachment,
+      message: "Attachment retrieved successfully",
+    };
+  }
 
-	@Get(":id")
-	async getMessage(@Param("id", FlexibleIdPipe) id: string) {
-		this.logger.log(`GET /messages/${id} - Get message`, "MessagingController");
-		const item = await this.messageService.getMessageById(id);
-		return { success: true, data: item, message: "Message retrieved successfully" };
-	}
+  @Get(":id")
+  async getMessage(@Param("id", FlexibleIdPipe) id: string) {
+    this.logger.log(`GET /messages/${id} - Get message`, "MessagingController");
+    const item = await this.messageService.getMessageById(id);
+    return {
+      success: true,
+      data: item,
+      message: "Message retrieved successfully",
+    };
+  }
 
-	@Patch(":id/read")
-	@HttpCode(HttpStatus.OK)
-	async markAsRead(@Param("id", StrictUuidPipe) id: string) {
-		this.logger.log(`PATCH /messages/${id}/read - Mark as read`, "MessagingController");
-		const item = await this.messageService.markMessageAsRead(id);
-		return { success: true, data: item, message: "Message marked as read" };
-	}
+  @Patch(":id/read")
+  @HttpCode(HttpStatus.OK)
+  async markAsRead(@Param("id", StrictUuidPipe) id: string) {
+    this.logger.log(
+      `PATCH /messages/${id}/read - Mark as read`,
+      "MessagingController",
+    );
+    const item = await this.messageService.markMessageAsRead(id);
+    return { success: true, data: item, message: "Message marked as read" };
+  }
 }

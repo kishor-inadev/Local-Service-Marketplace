@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsEnum,
-  IsOptional,
-  IsUrl,
-} from "class-validator";
+import { IsString, IsEnum, IsOptional, IsUrl } from "class-validator";
 
 export class UploadDocumentDto {
   @IsString()

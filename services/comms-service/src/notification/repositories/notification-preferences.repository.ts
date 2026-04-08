@@ -1,24 +1,24 @@
-import { Injectable, Inject, BadRequestException } from '@nestjs/common';
-import { Pool } from 'pg';
-import { NotificationPreferences } from '../entities/notification-preferences.entity';
-import { UpdateNotificationPreferencesDto } from '../dto/update-notification-preferences.dto';
+import { Injectable, Inject, BadRequestException } from "@nestjs/common";
+import { Pool } from "pg";
+import { NotificationPreferences } from "../entities/notification-preferences.entity";
+import { UpdateNotificationPreferencesDto } from "../dto/update-notification-preferences.dto";
 
 const ALLOWED_PREFERENCE_COLUMNS: Record<string, string> = {
-  email_notifications: 'email_notifications',
-  sms_notifications: 'sms_notifications',
-  push_notifications: 'push_notifications',
-  marketing_emails: 'marketing_emails',
-  new_request_alerts: 'new_request_alerts',
-  proposal_alerts: 'proposal_alerts',
-  job_updates: 'job_updates',
-  payment_alerts: 'payment_alerts',
-  review_alerts: 'review_alerts',
-  message_alerts: 'message_alerts',
+  email_notifications: "email_notifications",
+  sms_notifications: "sms_notifications",
+  push_notifications: "push_notifications",
+  marketing_emails: "marketing_emails",
+  new_request_alerts: "new_request_alerts",
+  proposal_alerts: "proposal_alerts",
+  job_updates: "job_updates",
+  payment_alerts: "payment_alerts",
+  review_alerts: "review_alerts",
+  message_alerts: "message_alerts",
 };
 
 @Injectable()
 export class NotificationPreferencesRepository {
-  constructor(@Inject('DATABASE_POOL') private readonly pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
   async create(userId: string): Promise<NotificationPreferences> {
     const query = `
@@ -41,7 +41,10 @@ export class NotificationPreferencesRepository {
     return result.rows[0] || null;
   }
 
-  async update(userId: string, data: UpdateNotificationPreferencesDto): Promise<NotificationPreferences> {
+  async update(
+    userId: string,
+    data: UpdateNotificationPreferencesDto,
+  ): Promise<NotificationPreferences> {
     const updates: string[] = [];
     const values: any[] = [];
     let paramIndex = 1;
@@ -57,12 +60,12 @@ export class NotificationPreferencesRepository {
       return this.findByUserId(userId);
     }
 
-    updates.push('updated_at = NOW()');
+    updates.push("updated_at = NOW()");
     values.push(userId);
 
     const query = `
       UPDATE notification_preferences
-      SET ${updates.join(', ')}
+      SET ${updates.join(", ")}
       WHERE user_id = $${paramIndex}
       RETURNING *
     `;
@@ -76,10 +79,15 @@ export class NotificationPreferencesRepository {
     await this.pool.query(query, [userId]);
   }
 
-  async getUsersWithPreference(preferenceName: string, enabled: boolean = true): Promise<NotificationPreferences[]> {
+  async getUsersWithPreference(
+    preferenceName: string,
+    enabled: boolean = true,
+  ): Promise<NotificationPreferences[]> {
     const column = ALLOWED_PREFERENCE_COLUMNS[preferenceName];
     if (!column) {
-      throw new BadRequestException(`Invalid preference name: ${preferenceName}`);
+      throw new BadRequestException(
+        `Invalid preference name: ${preferenceName}`,
+      );
     }
 
     const query = `

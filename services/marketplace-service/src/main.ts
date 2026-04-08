@@ -9,49 +9,57 @@ import { ResponseTransformInterceptor } from "./common/interceptors/response-tra
 import helmet from "helmet";
 
 async function bootstrap() {
-	const app = await NestFactory.create(AppModule, { logger: WinstonModule.createLogger(winstonConfig) });
+  const app = await NestFactory.create(AppModule, {
+    logger: WinstonModule.createLogger(winstonConfig),
+  });
 
-	app.use(helmet());
+  app.use(helmet());
 
-	const configService = app.get(ConfigService);
-	const port = configService.get<number>("PORT", 3003);
-	const serviceName = configService.get<string>("SERVICE_NAME", "marketplace-service");
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>("PORT", 3003);
+  const serviceName = configService.get<string>(
+    "SERVICE_NAME",
+    "marketplace-service",
+  );
 
-	app.useGlobalPipes(
-		new ValidationPipe({
-			whitelist: true,
-			forbidNonWhitelisted: true,
-			transform: true,
-			transformOptions: { enableImplicitConversion: true },
-		}),
-	);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+      transformOptions: { enableImplicitConversion: true },
+    }),
+  );
 
-	app.useGlobalInterceptors(new ResponseTransformInterceptor());
+  app.useGlobalInterceptors(new ResponseTransformInterceptor());
 
-	const logger = app.get("winston");
-	app.useGlobalFilters(new HttpExceptionFilter(logger));
+  const logger = app.get("winston");
+  app.useGlobalFilters(new HttpExceptionFilter(logger));
 
-	// Graceful shutdown — drain in-flight requests before exit
-	app.enableShutdownHooks();
-	const shutdown = async (signal: string) => {
-		logger.info(`${signal} received — shutting down ${serviceName} gracefully`);
-		await app.close();
-		process.exit(0);
-	};
-	process.once('SIGTERM', () => shutdown('SIGTERM'));
-	process.once('SIGINT', () => shutdown('SIGINT'));
+  // Graceful shutdown — drain in-flight requests before exit
+  app.enableShutdownHooks();
+  const shutdown = async (signal: string) => {
+    logger.info(`${signal} received — shutting down ${serviceName} gracefully`);
+    await app.close();
+    process.exit(0);
+  };
+  process.once("SIGTERM", () => shutdown("SIGTERM"));
+  process.once("SIGINT", () => shutdown("SIGINT"));
 
-	// Catch unhandled errors to prevent silent crashes
-	process.on('unhandledRejection', (reason) => {
-		logger.error('Unhandled Rejection', { reason });
-	});
-	process.on('uncaughtException', (err) => {
-		logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
-		process.exit(1);
-	});
+  // Catch unhandled errors to prevent silent crashes
+  process.on("unhandledRejection", (reason) => {
+    logger.error("Unhandled Rejection", { reason });
+  });
+  process.on("uncaughtException", (err) => {
+    logger.error("Uncaught Exception", {
+      error: err.message,
+      stack: err.stack,
+    });
+    process.exit(1);
+  });
 
-	await app.listen(port);
-	logger.info(`${serviceName} running on port ${port}`);
+  await app.listen(port);
+  logger.info(`${serviceName} running on port ${port}`);
 }
 
 bootstrap();

@@ -1,6 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import axios, { AxiosInstance } from 'axios';
+import { Injectable, Logger } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import axios, { AxiosInstance } from "axios";
 
 export interface TrackEventOptions {
   userId: string;
@@ -33,20 +33,25 @@ export class AnalyticsClient {
 
   constructor(private configService: ConfigService) {
     const analyticsServiceUrl = this.configService.get<string>(
-      'ANALYTICS_SERVICE_URL',
-      'http://oversight-service:3010',
+      "ANALYTICS_SERVICE_URL",
+      "http://oversight-service:3010",
     );
-    this.enabled = this.configService.get<string>('ANALYTICS_ENABLED', 'true') === 'true';
-    this.kafkaEnabled = this.configService.get<string>('EVENT_BUS_ENABLED', 'false') === 'true';
+    this.enabled =
+      this.configService.get<string>("ANALYTICS_ENABLED", "true") === "true";
+    this.kafkaEnabled =
+      this.configService.get<string>("EVENT_BUS_ENABLED", "false") === "true";
 
-    const internalSecret = this.configService.get<string>('GATEWAY_INTERNAL_SECRET', '');
+    const internalSecret = this.configService.get<string>(
+      "GATEWAY_INTERNAL_SECRET",
+      "",
+    );
 
     this.client = axios.create({
       baseURL: analyticsServiceUrl,
       timeout: 3000, // Fast timeout — analytics must never block the main flow
       headers: {
-        'Content-Type': 'application/json',
-        'x-internal-secret': internalSecret,
+        "Content-Type": "application/json",
+        "x-internal-secret": internalSecret,
       },
     });
   }
@@ -61,7 +66,7 @@ export class AnalyticsClient {
     if (this.kafkaEnabled) return;
 
     try {
-      await this.client.post('/analytics/internal/track', {
+      await this.client.post("/analytics/internal/track", {
         user_id: options.userId,
         action: options.action,
         resource: options.resource,

@@ -1,16 +1,16 @@
-import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
-import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
-import { ResponseTransformInterceptor } from './common/interceptors/response-transform.interceptor';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import helmet from 'helmet';
+import { NestFactory } from "@nestjs/core";
+import { ValidationPipe } from "@nestjs/common";
+import { AppModule } from "./app.module";
+import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
+import { ResponseTransformInterceptor } from "./common/interceptors/response-transform.interceptor";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import helmet from "helmet";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-		// rawBody:true enables req.rawBody (Buffer) needed for webhook signature verification
-		rawBody: true,
-	});
+    // rawBody:true enables req.rawBody (Buffer) needed for webhook signature verification
+    rawBody: true,
+  });
 
   app.use(helmet());
 
@@ -42,15 +42,18 @@ async function bootstrap() {
     await app.close();
     process.exit(0);
   };
-  process.once('SIGTERM', () => shutdown('SIGTERM'));
-  process.once('SIGINT', () => shutdown('SIGINT'));
+  process.once("SIGTERM", () => shutdown("SIGTERM"));
+  process.once("SIGINT", () => shutdown("SIGINT"));
 
   // Catch unhandled errors to prevent silent crashes
-  process.on('unhandledRejection', (reason) => {
-    logger.error('Unhandled Rejection', { reason });
+  process.on("unhandledRejection", (reason) => {
+    logger.error("Unhandled Rejection", { reason });
   });
-  process.on('uncaughtException', (err) => {
-    logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
+  process.on("uncaughtException", (err) => {
+    logger.error("Uncaught Exception", {
+      error: err.message,
+      stack: err.stack,
+    });
     process.exit(1);
   });
 

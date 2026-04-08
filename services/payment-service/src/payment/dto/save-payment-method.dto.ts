@@ -1,11 +1,21 @@
-import { IsString, IsEnum, IsOptional, IsBoolean, IsNumber, Min, Max, IsEmail, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  Min,
+  Max,
+  IsEmail,
+  IsUUID,
+} from "class-validator";
 
 export class SavePaymentMethodDto {
   @IsUUID()
   user_id: string;
 
-  @IsEnum(['card', 'bank_account', 'paypal', 'other'])
-  payment_type: 'card' | 'bank_account' | 'paypal' | 'other';
+  @IsEnum(["card", "bank_account", "paypal", "other"])
+  payment_type: "card" | "bank_account" | "paypal" | "other";
 
   @IsOptional()
   @IsString()

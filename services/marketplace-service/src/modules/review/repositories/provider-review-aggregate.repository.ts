@@ -1,13 +1,13 @@
-import { Injectable, Inject } from '@nestjs/common';
-import { Pool } from 'pg';
-import { ProviderReviewAggregate } from '../entities/provider-review-aggregate.entity';
+import { Injectable, Inject } from "@nestjs/common";
+import { Pool } from "pg";
+import { ProviderReviewAggregate } from "../entities/provider-review-aggregate.entity";
 
 @Injectable()
 export class ProviderReviewAggregateRepository {
-	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
-	async upsert(providerId: string): Promise<ProviderReviewAggregate> {
-		const query = `
+  async upsert(providerId: string): Promise<ProviderReviewAggregate> {
+    const query = `
       INSERT INTO provider_review_aggregates (
         provider_id, total_reviews, average_rating,
         rating_1_count, rating_2_count, rating_3_count, rating_4_count, rating_5_count,
@@ -41,18 +41,20 @@ export class ProviderReviewAggregateRepository {
       RETURNING *
     `;
 
-		const result = await this.pool.query(query, [providerId]);
-		return result.rows[0];
-	}
+    const result = await this.pool.query(query, [providerId]);
+    return result.rows[0];
+  }
 
-	async findByProvider(providerId: string): Promise<ProviderReviewAggregate | null> {
-		const query = `SELECT * FROM provider_review_aggregates WHERE provider_id = $1`;
-		const result = await this.pool.query(query, [providerId]);
-		return result.rows[0] || null;
-	}
+  async findByProvider(
+    providerId: string,
+  ): Promise<ProviderReviewAggregate | null> {
+    const query = `SELECT * FROM provider_review_aggregates WHERE provider_id = $1`;
+    const result = await this.pool.query(query, [providerId]);
+    return result.rows[0] || null;
+  }
 
-	async findTopRated(limit: number = 10): Promise<ProviderReviewAggregate[]> {
-		const query = `
+  async findTopRated(limit: number = 10): Promise<ProviderReviewAggregate[]> {
+    const query = `
       SELECT pra.*, p.business_name, p.user_id
       FROM provider_review_aggregates pra
       JOIN providers p ON pra.provider_id = p.id
@@ -60,16 +62,16 @@ export class ProviderReviewAggregateRepository {
       ORDER BY pra.average_rating DESC, pra.total_reviews DESC
       LIMIT $1
     `;
-		const result = await this.pool.query(query, [limit]);
-		return result.rows;
-	}
+    const result = await this.pool.query(query, [limit]);
+    return result.rows;
+  }
 
-	async findByRatingRange(
-		minRating: number,
-		maxRating: number,
-		limit: number = 20,
-	): Promise<ProviderReviewAggregate[]> {
-		const query = `
+  async findByRatingRange(
+    minRating: number,
+    maxRating: number,
+    limit: number = 20,
+  ): Promise<ProviderReviewAggregate[]> {
+    const query = `
       SELECT pra.*, p.business_name
       FROM provider_review_aggregates pra
       JOIN providers p ON pra.provider_id = p.id
@@ -77,12 +79,12 @@ export class ProviderReviewAggregateRepository {
       ORDER BY pra.total_reviews DESC
       LIMIT $3
     `;
-		const result = await this.pool.query(query, [minRating, maxRating, limit]);
-		return result.rows;
-	}
+    const result = await this.pool.query(query, [minRating, maxRating, limit]);
+    return result.rows;
+  }
 
-	async refreshAll(): Promise<number> {
-		const query = `
+  async refreshAll(): Promise<number> {
+    const query = `
       INSERT INTO provider_review_aggregates (
         provider_id, total_reviews, average_rating,
         rating_1_count, rating_2_count, rating_3_count, rating_4_count, rating_5_count,
@@ -114,12 +116,12 @@ export class ProviderReviewAggregateRepository {
         updated_at = NOW()
     `;
 
-		const result = await this.pool.query(query);
-		return result.rowCount || 0;
-	}
+    const result = await this.pool.query(query);
+    return result.rowCount || 0;
+  }
 
-	async refreshRecent(hoursWindow: number): Promise<number> {
-		const query = `
+  async refreshRecent(hoursWindow: number): Promise<number> {
+    const query = `
       WITH recent_providers AS (
         SELECT DISTINCT provider_id
         FROM reviews
@@ -157,9 +159,7 @@ export class ProviderReviewAggregateRepository {
         updated_at = NOW()
     `;
 
-		const result = await this.pool.query(query, [hoursWindow]);
-		return result.rowCount || 0;
-	}
+    const result = await this.pool.query(query, [hoursWindow]);
+    return result.rowCount || 0;
+  }
 }
-
-

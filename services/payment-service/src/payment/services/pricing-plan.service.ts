@@ -1,31 +1,33 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { PricingPlanRepository } from '../repositories/pricing-plan.repository';
-import { PricingPlan } from '../entities/pricing-plan.entity';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from "@nestjs/common";
+import { PricingPlanRepository } from "../repositories/pricing-plan.repository";
+import { PricingPlan } from "../entities/pricing-plan.entity";
 
 @Injectable()
 export class PricingPlanService {
-  constructor(
-    private readonly pricingPlanRepository: PricingPlanRepository
-  ) {}
+  constructor(private readonly pricingPlanRepository: PricingPlanRepository) {}
 
   async createPlan(data: {
     name: string;
     description?: string;
     price: number;
-    billing_period: 'monthly' | 'yearly';
+    billing_period: "monthly" | "yearly";
     features?: any;
     active?: boolean;
   }): Promise<PricingPlan> {
     // Admin only - authorization should be handled at controller level
 
     if (data.price < 0) {
-      throw new BadRequestException('Price cannot be negative');
+      throw new BadRequestException("Price cannot be negative");
     }
 
     // Validate features structure if provided
     if (data.features) {
-      if (typeof data.features !== 'object') {
-        throw new BadRequestException('Features must be a valid JSON object');
+      if (typeof data.features !== "object") {
+        throw new BadRequestException("Features must be a valid JSON object");
       }
     }
 
@@ -44,7 +46,7 @@ export class PricingPlanService {
     const plan = await this.pricingPlanRepository.findById(planId);
 
     if (!plan) {
-      throw new NotFoundException('Pricing plan not found');
+      throw new NotFoundException("Pricing plan not found");
     }
 
     return plan;
@@ -56,16 +58,16 @@ export class PricingPlanService {
       name?: string;
       description?: string;
       price?: number;
-      billing_period?: 'monthly' | 'yearly';
+      billing_period?: "monthly" | "yearly";
       features?: any;
       active?: boolean;
-    }
+    },
   ): Promise<PricingPlan> {
     // Admin only
     const plan = await this.getPlanById(planId);
 
     if (updateData.price !== undefined && updateData.price < 0) {
-      throw new BadRequestException('Price cannot be negative');
+      throw new BadRequestException("Price cannot be negative");
     }
 
     // When changing price, recommend creating new plan instead
@@ -73,7 +75,7 @@ export class PricingPlanService {
       // Log warning: changing price affects existing subscriptions
       console.warn(
         `Price change for plan ${planId}: ${plan.price} -> ${updateData.price}. ` +
-        'This may affect existing subscriptions.'
+          "This may affect existing subscriptions.",
       );
     }
 
@@ -85,7 +87,7 @@ export class PricingPlanService {
     const plan = await this.getPlanById(planId);
 
     if (!plan.active) {
-      throw new BadRequestException('Plan is already inactive');
+      throw new BadRequestException("Plan is already inactive");
     }
 
     // Note: Deactivating a plan should not affect existing subscriptions
@@ -102,15 +104,17 @@ export class PricingPlanService {
 
     // Build feature comparison matrix
     const allFeatures = new Set<string>();
-    activePlans.forEach(plan => {
+    activePlans.forEach((plan) => {
       if (plan.features) {
-        Object.keys(plan.features).forEach(feature => allFeatures.add(feature));
+        Object.keys(plan.features).forEach((feature) =>
+          allFeatures.add(feature),
+        );
       }
     });
 
-    const comparison = Array.from(allFeatures).map(feature => {
+    const comparison = Array.from(allFeatures).map((feature) => {
       const featureRow = { feature };
-      activePlans.forEach(plan => {
+      activePlans.forEach((plan) => {
         featureRow[plan.name] = plan.features?.[feature] ?? false;
       });
       return featureRow;
@@ -118,7 +122,7 @@ export class PricingPlanService {
 
     return {
       plans: activePlans,
-      comparison
+      comparison,
     };
   }
 }

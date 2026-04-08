@@ -1,7 +1,7 @@
 export class SavedPaymentMethod {
   id: string;
   user_id: string;
-  payment_type: 'card' | 'bank_account' | 'paypal' | 'other';
+  payment_type: "card" | "bank_account" | "paypal" | "other";
   card_brand?: string;
   last_four?: string;
   expiry_month?: number;

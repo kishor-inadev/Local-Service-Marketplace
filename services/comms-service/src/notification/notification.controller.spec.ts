@@ -1,21 +1,21 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { NotificationController } from './notification.controller';
-import { NotificationService } from './services/notification.service';
-import { EmailWorkerService } from './services/email-worker.service';
-import { PushWorkerService } from './services/push-worker.service';
-import { FeatureFlagService } from './services/feature-flag.service';
-import { UnsubscribeRepository } from './repositories/unsubscribe.repository';
-import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Test, TestingModule } from "@nestjs/testing";
+import { NotificationController } from "./notification.controller";
+import { NotificationService } from "./services/notification.service";
+import { EmailWorkerService } from "./services/email-worker.service";
+import { PushWorkerService } from "./services/push-worker.service";
+import { FeatureFlagService } from "./services/feature-flag.service";
+import { UnsubscribeRepository } from "./repositories/unsubscribe.repository";
+import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
+import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { ForbiddenException, BadRequestException } from "@nestjs/common";
 
 const mockLogger = { log: jest.fn(), error: jest.fn(), warn: jest.fn() };
 
 const mockNotification = {
-  id: 'notif-uuid-1',
-  user_id: 'user-uuid-1',
-  type: 'request_created',
-  message: 'Your request was created',
+  id: "notif-uuid-1",
+  user_id: "user-uuid-1",
+  type: "request_created",
+  message: "Your request was created",
   read: false,
   created_at: new Date(),
 };
@@ -45,10 +45,10 @@ const mockFeatureFlags = {
   pushNotificationsEnabled: true,
   notificationPreferencesEnabled: true,
   deviceTrackingEnabled: false,
-  getEnabledChannels: jest.fn().mockReturnValue(['email', 'sms', 'in_app']),
+  getEnabledChannels: jest.fn().mockReturnValue(["email", "sms", "in_app"]),
 };
 
-describe('NotificationController', () => {
+describe("NotificationController", () => {
   let controller: NotificationController;
 
   beforeEach(async () => {
@@ -75,142 +75,169 @@ describe('NotificationController', () => {
     controller = module.get<NotificationController>(NotificationController);
   });
 
-  describe('getNotifications', () => {
-    it('should return notifications with unread count', async () => {
-      mockNotifService.getNotificationsByUserId.mockResolvedValue([mockNotification]);
+  describe("getNotifications", () => {
+    it("should return notifications with unread count", async () => {
+      mockNotifService.getNotificationsByUserId.mockResolvedValue([
+        mockNotification,
+      ]);
       mockNotifService.getUnreadCount.mockResolvedValue(1);
-      const result = await controller.getNotifications('user-uuid-1', 50);
+      const result = await controller.getNotifications("user-uuid-1", 50);
       expect(result.success).toBe(true);
       expect(result.data.notifications).toHaveLength(1);
       expect(result.data.unreadCount).toBe(1);
     });
 
-    it('should throw BadRequestException when in-app notifications disabled', async () => {
+    it("should throw BadRequestException when in-app notifications disabled", async () => {
       mockFeatureFlags.inAppNotificationsEnabled = false;
-      await expect(controller.getNotifications('user-uuid-1', 50)).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.getNotifications("user-uuid-1", 50),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('getFeatures', () => {
-    it('should return feature flags', async () => {
+  describe("getFeatures", () => {
+    it("should return feature flags", async () => {
       const result = await controller.getFeatures();
       expect(result.data.features.email).toBe(true);
       expect(result.data.enabled_channels).toBeDefined();
     });
   });
 
-  describe('getUnreadCount', () => {
-    it('should return count', async () => {
+  describe("getUnreadCount", () => {
+    it("should return count", async () => {
       mockNotifService.getUnreadCount.mockResolvedValue(3);
-      const result = await controller.getUnreadCount('user-uuid-1');
+      const result = await controller.getUnreadCount("user-uuid-1");
       expect(result.data.count).toBe(3);
     });
   });
 
-  describe('markAllAsRead', () => {
-    it('should mark all as read', async () => {
+  describe("markAllAsRead", () => {
+    it("should mark all as read", async () => {
       mockNotifService.markAllAsRead.mockResolvedValue(undefined);
-      const result = await controller.markAllAsRead('user-uuid-1');
-      expect(result.message).toContain('marked as read');
+      const result = await controller.markAllAsRead("user-uuid-1");
+      expect(result.message).toContain("marked as read");
     });
   });
 
-  describe('getNotification', () => {
-    it('should return a notification', async () => {
+  describe("getNotification", () => {
+    it("should return a notification", async () => {
       mockNotifService.getNotificationById.mockResolvedValue(mockNotification);
-      const result = await controller.getNotification('notif-uuid-1', 'user-uuid-1');
+      const result = await controller.getNotification(
+        "notif-uuid-1",
+        "user-uuid-1",
+      );
       expect(result).toEqual(mockNotification);
     });
 
-    it('should throw when in-app notifications disabled', async () => {
+    it("should throw when in-app notifications disabled", async () => {
       mockFeatureFlags.inAppNotificationsEnabled = false;
-      await expect(controller.getNotification('notif-uuid-1', 'user-uuid-1')).rejects.toThrow(BadRequestException);
+      await expect(
+        controller.getNotification("notif-uuid-1", "user-uuid-1"),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
-  describe('markAsRead', () => {
-    it('should mark notification as read', async () => {
+  describe("markAsRead", () => {
+    it("should mark notification as read", async () => {
       const readNotif = { ...mockNotification, read: true };
       mockNotifService.markAsRead.mockResolvedValue(readNotif);
-      const result = await controller.markAsRead('notif-uuid-1', 'user-uuid-1');
+      const result = await controller.markAsRead("notif-uuid-1", "user-uuid-1");
       expect(result.read).toBe(true);
     });
   });
 
-  describe('deleteNotification', () => {
-    it('should delete notification', async () => {
+  describe("deleteNotification", () => {
+    it("should delete notification", async () => {
       mockNotifService.deleteNotification.mockResolvedValue(undefined);
-      await controller.deleteNotification('notif-uuid-1', 'user-uuid-1');
-      expect(mockNotifService.deleteNotification).toHaveBeenCalledWith('notif-uuid-1', 'user-uuid-1');
+      await controller.deleteNotification("notif-uuid-1", "user-uuid-1");
+      expect(mockNotifService.deleteNotification).toHaveBeenCalledWith(
+        "notif-uuid-1",
+        "user-uuid-1",
+      );
     });
   });
 
-  describe('sendNotification', () => {
-    it('should send notification and return result', async () => {
+  describe("sendNotification", () => {
+    it("should send notification and return result", async () => {
       mockNotifService.sendNotification.mockResolvedValue({ success: true });
       const result = await controller.sendNotification({
-        channel: 'email' as any,
-        recipient: 'user@example.com',
-        subject: 'Test',
-        message: 'Hello',
+        channel: "email" as any,
+        recipient: "user@example.com",
+        subject: "Test",
+        message: "Hello",
       });
       expect(result.data.success).toBe(true);
     });
   });
 
-  describe('sendEmail', () => {
-    it('should send email', async () => {
+  describe("sendEmail", () => {
+    it("should send email", async () => {
       mockNotifService.sendEmailDirect.mockResolvedValue({ success: true });
       const result = await controller.sendEmail({
-        to: 'user@example.com',
-        subject: 'Test',
-        message: 'Hello',
+        to: "user@example.com",
+        subject: "Test",
+        message: "Hello",
       });
       expect(result.data.success).toBe(true);
     });
   });
 
-  describe('processEmails (worker)', () => {
-    it('should process emails for admin users', async () => {
+  describe("processEmails (worker)", () => {
+    it("should process emails for admin users", async () => {
       mockEmailWorker.processPendingEmails.mockResolvedValue(undefined);
-      const result = await controller.processEmails('admin');
+      const result = await controller.processEmails("admin");
       expect(result).toEqual({});
     });
 
-    it('should throw ForbiddenException for non-admin users', async () => {
-      await expect(controller.processEmails('customer')).rejects.toThrow(ForbiddenException);
+    it("should throw ForbiddenException for non-admin users", async () => {
+      await expect(controller.processEmails("customer")).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
-  describe('processPush (worker)', () => {
-    it('should process push notifications for admin users', async () => {
-      mockPushWorker.processPendingPushNotifications.mockResolvedValue(undefined);
-      const result = await controller.processPush('admin');
+  describe("processPush (worker)", () => {
+    it("should process push notifications for admin users", async () => {
+      mockPushWorker.processPendingPushNotifications.mockResolvedValue(
+        undefined,
+      );
+      const result = await controller.processPush("admin");
       expect(result).toEqual({});
     });
 
-    it('should throw ForbiddenException for non-admin', async () => {
-      await expect(controller.processPush('customer')).rejects.toThrow(ForbiddenException);
+    it("should throw ForbiddenException for non-admin", async () => {
+      await expect(controller.processPush("customer")).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
-    it('should throw BadRequestException when push disabled', async () => {
+    it("should throw BadRequestException when push disabled", async () => {
       mockFeatureFlags.pushNotificationsEnabled = false;
-      await expect(controller.processPush('admin')).rejects.toThrow(BadRequestException);
+      await expect(controller.processPush("admin")).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
-  describe('unsubscribe', () => {
-    it('should unsubscribe new email', async () => {
+  describe("unsubscribe", () => {
+    it("should unsubscribe new email", async () => {
       mockUnsubscribeRepo.findByEmail.mockResolvedValue(null);
-      mockUnsubscribeRepo.create.mockResolvedValue({ unsubscribed_at: new Date() });
-      const result = await controller.unsubscribe({ email: 'user@example.com', reason: 'spam' });
+      mockUnsubscribeRepo.create.mockResolvedValue({
+        unsubscribed_at: new Date(),
+      });
+      const result = await controller.unsubscribe({
+        email: "user@example.com",
+        reason: "spam",
+      });
       expect(result.unsubscribed).toBe(true);
     });
 
-    it('should return existing unsubscribe record', async () => {
-      const existing = { unsubscribed_at: new Date('2024-01-01') };
+    it("should return existing unsubscribe record", async () => {
+      const existing = { unsubscribed_at: new Date("2024-01-01") };
       mockUnsubscribeRepo.findByEmail.mockResolvedValue(existing);
-      const result = await controller.unsubscribe({ email: 'user@example.com' } as any);
+      const result = await controller.unsubscribe({
+        email: "user@example.com",
+      } as any);
       expect(result.unsubscribed).toBe(true);
       expect(result.unsubscribed_at).toEqual(existing.unsubscribed_at);
       expect(mockUnsubscribeRepo.create).not.toHaveBeenCalled();
