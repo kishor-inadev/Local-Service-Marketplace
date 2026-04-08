@@ -57,13 +57,13 @@ const detectInputType = (input: string): 'email' | 'phone' | 'unknown' => {
   }
   
   // Phone validation: at least 10 digits (with optional formatting)
-  const phoneRegex = /^[\d\s\-\+\(\)]+$/;
-  const digitsOnly = input.replace(/[\s\-\(\)]/g, ''); // Remove formatting
+  const phoneRegex = /^[\d\s\-+()]+$/;
+  const digitsOnly = input.replace(/[\s\-()]/g, ''); // Remove formatting
   
   // Check if it's phone format AND has at least 10 digits
   if (phoneRegex.test(input) && digitsOnly.length >= 10) {
     // Must start with + or digit
-    if (input.trim().match(/^[\+\d]/)) {
+    if (input.trim().match(/^[+\d]/)) {
       return 'phone';
     }
   }
