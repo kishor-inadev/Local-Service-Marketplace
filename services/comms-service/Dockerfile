@@ -1,10 +1,10 @@
 # Build stage
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Install pnpm with retries; fallback to npm global install if corepack fetch is unstable
-RUN corepack enable && sh -c "for i in 1 2 3; do corepack prepare pnpm@9.12.3 --activate && exit 0; echo 'corepack prepare failed, retrying...'; sleep 5; done; npm install -g pnpm@9.12.3 --force"
+RUN npm install -g pnpm@9.12.3
 
 COPY package*.json pnpm-lock.yaml* ./
 
@@ -22,7 +22,7 @@ RUN pnpm run build
 RUN pnpm prune --prod
 
 # Production stage
-FROM node:20-slim
+FROM node:20-alpine
 
 WORKDIR /app
 

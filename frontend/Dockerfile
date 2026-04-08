@@ -1,12 +1,12 @@
 # Multi-stage Dockerfile for Next.js Frontend
 
 # Stage 1: Dependencies
-FROM node:20-slim AS deps
-RUN apk add --no-cache libc6-compat
+FROM node:20-alpine AS deps
+# RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3 --force)
+RUN npm install -g pnpm@9.12.3
 
 COPY package.json pnpm-lock.yaml* ./
 
@@ -19,11 +19,11 @@ RUN pnpm config set network-timeout 600000 && \
 RUN pnpm install
 
 # Stage 2: Builder
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3 --force)
+RUN npm install -g pnpm@9.12.3
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
@@ -37,14 +37,14 @@ ENV DOCKER_BUILD true
 RUN pnpm run build
 
 # Stage 3: Runner
-FROM node:20-slim AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd -g 1001 nodejs
+RUN useradd -m -u 1001 -g nodejs nextjs
 
 # Copy necessary files
 COPY --from=builder /app/public ./public

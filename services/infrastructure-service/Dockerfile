@@ -1,10 +1,10 @@
 # Stage 1: Build
-FROM node:20-slim AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3 --force)
+RUN npm install -g pnpm@9.12.3
 
 # Copy package files
 COPY package*.json pnpm-lock.yaml* ./
@@ -25,12 +25,12 @@ COPY . .
 RUN pnpm run build
 
 # Stage 2: Production
-FROM node:20-slim
+FROM node:20-alpine
 
 WORKDIR /app
 
 # Install pnpm
-RUN corepack enable ; (corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || corepack prepare pnpm@9.12.3 --activate || npm install -g pnpm@9.12.3 --force)
+RUN npm install -g pnpm@9.12.3
 
 # Copy package files
 COPY package*.json pnpm-lock.yaml* ./
