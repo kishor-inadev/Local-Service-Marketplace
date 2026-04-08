@@ -90,7 +90,7 @@ export default function RequestDetailPage() {
   const isOwner = user?.id === request.user_id;
 
   return (
-		<ProtectedRoute requiredRoles={["customer"]}>
+		<ProtectedRoute requiredRoles={["customer", "provider"]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					<div className='mb-6'>
@@ -109,7 +109,9 @@ export default function RequestDetailPage() {
 								<CardHeader>
 									<div className='flex items-start justify-between'>
 										<div>
-											<h1 className='text-2xl font-bold text-gray-900'>Service Request #{request.display_id || request.id.slice(0, 8)}</h1>
+											<h1 className='text-2xl font-bold text-gray-900'>
+												Service Request #{request.display_id || request.id.slice(0, 8)}
+											</h1>
 											<p className='text-sm text-gray-500 mt-2'>Posted {formatRelativeTime(request.created_at)}</p>
 										</div>
 										<StatusBadge status={request.status} />

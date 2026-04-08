@@ -13,7 +13,7 @@ CREATE EXTENSION IF NOT EXISTS "pg_stat_statements";
 
 CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   email VARCHAR(255) UNIQUE NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
   name VARCHAR(255),
   phone VARCHAR(20) CHECK (phone IS NULL OR phone ~ '^\+?[0-9]{10,15}$'),
@@ -42,7 +42,7 @@ CREATE INDEX idx_users_phone ON users(phone) WHERE phone IS NOT NULL;
 
 CREATE TABLE sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   refresh_token TEXT,
   ip_address TEXT,
@@ -203,7 +203,7 @@ CREATE INDEX idx_account_deletion_requests_requested_at ON account_deletion_requ
 
 CREATE TABLE providers (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   user_id UUID NOT NULL UNIQUE REFERENCES users(id) ON DELETE CASCADE,
   business_name VARCHAR(255) NOT NULL,
   description TEXT,
@@ -232,7 +232,7 @@ CREATE INDEX idx_providers_total_jobs ON providers(total_jobs_completed DESC);
 
 CREATE TABLE service_categories (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   name VARCHAR(100) UNIQUE NOT NULL,
   description TEXT,
   icon TEXT,
@@ -271,7 +271,7 @@ CREATE INDEX idx_provider_availability_composite ON provider_availability(provid
 
 CREATE TABLE locations (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Nullable for anonymous requests
   latitude DECIMAL(10, 8) NOT NULL,
   longitude DECIMAL(11, 8) NOT NULL,
@@ -293,7 +293,7 @@ CREATE INDEX idx_locations_geo ON locations USING GIST(ST_MakePoint(longitude, l
 
 CREATE TABLE service_requests (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   user_id UUID REFERENCES users(id) ON DELETE CASCADE, -- Nullable to allow anonymous requests
   category_id UUID NOT NULL REFERENCES service_categories(id),
   location_id UUID REFERENCES locations(id),
@@ -340,7 +340,7 @@ CREATE INDEX idx_service_requests_budget_status ON service_requests(budget, stat
 
 CREATE TABLE proposals (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   request_id UUID NOT NULL REFERENCES service_requests(id) ON DELETE CASCADE,
   provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
   price BIGINT NOT NULL CHECK (price > 0),
@@ -370,7 +370,7 @@ CREATE INDEX idx_proposals_status_created_at ON proposals(status, created_at DES
 
 CREATE TABLE jobs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   request_id UUID NOT NULL REFERENCES service_requests(id),
   provider_id UUID NOT NULL REFERENCES providers(id),
   customer_id UUID NOT NULL REFERENCES users(id),
@@ -403,7 +403,7 @@ CREATE INDEX idx_jobs_completed_at ON jobs(completed_at DESC) WHERE completed_at
 
 CREATE TABLE payments (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   job_id UUID NOT NULL REFERENCES jobs(id),
   user_id UUID NOT NULL REFERENCES users(id),
   provider_id UUID NOT NULL REFERENCES providers(id),
@@ -451,7 +451,7 @@ CREATE INDEX idx_payment_webhooks_gateway_event ON payment_webhooks(gateway, eve
 
 CREATE TABLE refunds (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   payment_id UUID NOT NULL REFERENCES payments(id) ON DELETE CASCADE,
   amount BIGINT NOT NULL CHECK (amount > 0),
   status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'failed')),
@@ -468,7 +468,7 @@ CREATE INDEX idx_refunds_status ON refunds(status);
 
 CREATE TABLE reviews (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   job_id UUID NOT NULL REFERENCES jobs(id),
   user_id UUID NOT NULL REFERENCES users(id),
   provider_id UUID NOT NULL REFERENCES providers(id),
@@ -495,7 +495,7 @@ CREATE UNIQUE INDEX idx_reviews_job_user_unique ON reviews(job_id, user_id);
 
 CREATE TABLE messages (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   job_id UUID NOT NULL REFERENCES jobs(id) ON DELETE CASCADE,
   sender_id UUID NOT NULL REFERENCES users(id),
   message TEXT NOT NULL,
@@ -519,7 +519,7 @@ CREATE INDEX idx_messages_job_read_created ON messages(job_id, read, created_at 
 
 CREATE TABLE notifications (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   type TEXT NOT NULL,
   message TEXT NOT NULL,
@@ -584,7 +584,7 @@ CREATE INDEX idx_attachments_message_id ON attachments(message_id);
 
 CREATE TABLE coupons (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   code VARCHAR(50) UNIQUE NOT NULL,
   discount_percent INT NOT NULL CHECK (discount_percent > 0 AND discount_percent <= 100),
   max_uses INT,
@@ -616,7 +616,7 @@ CREATE INDEX idx_coupon_usage_coupon_id ON coupon_usage(coupon_id);
 
 CREATE TABLE disputes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   job_id UUID NOT NULL REFERENCES jobs(id),
   opened_by UUID NOT NULL REFERENCES users(id),
   reason TEXT NOT NULL,
@@ -676,7 +676,7 @@ CREATE INDEX idx_user_activity_user_action ON user_activity_logs(user_id, action
 
 CREATE TABLE events (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   event_type TEXT NOT NULL,
   payload JSONB NOT NULL,
   created_at TIMESTAMP DEFAULT now() NOT NULL
@@ -691,7 +691,7 @@ CREATE INDEX idx_events_created_at ON events(created_at DESC);
 
 CREATE TABLE background_jobs (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   job_type TEXT NOT NULL,
   payload JSONB NOT NULL,
   status TEXT NOT NULL CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
@@ -773,7 +773,7 @@ CREATE TABLE system_settings (
 
 CREATE TABLE admin_actions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   admin_id UUID NOT NULL REFERENCES users(id),
   action TEXT NOT NULL,
   target_type TEXT NOT NULL,
@@ -1239,7 +1239,7 @@ CREATE TABLE pricing_plans (
 
 CREATE TABLE subscriptions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  display_id VARCHAR(11) UNIQUE NOT NULL DEFAULT '',
+  display_id VARCHAR(11) UNIQUE NOT NULL,
   provider_id UUID NOT NULL REFERENCES providers(id) ON DELETE CASCADE,
   plan_id UUID NOT NULL REFERENCES pricing_plans(id),
   status TEXT NOT NULL CHECK (status IN ('active', 'cancelled', 'expired', 'pending')),
