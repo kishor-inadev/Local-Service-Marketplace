@@ -381,6 +381,51 @@ export class ProviderService {
     return responses;
   }
 
+  async addProviderService(providerId: string, categoryId: string): Promise<any> {
+    const provider = await this.providerRepo.findById(providerId);
+    if (!provider) {
+      throw new NotFoundException("Provider not found");
+    }
+    
+    const existingServices = await this.providerServiceRepo.findByProviderId(provider.id);
+    if (existingServices.some(s => s.category_id === categoryId)) {
+      throw new ConflictException("Service category already mapped to this provider");
+    }
+
+    const newService = await this.providerServiceRepo.create(provider.id, categoryId);
+    
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.del(`provider:${provider.id}`);
+    }
+
+    return {
+      id: newService.id,
+      provider_id: provider.id,
+      category_id: categoryId
+    };
+  }
+
+  async removeProviderService(providerId: string, serviceId: string): Promise<void> {
+    await this.providerServiceRepo.deleteById(serviceId);
+    
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.del(`provider:${providerId}`);
+    }
+  }
+
+  async getProviderServices(providerId: string): Promise<any[]> {
+    const provider = await this.providerRepo.findById(providerId);
+    if (!provider) {
+      throw new NotFoundException("Provider not found");
+    }
+    const services = await this.providerServiceRepo.findByProviderId(provider.id);
+    return services.map(s => ({
+      id: s.id,
+      provider_id: provider.id,
+      category_id: s.category_id
+    }));
+  }
+
   async deleteProvider(providerId: string): Promise<void> {
     this.logger.info("Deleting provider", {
       context: "ProviderService",

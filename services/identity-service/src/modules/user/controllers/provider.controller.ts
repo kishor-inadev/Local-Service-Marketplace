@@ -22,6 +22,7 @@ import { CreateProviderDto } from "../dto/create-provider.dto";
 import { UpdateProviderDto } from "../dto/update-provider.dto";
 import { UpdateProviderServicesDto } from "../dto/update-provider-services.dto";
 import { UpdateProviderAvailabilityDto } from "../dto/update-provider-availability.dto";
+import { AddProviderServiceDto } from "../dto/add-provider-service.dto";
 import { ProviderQueryDto } from "../dto/provider-query.dto";
 import { ProviderResponseDto } from "../dto/provider-response.dto";
 import { PaginatedResponseDto } from "../dto/paginated-response.dto";
@@ -146,5 +147,60 @@ export class ProviderController {
     return this.providerService.updateProvider(id, {
       availability: dto.availability,
     });
+  }
+  /**
+   * Get isolated provider services
+   * GET /providers/:id/services
+   */
+  @Get(":id/services")
+  @HttpCode(HttpStatus.OK)
+  async getProviderServices(
+    @Param("id", StrictUuidPipe) id: string,
+  ): Promise<any[]> {
+    this.logger.info("GET /providers/:id/services", {
+      context: "ProviderController",
+      provider_id: id,
+    });
+    return this.providerService.getProviderServices(id);
+  }
+
+  /**
+   * Add a single provider service category
+   * POST /providers/:id/services
+   */
+  @Roles("provider", "admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(":id/services")
+  @HttpCode(HttpStatus.CREATED)
+  async addProviderService(
+    @Param("id", StrictUuidPipe) id: string,
+    @Body() dto: AddProviderServiceDto,
+  ): Promise<any> {
+    this.logger.info("POST /providers/:id/services", {
+      context: "ProviderController",
+      provider_id: id,
+      category_id: dto.category_id,
+    });
+    return this.providerService.addProviderService(id, dto.category_id);
+  }
+
+  /**
+   * Remove a single provider service category
+   * DELETE /providers/:id/services/:serviceId
+   */
+  @Roles("provider", "admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Delete(":id/services/:serviceId")
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async removeProviderService(
+    @Param("id", StrictUuidPipe) id: string,
+    @Param("serviceId", StrictUuidPipe) serviceId: string,
+  ): Promise<void> {
+    this.logger.info("DELETE /providers/:id/services/:serviceId", {
+      context: "ProviderController",
+      provider_id: id,
+      service_id: serviceId,
+    });
+    return this.providerService.removeProviderService(id, serviceId);
   }
 }
