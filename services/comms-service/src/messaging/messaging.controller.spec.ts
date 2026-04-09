@@ -2,8 +2,10 @@ import { Test, TestingModule } from "@nestjs/testing";
 import { MessagingController } from "./messaging.controller";
 import { MessageService } from "./services/message.service";
 import { AttachmentService } from "./services/attachment.service";
+import { FileServiceClient } from "../common/file-service.client";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import "multer";
 
 const mockLogger = { log: jest.fn(), error: jest.fn(), warn: jest.fn() };
 
@@ -37,6 +39,10 @@ const mockAttachmentService = {
   getAttachmentsByMessageId: jest.fn(),
 };
 
+const mockFileServiceClient = {
+  uploadFile: jest.fn(),
+};
+
 describe("MessagingController", () => {
   let controller: MessagingController;
 
@@ -48,6 +54,7 @@ describe("MessagingController", () => {
         { provide: WINSTON_MODULE_NEST_PROVIDER, useValue: mockLogger },
         { provide: MessageService, useValue: mockMessageService },
         { provide: AttachmentService, useValue: mockAttachmentService },
+        { provide: FileServiceClient, useValue: mockFileServiceClient },
       ],
     })
       .overrideGuard(JwtAuthGuard)
@@ -92,14 +99,25 @@ describe("MessagingController", () => {
 
   describe("createAttachment", () => {
     it("should create attachment and return success response", async () => {
-      mockAttachmentService.createAttachment.mockResolvedValue(mockAttachment);
-      const result = await controller.createAttachment({
-        message_id: "msg-uuid-1",
-        file_url: "https://cdn.example.com/file.pdf",
-        file_name: "file.pdf",
+      mockFileServiceClient.uploadFile.mockResolvedValue({
+        url: "https://cdn.example.com/file.pdf",
+        originalName: "file.pdf",
+        size: 1024,
+        mimeType: "application/pdf"
       });
+      mockAttachmentService.createAttachment.mockResolvedValue(mockAttachment);
+      
+      const fileMock = { originalname: "file.pdf", buffer: Buffer.from("test"), mimetype: "application/pdf" } as any;
+      const reqMock = { user: { userId: "user-uuid-1", role: "user" } };
+
+      const result = await controller.createAttachment(
+        { message_id: "msg-uuid-1" } as any,
+        fileMock,
+        reqMock
+      );
+      
       expect(result.success).toBe(true);
-      expect(result.data).toEqual(mockAttachment);
+      expect(result.data.id).toEqual(mockAttachment.id);
     });
   });
 
