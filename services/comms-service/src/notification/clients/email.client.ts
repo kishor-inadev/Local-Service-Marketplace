@@ -23,7 +23,7 @@ export class EmailClient {
 
     this.httpClient = axios.create({
       baseURL: this.emailServiceUrl,
-      timeout: 10000,
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
       headers: {
         "Content-Type": "application/json",
       },

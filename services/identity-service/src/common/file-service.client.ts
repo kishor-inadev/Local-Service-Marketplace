@@ -66,7 +66,7 @@ export class FileServiceClient {
       "https://your-file-service.vercel.app";
     this.defaultTenantId =
       this.configService.get<string>("DEFAULT_TENANT_ID") || "default";
-    this.requestTimeout = 30000; // 30 seconds
+    this.requestTimeout = this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000); // Default to 72 seconds
     this.maxRetries = 3; // Retry 3 times on failure
   }
 
@@ -257,7 +257,7 @@ export class FileServiceClient {
               "X-User-Role": userRole,
               "X-Tenant-Id": this.defaultTenantId,
             },
-            timeout: 60000, // 60 seconds for multiple files
+            timeout: this.requestTimeout, // Increased timeout from configuration
           },
         ).pipe(
           retry({

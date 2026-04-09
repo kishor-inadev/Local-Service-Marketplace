@@ -136,6 +136,7 @@ services:
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
       - FILE_UPLOAD_SERVICE_URL=${FILE_UPLOAD_SERVICE_URL:-http://localhost:4100}
       - DEFAULT_TENANT_ID=${FILE_DEFAULT_TENANT_ID:-default}
+      - REQUEST_TIMEOUT_MS=${REQUEST_TIMEOUT_MS:-72000}
     networks:
       - marketplace-network
     healthcheck:
@@ -185,6 +186,7 @@ services:
       - CACHE_ENABLED=${CACHE_ENABLED:-false}
       - DB_POOL_MAX=${DB_POOL_MAX:-10}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
+      - REQUEST_TIMEOUT_MS=${REQUEST_TIMEOUT_MS:-72000}
     depends_on:
       identity-service:
         condition: service_healthy
@@ -264,6 +266,7 @@ services:
       - INSTAMOJO_WEBHOOK_URL=${INSTAMOJO_WEBHOOK_URL:-}
       - INSTAMOJO_REDIRECT_URL=${INSTAMOJO_REDIRECT_URL:-}
       - INSTAMOJO_API_URL=${INSTAMOJO_API_URL:-https://test.instamojo.com}
+      - REQUEST_TIMEOUT_MS=${REQUEST_TIMEOUT_MS:-72000}
     depends_on:
       identity-service:
         condition: service_healthy
@@ -321,10 +324,9 @@ services:
       - EVENT_BUS_ENABLED=${EVENT_BUS_ENABLED:-false}
       - CACHE_ENABLED=${CACHE_ENABLED:-false}
       - WORKERS_ENABLED=${WORKERS_ENABLED:-false}
-      - DB_POOL_MAX=${DB_POOL_MAX:-10}
-      - DB_POOL_MIN=${DB_POOL_MIN:-5}
       - FILE_UPLOAD_SERVICE_URL=${FILE_UPLOAD_SERVICE_URL:-http://localhost:4100}
       - DEFAULT_TENANT_ID=${FILE_DEFAULT_TENANT_ID:-default}
+      - REQUEST_TIMEOUT_MS=${REQUEST_TIMEOUT_MS:-72000}
     networks:
       - marketplace-network
     healthcheck:
@@ -370,6 +372,7 @@ services:
       - ANALYTICS_ENABLED=${ANALYTICS_ENABLED:-true}
       - DB_POOL_MAX=${DB_POOL_MAX:-10}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
+      - REQUEST_TIMEOUT_MS=${REQUEST_TIMEOUT_MS:-72000}
     networks:
       - marketplace-network
     healthcheck:
@@ -421,6 +424,7 @@ services:
       - FEATURE_FLAGS_ENABLED=${FEATURE_FLAGS_ENABLED:-true}
       - DB_POOL_MAX=${DB_POOL_MAX:-10}
       - DB_POOL_MIN=${DB_POOL_MIN:-5}
+      - REQUEST_TIMEOUT_MS=${REQUEST_TIMEOUT_MS:-72000}
     networks:
       - marketplace-network
     healthcheck:
@@ -479,6 +483,7 @@ services:
       # Feature Flags for Optional Services
       - ANALYTICS_ENABLED=${ANALYTICS_ENABLED:-false}
       - INFRASTRUCTURE_ENABLED=${INFRASTRUCTURE_ENABLED:-false}
+      - REQUEST_TIMEOUT_MS=${REQUEST_TIMEOUT_MS:-72000}
     depends_on:
       identity-service:
         condition: service_healthy

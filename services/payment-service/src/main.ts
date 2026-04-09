@@ -58,7 +58,10 @@ async function bootstrap() {
   });
 
   const port = process.env.PORT || 3006;
-  await app.listen(port);
+  const server = await app.listen(port);
+  server.timeout = 120000;
+  server.keepAliveTimeout = 125000;
+  server.headersTimeout = 130000;
 
   logger.log(`Payment Service is running on port ${port}`);
 }

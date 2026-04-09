@@ -77,7 +77,7 @@ export class GatewayService {
         method: method as any,
         url: targetUrl,
         headers: this.prepareHeaders(headers, user),
-        timeout: 30000, // 30 seconds timeout
+        timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000), // Configurable timeout, default to 72 seconds
         maxRedirects: 0, // Never follow redirects — pass them through to the browser (needed for OAuth flows)
         validateStatus: () => true, // Never throw on any HTTP status — let the controller handle it
       };

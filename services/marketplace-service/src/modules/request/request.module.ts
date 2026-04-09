@@ -18,7 +18,7 @@ import { FileServiceClient } from "../../common/file-service.client";
     NotificationModule,
     UserModule,
     HttpModule.register({
-      timeout: 30000,
+      timeout: Number(process.env.REQUEST_TIMEOUT_MS) || 72000,
       maxRedirects: 5,
     }),
   ],

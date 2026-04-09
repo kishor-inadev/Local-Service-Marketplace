@@ -85,7 +85,12 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const port = process.env.PORT || 3700;
-  await app.listen(port);
+  const server = await app.listen(port);
+
+  // Increase server timeouts for Render.com (1.2m request timeout + buffer)
+  server.timeout = 120000;
+  server.keepAliveTimeout = 125000;
+  server.headersTimeout = 130000;
 
   const logger = app.get(WINSTON_MODULE_NEST_PROVIDER);
   const shutdown = async (signal: string) => {

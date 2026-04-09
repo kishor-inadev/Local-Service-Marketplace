@@ -51,7 +51,10 @@ export class PayUbizAdapter implements IGatewayAdapter {
       "PAYU_API_URL",
       "https://test.payu.in",
     );
-    this.http = axios.create({ baseURL: apiUrl });
+    this.http = axios.create({
+      baseURL: apiUrl,
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
+    });
     this.logger.log(`PayUbizAdapter initialised (${apiUrl})`);
   }
 

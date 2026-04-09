@@ -33,7 +33,7 @@ interface StandardResponse<T = any> {
 function createServerClient(): AxiosInstance {
 	const client = axios.create({
 		baseURL: `${API_URL}`,
-		timeout: 30000,
+		timeout: Number(process.env.NEXT_PUBLIC_API_TIMEOUT) || 72000,
 		headers: { "Content-Type": "application/json" },
 		withCredentials: true,
 	});

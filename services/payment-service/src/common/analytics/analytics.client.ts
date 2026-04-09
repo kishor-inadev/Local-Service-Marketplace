@@ -48,7 +48,7 @@ export class AnalyticsClient {
 
     this.client = axios.create({
       baseURL: analyticsServiceUrl,
-      timeout: 3000, // Fast timeout — analytics must never block the main flow
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
       headers: {
         "Content-Type": "application/json",
         "x-internal-secret": internalSecret,

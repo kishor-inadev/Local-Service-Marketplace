@@ -29,7 +29,7 @@ export class UserClient {
 
     this.httpClient = axios.create({
       baseURL: this.userServiceUrl,
-      timeout: 5000,
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
       headers: {
         "Content-Type": "application/json",
       },

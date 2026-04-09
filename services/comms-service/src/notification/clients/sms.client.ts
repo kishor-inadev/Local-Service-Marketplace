@@ -37,7 +37,7 @@ export class SmsClient {
 
     this.httpClient = axios.create({
       baseURL: this.smsServiceUrl,
-      timeout: 10000,
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
       headers: {
         "Content-Type": "application/json",
         "x-api-key": this.smsApiKey,

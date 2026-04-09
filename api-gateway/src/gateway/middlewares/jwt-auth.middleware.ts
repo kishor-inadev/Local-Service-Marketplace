@@ -207,7 +207,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
               "x-gateway-secret": this.gatewaySecret,
               "Content-Type": "application/json",
             },
-            timeout: 5000, // 5 seconds timeout
+            timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
           },
         ),
       );

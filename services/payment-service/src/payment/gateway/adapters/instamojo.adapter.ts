@@ -53,6 +53,7 @@ export class InstamojoAdapter implements IGatewayAdapter {
 
     this.http = axios.create({
       baseURL: apiUrl,
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
       headers: {
         "X-Api-Key": apiKey,
         "X-Auth-Token": authToken,
