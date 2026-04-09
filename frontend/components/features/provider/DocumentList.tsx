@@ -10,18 +10,23 @@ import {
 } from '@/services/user-service';
 import { FileText, Check, X, Clock, AlertTriangle, Calendar, Eye } from 'lucide-react';
 
-export function DocumentList({ providerId }: { providerId: string }) {
+export function DocumentList({ providerId }: { providerId?: string }) {
   const [documents, setDocuments] = useState<ProviderDocument[]>([]);
   const [status, setStatus] = useState<VerificationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState<ProviderDocument | null>(null);
 
   useEffect(() => {
+    if (!providerId) {
+      setLoading(false);
+      return;
+    }
     loadDocuments();
     loadVerificationStatus();
   }, [providerId]);
 
   const loadDocuments = async () => {
+    if (!providerId) return;
     try {
       const data = await getProviderDocuments(providerId);
       setDocuments(data || []);
@@ -33,6 +38,7 @@ export function DocumentList({ providerId }: { providerId: string }) {
   };
 
   const loadVerificationStatus = async () => {
+    if (!providerId) return;
     try {
       const data = await getDocumentVerificationStatus(providerId);
       setStatus(data);
@@ -42,6 +48,7 @@ export function DocumentList({ providerId }: { providerId: string }) {
   };
 
   const deleteDocument = async (documentId: string) => {
+    if (!providerId) return;
     if (!confirm('Are you sure you want to delete this document?')) return;
 
     try {
