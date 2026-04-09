@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { 
-  getProviderDocuments, 
-  getDocumentVerificationStatus, 
+import {
+  getProviderDocuments,
+  getDocumentVerificationStatus,
   deleteProviderDocument,
   type ProviderDocument,
   type VerificationStatus
@@ -89,7 +89,7 @@ export function DocumentList({ providerId }: { providerId?: string }) {
   };
 
   const formatDocumentType = (type: string) => {
-    return type.split('_').map(word => 
+    return type.split('_').map(word =>
       word.charAt(0).toUpperCase() + word.slice(1)
     ).join(' ');
   };
@@ -119,11 +119,10 @@ export function DocumentList({ providerId }: { providerId?: string }) {
     <div className="space-y-6">
       {/* Verification Status Card */}
       {status && (
-        <div className={`p-6 rounded-lg border-2 ${
-          status.fully_verified 
-            ? 'bg-green-50 border-green-200' 
+        <div className={`p-6 rounded-lg border-2 ${status.fully_verified
+            ? 'bg-green-50 border-green-200'
             : 'bg-yellow-50 border-yellow-200'
-        }`}>
+          }`}>
           <div className="flex items-start gap-4">
             {status.fully_verified ? (
               <Check className="w-8 h-8 text-green-600 flex-shrink-0" />
@@ -150,12 +149,12 @@ export function DocumentList({ providerId }: { providerId?: string }) {
                   </p>
                 </div>
               </div>
-              
-              {status.missing_required_types.length > 0 && (
+
+              {status.missing_required_documents && status.missing_required_documents.length > 0 && (
                 <div className="mt-4 p-3 bg-white rounded border border-yellow-300">
                   <p className="font-medium text-sm mb-2">Missing Required Documents:</p>
                   <ul className="list-disc list-inside text-sm text-gray-700">
-                    {status.missing_required_types.map((docType: string) => (
+                    {status.missing_required_documents.map((docType: string) => (
                       <li key={docType}>{formatDocumentType(docType)}</li>
                     ))}
                   </ul>
@@ -202,13 +201,12 @@ export function DocumentList({ providerId }: { providerId?: string }) {
                       {doc.expiry_date && (
                         <div className="flex items-center gap-2 text-sm">
                           <Calendar className="w-4 h-4" />
-                          <span className={`${
-                            isExpired(doc.expiry_date) 
+                          <span className={`${isExpired(doc.expiry_date)
                               ? 'text-red-600 font-medium'
                               : isExpiring(doc.expiry_date)
-                              ? 'text-orange-600 font-medium'
-                              : 'text-gray-600'
-                          }`}>
+                                ? 'text-orange-600 font-medium'
+                                : 'text-gray-600'
+                            }`}>
                             {isExpired(doc.expiry_date) && 'Expired: '}
                             {isExpiring(doc.expiry_date) && !isExpired(doc.expiry_date) && 'Expires: '}
                             {new Date(doc.expiry_date).toLocaleDateString()}
@@ -261,11 +259,11 @@ export function DocumentList({ providerId }: { providerId?: string }) {
 
       {/* Document Preview Modal */}
       {selectedDocument && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           onClick={() => setSelectedDocument(null)}
         >
-          <div 
+          <div
             className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}
           >

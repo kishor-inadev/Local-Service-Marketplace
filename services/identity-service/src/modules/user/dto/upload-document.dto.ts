@@ -1,8 +1,9 @@
 import { IsString, IsEnum, IsOptional, IsUrl } from "class-validator";
 
 export class UploadDocumentDto {
+  @IsOptional()
   @IsString()
-  provider_id: string;
+  provider_id?: string;
 
   @IsEnum([
     "government_id",
@@ -18,11 +19,13 @@ export class UploadDocumentDto {
     | "certification"
     | "tax_document";
 
+  @IsOptional()
   @IsUrl()
-  document_url: string;
+  document_url?: string;
 
+  @IsOptional()
   @IsString()
-  document_name: string;
+  document_name?: string;
 
   @IsOptional()
   @IsString()
