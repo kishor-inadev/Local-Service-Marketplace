@@ -58,7 +58,10 @@ async function bootstrap() {
     process.exit(1);
   });
 
-  await app.listen(port);
+  const server = await app.listen(port);
+  server.timeout = 120000;
+  server.keepAliveTimeout = 125000;
+  server.headersTimeout = 130000;
   logger.info(`${serviceName} running on port ${port}`);
 }
 

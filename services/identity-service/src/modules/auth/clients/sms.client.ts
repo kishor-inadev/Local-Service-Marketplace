@@ -44,7 +44,7 @@ export class SmsClient {
 
     this.client = axios.create({
       baseURL: notificationServiceUrl,
-      timeout: 15000,
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
       headers: {
         "Content-Type": "application/json",
       },

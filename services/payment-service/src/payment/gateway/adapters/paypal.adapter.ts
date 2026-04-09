@@ -46,7 +46,10 @@ export class PayPalAdapter implements IGatewayAdapter {
       "PAYPAL_API_URL",
       "https://api-m.sandbox.paypal.com",
     );
-    this.http = axios.create({ baseURL: this.apiBaseUrl });
+    this.http = axios.create({
+      baseURL: this.apiBaseUrl,
+      timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000),
+    });
     this.logger.log(`PayPalAdapter initialised (${this.apiBaseUrl})`);
   }
 
