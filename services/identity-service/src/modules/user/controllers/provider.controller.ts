@@ -11,6 +11,7 @@ import {
   HttpStatus,
   Inject,
   UseGuards,
+  Req,
 } from "@nestjs/common";
 import { FlexibleIdPipe } from "../../../common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "../../../common/pipes/strict-uuid.pipe";
@@ -40,7 +41,9 @@ export class ProviderController {
   @HttpCode(HttpStatus.CREATED)
   async createProvider(
     @Body() createProviderDto: CreateProviderDto,
+    @Req() req: any,
   ): Promise<ProviderResponseDto> {
+    createProviderDto.user_id = req.user.userId;
     this.logger.info("POST /providers", {
       context: "ProviderController",
       user_id: createProviderDto.user_id,
