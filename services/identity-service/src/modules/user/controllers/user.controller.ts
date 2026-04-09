@@ -34,6 +34,7 @@ import {
   SuspendUserDto,
 } from "../dto/admin-user-actions.dto";
 import { FileServiceClient } from "../../../common/file-service.client";
+import "multer";
 
 @Controller("users")
 export class UserController {
