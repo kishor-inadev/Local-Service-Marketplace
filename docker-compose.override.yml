@@ -29,7 +29,7 @@ services:
     restart: unless-stopped
     environment:
       - DB_USER=postgres
-      - DB_PASSWORD=postgres_dev_only
+      - DB_PASSWORD=${POSTGRES_PASSWORD}
       - DB_HOST=postgres
       - DB_PORT=5432
       - DB_NAME=marketplace
@@ -63,11 +63,11 @@ services:
   # ---------------------------------------------------------------------------
   identity-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres_dev_only@pgbouncer:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
       - DATABASE_HOST=pgbouncer
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
@@ -80,11 +80,11 @@ services:
   # ---------------------------------------------------------------------------
   marketplace-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres_dev_only@pgbouncer:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
       - DATABASE_HOST=pgbouncer
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
@@ -99,11 +99,11 @@ services:
   # ---------------------------------------------------------------------------
   payment-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres_dev_only@pgbouncer:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
       - DATABASE_HOST=pgbouncer
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
@@ -120,11 +120,11 @@ services:
   # ---------------------------------------------------------------------------
   comms-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres_dev_only@pgbouncer:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
       - DATABASE_HOST=pgbouncer
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
@@ -137,11 +137,11 @@ services:
   # ---------------------------------------------------------------------------
   oversight-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres_dev_only@pgbouncer:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
       - DATABASE_HOST=pgbouncer
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
@@ -154,11 +154,11 @@ services:
   # ---------------------------------------------------------------------------
   infrastructure-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:postgres_dev_only@pgbouncer:5432/marketplace
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
       - DATABASE_HOST=pgbouncer
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=postgres_dev_only
+      - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
