@@ -23,14 +23,14 @@ import { VerifyDocumentDto } from "../dto/verify-document.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../../common/guards/roles.guard";
 import { Roles } from "../../../common/decorators/roles.decorator";
-import { FileUploadService } from "../../../common/file-upload.service";
+import { FileServiceClient } from "../../../common/file-service.client";
 
 @UseGuards(JwtAuthGuard)
 @Controller("provider-documents")
 export class ProviderDocumentController {
   constructor(
     private readonly documentService: ProviderDocumentService,
-    private readonly fileUploadService: FileUploadService,
+    private readonly fileServiceClient: FileServiceClient,
   ) {}
 
   @Post("upload/:providerId")
@@ -46,18 +46,39 @@ export class ProviderDocumentController {
       throw new BadRequestException("File is required");
     }
 
-    const fileUrl = await this.fileUploadService.uploadFile(file, "document");
+    const userId = req.user.userId;
+    const userRole = req.user.role || "user";
 
+    // Upload file to external file service
+    const uploadedFile = await this.fileServiceClient.uploadFile(
+      file,
+      {
+        category: "document",
+        description: `${dto.document_type} for provider ${providerId}`,
+        title: dto.document_name,
+        visibility: "private",
+        linkedEntityType: "provider_document",
+        linkedEntityId: providerId,
+        tags: [dto.document_type, "provider-verification"],
+      },
+      userId,
+      userRole,
+    );
+
+    // Create document record in database
     const document = await this.documentService.uploadDocument(
       providerId,
-      req.user.userId,
+      userId,
       dto,
-      fileUrl,
+      uploadedFile.id, // Store file ID instead of URL
     );
 
     return {
       success: true,
-      data: document,
+      data: {
+        ...document,
+        file_url: uploadedFile.url, // Return download URL for frontend
+      },
       message: "Document uploaded successfully. Pending verification.",
     };
   }

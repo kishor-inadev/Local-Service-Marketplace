@@ -22,14 +22,14 @@ import { ProviderPortfolioService } from "../services/provider-portfolio.service
 import { CreatePortfolioDto } from "../dto/create-portfolio.dto";
 import { UpdatePortfolioItemDto } from "../dto/update-portfolio-item.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
-import { FileUploadService } from "../../../common/file-upload.service";
+import { FileServiceClient } from "../../../common/file-service.client";
 
 @UseGuards(JwtAuthGuard)
 @Controller("provider-portfolio")
 export class ProviderPortfolioController {
   constructor(
     private readonly portfolioService: ProviderPortfolioService,
-    private readonly fileUploadService: FileUploadService,
+    private readonly fileServiceClient: FileServiceClient,
   ) {}
 
   @Post(":providerId")
@@ -45,22 +45,41 @@ export class ProviderPortfolioController {
       throw new BadRequestException("At least one image is required");
     }
 
-    const imageUrls = await this.fileUploadService.uploadMultiple(
+    const userId = req.user.userId;
+    const userRole = req.user.role || "user";
+
+    // Upload all files to external file service
+    const uploadedFiles = await this.fileServiceClient.uploadMultipleFiles(
       files,
-      "portfolio",
-      10,
+      {
+        category: "portfolio",
+        description: dto.description || "Portfolio image",
+        title: dto.title,
+        visibility: "public",
+        linkedEntityType: "provider_portfolio",
+        linkedEntityId: providerId,
+        tags: ["portfolio", "showcase"],
+      },
+      userId,
+      userRole,
     );
+
+    // Get file URLs for database storage
+    const imageUrls = uploadedFiles.map((file) => file.url);
 
     const portfolioItem = await this.portfolioService.createPortfolioItem(
       providerId,
-      req.user.userId,
+      userId,
       dto,
       imageUrls,
     );
 
     return {
       success: true,
-      data: portfolioItem,
+      data: {
+        ...portfolioItem,
+        files: uploadedFiles, // Include full file metadata
+      },
       message: "Portfolio item created successfully",
     };
   }

@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { HttpModule } from "@nestjs/axios";
 import { BullModule } from "@nestjs/bull";
 import { PaymentController } from "./controllers/payment.controller";
 import { SavedPaymentMethodController } from "./controllers/saved-payment-method.controller";
@@ -24,6 +25,7 @@ import { NotificationModule } from "../common/notification/notification.module";
 import { UserModule } from "../common/user/user.module";
 import { AnalyticsModule } from "../common/analytics/analytics.module";
 import { PaymentGatewayModule } from "./gateway/payment-gateway.module";
+import { FileServiceClient } from "../common/file-service.client";
 
 @Module({
   imports: [
@@ -35,6 +37,10 @@ import { PaymentGatewayModule } from "./gateway/payment-gateway.module";
     UserModule,
     AnalyticsModule,
     PaymentGatewayModule,
+    HttpModule.register({
+      timeout: 30000,
+      maxRedirects: 5,
+    }),
   ],
   controllers: [
     PaymentController,
@@ -59,6 +65,7 @@ import { PaymentGatewayModule } from "./gateway/payment-gateway.module";
     SavedPaymentMethodRepository,
     PricingPlanRepository,
     SubscriptionRepository,
+    FileServiceClient,
   ],
   exports: [
     PaymentService,

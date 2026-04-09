@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { HttpModule } from "@nestjs/axios";
 import { RequestController } from "./controllers/request.controller";
 import { CategoryController } from "./controllers/category.controller";
 import { RequestService } from "./services/request.service";
@@ -9,9 +10,18 @@ import { LocationRepository } from "./repositories/location.repository";
 import { DatabaseModule } from "../../common/database/database.module";
 import { NotificationModule } from "../../common/notification/notification.module";
 import { UserModule } from "../../common/user/user.module";
+import { FileServiceClient } from "../../common/file-service.client";
 
 @Module({
-  imports: [DatabaseModule, NotificationModule, UserModule],
+  imports: [
+    DatabaseModule,
+    NotificationModule,
+    UserModule,
+    HttpModule.register({
+      timeout: 30000,
+      maxRedirects: 5,
+    }),
+  ],
   controllers: [RequestController, CategoryController],
   providers: [
     RequestService,
@@ -19,7 +29,8 @@ import { UserModule } from "../../common/user/user.module";
     RequestRepository,
     CategoryRepository,
     LocationRepository,
+    FileServiceClient,
   ],
-  exports: [RequestService, CategoryService, CategoryRepository],
+  exports: [RequestService, CategoryService, CategoryRepository, FileServiceClient],
 })
 export class RequestModule {}

@@ -11,7 +11,11 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { Response } from "express";
@@ -25,6 +29,7 @@ import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
 import { ForbiddenException } from "@/common/exceptions/http.exceptions";
+import { FileServiceClient } from "../../common/file-service.client";
 
 @Controller("payments")
 export class PaymentController {
@@ -32,6 +37,7 @@ export class PaymentController {
     private readonly paymentService: PaymentService,
     private readonly refundService: RefundService,
     private readonly invoiceService: InvoiceService,
+    private readonly fileServiceClient: FileServiceClient,
   ) {}
 
   /**
@@ -289,5 +295,59 @@ export class PaymentController {
       `attachment; filename="invoice-${invoice.invoice_number}.html"`,
     );
     res.send(html);
+  }
+
+  /**
+   * Upload payment receipt document
+   * POST /payments/:id/receipt
+   */
+  @Post(":id/receipt")
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FileInterceptor("file"))
+  async uploadReceipt(
+    @Param("id", StrictUuidPipe) paymentId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: any,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      paymentId: string;
+      uploadedFile: any;
+    };
+  }> {
+    if (!file) {
+      throw new BadRequestException("No file provided");
+    }
+
+    // Verify payment exists and user is authorized
+    const payment = await this.paymentService.getPaymentById(paymentId);
+    const isCustomer = payment.user_id === req.user.userId;
+    const isProvider = payment.provider_id === req.user.userId;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isCustomer && !isProvider && !isAdmin) {
+      throw new ForbiddenException(
+        "You can only upload receipts for payments you are involved in",
+      );
+    }
+
+    // Upload file to external file service
+    const uploadedFile = await this.fileServiceClient.uploadFile(file, {
+      uploadedBy: req.user.userId,
+      category: "payment-receipt",
+      linkedEntityId: paymentId,
+      linkedEntityType: "payment",
+    });
+
+    return {
+      success: true,
+      message: "Receipt uploaded successfully",
+      data: {
+        paymentId,
+        uploadedFile,
+      },
+    };
   }
 }
