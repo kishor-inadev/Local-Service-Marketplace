@@ -31,6 +31,7 @@ import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
 import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../../common/file-service.client";
+import "multer";
 
 @Controller("requests")
 export class RequestController {
@@ -118,7 +119,7 @@ export class RequestController {
 
     // Verify request exists and user owns it
     const request = await this.requestService.getRequestById(requestId);
-    if (request.userId !== req.user.userId && req.user.role !== "admin") {
+    if (request.user_id !== req.user.userId && req.user.role !== "admin") {
       throw new ForbiddenException("You can only upload images to your own service requests");
     }
 
@@ -126,11 +127,12 @@ export class RequestController {
     const uploadedFiles = await this.fileServiceClient.uploadMultipleFiles(
       files,
       {
-        uploadedBy: req.user.userId,
         category: "service-request",
         linkedEntityId: requestId,
         linkedEntityType: "request",
       },
+      req.user.userId,
+      req.user.role
     );
 
     return {

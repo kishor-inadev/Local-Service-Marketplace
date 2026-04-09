@@ -30,6 +30,7 @@ import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
 import { ForbiddenException } from "@/common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../common/file-service.client";
+import "multer";
 
 @Controller("payments")
 export class PaymentController {
@@ -334,12 +335,16 @@ export class PaymentController {
     }
 
     // Upload file to external file service
-    const uploadedFile = await this.fileServiceClient.uploadFile(file, {
-      uploadedBy: req.user.userId,
-      category: "payment-receipt",
-      linkedEntityId: paymentId,
-      linkedEntityType: "payment",
-    });
+    const uploadedFile = await this.fileServiceClient.uploadFile(
+      file,
+      {
+        category: "payment-receipt",
+        linkedEntityId: paymentId,
+        linkedEntityType: "payment",
+      },
+      req.user.userId,
+      req.user.role
+    );
 
     return {
       success: true,

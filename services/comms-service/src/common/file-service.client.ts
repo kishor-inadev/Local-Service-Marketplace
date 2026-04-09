@@ -5,6 +5,7 @@ import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { firstValueFrom, retry, timeout, catchError } from "rxjs";
 import FormData from "form-data";
+import "multer";
 
 export interface FileUploadOptions {
   category: string;

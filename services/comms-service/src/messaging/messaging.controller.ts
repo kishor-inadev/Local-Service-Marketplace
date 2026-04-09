@@ -28,6 +28,7 @@ import { CreateMessageDto } from "./dto/create-message.dto";
 import { CreateAttachmentDto } from "./dto/create-attachment.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { FileServiceClient } from "../common/file-service.client";
+import "multer";
 
 @UseGuards(JwtAuthGuard)
 @Controller("messages")

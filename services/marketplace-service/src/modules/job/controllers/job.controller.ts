@@ -28,6 +28,7 @@ import { JobQueryDto } from "../dto/job-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../../common/file-service.client";
+import "multer";
 
 @UseGuards(JwtAuthGuard)
 @Controller("jobs")
@@ -135,8 +136,8 @@ export class JobController {
 
     // Verify job exists and user is either provider or customer
     const job = await this.jobService.getJobById(jobId);
-    const isProvider = job.providerId === req.user.userId;
-    const isCustomer = job.customerId === req.user.userId;
+    const isProvider = job.provider_id === req.user.userId;
+    const isCustomer = job.customer_id === req.user.userId;
     const isAdmin = req.user.role === "admin";
 
     if (!isProvider && !isCustomer && !isAdmin) {
@@ -149,11 +150,12 @@ export class JobController {
     const uploadedFiles = await this.fileServiceClient.uploadMultipleFiles(
       files,
       {
-        uploadedBy: req.user.userId,
         category: "job-photo",
         linkedEntityId: jobId,
         linkedEntityType: "job",
       },
+      req.user.userId,
+      req.user.role
     );
 
     return {
