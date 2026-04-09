@@ -1,8 +1,9 @@
-import { IsString } from "class-validator";
+import { IsString, IsOptional } from "class-validator";
 
 export class CreateFavoriteDto {
   @IsString()
-  user_id: string;
+  @IsOptional()
+  user_id?: string;
 
   @IsString()
   provider_id: string;

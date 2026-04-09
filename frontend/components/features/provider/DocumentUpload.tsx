@@ -6,7 +6,7 @@ import { useDropzone } from 'react-dropzone';
 import { uploadProviderDocument } from '@/services/user-service';
 
 interface DocumentUploadProps {
-  providerId: string;
+  providerId?: string;
   onUploadSuccess?: () => void;
 }
 
@@ -62,6 +62,11 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
   });
 
   const handleUpload = async () => {
+    if (!providerId) {
+      setError('Please complete your provider profile before uploading documents.');
+      return;
+    }
+
     if (!file) {
       setError('Please select a file');
       return;

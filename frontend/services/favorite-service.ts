@@ -1,5 +1,12 @@
 import { apiClient } from './api-client';
 
+// Helper: Safely extract list from various response shapes
+function extractList<T>(payload: any): T[] {
+	if (Array.isArray(payload)) return payload as T[];
+	if (payload && Array.isArray(payload.data)) return payload.data as T[];
+	return [];
+}
+
 export interface Favorite {
   id: string;
   provider_id: string;
@@ -16,9 +23,8 @@ export interface CreateFavoriteData {
 
 class FavoriteService {
   async getFavorites(userId: string): Promise<Favorite[]> {
-    const response = await apiClient.get<Favorite[]>(`/favorites?user_id=${userId}`);
-    // API client unwraps standardized response
-    return response.data || [];
+    const response = await apiClient.get<any>(`/favorites?user_id=${userId}`);
+    return extractList<Favorite>(response.data);
   }
 
   async addFavorite(data: CreateFavoriteData): Promise<Favorite> {

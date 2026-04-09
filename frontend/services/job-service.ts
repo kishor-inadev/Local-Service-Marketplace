@@ -1,5 +1,12 @@
 import { apiClient } from "./api-client";
 
+// Helper: Safely extract list from various response shapes
+function extractList<T>(payload: any): T[] {
+	if (Array.isArray(payload)) return payload as T[];
+	if (payload && Array.isArray(payload.data)) return payload.data as T[];
+	return [];
+}
+
 export interface Job {
 	id: string;
 	display_id?: string;
@@ -65,14 +72,13 @@ class JobService {
 	}
 
 	async getMyJobs(): Promise<Job[]> {
-		const response = await apiClient.get<Job[]>(`/jobs/my`);
-		return response.data || [];
+		const response = await apiClient.get<any>(`/jobs/my`);
+		return extractList<Job>(response.data);
 	}
 
 	async getJobsByStatus(status: Job["status"]): Promise<Job[]> {
-		const response = await apiClient.get<Job[]>(`/jobs?status=${status}`);
-		// For array responses with total
-		return response.data || [];
+		const response = await apiClient.get<any>(`/jobs?status=${status}`);
+		return extractList<Job>(response.data);
 	}
 }
 

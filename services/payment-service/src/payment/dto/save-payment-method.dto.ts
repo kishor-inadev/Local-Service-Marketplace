@@ -12,7 +12,8 @@ import {
 
 export class SavePaymentMethodDto {
   @IsUUID()
-  user_id: string;
+  @IsOptional()
+  user_id?: string;
 
   @IsEnum(["card", "bank_account", "paypal", "other"])
   payment_type: "card" | "bank_account" | "paypal" | "other";

@@ -30,7 +30,9 @@ export class FavoriteController {
   @HttpCode(HttpStatus.CREATED)
   async saveFavorite(
     @Body() createFavoriteDto: CreateFavoriteDto,
+    @Request() req: any,
   ): Promise<any> {
+    createFavoriteDto.user_id = req.user.userId;
     this.logger.info("POST /favorites", {
       context: "FavoriteController",
       user_id: createFavoriteDto.user_id,
@@ -53,9 +55,10 @@ export class FavoriteController {
   @Delete(":provider_id")
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeFavorite(
-    @Query("user_id") userId: string,
     @Param("provider_id") providerId: string,
+    @Request() req: any,
   ): Promise<void> {
+    const userId = req.user.userId;
     this.logger.info("DELETE /favorites/:provider_id", {
       context: "FavoriteController",
       user_id: userId,

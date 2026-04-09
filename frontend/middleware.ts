@@ -26,7 +26,7 @@ const ROLE_ROUTES: Array<{ prefix: string; roles: Role[] }> = [
 	{ prefix: "/dashboard/my-proposals", roles: ["provider"] },
 
 	// Customer-only
-	{ prefix: "/dashboard/requests", roles: ["customer"] },
+	{ prefix: "/dashboard/requests", roles: ["customer", "provider"] },
 	{ prefix: "/dashboard/favorites", roles: ["customer"] },
 	{ prefix: "/dashboard/reviews/submit", roles: ["customer"] },
 ];

@@ -36,7 +36,11 @@ export class RequestController {
   @HttpCode(HttpStatus.CREATED)
   async createRequest(
     @Body() createRequestDto: CreateRequestDto,
+    @Req() req: any,
   ): Promise<RequestResponseDto> {
+    if (req.user?.userId) {
+      createRequestDto.user_id = req.user.userId;
+    }
     return this.requestService.createRequest(createRequestDto);
   }
 

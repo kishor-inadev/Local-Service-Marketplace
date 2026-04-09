@@ -56,8 +56,8 @@ export default function SignupPage() {
     try {
       await signup(data);
       toast.success('🎉 Account created successfully! Welcome aboard!');
-      // Redirect to dashboard after successful signup
-      router.push(ROUTES.DASHBOARD);
+      // Redirect to onboarding after successful signup
+      router.push(ROUTES.ONBOARDING);
     } catch (error: any) {
       // Handle different error types
       let errorMessage = 'Signup failed. Please try again.';

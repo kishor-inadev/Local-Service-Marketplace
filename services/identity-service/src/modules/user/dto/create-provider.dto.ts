@@ -24,7 +24,8 @@ class AvailabilitySlotDto {
 
 export class CreateProviderDto {
   @IsString()
-  user_id: string;
+  @IsOptional()
+  user_id?: string;
 
   @IsString()
   business_name: string;
