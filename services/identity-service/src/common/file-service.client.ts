@@ -4,7 +4,7 @@ import { ConfigService } from "@nestjs/config";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { firstValueFrom, retry, timeout, catchError } from "rxjs";
-import FormData from "form-data";
+import * as FormData from "form-data";
 import "multer";
 
 export interface FileUploadOptions {

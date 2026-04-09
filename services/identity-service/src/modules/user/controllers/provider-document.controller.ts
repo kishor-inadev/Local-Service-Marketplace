@@ -49,6 +49,10 @@ export class ProviderDocumentController {
     const userId = req.user.userId;
     const userRole = req.user.role || "user";
 
+    if (!dto.document_name && file) {
+      dto.document_name = file.originalname;
+    }
+
     // Upload file to external file service
     const uploadedFile = await this.fileServiceClient.uploadFile(
       file,
