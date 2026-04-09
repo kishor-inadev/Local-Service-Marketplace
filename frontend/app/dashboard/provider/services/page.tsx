@@ -25,7 +25,7 @@ export default function ProviderServicesPage() {
 		queryFn: async () => {
 			const response = await apiClient.get(`/providers?user_id=${user?.id}`);
 			const list = response.data?.data ?? response.data ?? [];
-			return Array.isArray(list) ? list[0] : null;
+			return (Array.isArray(list) ? list[0] : null) ?? null;
 		},
 		enabled: isAuthenticated && user?.role === "provider",
 	});

@@ -87,15 +87,29 @@ export default function LocationMap({
     if (window.google?.maps) {
       initMap();
     } else {
-      // Wait for the script to load
-      const checkGoogleMaps = setInterval(() => {
-        if (window.google?.maps) {
-          clearInterval(checkGoogleMaps);
-          initMap();
-        }
-      }, 100);
-
-      return () => clearInterval(checkGoogleMaps);
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set.");
+        return;
+      }
+      
+      if (!document.querySelector('script[src*="maps.googleapis.com/maps/api/js"]')) {
+        const script = document.createElement('script');
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
+        script.async = true;
+        script.defer = true;
+        script.onload = () => initMap();
+        document.head.appendChild(script);
+      } else {
+        // Script exists but is still loading
+        const checkGoogleMaps = setInterval(() => {
+          if (window.google?.maps) {
+            clearInterval(checkGoogleMaps);
+            initMap();
+          }
+        }, 100);
+        return () => clearInterval(checkGoogleMaps);
+      }
     }
 
     // Cleanup on unmount
