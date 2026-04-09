@@ -11,7 +11,11 @@ import {
   HttpStatus,
   UseGuards,
   Req,
+  UploadedFiles,
+  UseInterceptors,
+  BadRequestException,
 } from "@nestjs/common";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { RequestService } from "../services/request.service";
@@ -26,10 +30,14 @@ import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
 import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
+import { FileServiceClient } from "../../../common/file-service.client";
 
 @Controller("requests")
 export class RequestController {
-  constructor(private readonly requestService: RequestService) {}
+  constructor(
+    private readonly requestService: RequestService,
+    private readonly fileServiceClient: FileServiceClient,
+  ) {}
 
   // Public — authenticated users supply user_id via JWT context; guests supply guest_info
   @Post()
@@ -85,6 +93,54 @@ export class RequestController {
     @Param("id", FlexibleIdPipe) id: string,
   ): Promise<RequestResponseDto> {
     return this.requestService.getRequestById(id);
+  }
+
+  // Authenticated — owner can upload images for their service request
+  @UseGuards(JwtAuthGuard)
+  @Post(":id/images")
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FilesInterceptor("files", 10))
+  async uploadRequestImages(
+    @Param("id", StrictUuidPipe) requestId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Req() req: any,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      requestId: string;
+      uploadedFiles: any[];
+    };
+  }> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException("No files provided");
+    }
+
+    // Verify request exists and user owns it
+    const request = await this.requestService.getRequestById(requestId);
+    if (request.userId !== req.user.userId && req.user.role !== "admin") {
+      throw new ForbiddenException("You can only upload images to your own service requests");
+    }
+
+    // Upload files to external file service
+    const uploadedFiles = await this.fileServiceClient.uploadMultipleFiles(
+      files,
+      {
+        uploadedBy: req.user.userId,
+        category: "service-request",
+        linkedEntityId: requestId,
+        linkedEntityType: "request",
+      },
+    );
+
+    return {
+      success: true,
+      message: `${uploadedFiles.length} image(s) uploaded successfully for service request`,
+      data: {
+        requestId,
+        uploadedFiles,
+      },
+    };
   }
 
   // Authenticated — owner can update their own request

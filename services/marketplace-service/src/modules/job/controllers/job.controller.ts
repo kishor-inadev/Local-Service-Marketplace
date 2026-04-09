@@ -11,7 +11,10 @@ import {
   UseGuards,
   BadRequestException,
   Request,
+  UploadedFiles,
+  UseInterceptors,
 } from "@nestjs/common";
+import { FilesInterceptor } from "@nestjs/platform-express";
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { JobService } from "../services/job.service";
@@ -23,11 +26,16 @@ import {
 } from "../dto/job-response.dto";
 import { JobQueryDto } from "../dto/job-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
+import { FileServiceClient } from "../../../common/file-service.client";
 
 @UseGuards(JwtAuthGuard)
 @Controller("jobs")
 export class JobController {
-  constructor(private readonly jobService: JobService) {}
+  constructor(
+    private readonly jobService: JobService,
+    private readonly fileServiceClient: FileServiceClient,
+  ) {}
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -103,6 +111,59 @@ export class JobController {
     @Request() req: any,
   ): Promise<JobResponseDto> {
     return this.jobService.completeJob(id, req.user.userId, req.user.role);
+  }
+
+  // Authenticated — provider or customer can upload completion photos for jobs
+  @Post(":id/photos")
+  @HttpCode(HttpStatus.CREATED)
+  @UseInterceptors(FilesInterceptor("files", 10))
+  async uploadJobPhotos(
+    @Param("id", StrictUuidPipe) jobId: string,
+    @UploadedFiles() files: Express.Multer.File[],
+    @Request() req: any,
+  ): Promise<{
+    success: boolean;
+    message: string;
+    data: {
+      jobId: string;
+      uploadedFiles: any[];
+    };
+  }> {
+    if (!files || files.length === 0) {
+      throw new BadRequestException("No files provided");
+    }
+
+    // Verify job exists and user is either provider or customer
+    const job = await this.jobService.getJobById(jobId);
+    const isProvider = job.providerId === req.user.userId;
+    const isCustomer = job.customerId === req.user.userId;
+    const isAdmin = req.user.role === "admin";
+
+    if (!isProvider && !isCustomer && !isAdmin) {
+      throw new ForbiddenException(
+        "You can only upload photos for jobs you are involved in",
+      );
+    }
+
+    // Upload files to external file service
+    const uploadedFiles = await this.fileServiceClient.uploadMultipleFiles(
+      files,
+      {
+        uploadedBy: req.user.userId,
+        category: "job-photo",
+        linkedEntityId: jobId,
+        linkedEntityType: "job",
+      },
+    );
+
+    return {
+      success: true,
+      message: `${uploadedFiles.length} photo(s) uploaded successfully for job`,
+      data: {
+        jobId,
+        uploadedFiles,
+      },
+    };
   }
 
   @Get("provider/:providerId")

@@ -12,7 +12,11 @@ import {
   HttpStatus,
   Inject,
   UseGuards,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { FlexibleIdPipe } from "../../../common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "../../../common/pipes/strict-uuid.pipe";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
@@ -29,11 +33,13 @@ import {
   ResetUserPasswordDto,
   SuspendUserDto,
 } from "../dto/admin-user-actions.dto";
+import { FileServiceClient } from "../../../common/file-service.client";
 
 @Controller("users")
 export class UserController {
   constructor(
     private readonly userService: UserService,
+    private readonly fileServiceClient: FileServiceClient,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -119,6 +125,62 @@ export class UserController {
       user_id: req.user.userId,
     });
     return this.userService.updateUser(req.user.userId, updateUserDto);
+  }
+
+  /**
+   * Upload profile picture for current user
+   * POST /users/me/profile-picture
+   */
+  @UseGuards(JwtAuthGuard)
+  @Post("me/profile-picture")
+  @UseInterceptors(FileInterceptor("file"))
+  @HttpCode(HttpStatus.OK)
+  async uploadProfilePicture(
+    @Request() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException("Profile picture file is required");
+    }
+
+    this.logger.info("POST /users/me/profile-picture", {
+      context: "UserController",
+      user_id: req.user.userId,
+      filename: file.originalname,
+      filesize: file.size,
+    });
+
+    const userId = req.user.userId;
+    const userRole = req.user.role || "user";
+
+    // Upload file to external file service
+    const uploadedFile = await this.fileServiceClient.uploadFile(
+      file,
+      {
+        category: "profile-picture",
+        description: "User profile picture",
+        visibility: "public",
+        linkedEntityType: "user",
+        linkedEntityId: userId,
+        tags: ["profile", "avatar"],
+      },
+      userId,
+      userRole,
+    );
+
+    // Update user profile with file URL
+    const updatedUser = await this.userService.updateUser(userId, {
+      profilePictureUrl: uploadedFile.url,
+    });
+
+    return {
+      success: true,
+      data: {
+        user: updatedUser,
+        file: uploadedFile,
+      },
+      message: "Profile picture uploaded successfully",
+    };
   }
 
   /**

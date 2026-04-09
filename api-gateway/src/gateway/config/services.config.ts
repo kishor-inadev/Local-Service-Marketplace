@@ -44,6 +44,10 @@ export const servicesConfig = {
     url: process.env.INFRASTRUCTURE_SERVICE_URL || "http://localhost:3012",
     name: "infrastructure-service",
   },
+  "file-upload-service": {
+    url: process.env.FILE_UPLOAD_SERVICE_URL || "http://localhost:4001",
+    name: "file-upload-service",
+  },
 };
 
 export const routingConfig = {
@@ -79,6 +83,8 @@ export const routingConfig = {
   "/background-jobs": "infrastructure-service",
   "/rate-limits": "infrastructure-service",
   "/feature-flags": "infrastructure-service",
+  // file-upload-service
+  "/files": "file-upload-service",
 };
 
 /**
@@ -176,4 +182,10 @@ export const publicGetRoutes = [
   // Pricing Plans (Public Information)
   // ============================================
   "/api/v1/pricing-plans", // View pricing tiers (GET only)
+
+  // ============================================
+  // File Upload Service (Public Endpoints)
+  // ============================================
+  "/api/v1/files", // Browse files (GET only - public viewing)
+  "/api/v1/files/", // View specific file (GET /files/:id, /files/:id/download)
 ];

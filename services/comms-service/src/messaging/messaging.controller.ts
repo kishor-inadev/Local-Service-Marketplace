@@ -14,7 +14,11 @@ import {
   UseGuards,
   HttpCode,
   HttpStatus,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
@@ -23,6 +27,7 @@ import { AttachmentService } from "./services/attachment.service";
 import { CreateMessageDto } from "./dto/create-message.dto";
 import { CreateAttachmentDto } from "./dto/create-attachment.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { FileServiceClient } from "../common/file-service.client";
 
 @UseGuards(JwtAuthGuard)
 @Controller("messages")
@@ -32,6 +37,7 @@ export class MessagingController {
     private readonly logger: LoggerService,
     private readonly messageService: MessageService,
     private readonly attachmentService: AttachmentService,
+    private readonly fileServiceClient: FileServiceClient,
   ) {}
 
   @Post()
@@ -86,21 +92,54 @@ export class MessagingController {
 
   @Post("attachments")
   @HttpCode(HttpStatus.CREATED)
-  async createAttachment(@Body() createAttachmentDto: CreateAttachmentDto) {
+  @UseInterceptors(FileInterceptor("file"))
+  async createAttachment(
+    @Body() createAttachmentDto: CreateAttachmentDto,
+    @UploadedFile() file: Express.Multer.File,
+    @Request() req: any,
+  ) {
     this.logger.log(
       "POST /messages/attachments - Create attachment",
       "MessagingController",
     );
+
+    if (!file) {
+      throw new BadRequestException("File is required for attachment upload");
+    }
+
+    const userId = req.user.userId;
+    const userRole = req.user.role || "user";
+
+    // Upload file to external file service
+    const uploadedFile = await this.fileServiceClient.uploadFile(
+      file,
+      {
+        category: "attachment",
+        description: `Message attachment for message ${createAttachmentDto.message_id}`,
+        visibility: "private",
+        linkedEntityType: "message",
+        linkedEntityId: createAttachmentDto.message_id,
+        tags: ["message", "attachment"],
+      },
+      userId,
+      userRole,
+    );
+
+    // Create attachment record in database
     const attachment = await this.attachmentService.createAttachment(
       createAttachmentDto.message_id,
-      createAttachmentDto.file_url,
-      createAttachmentDto.file_name,
-      createAttachmentDto.file_size,
-      createAttachmentDto.mime_type,
+      uploadedFile.url, // Store download URL
+      uploadedFile.originalName,
+      uploadedFile.size,
+      uploadedFile.mimeType,
     );
+
     return {
       success: true,
-      data: attachment,
+      data: {
+        ...attachment,
+        file: uploadedFile, // Include full file metadata
+      },
       message: "Attachment uploaded successfully",
     };
   }

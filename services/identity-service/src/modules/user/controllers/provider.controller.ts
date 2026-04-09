@@ -12,7 +12,11 @@ import {
   Inject,
   UseGuards,
   Req,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
 } from "@nestjs/common";
+import { FileInterceptor } from "@nestjs/platform-express";
 import { FlexibleIdPipe } from "../../../common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "../../../common/pipes/strict-uuid.pipe";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
@@ -28,11 +32,13 @@ import { PaginatedResponseDto } from "../dto/paginated-response.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
 import { RolesGuard } from "../../../common/guards/roles.guard";
 import { Roles } from "../../../common/decorators/roles.decorator";
+import { FileServiceClient } from "../../../common/file-service.client";
 
 @Controller("providers")
 export class ProviderController {
   constructor(
     private readonly providerService: ProviderService,
+    private readonly fileServiceClient: FileServiceClient,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -88,6 +94,64 @@ export class ProviderController {
       provider_id: id,
     });
     return this.providerService.updateProvider(id, updateProviderDto);
+  }
+
+  /**
+   * Upload profile picture for provider
+   * POST /providers/:id/profile-picture
+   */
+  @Roles("provider", "admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Post(":id/profile-picture")
+  @UseInterceptors(FileInterceptor("file"))
+  @HttpCode(HttpStatus.OK)
+  async uploadProviderProfilePicture(
+    @Param("id", StrictUuidPipe) id: string,
+    @Req() req: any,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException("Profile picture file is required");
+    }
+
+    this.logger.info("POST /providers/:id/profile-picture", {
+      context: "ProviderController",
+      provider_id: id,
+      filename: file.originalname,
+      filesize: file.size,
+    });
+
+    const userId = req.user.userId;
+    const userRole = req.user.role || "provider";
+
+    // Upload file to external file service
+    const uploadedFile = await this.fileServiceClient.uploadFile(
+      file,
+      {
+        category: "profile-picture",
+        description: "Provider profile picture",
+        visibility: "public",
+        linkedEntityType: "provider",
+        linkedEntityId: id,
+        tags: ["provider", "profile", "avatar"],
+      },
+      userId,
+      userRole,
+    );
+
+    // Update provider profile with file URL
+    const updatedProvider = await this.providerService.updateProvider(id, {
+      profile_picture_url: uploadedFile.url,
+    });
+
+    return {
+      success: true,
+      data: {
+        provider: updatedProvider,
+        file: uploadedFile,
+      },
+      message: "Provider profile picture uploaded successfully",
+    };
   }
 
   @Roles("provider", "admin")

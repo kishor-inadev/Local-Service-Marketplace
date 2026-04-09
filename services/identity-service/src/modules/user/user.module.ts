@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { HttpModule } from "@nestjs/axios";
 import { UserController } from "./controllers/user.controller";
 import { ProviderController } from "./controllers/provider.controller";
 import { FavoriteController } from "./controllers/favorite.controller";
@@ -19,9 +20,16 @@ import { ProviderDocumentRepository } from "./repositories/provider-document.rep
 import { ProviderPortfolioRepository } from "./repositories/provider-portfolio.repository";
 import { NotificationModule } from "../../common/notification/notification.module";
 import { FileUploadService } from "../../common/file-upload.service";
+import { FileServiceClient } from "../../common/file-service.client";
 
 @Module({
-  imports: [NotificationModule],
+  imports: [
+    NotificationModule,
+    HttpModule.register({
+      timeout: 30000,
+      maxRedirects: 5,
+    }),
+  ],
   controllers: [
     UserController,
     ProviderController,
@@ -44,6 +52,7 @@ import { FileUploadService } from "../../common/file-upload.service";
     ProviderDocumentRepository,
     ProviderPortfolioRepository,
     FileUploadService,
+    FileServiceClient,
   ],
   exports: [
     UserService,
@@ -60,6 +69,7 @@ import { FileUploadService } from "../../common/file-upload.service";
     ProviderDocumentRepository,
     ProviderPortfolioRepository,
     FileUploadService,
+    FileServiceClient,
   ],
 })
 export class UserModule {}
