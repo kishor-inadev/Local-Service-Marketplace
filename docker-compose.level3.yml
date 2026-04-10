@@ -1,0 +1,133 @@
+# =============================================================================
+# Level 3 — Worker Layer  (2,000+ concurrent users)
+# =============================================================================
+# Activates: Redis (required for BullMQ queues)
+# Enables:   CACHE_ENABLED + WORKERS_ENABLED on every service
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.level3.yml --profile workers up -d
+#
+# Stop:
+#   docker compose -f docker-compose.yml -f docker-compose.level3.yml --profile workers down
+#
+# What changes vs Level 2:
+#   ✅ WORKERS_ENABLED=true    BullMQ workers start inside each service process
+#   ✅ WORKER_CONCURRENCY=10   10 concurrent jobs per queue per service
+#   ✅ Redis maxmemory raised to 512mb  (queues need more headroom than pure cache)
+#   ✅ DB pool raised to 20    (workers run their own DB queries concurrently)
+#   ✅ CPU/memory limits raised to handle worker goroutines inside main process
+#   ✅ IN_APP_NOTIFICATIONS_ENABLED on comms-service (workers deliver them)
+#   ✅ ANALYTICS_ENABLED on oversight-service + gateway (workers aggregate metrics)
+# =============================================================================
+
+services:
+
+  # ─── Redis — larger for BullMQ queue storage ───────────────────────────────
+  redis:
+    command:
+      - redis-server
+      - --maxmemory
+      - 512mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - "60"
+      - "1000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 640M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+
+  # ─── Core services — cache + workers ───────────────────────────────────────
+  identity-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 640M
+        reservations:
+          cpus: '0.25'
+          memory: 320M
+
+  marketplace-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 640M
+        reservations:
+          cpus: '0.25'
+          memory: 320M
+
+  payment-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 640M
+        reservations:
+          cpus: '0.25'
+          memory: 320M
+
+  comms-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - IN_APP_NOTIFICATIONS_ENABLED=true
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 640M
+        reservations:
+          cpus: '0.25'
+          memory: 320M
+
+  oversight-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=5
+      - ANALYTICS_ENABLED=true
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  api-gateway:
+    environment:
+      - ANALYTICS_ENABLED=true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M

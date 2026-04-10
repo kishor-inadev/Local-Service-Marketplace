@@ -1,0 +1,214 @@
+# =============================================================================
+# Level 5 — Full Scale / Enterprise  (50,000+ concurrent users)
+# =============================================================================
+# Activates: Redis + Kafka + Zookeeper + infrastructure-service
+# Enables:   All feature flags on every service
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.level5.yml --profile full up -d
+#
+# Stop:
+#   docker compose -f docker-compose.yml -f docker-compose.level5.yml --profile full down
+#
+# What changes vs Level 4:
+#   ✅ infrastructure-service starts (feature flags, background job mgmt, rate limits)
+#   ✅ REDIS_RATE_LIMIT_ENABLED=true  distributed rate limiting across all gateway replicas
+#   ✅ DEVICE_TRACKING_ENABLED=true   push notification device registry
+#   ✅ BACKGROUND_JOBS_ENABLED=true   infrastructure-service manages scheduled jobs
+#   ✅ WORKER_CONCURRENCY=20          maximum throughput per queue
+#   ✅ DB_POOL_MAX=30, DB_POOL_MIN=10  maximum connection pool
+#   ✅ Redis raised to 1GB            handles large queue + cache + rate-limit payloads
+#   ✅ All service resource limits maximised for production hardware
+#   ✅ RATE_LIMIT_MAX_REQUESTS=200    raised for high-traffic gateway
+#
+# At this level, horizontal scaling is the next step:
+#   docker compose -f docker-compose.yml -f docker-compose.level5.yml \
+#     --profile full up -d --scale marketplace-service=3 --scale api-gateway=2
+# =============================================================================
+
+services:
+
+  # ─── Redis — cache + BullMQ + Redis rate limiting ─────────────────────────
+  redis:
+    command:
+      - redis-server
+      - --maxmemory
+      - 1gb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - "60"
+      - "1000"
+      - --appendonly
+      - "yes"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 512M
+
+  # ─── Core services — all flags on, maximum resources ───────────────────────
+  identity-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=20
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - REDIS_RATE_LIMIT_ENABLED=true
+      - DB_POOL_MAX=30
+      - DB_POOL_MIN=10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  marketplace-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=20
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - REDIS_RATE_LIMIT_ENABLED=true
+      - DB_POOL_MAX=30
+      - DB_POOL_MIN=10
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  payment-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=20
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - REDIS_RATE_LIMIT_ENABLED=true
+      - DB_POOL_MAX=30
+      - DB_POOL_MIN=10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  comms-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=20
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - IN_APP_NOTIFICATIONS_ENABLED=true
+      - PUSH_NOTIFICATIONS_ENABLED=true
+      - NOTIFICATION_PREFERENCES_ENABLED=true
+      - DEVICE_TRACKING_ENABLED=true
+      - DB_POOL_MAX=30
+      - DB_POOL_MIN=10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  oversight-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - ANALYTICS_ENABLED=true
+      - DB_POOL_MAX=30
+      - DB_POOL_MIN=10
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 384M
+
+  # ─── infrastructure-service (only starts at Level 5 via --profile full) ───
+  infrastructure-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - BACKGROUND_JOBS_ENABLED=true
+      - RATE_LIMITING_ENABLED=true
+      - FEATURE_FLAGS_ENABLED=true
+      - DB_POOL_MAX=20
+      - DB_POOL_MIN=5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 384M
+
+  # ─── API Gateway — distributed rate limiting + all features ───────────────
+  api-gateway:
+    environment:
+      - REDIS_RATE_LIMIT_ENABLED=true
+      - ANALYTICS_ENABLED=true
+      - INFRASTRUCTURE_ENABLED=true
+      - RATE_LIMIT_MAX_REQUESTS=200
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 384M
+
+  # ─── Kafka — full retention, higher limits ─────────────────────────────────
+  kafka:
+    environment:
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_LOG_RETENTION_BYTES: "1073741824"
+      KAFKA_MESSAGE_MAX_BYTES: "1048576"
+      KAFKA_NUM_PARTITIONS: "3"
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  zookeeper:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+        reservations:
+          cpus: '0.1'
+          memory: 192M
