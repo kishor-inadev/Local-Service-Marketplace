@@ -76,12 +76,11 @@ jobs:
 
       - name: Deploy to Vercel (production)
         if: env.VERCEL_TOKEN != ''
-        working-directory: frontend
         run: |
           npm install -g vercel@latest
-          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
-          vercel build --prod --token=$VERCEL_TOKEN
-          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN --cwd frontend
+          vercel build --prod --token=$VERCEL_TOKEN --cwd frontend
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --cwd frontend
 
   vercel-production-api-gateway:
     name: Vercel - API Gateway Production Deploy
@@ -112,12 +111,11 @@ jobs:
 
       - name: Deploy to Vercel (production)
         if: env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != ''
-        working-directory: api-gateway
         run: |
           npm install -g vercel@latest
-          vercel pull --yes --environment=production --token=$VERCEL_TOKEN
-          vercel build --prod --token=$VERCEL_TOKEN
-          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN
+          vercel pull --yes --environment=production --token=$VERCEL_TOKEN --cwd api-gateway
+          vercel build --prod --token=$VERCEL_TOKEN --cwd api-gateway
+          vercel deploy --prebuilt --prod --token=$VERCEL_TOKEN --cwd api-gateway
 
   render-deploy:
     name: "Render - Deploy (${{ matrix.service }})"
