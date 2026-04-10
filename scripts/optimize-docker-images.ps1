@@ -147,7 +147,7 @@ coverage
 
 # Docker
 Dockerfile
-docker-compose.yml
+docker compose.yml
 .dockerignore
 
 # Logs
@@ -302,7 +302,7 @@ Write-Host "3. Test the service:" -ForegroundColor White
 Write-Host "   docker run -p 3000:3000 auth-service:optimized" -ForegroundColor Gray
 Write-Host ""
 Write-Host "4. If successful, rebuild all services:" -ForegroundColor White
-Write-Host "   docker-compose build" -ForegroundColor Gray
+Write-Host "   docker compose build" -ForegroundColor Gray
 Write-Host ""
 Write-Host "5. Compare sizes:" -ForegroundColor White
 Write-Host "   .\scripts\check-docker-sizes.ps1" -ForegroundColor Gray

@@ -165,8 +165,8 @@ if ($errors.Count -eq 0 -and $warnings.Count -eq 0) {
     Write-Host "`nNext steps:" -ForegroundColor Cyan
     Write-Host "1. Customize security variables (JWT_SECRET, passwords)" -ForegroundColor White
     Write-Host "2. Configure email provider in services/email-service/.env" -ForegroundColor White
-    Write-Host "3. Run: docker-compose up -d postgres redis" -ForegroundColor White
-    Write-Host "4. Run: npm run dev (in each service) or docker-compose up" -ForegroundColor White
+    Write-Host "3. Run: docker compose up -d postgres redis" -ForegroundColor White
+    Write-Host "4. Run: npm run dev (in each service) or docker compose up" -ForegroundColor White
 } else {
     Write-Host "❌ Please fix the issues above before proceeding" -ForegroundColor Red
 }

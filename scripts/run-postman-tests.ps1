@@ -56,7 +56,7 @@ function Get-GatewayPort {
     }
 
     try {
-        $mapping = docker-compose port api-gateway 3000 2>$null | Select-Object -First 1
+        $mapping = docker compose port api-gateway 3000 2>$null | Select-Object -First 1
         if ($LASTEXITCODE -eq 0 -and $mapping -match ':(\d+)$') {
             return $matches[1]
         }
@@ -204,7 +204,7 @@ function Wait-ForServices {
     }
 
     Write-ErrorMsg "Services did not become healthy within $MAX_WAIT_SECONDS seconds."
-    Write-ErrorMsg "Check docker-compose logs for details."
+    Write-ErrorMsg "Check docker compose logs for details."
     return $false
 }
 
@@ -332,7 +332,7 @@ try {
         }
     } else {
         Write-Warning "Skipping service health check. Use -WaitForServices to wait for services."
-        Write-Warning "Ensure all services are running: docker-compose up -d"
+        Write-Warning "Ensure all services are running: docker compose up -d"
         Write-Info ""
     }
 

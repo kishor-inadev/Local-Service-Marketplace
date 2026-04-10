@@ -97,7 +97,7 @@ if (Test-Path ".env") {
     Update-EnvFile -FilePath ".env" -Secrets $secrets
 }
 
-# Create docker.env for docker-compose
+# Create docker.env for docker compose
 Write-Host "`nCreating docker.env for Docker Compose..." -ForegroundColor Cyan
 $dockerEnv = @"
 # Docker Compose Environment Variables
@@ -129,6 +129,6 @@ Write-Host "  • docker.env (for Docker Compose)" -ForegroundColor White
 
 Write-Host "`nNext steps:" -ForegroundColor Yellow
 Write-Host "  1. Review the changes in each .env file" -ForegroundColor White
-Write-Host "  2. Restart Docker containers: docker-compose down && docker-compose up -d" -ForegroundColor White
+Write-Host "  2. Restart Docker containers: docker compose down && docker compose up -d" -ForegroundColor White
 Write-Host "  3. Restart frontend: cd frontend && npm run dev" -ForegroundColor White
 Write-Host "`n⚠️  DO NOT COMMIT secrets.env, docker.env, or updated .env files to Git!`n" -ForegroundColor Red

@@ -29,7 +29,7 @@ $images = docker images --format "{{.Repository}}:{{.Tag}}`t{{.Size}}`t{{.ID}}" 
 
 if ($images.Count -eq 0) {
     Write-Host "No service images found. Build them first with:" -ForegroundColor Yellow
-    Write-Host "  docker-compose build" -ForegroundColor Gray
+    Write-Host "  docker compose build" -ForegroundColor Gray
     exit
 }
 

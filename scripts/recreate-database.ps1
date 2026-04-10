@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env pwsh
+#!/usr/bin/env pwsh
 # Recreate PostgreSQL Database in Docker
 # This will completely delete and recreate the database
 
@@ -125,10 +125,10 @@ Write-Info "           STEP 3: Starting New Database          "
 Write-Info "=================================================="
 Write-Host ""
 
-# Check if docker-compose.yml exists
-if (Test-Path "docker-compose.yml") {
-    Write-Info "Starting database with docker-compose..."
-    docker-compose up -d postgres
+# Check if docker compose.yml exists
+if (Test-Path "docker compose.yml") {
+    Write-Info "Starting database with docker compose..."
+    docker compose up -d postgres
     
     if ($LASTEXITCODE -eq 0) {
         Write-Success "   Database container started"

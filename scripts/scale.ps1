@@ -67,14 +67,14 @@ $levels = @{
         Label       = 'Level 2 — Cache Layer'
         Capacity    = '500-1,000 concurrent users'
         Profile     = 'cache'
-        OverlayFile = 'docker-compose.level2.yml'
+        OverlayFile = 'docker compose.level2.yml'
         Features    = @('Redis cache ON', 'CACHE_ENABLED=true', 'Reduced DB query load')
     }
     3 = @{
         Label       = 'Level 3 — Worker Layer'
         Capacity    = '2,000+ concurrent users'
         Profile     = 'workers'
-        OverlayFile = 'docker-compose.level3.yml'
+        OverlayFile = 'docker compose.level3.yml'
         Features    = @('Redis + BullMQ workers ON', 'CACHE_ENABLED + WORKERS_ENABLED=true',
                         'Background jobs: email, ratings, analytics, cleanup')
     }
@@ -82,7 +82,7 @@ $levels = @{
         Label       = 'Level 4 — Event-Driven'
         Capacity    = '10,000+ concurrent users'
         Profile     = 'events'
-        OverlayFile = 'docker-compose.level4.yml'
+        OverlayFile = 'docker compose.level4.yml'
         Features    = @('Redis + Kafka + Zookeeper ON', 'EVENT_BUS_ENABLED=true',
                         'Services communicate via Kafka topics', 'Full notification channels')
     }
@@ -90,7 +90,7 @@ $levels = @{
         Label       = 'Level 5 — Full Scale'
         Capacity    = '50,000+ concurrent users'
         Profile     = 'full'
-        OverlayFile = 'docker-compose.level5.yml'
+        OverlayFile = 'docker compose.level5.yml'
         Features    = @('Redis + Kafka + Zookeeper + infrastructure-service ON',
                         'Redis distributed rate limiting', 'All notification channels + device tracking',
                         'WORKER_CONCURRENCY=20, DB_POOL_MAX=30')
@@ -113,7 +113,7 @@ Write-Host ""
 
 # ─── Build compose arguments ─────────────────────────────────────────────────
 
-$composeFiles = @('-f', 'docker-compose.yml')
+$composeFiles = @('-f', 'docker compose.yml')
 
 if ($def.OverlayFile) {
     $composeFiles += @('-f', $def.OverlayFile)
@@ -131,7 +131,7 @@ if ($Down) {
     Write-Host "Stopping $($def.Label) stack..." -ForegroundColor Yellow
     Write-Host "> $($cmd -join ' ')" -ForegroundColor DarkGray
     Write-Host ""
-    & docker compose @($composeFiles[1..($composeFiles.Count - 1)]) @profileArgs down
+    & docker compose @composeFiles @profileArgs down
 } else {
     $upArgs = @('up')
     if ($Detach) { $upArgs += '-d' }
@@ -142,7 +142,7 @@ if ($Down) {
     Write-Host "> $($cmd -join ' ')" -ForegroundColor DarkGray
     Write-Host ""
 
-    & docker compose @($composeFiles[1..($composeFiles.Count - 1)]) @profileArgs @upArgs
+    & docker compose @composeFiles @profileArgs @upArgs
 
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""

@@ -4,7 +4,7 @@
     Starts all services and runs automated API tests.
 .DESCRIPTION
     This orchestrator script:
-      1. Starts all services using docker-compose
+      1. Starts all services using docker compose
       2. Waits for services to be healthy
       3. Optionally seeds the database with sample data
       4. Runs the Newman test suite
@@ -14,7 +14,7 @@
 .PARAMETER SkipSeed
     Skip database seeding even if SkipStart is not used.
 .PARAMETER DockerComposeFile
-    Path to docker-compose.yml file. Default: docker-compose.yml
+    Path to docker compose.yml file. Default: docker compose.yml
 .EXAMPLE
     .\scripts\test-all-services.ps1
     Starts all services, waits for health, runs tests.
@@ -23,14 +23,14 @@
     Assumes services are already running, just runs tests.
 .NOTES
     This script requires Docker Desktop to be running.
-    The default docker-compose.yml is at the project root.
+    The default docker compose.yml is at the project root.
 #>
 
 [CmdletBinding()]
 param(
     [switch]$SkipStart,
     [switch]$SkipSeed,
-    [string]$DockerComposeFile = "docker-compose.yml"
+    [string]$DockerComposeFile = "docker compose.yml"
 )
 
 $GatewayPort = $null
@@ -78,7 +78,7 @@ function Test-DockerRunning {
 }
 
 function Get-GatewayPort {
-    param([string]$ComposeFile = "docker-compose.yml")
+    param([string]$ComposeFile = "docker compose.yml")
 
     try {
         $mapping = docker port api-gateway 3000 2>$null | Select-Object -First 1
@@ -90,7 +90,7 @@ function Get-GatewayPort {
     }
 
     try {
-        $mapping = docker-compose -f $ComposeFile port api-gateway 3000 2>$null | Select-Object -First 1
+        $mapping = docker compose -f $ComposeFile port api-gateway 3000 2>$null | Select-Object -First 1
         if ($LASTEXITCODE -eq 0 -and $mapping -match ':(\d+)$') {
             return $matches[1]
         }
@@ -114,7 +114,7 @@ function Get-GatewayPort {
 }
 
 function Get-RunningComposeServices {
-    param([string]$ComposeFile = "docker-compose.yml")
+    param([string]$ComposeFile = "docker compose.yml")
 
     $overrideFile = [System.IO.Path]::ChangeExtension($ComposeFile, $null).TrimEnd('.') + ".override.yml"
     $composeArgs = @("-f", $ComposeFile)
@@ -126,7 +126,7 @@ function Get-RunningComposeServices {
     $composeArgs += @("ps", "--services", "--status", "running")
 
     try {
-        $services = & docker-compose @composeArgs 2>$null |
+        $services = & docker compose @composeArgs 2>$null |
             ForEach-Object { $_.Trim() } |
             Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
         return @($services)
@@ -199,7 +199,7 @@ function Invoke-HealthRequest {
 }
 
 function Start-Services {
-    Write-Info "Starting all services with docker-compose..."
+    Write-Info "Starting all services with docker compose..."
     Write-Info "Using compose file: $DockerComposeFile"
 
     # Validate compose file exists
@@ -212,14 +212,14 @@ function Start-Services {
     $overrideFile = [System.IO.Path]::ChangeExtension($DockerComposeFile, $null).TrimEnd('.') + ".override.yml"
     if (Test-Path $overrideFile) {
         Write-Info "Including override file: $overrideFile"
-        docker-compose -f $DockerComposeFile -f $overrideFile up -d
+        docker compose -f $DockerComposeFile -f $overrideFile up -d
     } else {
-        docker-compose -f $DockerComposeFile up -d
+        docker compose -f $DockerComposeFile up -d
     }
 
     # Check if services started
     if ($LASTEXITCODE -ne 0) {
-        Write-ErrorMsg "Failed to start services with docker-compose."
+        Write-ErrorMsg "Failed to start services with docker compose."
         exit 1
     }
 
@@ -302,7 +302,7 @@ function Wait-ForServices {
 
     if (-not $gatewayHealthy) {
         Write-ErrorMsg "API Gateway did not become healthy within $maxWait seconds."
-        Write-ErrorMsg "Check logs: docker-compose logs api-gateway"
+        Write-ErrorMsg "Check logs: docker compose logs api-gateway"
         exit 1
     }
 
@@ -369,7 +369,7 @@ function Wait-ForServices {
     if (-not $allServicesHealthy) {
         Write-ErrorMsg "Services did not become healthy within $maxWait seconds."
         Write-ErrorMsg "Check health: $servicesHealthUrl"
-        Write-ErrorMsg "Check logs: docker-compose logs"
+        Write-ErrorMsg "Check logs: docker compose logs"
         exit 1
     }
 }
@@ -415,9 +415,9 @@ function Show-Summary {
         Write-Info ""
         Write-Info "Troubleshooting:"
         Write-Info "  1. Check the HTML report in test-reports/ for details"
-        Write-Info "  2. Check service logs: docker-compose logs <service-name>"
+        Write-Info "  2. Check service logs: docker compose logs <service-name>"
         Write-Info "  3. Re-run with verbose output: pnpm test:api:verbose"
-        Write-Info "  4. Ensure all services are running: docker-compose ps"
+        Write-Info "  4. Ensure all services are running: docker compose ps"
     }
 
     Write-Info ""
@@ -449,7 +449,7 @@ try {
         $script:GatewayPort = Get-GatewayPort -ComposeFile $DockerComposeFile
         Write-Info "Detected API Gateway host port: $script:GatewayPort"
         Write-Warning "Skipping service startup. Assuming services are already running."
-        Write-Warning "Verify with: docker-compose ps"
+        Write-Warning "Verify with: docker compose ps"
         Write-Info ""
     }
 

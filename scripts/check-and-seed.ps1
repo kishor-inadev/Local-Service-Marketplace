@@ -12,7 +12,7 @@ $running = @(docker ps --format "{{.Names}}" | Where-Object { $_ -match "service
 if ($running.Count -eq 0) {
     Write-Host "  ❌ No services are running yet" -ForegroundColor Red
     Write-Host "  ℹ️  Docker build may still be in progress" -ForegroundColor Yellow
-    Write-Host "  Run: docker-compose logs -f  (to see build progress)" -ForegroundColor Cyan
+    Write-Host "  Run: docker compose logs -f  (to see build progress)" -ForegroundColor Cyan
     exit 1
 }
 
