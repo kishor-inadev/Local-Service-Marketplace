@@ -153,12 +153,11 @@ jobs:
       - name: Deploy to Vercel (preview)
         id: deploy
         if: env.VERCEL_TOKEN != ''
-        working-directory: frontend
         run: |
           npm install -g vercel@latest
-          vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
-          vercel build --token=$VERCEL_TOKEN
-          URL=$(vercel deploy --prebuilt --token=$VERCEL_TOKEN)
+          vercel pull --yes --environment=preview --token=$VERCEL_TOKEN --cwd frontend
+          vercel build --token=$VERCEL_TOKEN --cwd frontend
+          URL=$(vercel deploy --prebuilt --token=$VERCEL_TOKEN --cwd frontend)
           echo "preview-url=$URL" >> $GITHUB_OUTPUT
 
       - name: Comment preview URL on PR
@@ -204,19 +203,19 @@ jobs:
               });
             }
 
-  vercel-preview-backend:
-    name: "Vercel - Backend Preview Deploy"
+  vercel-preview-api-gateway:
+    name: "Vercel - API Gateway Preview Deploy"
     runs-on: ubuntu-latest
-    needs: [backend]
+    needs: [api-gateway]
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_BACKEND }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_API_GATEWAY }}
     steps:
       - name: Skip if Vercel not configured
         if: env.VERCEL_TOKEN == '' || env.VERCEL_PROJECT_ID == ''
         run: |
-          echo "::notice::VERCEL_TOKEN or VERCEL_PROJECT_ID_BACKEND not configured — skipping backend preview deploy."
+          echo "::notice::VERCEL_TOKEN or VERCEL_PROJECT_ID_API_GATEWAY not configured — skipping API Gateway preview deploy."
 
       - uses: actions/checkout@v4
         if: env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != ''
@@ -233,9 +232,8 @@ jobs:
 
       - name: Deploy to Vercel (preview)
         if: env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != ''
-        working-directory: api-gateway
         run: |
           npm install -g vercel@latest
-          vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
-          vercel build --token=$VERCEL_TOKEN
-          vercel deploy --prebuilt --token=$VERCEL_TOKEN
+          vercel pull --yes --environment=preview --token=$VERCEL_TOKEN --cwd api-gateway
+          vercel build --token=$VERCEL_TOKEN --cwd api-gateway
+          vercel deploy --prebuilt --token=$VERCEL_TOKEN --cwd api-gateway
