@@ -121,21 +121,21 @@ jobs:
       - name: Build
         run: pnpm build
 
-  vercel-preview:
-    name: "Vercel - Preview Deploy"
+  vercel-preview-frontend:
+    name: "Vercel - Frontend Preview Deploy"
     runs-on: ubuntu-latest
     needs: [frontend]
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_FRONTEND }}
     outputs:
       preview-url: ${{ steps.deploy.outputs.preview-url }}
     steps:
       - name: Skip if Vercel not configured
         if: env.VERCEL_TOKEN == ''
         run: |
-          echo "::notice::VERCEL_TOKEN secret not configured — skipping Vercel preview deploy."
+          echo "::notice::VERCEL_TOKEN secret not configured — skipping Vercel frontend preview deploy."
 
       - uses: actions/checkout@v4
         if: env.VERCEL_TOKEN != ''
@@ -203,3 +203,38 @@ jobs:
                 body,
               });
             }
+
+  vercel-preview-backend:
+    name: "Vercel - Backend Preview Deploy"
+    runs-on: ubuntu-latest
+    needs: [backend]
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_BACKEND }}
+    steps:
+      - name: Skip if Vercel not configured
+        if: env.VERCEL_TOKEN == '' || env.VERCEL_PROJECT_ID == ''
+        run: |
+          echo "::notice::VERCEL_TOKEN or VERCEL_PROJECT_ID_BACKEND not configured — skipping backend preview deploy."
+
+      - uses: actions/checkout@v4
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != ''
+
+      - uses: pnpm/action-setup@v3
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != ''
+        with:
+          version: 10
+
+      - uses: actions/setup-node@v4
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != ''
+        with:
+          node-version: 20
+
+      - name: Deploy to Vercel (preview)
+        if: env.VERCEL_TOKEN != '' && env.VERCEL_PROJECT_ID != ''
+        run: |
+          npm install -g vercel@latest
+          vercel pull --yes --environment=preview --token=$VERCEL_TOKEN
+          vercel build --token=$VERCEL_TOKEN
+          vercel deploy --prebuilt --token=$VERCEL_TOKEN
