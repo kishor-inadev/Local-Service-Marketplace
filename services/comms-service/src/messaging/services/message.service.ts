@@ -47,13 +47,29 @@ export class MessageService {
 
   async getMessagesForJob(
     jobId: string,
+    user: any,
     page: number = 1,
     limit: number = 20,
   ): Promise<PaginatedMessages> {
     this.logger.log(
-      `Fetching messages for job ${jobId} (page ${page}, limit ${limit})`,
+      `Fetching messages for job ${jobId} for user ${user.userId} (page ${page}, limit ${limit})`,
       "MessageService",
     );
+
+    // RBAC: Verify user is participant or admin
+    if (user.role !== "admin") {
+      const conversations = await this.messageRepository.getUserConversations(
+        user.userId,
+      );
+      const isParticipant = conversations.some((c) => c.job_id === jobId);
+
+      if (!isParticipant) {
+        throw new ForbiddenException(
+          "You are not authorized to view messages for this job",
+        );
+      }
+    }
+
     return this.messageRepository.getMessagesForJob(jobId, page, limit);
   }
 

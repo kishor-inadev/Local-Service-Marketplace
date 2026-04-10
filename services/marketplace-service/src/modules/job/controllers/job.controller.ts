@@ -78,8 +78,9 @@ export class JobController {
   @HttpCode(HttpStatus.OK)
   async getJobs(
     @Query() queryDto: JobQueryDto,
+    @Request() req: any,
   ): Promise<PaginatedJobResponseDto> {
-    return this.jobService.getJobs(queryDto);
+    return this.jobService.getJobs(queryDto, req.user);
   }
 
   @Get(":id")
@@ -172,25 +173,33 @@ export class JobController {
   @HttpCode(HttpStatus.OK)
   async getJobsByProvider(
     @Param("providerId", FlexibleIdPipe) providerId: string,
+    @Request() req: any,
   ): Promise<{
     data: JobResponseDto[];
     total: number;
     page: number;
     limit: number;
   }> {
+    // RBAC check: only admin or the provider themselves can list their jobs here
+    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+      throw new ForbiddenException("Access denied");
+    }
     const result = await this.jobService.getJobsByProvider(providerId);
     return { ...result, page: 1, limit: result.data.length || 1 };
   }
 
   @Get("status/:status")
   @HttpCode(HttpStatus.OK)
-  async getJobsByStatus(@Param("status") status: string): Promise<{
+  async getJobsByStatus(
+    @Param("status") status: string,
+    @Request() req: any,
+  ): Promise<{
     data: JobResponseDto[];
     total: number;
     page: number;
     limit: number;
   }> {
-    const result = await this.jobService.getJobsByStatus(status);
+    const result = await this.jobService.getJobsByStatus(status, req.user);
     return { ...result, page: 1, limit: result.data.length || 1 };
   }
 }

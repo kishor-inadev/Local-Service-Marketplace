@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
@@ -594,7 +594,7 @@ export default function AdminDashboardPage() {
 														className='p-3 border border-gray-200 dark:border-gray-700 rounded-md'>
 														<div className='flex items-start justify-between mb-2'>
 															<p className='text-sm font-medium text-gray-900 dark:text-white'>
-																Job #{dispute.job_id?.slice(0, 8)}
+																Job #{dispute.job_display_id || dispute.job_id?.slice(0, 8)}
 															</p>
 															<StatusBadge status={dispute.status} />
 														</div>

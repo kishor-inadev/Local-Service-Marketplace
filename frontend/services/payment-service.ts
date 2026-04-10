@@ -1,11 +1,5 @@
 import { apiClient } from './api-client';
 
-function extractList<T>(payload: any): T[] {
-	if (Array.isArray(payload)) return payload as T[];
-	if (payload && Array.isArray(payload.data)) return payload.data as T[];
-	return [];
-}
-
 export interface Payment {
 	id: string;
 	display_id?: string;
@@ -74,7 +68,7 @@ class PaymentService {
 
 	async getPaymentsByJob(jobId: string): Promise<Payment[]> {
 		const response = await apiClient.get<Payment[]>(`/payments/jobs/${jobId}`);
-		return extractList<Payment>(response.data);
+		return apiClient.extractList<Payment>(response.data);
 	}
 
 	async requestRefund(paymentId: string, data: RefundData): Promise<Payment> {
@@ -84,7 +78,7 @@ class PaymentService {
 
 	async getMyPayments(): Promise<Payment[]> {
 		const response = await apiClient.get<Payment[]>(`/payments/my`);
-		return extractList<Payment>(response.data);
+		return apiClient.extractList<Payment>(response.data);
 	}
 
 	async getPaymentStatus(id: string): Promise<Payment> {
@@ -96,7 +90,7 @@ class PaymentService {
 
 	async getPaymentMethods(): Promise<SavedPaymentMethod[]> {
 		const response = await apiClient.get<SavedPaymentMethod[]>("/payment-methods");
-		return extractList<SavedPaymentMethod>(response.data);
+		return apiClient.extractList<SavedPaymentMethod>(response.data);
 	}
 
 	async setDefaultPaymentMethod(methodId: string): Promise<void> {
@@ -111,7 +105,7 @@ class PaymentService {
 
 	async getProviderSubscriptions(providerId: string): Promise<Subscription[]> {
 		const response = await apiClient.get<Subscription[]>(`/subscriptions/provider/${providerId}`);
-		return extractList<Subscription>(response.data);
+		return apiClient.extractList<Subscription>(response.data);
 	}
 
 	async createSubscription(data: CreateSubscriptionData): Promise<Subscription> {
@@ -139,7 +133,7 @@ class PaymentService {
 
 	async getActivePricingPlans(): Promise<PricingPlan[]> {
 		const response = await apiClient.get<PricingPlan[]>("/pricing-plans/active");
-		return extractList<PricingPlan>(response.data);
+		return apiClient.extractList<PricingPlan>(response.data);
 	}
 
 	// ------------------ Provider Earnings ------------------
@@ -182,15 +176,16 @@ class PaymentService {
 			return { data: payload as Transaction[], total: payload.length };
 		}
 		return { data: [], total: 0 };
+		return apiClient.extractList<PaginatedTransactions>(response.data);
 	}
 
 	async getProviderPayouts(providerId: string): Promise<Payout[]> {
 		if (!providerId) {
 			throw new Error("User not authenticated");
 		}
-
+	
 		const response = await apiClient.get<Payout[]>(`/payments/provider/${providerId}/payouts`);
-		return extractList<Payout>(response.data);
+		return apiClient.extractList<Payout>(response.data);
 	}
 }
 

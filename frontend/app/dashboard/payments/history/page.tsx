@@ -184,7 +184,7 @@ export default function PaymentHistoryPage() {
 
 												<div className='mt-2 space-y-1'>
 													<p className='text-sm text-gray-600 dark:text-gray-400'>
-														Job ID: #{payment.job_id?.slice(0, 8)}
+														Job ID: #{payment.job_display_id || payment.job_id?.slice(0, 8)}
 													</p>
 													<p className='text-sm text-gray-600 dark:text-gray-400'>
 															Transaction ID: #{payment.display_id || payment.id.slice(0, 8)}

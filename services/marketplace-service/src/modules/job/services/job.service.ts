@@ -309,8 +309,30 @@ export class JobService {
 
   async getJobsByStatus(
     status: string,
+    user?: any,
   ): Promise<{ data: JobResponseDto[]; total: number }> {
-    this.logger.log(`Fetching jobs with status: ${status}`, JobService.name);
+    this.logger.log(
+      `Fetching jobs with status: ${status} for user ${user?.userId}`,
+      JobService.name,
+    );
+
+    // RBAC: Restricted view for customers and providers
+    if (user && user.role === "customer") {
+      const jobs = await this.jobRepository.getJobsByCustomer(user.userId);
+      const data = jobs
+        .filter((j) => j.status === status)
+        .map(JobResponseDto.fromEntity);
+      return { data, total: data.length };
+    }
+
+    if (user && user.role === "provider") {
+      const providerId = user.providerId || user.userId;
+      const jobs = await this.jobRepository.getJobsByProvider(providerId);
+      const data = jobs
+        .filter((j) => j.status === status)
+        .map(JobResponseDto.fromEntity);
+      return { data, total: data.length };
+    }
 
     const jobs = await this.jobRepository.getJobsByStatus(status);
     const data = jobs.map(JobResponseDto.fromEntity);
@@ -343,11 +365,21 @@ export class JobService {
     return { data, total: data.length };
   }
 
-  async getJobs(queryDto: JobQueryDto): Promise<PaginatedJobResponseDto> {
+  async getJobs(
+    queryDto: JobQueryDto,
+    user?: any,
+  ): Promise<PaginatedJobResponseDto> {
     this.logger.log(
-      `Fetching jobs with filters: ${JSON.stringify(queryDto)}`,
+      `Fetching jobs with filters: ${JSON.stringify(queryDto)} for user ${user?.userId}`,
       JobService.name,
     );
+
+    // RBAC: Enforce owner/participant filtering
+    if (user && user.role === "customer") {
+      queryDto.customer_id = user.userId;
+    } else if (user && user.role === "provider") {
+      queryDto.provider_id = user.providerId || user.userId;
+    }
 
     validateDateRange(
       queryDto.started_from,

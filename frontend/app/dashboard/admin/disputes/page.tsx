@@ -44,6 +44,8 @@ export default function AdminDisputesPage() {
 	const [serverFilters, setServerFilters] = useState<ColumnFiltersState>([]);
 	const [serverPageIndex, setServerPageIndex] = useState(0);
 	const [serverPageSize, setServerPageSize] = useState(10);
+	const [paginationMode, setPaginationMode] = useState<"pagination" | "load-more">("pagination");
+	const [cumulativeDisputes, setCumulativeDisputes] = useState<DisputeRow[]>([]);
 
 	const statusFilter = String(serverFilters.find((f) => f.id === "status")?.value || "");
 	const activeSort = serverSorting[0];
@@ -68,7 +70,23 @@ export default function AdminDisputesPage() {
 		placeholderData: (previousData) => previousData,
 	});
 
-	const disputeList: DisputeRow[] = disputes?.data || [];
+	// Handle data accumulation for Load More mode
+	useMemo(() => {
+		if (!disputes?.data) return;
+
+		if (paginationMode === "load-more") {
+			setCumulativeDisputes((prev) => {
+				if (serverPageIndex === 0) return disputes.data;
+				const existingIds = new Set(prev.map(d => d.id));
+				const newUnique = disputes.data.filter(d => !existingIds.has(d.id));
+				return [...prev, ...newUnique];
+			});
+		} else {
+			setCumulativeDisputes(disputes.data);
+		}
+	}, [disputes?.data, paginationMode, serverPageIndex]);
+
+	const disputeList = cumulativeDisputes;
 
 	const { data: disputeStats } = useQuery({
 		queryKey: ["admin-disputes-stats"],
@@ -155,10 +173,9 @@ export default function AdminDisputesPage() {
 									serverColumnFilters={serverFilters}
 									onServerPageIndexChange={setServerPageIndex}
 									onServerPageSizeChange={setServerPageSize}
-									onServerSortingChange={setServerSorting}
-									onServerColumnFiltersChange={setServerFilters}
-									initialSortField='created_at'
 									initialSortDirection='desc'
+									defaultPaginationMode={paginationMode}
+									onLoadMore={() => setPaginationMode("load-more")}
 									enableSearch={false}
 									renderToolbarFields={(table: Table<DisputeRow>) => {
 										return (
@@ -193,10 +210,13 @@ export default function AdminDisputesPage() {
 									columns={[
 										{
 											id: "id",
-											header: "Dispute",
+											header: "Dispute ID",
 											sortable: true,
-											accessor: (row: DisputeRow) => row.id,
-											cell: (row: DisputeRow) => <span className='font-medium'>#{row.id.slice(0, 8)}</span>,
+											cell: (row: DisputeRow) => (
+												<span className='font-mono text-xs font-medium text-gray-500 dark:text-gray-400'>
+													{row.display_id || row.id.slice(0, 8)}
+												</span>
+											),
 										},
 										{
 											id: "job_id",

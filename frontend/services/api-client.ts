@@ -178,6 +178,16 @@ class ApiClient {
     }
   }
 
+  /**
+   * Safely extract a list/array from various response shapes (raw array vs paginated object)
+   */
+  static extractList<T>(payload: any): T[] {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload as T[];
+    if (payload && Array.isArray(payload.data)) return payload.data as T[];
+    return [];
+  }
+
   // Public HTTP methods
   async get<T = any>(url: string, config?: AxiosRequestConfig) {
     return this.client.get<T>(url, config);

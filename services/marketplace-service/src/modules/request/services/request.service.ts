@@ -150,11 +150,18 @@ export class RequestService {
 
   async getRequests(
     queryDto: RequestQueryDto,
+    user?: any,
   ): Promise<PaginatedRequestResponseDto> {
     this.logger.log(
-      `Fetching requests with filters: ${JSON.stringify(queryDto)}`,
+      `Fetching requests with filters: ${JSON.stringify(queryDto)} for user ${user?.userId} (${user?.role})`,
       RequestService.name,
     );
+
+    // RBAC: Customers can ONLY see their own requests via the root endpoint
+    if (user && user.role === 'customer') {
+      this.logger.log(`Enforcing customer-only filter for user ${user.userId}`, RequestService.name);
+      queryDto.user_id = user.userId;
+    }
 
     validateMinMaxRange(
       queryDto.min_budget,

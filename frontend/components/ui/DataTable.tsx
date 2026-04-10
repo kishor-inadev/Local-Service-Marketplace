@@ -13,7 +13,7 @@ import {
 	getSortedRowModel,
 	useReactTable,
 } from "@tanstack/react-table";
-import { ArrowDown, ArrowUp, ArrowUpDown, Download, Loader2, Search, SlidersHorizontal, Table2 } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Download, LayoutGrid, List, Loader2, Search, SlidersHorizontal, Table2 } from "lucide-react";
 import { Button } from "./Button";
 import { Pagination } from "./Pagination";
 
@@ -84,6 +84,8 @@ interface DataTableProps<T> {
 	clearFiltersLabel?: string;
 	enableColumnVisibilityControl?: boolean;
 	columnVisibilityLabel?: string;
+	defaultPaginationMode?: "pagination" | "load-more";
+	onLoadMore?: () => void;
 }
 
 export function DataTable<T>({
@@ -131,6 +133,8 @@ export function DataTable<T>({
 	clearFiltersLabel = "Reset",
 	enableColumnVisibilityControl = false,
 	columnVisibilityLabel = "Columns",
+	defaultPaginationMode = "pagination",
+	onLoadMore,
 }: DataTableProps<T>) {
 	const [sorting, setSorting] = useState<SortingState>(
 		initialSortField ? [{ id: initialSortField, desc: initialSortDirection === "desc" }] : [],
@@ -141,6 +145,7 @@ export function DataTable<T>({
 	const [searchInput, setSearchInput] = useState("");
 	const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 	const [showColumnMenu, setShowColumnMenu] = useState(false);
+	const [activePaginationMode, setActivePaginationMode] = useState<"pagination" | "load-more">(defaultPaginationMode);
 	const [pagination, setPagination] = useState({ pageIndex: 0, pageSize: defaultPageSize });
 	const isServerMode = processingMode === "server";
 	const activeSorting = isServerMode && serverSorting ? serverSorting : sorting;
@@ -165,6 +170,10 @@ export function DataTable<T>({
 			accessorFn: (row) => {
 				if (column.accessor) {
 					return column.accessor(row);
+				}
+				// Fallback to display_id if the column ID is "id" or "display_id"
+				if (column.id === "id" || column.id === "display_id") {
+					return (row as any).display_id || (row as any).id;
 				}
 				return (row as any)[column.id];
 			},
@@ -487,6 +496,31 @@ export function DataTable<T>({
 								{loadingText}
 							</span>
 						)}
+
+						<div className='flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50/50 p-1 dark:border-gray-700 dark:bg-gray-800/50'>
+							<button
+								type='button'
+								onClick={() => setActivePaginationMode("pagination")}
+								title='Pagination mode'
+								className={`flex h-8 w-8 items-center justify-center rounded-md transition-all ${
+									activePaginationMode === "pagination"
+										? "bg-white text-primary-600 shadow-sm dark:bg-gray-700 dark:text-primary-400"
+										: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+								}`}>
+								<LayoutGrid className='h-4 w-4' />
+							</button>
+							<button
+								type='button'
+								onClick={() => setActivePaginationMode("load-more")}
+								title='Load more mode'
+								className={`flex h-8 w-8 items-center justify-center rounded-md transition-all ${
+									activePaginationMode === "load-more"
+										? "bg-white text-primary-600 shadow-sm dark:bg-gray-700 dark:text-primary-400"
+										: "text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+								}`}>
+								<List className='h-4 w-4' />
+							</button>
+						</div>
 						{toolbarFilterFields}
 
 						{enableClearFilters && hasActiveFilters && (
@@ -618,41 +652,69 @@ export function DataTable<T>({
 						</table>
 					</div>
 
-					<Pagination
-						currentPage={currentPage}
-						totalPages={Math.max(1, totalPages)}
-						onPageChange={(nextPage) => {
-							if (!isServerMode) {
-								table.setPageIndex(Math.max(0, nextPage - 1));
-								return;
-							}
-							onServerPageIndexChange?.(Math.max(0, nextPage - 1));
-						}}
-						leftContent={
-							<div className='flex flex-wrap items-center gap-3'>
-								<div className='text-sm text-gray-600 dark:text-gray-300'>
-									Showing {numberFormatter.format(startRow)}-{numberFormatter.format(endRow)} of{" "}
-									{numberFormatter.format(filteredCount)} records
-								</div>
+					{activePaginationMode === "pagination" ?
+						<Pagination
+							currentPage={currentPage}
+							totalPages={Math.max(1, totalPages)}
+							onPageChange={(nextPage) => {
+								if (!isServerMode) {
+									table.setPageIndex(Math.max(0, nextPage - 1));
+									return;
+								}
+								onServerPageIndexChange?.(Math.max(0, nextPage - 1));
+							}}
+							leftContent={
+								<div className='flex flex-wrap items-center gap-3'>
+									<div className='text-sm text-gray-600 dark:text-gray-300'>
+										Showing {numberFormatter.format(startRow)}-{numberFormatter.format(endRow)} of{" "}
+										{numberFormatter.format(filteredCount)} records
+									</div>
 
-								{showPageSizeControl && (
-									<select
-										value={pageSize}
-										onChange={(e) => onPageSizeChange(Number(e.target.value))}
-										aria-label='Rows per page'
-										className='h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-primary-900'>
-										{pageSizeOptions.map((size) => (
-											<option
-												key={size}
-												value={size}>
-												{size} per page
-											</option>
-										))}
-									</select>
-								)}
+									{showPageSizeControl && (
+										<select
+											value={pageSize}
+											onChange={(e) => onPageSizeChange(Number(e.target.value))}
+											aria-label='Rows per page'
+											className='h-9 rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-700 shadow-sm focus:border-primary-500 focus:outline-none focus:ring-2 focus:ring-primary-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:focus:ring-primary-900'>
+											{pageSizeOptions.map((size) => (
+												<option
+													key={size}
+													value={size}>
+													{size} per page
+												</option>
+											))}
+										</select>
+									)}
+								</div>
+							}
+						/>
+					:	<div className='flex flex-col items-center justify-center gap-3 py-2'>
+							{currentPage < totalPages && (
+								<Button
+									variant='outline'
+									className='min-w-[200px] border-gray-200 bg-white shadow-sm hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700'
+									onClick={() => {
+										if (!isServerMode) {
+											table.setPageIndex(pageIndex + 1);
+										} else {
+											onServerPageIndexChange?.(pageIndex + 1);
+										}
+										onLoadMore?.();
+									}}
+									disabled={isLoading}>
+									{isLoading ?
+										<>
+											<Loader2 className='mr-2 h-4 w-4 animate-spin' />
+											Loading...
+										</>
+									:	"Load More Results"}
+								</Button>
+							)}
+							<div className='text-xs text-gray-500 dark:text-gray-400'>
+								Showing {numberFormatter.format(endRow)} of {numberFormatter.format(filteredCount)} records
 							</div>
-						}
-					/>
+						</div>
+					}
 				</>
 			:	<div className='rounded-xl border border-dashed border-gray-300 bg-gray-50/50 px-6 py-12 text-center dark:border-gray-700 dark:bg-gray-900/40'>
 					<div className='mx-auto mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white shadow-sm dark:bg-gray-800'>

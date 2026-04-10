@@ -123,12 +123,23 @@ export class ProposalService {
 
   async getProposalsForRequest(
     requestId: string,
+    user?: any,
     limit = 20,
   ): Promise<PaginatedProposalResponseDto> {
     this.logger.log(
-      `Fetching proposals for request: ${requestId}`,
+      `Fetching proposals for request: ${requestId} for user ${user?.userId}`,
       ProposalService.name,
     );
+
+    // RBAC: Only the request owner or admin can see the list of proposals for a request
+    if (user && user.role !== "admin") {
+      const requestOwner = await this.proposalRepository.getRequestOwner(requestId);
+      if (requestOwner !== user.userId) {
+        throw new ForbiddenException(
+          "Only the request owner or an admin can see the proposals for this request",
+        );
+      }
+    }
 
     const proposals = await this.proposalRepository.getProposalsForRequest(
       requestId,
@@ -286,11 +297,19 @@ export class ProposalService {
 
   async getProposals(
     queryDto: ProposalQueryDto,
+    user?: any,
   ): Promise<PaginatedProposalResponseDto> {
     this.logger.log(
-      `Fetching proposals with filters: ${JSON.stringify(queryDto)}`,
+      `Fetching proposals with filters: ${JSON.stringify(queryDto)} for user ${user?.userId}`,
       ProposalService.name,
     );
+
+    // RBAC: Enforce ownership filtering
+    if (user && user.role === "customer") {
+      queryDto.customer_id = user.userId;
+    } else if (user && user.role === "provider") {
+      queryDto.provider_id = user.providerId || user.userId;
+    }
 
     validateMinMaxRange(
       queryDto.min_price,

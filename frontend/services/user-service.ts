@@ -1,12 +1,5 @@
 import { apiClient } from './api-client';
 
-// Helper: Safely extract list from various response shapes
-function extractList<T>(payload: any): T[] {
-  if (Array.isArray(payload)) return payload as T[];
-  if (payload && Array.isArray(payload.data)) return payload.data as T[];
-  return [];
-}
-
 // ------------------ Types ------------------
 
 export interface UserProfile {
@@ -124,18 +117,9 @@ export const getProviderProfile = async (providerId: string): Promise<ProviderPr
  * Get provider profile for an authenticated user.
  */
 export const getProviderProfileByUserId = async (userId: string): Promise<ProviderProfile | null> => {
-  const response = await apiClient.get<{ data: ProviderProfile[] } | ProviderProfile[]>(`/providers?user_id=${userId}`);
-  const payload = response.data as any;
-
-  if (Array.isArray(payload)) {
-    return payload[0] || null;
-  }
-
-  if (payload && Array.isArray(payload.data)) {
-    return payload.data[0] || null;
-  }
-
-  return null;
+  const response = await apiClient.get<any>(`/providers?user_id=${userId}`);
+  const list = apiClient.extractList<ProviderProfile>(response.data);
+  return list[0] || null;
 };
 
 /**
@@ -143,7 +127,7 @@ export const getProviderProfileByUserId = async (userId: string): Promise<Provid
  */
 export const getProviderServices = async (providerId: string): Promise<ProviderService[]> => {
   const response = await apiClient.get<any>(`/providers/${providerId}/services`);
-  return extractList<ProviderService>(response.data);
+  return apiClient.extractList<ProviderService>(response.data);
 };
 
 /**
@@ -154,7 +138,7 @@ export const updateProviderServices = async (
   data: UpdateProviderServicesData
 ): Promise<ProviderService[]> => {
   const response = await apiClient.patch<any>(`/providers/${providerId}/services`, data);
-  return extractList<ProviderService>(response.data);
+  return apiClient.extractList<ProviderService>(response.data);
 };
 
 /**
@@ -267,7 +251,7 @@ export const uploadProviderDocument = async (
  */
 export const getProviderDocuments = async (providerId: string): Promise<ProviderDocument[]> => {
   const response = await apiClient.get<any>(`/provider-documents/provider/${providerId}`);
-  return extractList<ProviderDocument>(response.data);
+  return apiClient.extractList<ProviderDocument>(response.data);
 };
 
 /**
@@ -342,7 +326,7 @@ export const createPortfolioItem = async (
  */
 export const getProviderPortfolio = async (providerId: string): Promise<PortfolioItem[]> => {
   const response = await apiClient.get<any>(`/provider-portfolio/provider/${providerId}`);
-  return extractList<PortfolioItem>(response.data);
+  return apiClient.extractList<PortfolioItem>(response.data);
 };
 
 /**

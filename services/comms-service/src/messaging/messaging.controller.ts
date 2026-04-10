@@ -59,15 +59,17 @@ export class MessagingController {
   @Get("jobs/:jobId")
   async getMessagesForJob(
     @Param("jobId", FlexibleIdPipe) jobId: string,
+    @Request() req: any,
     @Query("page", new ParseIntPipe({ optional: true })) page: number = 1,
     @Query("limit", new ParseIntPipe({ optional: true })) limit: number = 20,
   ) {
     this.logger.log(
-      `GET /messages/jobs/${jobId}/messages - Get conversation`,
+      `GET /messages/jobs/${jobId}/messages - Get conversation for user ${req.user.userId}`,
       "MessagingController",
     );
     const result = await this.messageService.getMessagesForJob(
       jobId,
+      req.user,
       page,
       limit,
     );

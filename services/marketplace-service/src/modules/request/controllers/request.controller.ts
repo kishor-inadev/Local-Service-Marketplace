@@ -68,8 +68,9 @@ export class RequestController {
   @HttpCode(HttpStatus.OK)
   async getRequests(
     @Query() queryDto: RequestQueryDto,
+    @Req() req: any,
   ): Promise<PaginatedRequestResponseDto> {
-    return this.requestService.getRequests(queryDto);
+    return this.requestService.getRequests(queryDto, req.user);
   }
 
   // Authenticated — fetch only the calling user's requests

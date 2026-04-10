@@ -11,6 +11,7 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonStatCard, SkeletonListItem } from "@/components/ui/Skeleton";
 import { EmptyState } from "@/components/ui/EmptyState";
+import { apiClient } from '@/services/api-client';
 import { proposalService } from '@/services/proposal-service';
 import { jobService } from '@/services/job-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
@@ -56,15 +57,19 @@ export default function ProviderDashboard() {
 		);
 	}
 
-	const completedJobs = jobs?.filter((j: any) => j.status === "completed") || [];
-	const activeJobsList = jobs?.filter((j: any) => j.status === "in_progress") || [];
-	const acceptedProposals = proposals?.filter((p: any) => p.status === "accepted").length || 0;
+	// Safely extract arrays from potentially paginated responses
+	const proposalList = apiClient.extractList(proposals);
+	const jobList = apiClient.extractList(jobs);
+
+	const completedJobs = jobList.filter((j: any) => j.status === "completed");
+	const activeJobsList = jobList.filter((j: any) => j.status === "in_progress");
+	const acceptedProposals = proposalList.filter((p: any) => p.status === "accepted").length;
 
 	// Calculate earnings from completed jobs
 	const totalEarnings = completedJobs.reduce((sum: number, job: any) => sum + (job.actual_amount || 0), 0);
-	const pendingProposals = proposals?.filter((p: any) => p.status === "pending").length || 0;
+	const pendingProposals = proposalList.filter((p: any) => p.status === "pending").length;
 	const activeJobs = activeJobsList.length;
-	const successRate = proposals && proposals.length > 0 ? Math.round((acceptedProposals / proposals.length) * 100) : 0;
+	const successRate = proposalList.length > 0 ? Math.round((acceptedProposals / proposalList.length) * 100) : 0;
 
   return (
 		<Layout>
@@ -258,16 +263,16 @@ export default function ProviderDashboard() {
 										<SkeletonListItem key={i} />
 									))}
 								</div>
-							: proposals && proposals.length > 0 ?
+							: proposalList.length > 0 ?
 								<div className='space-y-3'>
-									{proposals.slice(0, 5).map((proposal) => (
+									{proposalList.slice(0, 5).map((proposal: any) => (
 										<div
 											key={proposal.id}
 											className='p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:border-blue-200 dark:hover:border-blue-700 transition-all'>
 											<div className='flex items-start justify-between gap-3'>
 												<div className='flex-1 min-w-0'>
 													<h3 className='font-medium text-gray-900 dark:text-white truncate'>
-														Proposal #{proposal.id.substring(0, 8)}
+														Proposal #{proposal.display_id || proposal.id.substring(0, 8)}
 													</h3>
 													<p className='text-sm text-gray-500 dark:text-gray-400 mt-1 line-clamp-1'>
 														{proposal.message}
@@ -325,7 +330,7 @@ export default function ProviderDashboard() {
 												<div className='flex items-start justify-between gap-3'>
 													<div className='flex-1 min-w-0'>
 														<h3 className='font-medium text-gray-900 dark:text-white truncate'>
-															Job #{job.id.slice(0, 8)}
+															Job #{job.display_id || job.id.slice(0, 8)}
 														</h3>
 														<p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
 															{job.customer?.name || "Customer"}

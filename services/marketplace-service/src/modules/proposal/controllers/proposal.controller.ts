@@ -46,8 +46,9 @@ export class ProposalController {
   @HttpCode(HttpStatus.OK)
   async getProposals(
     @Query() queryDto: ProposalQueryDto,
+    @Request() req: any,
   ): Promise<PaginatedProposalResponseDto> {
-    return this.proposalService.getProposals(queryDto);
+    return this.proposalService.getProposals(queryDto, req.user);
   }
 
   @Get("proposals/my")
@@ -66,8 +67,9 @@ export class ProposalController {
   @HttpCode(HttpStatus.OK)
   async getProposalsForRequest(
     @Param("requestId", FlexibleIdPipe) requestId: string,
+    @Request() req: any,
   ): Promise<PaginatedProposalResponseDto> {
-    return this.proposalService.getProposalsForRequest(requestId);
+    return this.proposalService.getProposalsForRequest(requestId, req.user);
   }
 
   @Post("proposals/:id/accept")

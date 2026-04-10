@@ -56,6 +56,8 @@ export default function AdminUsersPage() {
 	const [serverFilters, setServerFilters] = useState<ColumnFiltersState>([]);
 	const [serverPageIndex, setServerPageIndex] = useState(0);
 	const [serverPageSize, setServerPageSize] = useState(10);
+	const [paginationMode, setPaginationMode] = useState<"pagination" | "load-more">("pagination");
+	const [cumulativeUsers, setCumulativeUsers] = useState<UserRow[]>([]);
 
 	const roleFilter = String(serverFilters.find((f) => f.id === "role")?.value || "");
 	const statusFilter = String(serverFilters.find((f) => f.id === "status")?.value || "");
@@ -92,7 +94,26 @@ export default function AdminUsersPage() {
 		placeholderData: (previousData) => previousData,
 	});
 
-	const tableUsers: UserRow[] = useMemo(() => users?.data || [], [users?.data]);
+	// Handle data accumulation for Load More mode
+	useMemo(() => {
+		if (!users?.data) return;
+
+		if (paginationMode === "load-more") {
+			setCumulativeUsers((prev) => {
+				// If we're on the first page, reset the list
+				if (serverPageIndex === 0) return users.data;
+				
+				// Prevent duplicates (though unlikely with proper pagination)
+				const existingIds = new Set(prev.map(u => u.id));
+				const newUnique = users.data.filter(u => !existingIds.has(u.id));
+				return [...prev, ...newUnique];
+			});
+		} else {
+			setCumulativeUsers(users.data);
+		}
+	}, [users?.data, paginationMode, serverPageIndex]);
+
+	const tableUsers = cumulativeUsers;
 
 	const { data: userStats } = useQuery({
 		queryKey: ["admin-users-stats"],
@@ -188,10 +209,11 @@ export default function AdminUsersPage() {
 									onServerSearchChange={setServerSearch}
 									onServerSortingChange={setServerSorting}
 									onServerColumnFiltersChange={setServerFilters}
-									initialSortField='created_at'
 									initialSortDirection='desc'
+									defaultPaginationMode={paginationMode}
+									onLoadMore={() => setPaginationMode("load-more")}
 									searchPlaceholder='Search users by name, email, role, or status...'
-									searchableColumns={["name", "email", "role", "status", "created_at"]}
+									searchableColumns={["display_id", "name", "email", "role", "status", "created_at"]}
 									renderToolbarFields={(table: Table<UserRow>) => {
 										return (
 											<>
@@ -243,6 +265,16 @@ export default function AdminUsersPage() {
 									isLoading={isFetching && !!users}
 									searchDebounceMs={300}
 									columns={[
+										{
+											id: "id",
+											header: "ID",
+											sortable: true,
+											cell: (row: UserRow) => (
+												<span className='font-mono text-xs font-medium text-gray-500 dark:text-gray-400'>
+													{row.display_id || row.id.slice(0, 8)}
+												</span>
+											),
+										},
 										{
 											id: "name",
 											header: "Name",

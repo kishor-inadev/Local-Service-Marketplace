@@ -50,9 +50,16 @@ export class NotificationController {
 
   @Get()
   async getNotifications(
-    @Headers("x-user-id") userId: string,
+    @Request() req: any,
+    @Headers("x-user-id") headerUserId: string,
     @Query("limit", new DefaultValuePipe(50), ParseIntPipe) limit: number,
   ) {
+    const userId = req.user?.userId || headerUserId;
+
+    if (!userId) {
+      throw new UnauthorizedException("User ID is required");
+    }
+
     // Feature flag check: In-app notifications
     if (!this.featureFlags.inAppNotificationsEnabled) {
       throw new BadRequestException(
@@ -116,7 +123,13 @@ export class NotificationController {
 
   @Patch("read-all")
   @HttpCode(HttpStatus.OK)
-  async markAllAsRead(@Headers("x-user-id") userId: string) {
+  async markAllAsRead(
+    @Request() req: any,
+    @Headers("x-user-id") headerUserId: string,
+  ) {
+    const userId = req.user?.userId || headerUserId;
+    if (!userId) throw new UnauthorizedException("User ID is required");
+
     this.logger.log(
       `PATCH /notifications/read-all for user ${userId}`,
       "NotificationController",
@@ -128,8 +141,12 @@ export class NotificationController {
   @Get(":id")
   async getNotification(
     @Param("id", FlexibleIdPipe) id: string,
-    @Headers("x-user-id") userId: string,
+    @Request() req: any,
+    @Headers("x-user-id") headerUserId: string,
   ) {
+    const userId = req.user?.userId || headerUserId;
+    if (!userId) throw new UnauthorizedException("User ID is required");
+
     // Feature flag check: In-app notifications
     if (!this.featureFlags.inAppNotificationsEnabled) {
       throw new BadRequestException(
@@ -151,8 +168,12 @@ export class NotificationController {
   @Patch(":id/read")
   async markAsRead(
     @Param("id", StrictUuidPipe) id: string,
-    @Headers("x-user-id") userId: string,
+    @Request() req: any,
+    @Headers("x-user-id") headerUserId: string,
   ) {
+    const userId = req.user?.userId || headerUserId;
+    if (!userId) throw new UnauthorizedException("User ID is required");
+
     // Feature flag check: In-app notifications
     if (!this.featureFlags.inAppNotificationsEnabled) {
       throw new BadRequestException(
@@ -172,8 +193,12 @@ export class NotificationController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteNotification(
     @Param("id", StrictUuidPipe) id: string,
-    @Headers("x-user-id") userId: string,
+    @Request() req: any,
+    @Headers("x-user-id") headerUserId: string,
   ) {
+    const userId = req.user?.userId || headerUserId;
+    if (!userId) throw new UnauthorizedException("User ID is required");
+
     this.logger.log(
       `DELETE /notifications/${id} - Delete notification`,
       "NotificationController",

@@ -51,12 +51,29 @@ export class ReviewController {
    * Get review for a specific job
    * GET /jobs/:jobId/review
    */
+  @UseGuards(JwtAuthGuard)
   @Get("jobs/:jobId/review")
-  async getJobReview(@Param("jobId", FlexibleIdPipe) jobId: string) {
+  async getJobReview(
+    @Param("jobId", FlexibleIdPipe) jobId: string,
+    @Request() req: any,
+  ) {
     const review = await this.reviewRepository.getReviewByJobId(jobId);
 
     if (!review) {
       return null;
+    }
+
+    // RBAC: Only involved users or admin can see the review via this direct link
+    const isCustomer = review.user_id === req.user.userId;
+    // For provider, we might need providerId or userId depending on how it's stored
+    // In this system, provider_id on review usually matches the provider's userId
+    const isProvider = review.provider_id === req.user.userId || (req.user.providerId && review.provider_id === req.user.providerId);
+    const isAdmin = req.user.role === "admin";
+
+    if (!isCustomer && !isProvider && !isAdmin) {
+      throw new ForbiddenException(
+        "You are not authorized to view the review for this job",
+      );
     }
 
     return review;

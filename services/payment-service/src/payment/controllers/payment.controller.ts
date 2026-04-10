@@ -96,8 +96,23 @@ export class PaymentController {
 
   @Get("jobs/:jobId")
   @UseGuards(JwtAuthGuard)
-  async getPaymentsByJob(@Param("jobId", FlexibleIdPipe) jobId: string) {
+  async getPaymentsByJob(
+    @Param("jobId", FlexibleIdPipe) jobId: string,
+    @Request() req: any,
+  ) {
     const payments = await this.paymentService.getPaymentsByJobId(jobId);
+
+    // RBAC: Check if the user is authorized to view payments for this job
+    if (payments.length > 0 && req.user.role !== "admin") {
+      const isCustomer = payments.some((p) => p.user_id === req.user.userId);
+      const isProvider = payments.some((p) => p.provider_id === req.user.userId);
+      if (!isCustomer && !isProvider) {
+        throw new ForbiddenException(
+          "You are not authorized to view payments for this job",
+        );
+      }
+    }
+
     return {
       data: payments,
       total: payments.length,

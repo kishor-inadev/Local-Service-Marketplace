@@ -1,11 +1,5 @@
 import { apiClient } from './api-client';
 
-function extractList<T>(payload: any): T[] {
-	if (Array.isArray(payload)) return payload as T[];
-	if (payload && Array.isArray(payload.data)) return payload.data as T[];
-	return [];
-}
-
 export interface Message {
   id: string;
   display_id?: string;
@@ -55,12 +49,12 @@ class MessageService {
 
   async getMessagesByJob(jobId: string): Promise<Message[]> {
     const response = await apiClient.get<Message[]>(`/messages/jobs/${jobId}`);
-    return extractList<Message>(response.data);
+    return apiClient.extractList<Message>(response.data);
   }
 
   async getConversations(): Promise<Conversation[]> {
     const response = await apiClient.get<Conversation[]>('/messages/conversations');
-    return extractList<Conversation>(response.data);
+    return apiClient.extractList<Conversation>(response.data);
   }
 
   async markAsRead(messageId: string): Promise<void> {
