@@ -131,7 +131,7 @@ if ($Down) {
     Write-Host "Stopping $($def.Label) stack..." -ForegroundColor Yellow
     Write-Host "> $($cmd -join ' ')" -ForegroundColor DarkGray
     Write-Host ""
-    & docker compose @($composeFiles[1..($composeFiles.Count - 1)]) @profileArgs down
+    & docker compose @composeFiles @profileArgs down
 } else {
     $upArgs = @('up')
     if ($Detach) { $upArgs += '-d' }
@@ -142,7 +142,7 @@ if ($Down) {
     Write-Host "> $($cmd -join ' ')" -ForegroundColor DarkGray
     Write-Host ""
 
-    & docker compose @($composeFiles[1..($composeFiles.Count - 1)]) @profileArgs @upArgs
+    & docker compose @composeFiles @profileArgs @upArgs
 
     if ($LASTEXITCODE -eq 0) {
         Write-Host ""
