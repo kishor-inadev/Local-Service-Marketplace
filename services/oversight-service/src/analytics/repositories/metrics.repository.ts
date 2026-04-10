@@ -112,4 +112,25 @@ export class MetricsRepository {
     const result = await this.pool.query(query);
     return parseInt(result.rows[0].count) || 0;
   }
+
+  async aggregateYesterdayMetrics(): Promise<void> {
+    // Inserts or updates a daily_metrics row for yesterday's date
+    // based on counts from other tables (implement as needed)
+    await this.pool.query(`
+      INSERT INTO daily_metrics (date, total_users, total_requests, total_proposals, total_jobs, total_payments)
+      SELECT
+        CURRENT_DATE - 1 AS date,
+        (SELECT COUNT(*) FROM users WHERE created_at::date = CURRENT_DATE - 1) AS total_users,
+        (SELECT COUNT(*) FROM service_requests WHERE created_at::date = CURRENT_DATE - 1) AS total_requests,
+        (SELECT COUNT(*) FROM proposals WHERE created_at::date = CURRENT_DATE - 1) AS total_proposals,
+        (SELECT COUNT(*) FROM jobs WHERE created_at::date = CURRENT_DATE - 1) AS total_jobs,
+        (SELECT COUNT(*) FROM payments WHERE created_at::date = CURRENT_DATE - 1) AS total_payments
+      ON CONFLICT (date) DO UPDATE SET
+        total_users = EXCLUDED.total_users,
+        total_requests = EXCLUDED.total_requests,
+        total_proposals = EXCLUDED.total_proposals,
+        total_jobs = EXCLUDED.total_jobs,
+        total_payments = EXCLUDED.total_payments
+    `);
+  }
 }

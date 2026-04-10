@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { BullModule } from "@nestjs/bullmq";
 import { ProposalController } from "./controllers/proposal.controller";
 import { ProposalService } from "./services/proposal.service";
 import { ProposalRepository } from "./repositories/proposal.repository";
@@ -7,7 +8,12 @@ import { NotificationModule } from "../../common/notification/notification.modul
 import { UserModule } from "../../common/user/user.module";
 
 @Module({
-  imports: [DatabaseModule, NotificationModule, UserModule],
+  imports: [
+    BullModule.registerQueue({ name: 'marketplace.notification' }),
+    DatabaseModule,
+    NotificationModule,
+    UserModule,
+  ],
   controllers: [ProposalController],
   providers: [ProposalService, ProposalRepository],
   exports: [ProposalService],

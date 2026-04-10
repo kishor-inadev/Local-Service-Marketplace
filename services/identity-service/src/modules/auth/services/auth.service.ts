@@ -1,4 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcryptjs";
 import { verifySync } from "otplib";
@@ -50,6 +52,7 @@ export class AuthService {
     private readonly notificationClient: NotificationClient,
     private readonly configService: ConfigService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
+    @InjectQueue('identity.notification') private readonly notificationQueue: Queue,
   ) {
     this.maxLoginAttempts = parseInt(
       this.configService.get<string>("MAX_LOGIN_ATTEMPTS", "5"),
@@ -146,23 +149,21 @@ export class AuthService {
     let verificationEmailSent = false;
 
     if (email) {
-      // Send generated password email if password was auto-generated
+      // Enqueue generated password email (non-blocking)
       if (passwordWasGenerated) {
-        await this.notificationClient
-          .sendEmail({
+        this.notificationQueue
+          .add('send-generated-password', {
             to: email,
-            template: "generatedPassword",
+            template: 'generatedPassword',
             variables: {
               name: displayName,
               password: rawPassword,
               loginUrl: `${frontendUrl}/login`,
             },
           })
-          .then(() => {
-            emailSent = true;
-          })
+          .then(() => { emailSent = true; })
           .catch((err) => {
-            this.logger.error("Failed to send generated password email", {
+            this.logger.error("Failed to enqueue generated password email", {
               context: "AuthService",
               error: err.message,
               userId: user.id,
@@ -170,21 +171,19 @@ export class AuthService {
           });
       }
 
-      // Send email verification link
-      await this.notificationClient
-        .sendEmail({
+      // Enqueue email verification link (non-blocking)
+      this.notificationQueue
+        .add('send-email-verification', {
           to: email,
-          template: "emailVerification",
+          template: 'emailVerification',
           variables: {
             name: displayName,
             verificationUrl: `${frontendUrl}/verify-email?token=${verificationToken}`,
           },
         })
-        .then(() => {
-          verificationEmailSent = true;
-        })
+        .then(() => { verificationEmailSent = true; })
         .catch((err) => {
-          this.logger.error("Failed to send verification email", {
+          this.logger.error("Failed to enqueue verification email", {
             context: "AuthService",
             error: err.message,
             userId: user.id,
@@ -523,10 +522,26 @@ export class AuthService {
     this.logger.info("Password reset token created", {
       context: "AuthService",
       userId: user.id,
-      resetToken, // In production, this would be sent via email
     });
 
-    // In production, send email with reset link containing the token
+    // FIXED: enqueue password reset email (was never sent before — critical bug)
+    const frontendUrl = this.configService.get<string>("FRONTEND_URL", "http://localhost:3000");
+    this.notificationQueue
+      .add('send-password-reset', {
+        to: user.email,
+        template: 'passwordReset',
+        variables: {
+          name: user.name || user.email.split('@')[0],
+          resetUrl: `${frontendUrl}/reset-password?token=${resetToken}`,
+        },
+      })
+      .catch((err) =>
+        this.logger.error("Failed to enqueue password reset email", {
+          context: "AuthService",
+          error: err.message,
+          userId: user.id,
+        }),
+      );
   }
 
   async confirmPasswordReset(
@@ -1657,6 +1672,17 @@ export class AuthService {
       userId,
       reason,
     });
+
+    // Enqueue deactivation notification
+    if (user.email) {
+      this.notificationQueue
+        .add('send-account-deactivated', {
+          to: user.email,
+          template: 'accountDeactivated',
+          variables: { name: user.name || user.email.split('@')[0], reason: reason ?? '' },
+        })
+        .catch(() => null);
+    }
   }
 
   async requestAccountDeletion(
@@ -1682,18 +1708,18 @@ export class AuthService {
     // Create deletion request
     await this.accountDeletionRequestRepo.create(userId, reason);
 
-    // Optionally: send confirmation email with 30-day grace period
-    this.notificationClient
-      .sendEmail({
+    // Enqueue deletion confirmation email (non-blocking)
+    this.notificationQueue
+      .add('send-account-deletion-requested', {
         to: user.email,
-        template: "accountDeletionRequested",
+        template: 'accountDeletionRequested',
         variables: {
           name: user.name || user.email.split("@")[0],
           gracePeriodDays: 30,
         },
       })
       .catch((err) =>
-        this.logger.error("Failed to send deletion email", {
+        this.logger.error("Failed to enqueue deletion email", {
           error: err.message,
         }),
       );

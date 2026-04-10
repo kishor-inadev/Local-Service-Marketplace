@@ -60,6 +60,28 @@ export class WebhookRepository {
     });
   }
 
+  async markProcessed(id: string): Promise<void> {
+    await this.pool.query(
+      'UPDATE payment_webhooks SET processed = true, processed_at = NOW() WHERE id = $1',
+      [id],
+    );
+  }
+
+  async markFailed(id: string, errorMessage: string): Promise<void> {
+    await this.pool.query(
+      'UPDATE payment_webhooks SET processed = false, error_message = $2 WHERE id = $1',
+      [id, errorMessage],
+    );
+  }
+
+  async deleteProcessedBefore(cutoff: Date): Promise<number> {
+    const result = await this.pool.query(
+      'DELETE FROM payment_webhooks WHERE processed = true AND created_at < $1',
+      [cutoff],
+    );
+    return result.rowCount ?? 0;
+  }
+
   async getUnprocessedWebhooks(): Promise<PaymentWebhook[]> {
     const query =
       "SELECT * FROM payment_webhooks WHERE processed = false ORDER BY created_at ASC";

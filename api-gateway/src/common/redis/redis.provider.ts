@@ -5,10 +5,13 @@ let redisClient: Redis | null = null;
 /**
  * Returns a shared Redis client for the API Gateway.
  * Used by rate limiters and any other component that needs Redis.
- * Returns null if Redis is not configured (falls back to in-memory).
+ * Returns null if Redis is not configured or REDIS_RATE_LIMIT_ENABLED=false (falls back to in-memory).
  */
 export function getRedisClient(): Redis | null {
   if (redisClient) return redisClient;
+
+  // Explicit opt-out — set REDIS_RATE_LIMIT_ENABLED=false to force in-memory rate limiting
+  if (process.env.REDIS_RATE_LIMIT_ENABLED === 'false') return null;
 
   const host = process.env.REDIS_HOST;
   const port = parseInt(process.env.REDIS_PORT || "6379", 10);

@@ -1,24 +1,20 @@
-import { Module } from "@nestjs/common";
-import { BullModule } from "@nestjs/bull";
-import { PaymentQueueProcessor } from "./processors/payment-queue.processor";
-import { RefundQueueProcessor } from "./processors/refund-queue.processor";
-import { PaymentModule } from "../payment/payment.module";
+import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
+import { DEFAULT_JOB_OPTIONS } from '../bullmq/bullmq-default-options';
 
 @Module({
   imports: [
-    BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || "redis",
-        port: parseInt(process.env.REDIS_PORT) || 6379,
-      },
-    }),
     BullModule.registerQueue(
-      { name: "payment-queue" },
-      { name: "refund-queue" },
+      { name: 'payment.retry',         defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'payment.refund',         defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'payment.webhook',        defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'payment.notification',   defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'payment.subscription',   defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'payment.method-expiry',  defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'payment.analytics',      defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'payment.cleanup',        defaultJobOptions: DEFAULT_JOB_OPTIONS },
     ),
-    PaymentModule,
   ],
-  providers: [PaymentQueueProcessor, RefundQueueProcessor],
   exports: [BullModule],
 })
 export class QueueModule {}

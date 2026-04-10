@@ -144,4 +144,12 @@ export class AuditLogRepository {
 				return "created_at";
 		}
 	}
+
+	async deleteOlderThan(cutoff: Date): Promise<number> {
+		const result = await this.pool.query(
+			'DELETE FROM audit_logs WHERE created_at < $1',
+			[cutoff],
+		);
+		return result.rowCount ?? 0;
+	}
 }

@@ -7,7 +7,7 @@ import {
 import { HttpModule } from "@nestjs/axios";
 import { GatewayService } from "./services/gateway.service";
 import { GatewayController } from "./controllers/gateway.controller";
-import { HealthController } from "./controllers/health.controller";
+import { ServicesHealthController } from "./controllers/health.controller";
 import { LoggingMiddleware } from "./middlewares/logging.middleware";
 import { JwtAuthMiddleware } from "./middlewares/jwt-auth.middleware";
 import { RateLimitMiddleware } from "./middlewares/rate-limit.middleware";
@@ -20,7 +20,7 @@ import { AuthRateLimitMiddleware } from "./middlewares/auth-rate-limit.middlewar
       maxRedirects: 5,
     }),
   ],
-  controllers: [HealthController, GatewayController],
+  controllers: [ServicesHealthController, GatewayController],
   providers: [GatewayService],
   exports: [GatewayService],
 })

@@ -1,4 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { ProposalRepository } from "../repositories/proposal.repository";
 import { CreateProposalDto } from "../dto/create-proposal.dto";
@@ -35,6 +37,7 @@ export class ProposalService {
     private readonly userClient: UserClient,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
   ) {}
 
   async createProposal(dto: CreateProposalDto): Promise<ProposalResponseDto> {
@@ -85,21 +88,17 @@ export class ProposalService {
       : null;
 
     if (customerEmail) {
-      this.notificationClient
-        .sendEmail({
-          to: customerEmail,
-          template: "newRequest",
-          variables: {
-            providerName,
-            serviceName: "Service Request",
-            price: proposal.price,
-            message: proposal.message,
-            proposalUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/proposals/${proposal.id}`,
-          },
+      this.notificationQueue
+        .add('notify-proposal-submitted', {
+          customerId: fullProposal?.customer_id,
+          providerId: proposal.provider_id,
+          requestId: proposal.request_id,
+          proposalId: proposal.id,
+          price: proposal.price,
         })
         .catch((err) => {
           this.logger.warn(
-            `Failed to send proposal notification: ${err.message}`,
+            `Failed to enqueue proposal notification: ${err.message}`,
             ProposalService.name,
           );
         });
@@ -203,20 +202,15 @@ export class ProposalService {
     const customerName = customerUser?.name || "Customer";
 
     if (providerEmail) {
-      this.notificationClient
-        .sendEmail({
-          to: providerEmail,
-          template: "jobAssigned",
-          variables: {
-            customerName,
-            serviceName: "Service Request",
-            price: proposal.price,
-            jobUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/jobs/${proposal.id}`,
-          },
+      this.notificationQueue
+        .add('notify-proposal-accepted', {
+          providerId: proposal.provider_id,
+          requestId: proposal.request_id,
+          proposalId: proposal.id,
         })
         .catch((err) => {
           this.logger.warn(
-            `Failed to send acceptance notification: ${err.message}`,
+            `Failed to enqueue acceptance notification: ${err.message}`,
             ProposalService.name,
           );
         });

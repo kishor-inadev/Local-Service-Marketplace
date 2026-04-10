@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { JwtModule } from "@nestjs/jwt";
 import { PassportModule } from "@nestjs/passport";
 import { ConfigModule, ConfigService } from "@nestjs/config";
+import { BullModule } from "@nestjs/bullmq";
 import { AuthController } from "./controllers/auth.controller";
 import { AuthService } from "./services/auth.service";
 import { JwtService } from "./services/jwt.service";
@@ -47,6 +48,9 @@ const createOAuthProviders = (configService: ConfigService) => {
 
 @Module({
   imports: [
+    BullModule.registerQueue(
+      { name: 'identity.notification' },
+    ),
     NotificationModule,
     PassportModule.register({ defaultStrategy: "jwt" }),
     JwtModule.registerAsync({

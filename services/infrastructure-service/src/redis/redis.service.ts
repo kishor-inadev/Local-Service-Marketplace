@@ -1,7 +1,112 @@
 import { Injectable, OnModuleDestroy, Inject, LoggerService } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import Redis from 'ioredis';
-import * as Bull from 'bull';
+
+@Injectable()
+export class RedisService implements OnModuleDestroy {
+  private redisClient: Redis;
+  private cacheEnabled: boolean;
+
+  constructor(
+    @Inject(WINSTON_MODULE_NEST_PROVIDER)
+    private readonly logger: LoggerService,
+  ) {
+    this.cacheEnabled = process.env.CACHE_ENABLED === 'true';
+
+    if (this.cacheEnabled) {
+      this.redisClient = new Redis({
+        host: process.env.REDIS_HOST || 'localhost',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        password: process.env.REDIS_PASSWORD || undefined,
+        retryStrategy: (times) => {
+          const delay = Math.min(times * 50, 2000);
+          return delay;
+        },
+      });
+
+      this.redisClient.on('connect', () => {
+        this.logger.log('Redis connected successfully', 'RedisService');
+      });
+
+      this.redisClient.on('error', (err: Error) => {
+        this.logger.error(`Redis connection error: ${err.message}`, err.stack, 'RedisService');
+        this.cacheEnabled = false; // Disable cache on error
+      });
+    } else {
+      this.logger.log('Redis cache is disabled', 'RedisService');
+    }
+  }
+
+  async onModuleDestroy() {
+    if (this.redisClient) {
+      await this.redisClient.quit();
+    }
+  }
+
+  isCacheEnabled(): boolean {
+    return this.cacheEnabled;
+  }
+
+  getClient(): Redis | null {
+    if (!this.cacheEnabled) {
+      this.logger.warn('Attempted to get Redis client but cache is disabled', 'RedisService');
+      return null;
+    }
+    return this.redisClient;
+  }
+
+  /**
+   * Set a key-value pair in Redis
+   */
+  async set(key: string, value: string, ttl?: number): Promise<void> {
+    if (!this.cacheEnabled || !this.redisClient) return;
+    if (ttl) {
+      await this.redisClient.setex(key, ttl, value);
+    } else {
+      await this.redisClient.set(key, value);
+    }
+  }
+
+  /**
+   * Get a value from Redis
+   */
+  async get(key: string): Promise<string | null> {
+    if (!this.cacheEnabled || !this.redisClient) return null;
+    return this.redisClient.get(key);
+  }
+
+  /**
+   * Delete a key from Redis
+   */
+  async del(key: string): Promise<number> {
+    if (!this.cacheEnabled || !this.redisClient) return 0;
+    return this.redisClient.del(key);
+  }
+
+  /**
+   * Increment a counter in Redis
+   */
+  async incr(key: string): Promise<number> {
+    if (!this.cacheEnabled || !this.redisClient) return 0;
+    return this.redisClient.incr(key);
+  }
+
+  /**
+   * Set expiry on a key
+   */
+  async expire(key: string, seconds: number): Promise<number> {
+    if (!this.cacheEnabled || !this.redisClient) return 0;
+    return this.redisClient.expire(key, seconds);
+  }
+
+  /**
+   * Check if key exists
+   */
+  async exists(key: string): Promise<number> {
+    if (!this.cacheEnabled || !this.redisClient) return 0;
+    return this.redisClient.exists(key);
+  }
+}
 
 @Injectable()
 export class RedisService implements OnModuleDestroy {

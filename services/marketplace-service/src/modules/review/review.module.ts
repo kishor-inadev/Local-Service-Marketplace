@@ -1,4 +1,5 @@
 import { Module } from "@nestjs/common";
+import { BullModule } from "@nestjs/bullmq";
 import { ReviewController } from "./review.controller";
 import { ProviderReviewAggregateController } from "./controllers/provider-review-aggregate.controller";
 import { ReviewService } from "./services/review.service";
@@ -9,7 +10,14 @@ import { NotificationModule } from "../../common/notification/notification.modul
 import { UserModule } from "../../common/user/user.module";
 
 @Module({
-  imports: [NotificationModule, UserModule],
+  imports: [
+    BullModule.registerQueue(
+      { name: 'marketplace.notification' },
+      { name: 'marketplace.rating' },
+    ),
+    NotificationModule,
+    UserModule,
+  ],
   controllers: [ReviewController, ProviderReviewAggregateController],
   providers: [
     ReviewService,

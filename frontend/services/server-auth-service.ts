@@ -19,7 +19,6 @@ import {
 } from "@/types/auth-alignment";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
-console.log(API_URL);
 
 // Standardized API Response interface (mirrors api-client.ts)
 interface StandardResponse<T = any> {

@@ -1,6 +1,6 @@
 import { Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
-import { BullModule } from "@nestjs/bull";
+import { BullModule } from "@nestjs/bullmq";
 import { PaymentController } from "./controllers/payment.controller";
 import { SavedPaymentMethodController } from "./controllers/saved-payment-method.controller";
 import { PricingPlanController } from "./controllers/pricing-plan.controller";
@@ -30,8 +30,10 @@ import { FileServiceClient } from "../common/file-service.client";
 @Module({
   imports: [
     BullModule.registerQueue(
-      { name: "payment-queue" },
-      { name: "refund-queue" },
+      { name: "payment.notification" },
+      { name: "payment.analytics" },
+      { name: "payment.refund" },
+      { name: "payment.webhook" },
     ),
     NotificationModule,
     UserModule,

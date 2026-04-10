@@ -1,4 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { ReviewRepository } from "../repositories/review.repository";
 import { CreateReviewDto } from "../dto/create-review.dto";
@@ -15,6 +17,8 @@ export class ReviewService {
     private readonly logger: LoggerService,
     private readonly notificationClient: NotificationClient,
     private readonly userClient: UserClient,
+    @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
+    @InjectQueue('marketplace.rating') private readonly ratingQueue: Queue,
   ) {}
 
   async createReview(createReviewDto: CreateReviewDto): Promise<Review> {
@@ -30,29 +34,24 @@ export class ReviewService {
       "ReviewService",
     );
 
-    // Notify provider about new review
-    const providerEmail = await this.userClient.getProviderEmail(
-      createReviewDto.provider_id,
-    );
-    if (providerEmail) {
-      this.notificationClient
-        .sendEmail({
-          to: providerEmail,
-          template: "newRequest",
-          variables: {
-            serviceName: "New Review Received",
-            message: `You received a ${review.rating}-star review: ${review.comment || "No comment provided"}`,
-            reviewUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/reviews/${review.id}`,
-          },
-        })
-        .catch((err) => {
-          this.logger.error(
-            `Failed to send review notification: ${err.message}`,
-            err.stack,
-            "ReviewService",
-          );
-        });
-    }
+    // Enqueue provider review notification (non-blocking)
+    this.notificationQueue
+      .add('notify-review-created', {
+        providerId: createReviewDto.provider_id,
+        reviewId: review.id,
+        rating: review.rating,
+      })
+      .catch((err) => {
+        this.logger.warn(
+          `Failed to enqueue review notification: ${err.message}`,
+          'ReviewService',
+        );
+      });
+
+    // Enqueue rating recalculation (non-blocking)
+    this.ratingQueue
+      .add('recalculate-provider-rating', { providerId: createReviewDto.provider_id })
+      .catch(() => null);
 
     return review;
   }

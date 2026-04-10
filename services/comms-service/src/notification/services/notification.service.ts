@@ -5,8 +5,8 @@ import {
   BadRequestException,
   ForbiddenException,
 } from "@nestjs/common";
-import { InjectQueue } from "@nestjs/bull";
-import { Queue } from "bull";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { NotificationRepository } from "../repositories/notification.repository";
 import { NotificationDeliveryRepository } from "../repositories/notification-delivery.repository";
@@ -28,7 +28,9 @@ export class NotificationService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    @InjectQueue("email-queue") private readonly emailQueue: Queue,
+    @InjectQueue("comms.email") private readonly emailQueue: Queue,
+    @InjectQueue("comms.sms") private readonly smsQueue: Queue,
+    @InjectQueue("comms.push") private readonly pushQueue: Queue,
     private readonly notificationRepository: NotificationRepository,
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly unsubscribeRepository: UnsubscribeRepository,
@@ -64,18 +66,23 @@ export class NotificationService {
       "pending",
     );
 
-    // Queue email sending job (background processing)
-    await this.emailQueue.add(
-      "send-email",
-      {
-        deliveryId: emailDelivery.id,
-        notification_id: notification.id,
-        userId,
-        type,
-        message,
-      },
-      { attempts: 3, backoff: { type: "exponential", delay: 2000 } },
-    );
+    // Queue email delivery — default options (3 retries, exp backoff) applied from queue defaults
+    await this.emailQueue.add('deliver-email', {
+      deliveryId: emailDelivery.id,
+      notificationId: notification.id,
+      userId,
+      type,
+      message,
+    });
+
+    // Queue push delivery
+    await this.pushQueue.add('deliver-push', {
+      deliveryId: pushDelivery.id,
+      notificationId: notification.id,
+      userId,
+      type,
+      message,
+    });
 
     this.logger.log(
       `Notification created and queued successfully: ${notification.id}`,
@@ -208,12 +215,13 @@ export class NotificationService {
           );
         }
 
-        // Send via SMS
-        const smsResult = await this.smsClient.sendSms(
-          dto.recipient,
-          dto.message,
-        );
-        results.sms = smsResult;
+        // Enqueue SMS delivery — async, retryable
+        await this.smsQueue.add('deliver-sms', {
+          phone: dto.recipient,
+          message: dto.message,
+        });
+
+        results.sms = { queued: true, phone: dto.recipient };
       }
 
       this.logger.log(
@@ -290,9 +298,13 @@ export class NotificationService {
       );
     }
 
-    const result = await this.smsClient.sendSms(dto.phone, dto.message);
+    // Enqueue SMS — never block the HTTP response on external delivery
+    await this.smsQueue.add('deliver-sms', {
+      phone: dto.phone,
+      message: dto.message,
+    });
 
-    return result;
+    return { queued: true, phone: dto.phone };
   }
 
   /**
@@ -311,9 +323,10 @@ export class NotificationService {
       );
     }
 
-    const result = await this.smsClient.sendOtp(phone, purpose);
+    // Enqueue OTP SMS — OTP must be delivered with retry support
+    await this.smsQueue.add('deliver-otp', { phone, purpose });
 
-    return result;
+    return { queued: true };
   }
 
   /**

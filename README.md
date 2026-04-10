@@ -338,11 +338,12 @@ docker-compose down -v
 
 | Topic | File |
 |-------|------|
+| **Getting started (all environments)** | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) |
+| **Marketplace guide (roles & capabilities)** | [docs/MARKETPLACE_GUIDE.md](docs/MARKETPLACE_GUIDE.md) |
 | Architecture detail | [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) |
 | API specification | [docs/api/API_SPECIFICATION.md](docs/api/API_SPECIFICATION.md) |
 | Service boundaries | [docs/architecture/MICROSERVICE_BOUNDARY_MAP.md](docs/architecture/MICROSERVICE_BOUNDARY_MAP.md) |
 | Environment variables | [docs/ENVIRONMENT_VARIABLES_GUIDE.md](docs/ENVIRONMENT_VARIABLES_GUIDE.md) |
-| Implementation guide | [docs/IMPLEMENTATION_GUIDE.md](docs/IMPLEMENTATION_GUIDE.md) |
 | Token validation | [api-gateway/TOKEN_VALIDATION_GUIDE.md](api-gateway/TOKEN_VALIDATION_GUIDE.md) |
 | Authentication flow | [docs/guides/AUTHENTICATION_WORKFLOW.md](docs/guides/AUTHENTICATION_WORKFLOW.md) |
 | Database seeding | [docs/DATABASE_SEEDING.md](docs/DATABASE_SEEDING.md) |

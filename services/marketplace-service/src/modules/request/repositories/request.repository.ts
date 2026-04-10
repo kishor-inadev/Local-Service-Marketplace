@@ -440,6 +440,16 @@ export class RequestRepository {
     return (result.rowCount ?? 0) > 0;
   }
 
+  async expireStaleRequests(cutoff: Date): Promise<number> {
+    const query = `
+      UPDATE service_requests
+      SET status = 'expired', updated_at = NOW()
+      WHERE status = 'open' AND created_at < $1 AND deleted_at IS NULL
+    `;
+    const result = await this.pool.query(query, [cutoff]);
+    return result.rowCount ?? 0;
+  }
+
   async getRequestsByUser(userId: string): Promise<ServiceRequest[]> {
     const query = `
       SELECT 

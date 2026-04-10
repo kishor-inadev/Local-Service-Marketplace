@@ -190,4 +190,12 @@ export class BackgroundJobRepository {
 				return "scheduled_for";
 		}
 	}
+
+	async deleteCompletedBefore(cutoff: Date): Promise<number> {
+		const result = await this.pool.query(
+			`DELETE FROM background_jobs WHERE status IN ('completed', 'failed') AND created_at < $1`,
+			[cutoff],
+		);
+		return result.rowCount ?? 0;
+	}
 }

@@ -1,4 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { PaymentRepository } from "../repositories/payment.repository";
 import { CouponService } from "./coupon.service";
@@ -28,6 +30,8 @@ export class PaymentService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    @InjectQueue('payment.notification') private readonly notificationQueue: Queue,
+    @InjectQueue('payment.analytics') private readonly analyticsQueue: Queue,
     private readonly paymentRepository: PaymentRepository,
     private readonly couponService: CouponService,
     private readonly kafkaService: KafkaService,
@@ -109,25 +113,19 @@ export class PaymentService {
       "PaymentService",
     );
 
-    // Send payment confirmation email (reuse pre-fetched user — avoids a second HTTP call)
+    // Enqueue payment confirmation email (non-blocking)
     const userEmail = user?.email ?? null;
     if (userEmail) {
-      this.notificationClient
-        .sendEmail({
-          to: userEmail,
-          template: "paymentReceived",
-          variables: {
-            amount: finalAmount,
-            currency: currency,
-            transactionId: chargeResult.transactionId,
-            serviceName: "Service",
-          },
+      this.notificationQueue
+        .add('notify-payment-completed', {
+          paymentId: payment.id,
+          userId,
+          amount: finalAmount,
+          currency,
+          transactionId: chargeResult.transactionId,
         })
         .catch((err) => {
-          this.logger.warn(
-            `Failed to send payment confirmation: ${err.message}`,
-            "PaymentService",
-          );
+          this.logger.warn(`Failed to enqueue payment confirmation: ${err.message}`, 'PaymentService');
         });
     }
 
@@ -147,19 +145,16 @@ export class PaymentService {
       },
     });
 
-    // Track analytics (HTTP fallback when Kafka is disabled)
-    this.analyticsClient.track({
-      userId: userId,
-      action: "payment_completed",
-      resource: "payment",
-      resourceId: payment.id,
-      metadata: {
-        jobId: payment.job_id,
-        amount: finalAmount,
-        currency,
-        providerId,
-      },
-    });
+    // Track analytics via queue (non-blocking)
+    this.analyticsQueue
+      .add('track-payment-completed', {
+        userId,
+        action: 'payment_completed',
+        resource: 'payment',
+        resourceId: payment.id,
+        metadata: { jobId: payment.job_id, amount: finalAmount, currency, providerId },
+      })
+      .catch(() => null);
 
     // Attach gateway_response so the controller can forward redirect fields to
     // the frontend (PayUbiz form POST fields, Instamojo longurl, etc.).

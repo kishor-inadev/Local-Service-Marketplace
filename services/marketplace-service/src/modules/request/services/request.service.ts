@@ -1,4 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { RequestRepository } from "../repositories/request.repository";
 import { CategoryRepository } from "../repositories/category.repository";
@@ -43,6 +45,7 @@ export class RequestService {
     private readonly userClient: UserClient,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
   ) {}
 
   async createRequest(dto: CreateRequestDto): Promise<RequestResponseDto> {
@@ -96,47 +99,32 @@ export class RequestService {
       RequestService.name,
     );
 
-    // Send notification
+    // Enqueue notification (non-blocking)
     if (dto.user_id) {
-      // Authenticated user - send to their account email
-      const userEmail = await this.userClient.getUserEmail(request.user_id);
-      if (userEmail) {
-        this.notificationClient
-          .sendEmail({
-            to: userEmail,
-            template: "newRequest",
-            variables: {
-              serviceName:
-                dto.description?.substring(0, 50) || "Service Request",
-              requestId: request.id,
-              budget: request.budget,
-              requestUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/requests/${request.id}`,
-            },
-          })
-          .catch((err) => {
-            this.logger.warn(
-              `Failed to send request creation notification: ${err.message}`,
-              RequestService.name,
-            );
-          });
-      }
-    } else if (dto.guest_info?.email) {
-      // Anonymous user - send to provided guest email
-      this.notificationClient
-        .sendEmail({
-          to: dto.guest_info.email,
-          template: "newRequest",
-          variables: {
-            serviceName: dto.description?.substring(0, 50) || "Service Request",
-            requestId: request.id,
-            budget: request.budget,
-            requestUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/requests/${request.id}`,
-            guestName: dto.guest_info.name,
-          },
+      this.notificationQueue
+        .add('notify-request-created', {
+          userId: request.user_id,
+          requestId: request.id,
+          description: dto.description,
+          budget: request.budget,
         })
         .catch((err) => {
           this.logger.warn(
-            `Failed to send request creation notification: ${err.message}`,
+            `Failed to enqueue request creation notification: ${err.message}`,
+            RequestService.name,
+          );
+        });
+    } else if (dto.guest_info?.email) {
+      this.notificationQueue
+        .add('notify-request-created', {
+          guestEmail: dto.guest_info.email,
+          requestId: request.id,
+          description: dto.description,
+          budget: request.budget,
+        })
+        .catch((err) => {
+          this.logger.warn(
+            `Failed to enqueue guest request creation notification: ${err.message}`,
             RequestService.name,
           );
         });

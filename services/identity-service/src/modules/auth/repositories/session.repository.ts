@@ -64,6 +64,10 @@ export class SessionRepository {
     await this.pool.query(query);
   }
 
+  async deleteExpiredSessions(): Promise<void> {
+    return this.deleteExpired();
+  }
+
   // ✅ NEW: Advanced query methods
   async getSessionsByDeviceType(
     userId: string,

@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
+import { BullModule } from "@nestjs/bullmq";
 import { JobController } from "./controllers/job.controller";
 import { JobService } from "./services/job.service";
 import { JobRepository } from "./repositories/job.repository";
@@ -11,6 +12,10 @@ import { FileServiceClient } from "../../common/file-service.client";
 
 @Module({
   imports: [
+    BullModule.registerQueue(
+      { name: 'marketplace.notification' },
+      { name: 'marketplace.analytics' },
+    ),
     DatabaseModule,
     NotificationModule,
     UserModule,

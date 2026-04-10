@@ -1,7 +1,8 @@
 import { Injectable, Inject, LoggerService } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { BackgroundJobRepository } from '../repositories/background-job.repository';
-import { RedisService } from '../../redis/redis.service';
 import { CreateBackgroundJobDto } from '../dto/create-background-job.dto';
 import { BackgroundJob } from '../entities/background-job.entity';
 import { BackgroundJobQueryDto } from "../dto/background-job-query.dto";
@@ -17,20 +18,18 @@ export class BackgroundJobService {
 		@Inject(WINSTON_MODULE_NEST_PROVIDER)
 		private readonly logger: LoggerService,
 		private readonly backgroundJobRepository: BackgroundJobRepository,
-		private readonly redisService: RedisService,
+		@InjectQueue('infra.background-jobs') private readonly jobQueue: Queue,
 	) {}
 
 	async createJob(createJobDto: CreateBackgroundJobDto): Promise<BackgroundJob> {
 		try {
-			// Create job in database
+			// Create job record in database
 			const job = await this.backgroundJobRepository.createJob(createJobDto);
 
-			// Add job to Redis queue
-			await this.redisService.addJob(
-				"background-jobs",
+			// Enqueue via BullMQ (replaces redisService.addJob)
+			await this.jobQueue.add(
 				createJobDto.jobType,
 				{ jobId: job.id, ...createJobDto.payload },
-				{ attempts: 3, backoff: { type: "exponential", delay: 2000 } },
 			);
 
 			this.logger.log(`Background job created: ${createJobDto.jobType} (ID: ${job.id})`, "BackgroundJobService");

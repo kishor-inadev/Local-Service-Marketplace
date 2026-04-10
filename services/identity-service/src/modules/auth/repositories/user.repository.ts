@@ -273,4 +273,19 @@ export class UserRepository {
     const result = await this.pool.query(query, [limit]);
     return result.rows;
   }
+
+  async deleteExpiredVerificationTokens(): Promise<void> {
+    // Expire tokens older than 24h via email_verification_tokens table
+    await this.pool.query(
+      `DELETE FROM email_verification_tokens WHERE expires_at < NOW()`,
+    );
+  }
+
+  async deleteOldLoginAttempts(olderThanDays: number): Promise<void> {
+    const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
+    await this.pool.query(
+      `DELETE FROM login_attempts WHERE created_at < $1`,
+      [cutoff],
+    );
+  }
 }

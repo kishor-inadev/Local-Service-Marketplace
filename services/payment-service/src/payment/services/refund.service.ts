@@ -1,6 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
-import { InjectQueue } from "@nestjs/bull";
-import { Queue } from "bull";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { RefundRepository } from "../repositories/refund.repository";
 import { PaymentRepository } from "../repositories/payment.repository";
@@ -17,7 +17,7 @@ export class RefundService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    @InjectQueue("refund-queue") private readonly refundQueue: Queue,
+    @InjectQueue("payment.refund") private readonly refundQueue: Queue,
     private readonly refundRepository: RefundRepository,
     private readonly paymentRepository: PaymentRepository,
     private readonly notificationClient: NotificationClient,
@@ -78,13 +78,6 @@ export class RefundService {
         paymentId,
         amount: refundAmount,
         reason: "Customer requested refund",
-      },
-      {
-        attempts: 3,
-        backoff: {
-          type: "exponential",
-          delay: 5000,
-        },
       },
     );
 

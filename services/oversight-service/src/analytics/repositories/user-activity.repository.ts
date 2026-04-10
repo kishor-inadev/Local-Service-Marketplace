@@ -84,4 +84,12 @@ export class UserActivityRepository {
     const result = await this.pool.query(query, [userId]);
     return parseInt(result.rows[0].count) || 0;
   }
+
+  async deleteOlderThan(cutoff: Date): Promise<number> {
+    const result = await this.pool.query(
+      'DELETE FROM user_activity_logs WHERE created_at < $1',
+      [cutoff],
+    );
+    return result.rowCount ?? 0;
+  }
 }

@@ -1,237 +1,379 @@
-# Background Job Processing - Implementation Guide
+# Background Job Processing — BullMQ Guide
 
 ## Overview
 
-The platform now includes background job processing using **Bull** (Redis-based queue) for asynchronous task execution. This decouples heavy operations from HTTP request/response cycles, improving API response times and reliability.
+The platform uses **BullMQ** (Redis-based queue) for asynchronous task execution across all 6 backend services. This decouples heavy operations from HTTP request/response cycles, improving API response times and reliability.
+
+> **Migration note**: The platform was previously using the legacy `bull` / `@nestjs/bull` package. All services have been migrated to `bullmq` / `@nestjs/bullmq`.
 
 ## Architecture
 
 ```
-HTTP Request → Service → Create Job in Queue → Return Response (fast!)
+HTTP Request → Service → Enqueue Job → Return Response (fast!)
                               ↓
-                         Bull Processor
+                    BullMQ Worker (separate process or same container)
                               ↓
-                    Process Job Asynchronously
+                    Processes job with retries + backoff
                               ↓
-                    Update Status in Database
+                    Updates Database / calls downstream services
 ```
 
-## Services with Background Jobs
-
-### 1. Notification Service
-
-**Queue**: `email-queue`
-
-**Job Types**:
-- `send-email` - Send email notifications
-
-**Implementation**:
-```typescript
-// Creating a notification automatically queues email job
-await notificationService.createNotification(userId, type, message);
-// Returns immediately, email sent in background
-```
-
-**Job Configuration**:
-- **Attempts**: 3 retries
-- **Backoff**: Exponential (2s, 4s, 8s)
-- **Concurrency**: 1 job at a time
-
-**Files**:
-- `services/comms-service/src/queue/queue.module.ts` - Bull configuration
-- `services/comms-service/src/queue/processors/email-queue.processor.ts` - Job processor
-- `services/comms-service/src/notification/services/notification.service.ts` - Job enqueuing
+Workers run **in the same container** as the API service but are conditionally activated via the `WORKERS_ENABLED` environment variable.  In production you can split a service into two container types: an **API pod** (no workers) and a **worker pod** (workers only, no HTTP traffic).
 
 ---
 
-### 2. Payment Service
+## Enabling Workers
 
-**Queues**: `payment-queue`, `refund-queue`
+### Environment Variable
 
-**Job Types**:
-- `retry-payment` - Retry failed payment transactions
-- `process-refund` - Process customer refunds
+| Variable | Default | Description |
+|---|---|---|
+| `WORKERS_ENABLED` | `false` | Set to `true` to activate all BullMQ worker processors |
+| `WORKER_CONCURRENCY` | `5` | Jobs processed simultaneously per worker processor |
+| `REDIS_HOST` | `redis` | Redis host (Docker: `redis`, local: `localhost`) |
+| `REDIS_PORT` | `6379` | Redis port |
+| `REDIS_PASSWORD` | _(empty)_ | Redis password (optional) |
 
-**Implementation**:
-```typescript
-// Refund processing is queued automatically
-await refundService.createRefund(paymentId, amount);
-// Returns immediately, refund processed in background
+### Local Development
 
-// Payment retries can be manually queued
-await paymentQueue.add('retry-payment', {
-  paymentId,
-  jobId,
-  amount,
-  currency
-});
+```env
+# In any service's .env file
+WORKERS_ENABLED=true
+WORKER_CONCURRENCY=3
+REDIS_HOST=localhost
+REDIS_PORT=6379
 ```
 
-**Job Configuration**:
-- **Payment Retry**: 3 attempts, exponential backoff (5s)
-- **Refund Processing**: 3 attempts, exponential backoff (5s), concurrency: 5
+### Docker Compose (single container, workers enabled)
 
-**Files**:
-- `services/payment-service/src/queue/queue.module.ts` - Bull configuration
-- `services/payment-service/src/queue/processors/payment-queue.processor.ts` - Job processor
-- `services/payment-service/src/payment/services/refund.service.ts` - Job enqueuing
+```env
+# In root .env or docker.env
+WORKERS_ENABLED=true
+WORKER_CONCURRENCY=5
+```
+
+All services in `docker-compose.yml` pass `WORKERS_ENABLED=${WORKERS_ENABLED:-false}` to their containers.
+
+### Production Split — API pod vs Worker pod
+
+Run two containers from the **same image**:
+
+```yaml
+# docker-compose.prod.yml (excerpt)
+
+# API pod — handles HTTP, no workers
+identity-service-api:
+  image: lsmp-identity-service:latest
+  environment:
+    - WORKERS_ENABLED=false
+  deploy:
+    replicas: 3
+
+# Worker pod — no HTTP traffic, runs workers only
+identity-service-worker:
+  image: lsmp-identity-service:latest
+  environment:
+    - WORKERS_ENABLED=true
+    - WORKER_CONCURRENCY=10
+  deploy:
+    replicas: 2
+```
+
+This pattern is already implemented in `docker-compose.prod.yml`.
 
 ---
 
-## Bull Configuration
+## Services and Their Queues
 
-### Redis Connection
+### comms-service (port 3007)
 
-Bull uses the same Redis instance as caching:
+| Queue | Job name(s) | Trigger |
+|---|---|---|
+| `comms.email` | `deliver-email` | Notification send |
+| `comms.email` | `retry-email-worker` _(repeatable, */15 min)_ | Auto-retry stuck deliveries |
+| `comms.sms` | `deliver-sms`, `deliver-otp` | SMS/OTP send |
+| `comms.push` | `deliver-push` | Push notification send |
+| `comms.push` | `retry-push-worker` _(repeatable, */15 min)_ | Auto-retry stuck push |
+| `comms.digest` | `send-digest` _(repeatable, 8AM daily)_ | Daily unread digest email |
+| `comms.cleanup` | `cleanup-old-notifications` _(repeatable, Sun 3AM)_ | Purge 90d+ notifications |
+| `comms.cleanup` | `cleanup-old-deliveries` _(repeatable, Sun 4AM)_ | Purge 90d+ deliveries |
 
-```typescript
-BullModule.forRoot({
-  redis: {
-    host: process.env.REDIS_HOST || 'redis',
-    port: parseInt(process.env.REDIS_PORT) || 6379,
-  },
-});
-```
+### payment-service (port 3006)
 
-### Queue Registration
+| Queue | Job name(s) | Trigger |
+|---|---|---|
+| `payment.retry` | `retry-payment` | Failed payment |
+| `payment.refund` | `process-refund` | Refund creation |
+| `payment.webhook` | `process-webhook` | Incoming webhook |
+| `payment.notification` | `notify-payment-*` | Payment lifecycle events |
+| `payment.subscription` | `check-expiring-subscriptions` _(repeatable, 10AM)_ | Subscription expiry |
+| `payment.subscription` | `process-expired-subscriptions` _(repeatable, 2AM)_ | Deactivate expired |
+| `payment.subscription` | `retry-failed-subscription-payments` _(repeatable, every 6h)_ | Retry failed billing |
+| `payment.method-expiry` | `check-expiring-payment-methods` _(repeatable, 11AM)_ | Card expiry warnings |
+| `payment.cleanup` | `cleanup-old-webhooks` _(repeatable, Sun 2AM)_ | Purge old webhooks |
+| `payment.cleanup` | `cleanup-expired-coupons` _(repeatable, Sun 3AM)_ | Remove expired coupons |
 
-Each service registers its queues:
+### marketplace-service (port 3003)
 
-```typescript
-BullModule.registerQueue(
-  { name: 'email-queue' },
-  { name: 'payment-queue' },
-  { name: 'refund-queue' },
-);
-```
+| Queue | Job name(s) | Trigger |
+|---|---|---|
+| `marketplace.notification` | `notify-request-created`, `notify-proposal-*`, `notify-job-*`, `notify-review-created` | CRUD operations |
+| `marketplace.analytics` | `track-event` | Job/request analytics |
+| `marketplace.rating` | `recalculate-provider-rating` | Review submission |
+| `marketplace.rating` | `refresh-all-provider-ratings` _(repeatable, 3AM)_ | Full nightly refresh |
+| `marketplace.rating` | `refresh-recent-provider-ratings` _(repeatable, every 4h)_ | Quick partial refresh |
+| `marketplace.cleanup` | `expire-stale-requests` _(repeatable, 2AM)_ | Auto-expire old requests |
+
+### identity-service (port 3001)
+
+| Queue | Job name(s) | Trigger |
+|---|---|---|
+| `identity.notification` | `send-welcome-email`, `send-email-verification`, `send-password-reset`, `send-account-deactivated`, etc. | Auth events (register, reset password, deactivate) |
+| `identity.cleanup` | `expire-verification-tokens` _(repeatable, 1AM)_ | Purge expired tokens |
+| `identity.cleanup` | `purge-expired-sessions` _(repeatable, 2AM)_ | Remove old sessions |
+| `identity.cleanup` | `purge-old-login-attempts` _(repeatable, 3AM Sun)_ | Purge old login logs |
+| `identity.document-expiry` | `check-expiring-documents` _(repeatable, 9AM)_ | Document expiry warnings |
+| `identity.document-expiry` | `expire-documents` _(repeatable, 1AM)_ | Mark expired documents |
+
+### oversight-service (port 3010)
+
+| Queue | Job name(s) | Trigger |
+|---|---|---|
+| `oversight.audit` | `write-audit-log` | Admin/sensitive actions |
+| `oversight.cleanup` | `purge-old-audit-logs` _(repeatable, Sun 1AM)_ | Remove 1yr+ audit logs |
+| `oversight.cleanup` | `purge-old-activity-logs` _(repeatable, Sun 2AM)_ | Remove 90d+ activity logs |
+| `oversight.cleanup` | `aggregate-daily-metrics` _(repeatable, 4AM)_ | Compute yesterday metrics |
+
+### infrastructure-service (port 3012)
+
+| Queue | Job name(s) | Trigger |
+|---|---|---|
+| `infra.background-jobs` | `execute-background-job` | Registered background jobs |
+| `infra.cleanup` | `purge-old-events` _(repeatable, Sun 2AM)_ | Remove 90d+ events |
+| `infra.cleanup` | `purge-old-background-jobs` _(repeatable, Sun 3AM)_ | Remove completed jobs |
 
 ---
 
-## Job Processor Pattern
+## Code Patterns
 
-### Processor Structure
+### BullMQ Core Module (always imported)
+
+Every service has `src/bullmq/bullmq.module.ts`:
 
 ```typescript
-@Processor('queue-name')
-export class QueueProcessor {
+@Module({
+  imports: [
+    BullModule.forRoot({
+      connection: {
+        host: process.env.REDIS_HOST || 'redis',
+        port: parseInt(process.env.REDIS_PORT || '6379', 10),
+        password: process.env.REDIS_PASSWORD || undefined,
+      },
+    }),
+  ],
+  exports: [BullModule],
+})
+export class BullMQCoreModule {}
+```
+
+### Default Job Options
+
+Every service has `src/bullmq/bullmq-default-options.ts`:
+
+```typescript
+import { JobsOptions } from 'bullmq';
+
+export const DEFAULT_JOB_OPTIONS: JobsOptions = {
+  attempts: 3,
+  backoff: { type: 'exponential', delay: 5_000 },   // 5s → 10s → 20s
+  removeOnComplete: { count: 100, age: 86_400 },     // keep 24h or last 100
+  removeOnFail:     { count: 500, age: 604_800 },    // keep 7d  or last 500
+};
+```
+
+### Producer — Enqueuing a Job
+
+```typescript
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
+import { DEFAULT_JOB_OPTIONS } from '../../bullmq/bullmq-default-options';
+
+@Injectable()
+export class ReviewService {
   constructor(
-    private readonly logger: LoggerService,
-    private readonly repository: Repository,
+    @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
+    @InjectQueue('marketplace.rating')       private readonly ratingQueue: Queue,
   ) {}
 
-  @Process('job-name')
-  async handleJob(job: Job<JobData>): Promise<void> {
-    const { data } = job;
-    
-    try {
-      // Process the job
-      await this.processData(data);
-      
-      // Update status
-      await this.repository.updateStatus(data.id, 'completed');
-      
-    } catch (error) {
-      this.logger.error(`Job failed: ${error.message}`);
-      
-      // Update status to failed
-      await this.repository.updateStatus(data.id, 'failed');
-      
-      // Rethrow to trigger Bull's retry mechanism
-      throw error;
-    }
+  async createReview(dto: CreateReviewDto, userId: string) {
+    const review = await this.reviewRepo.create({ ...dto, userId });
+
+    // Non-blocking — returns immediately, worker handles async
+    await this.notificationQueue.add('notify-review-created', {
+      reviewId: review.id,
+      providerId: dto.providerId,
+      rating: dto.rating,
+    }, DEFAULT_JOB_OPTIONS);
+
+    await this.ratingQueue.add('recalculate-provider-rating', {
+      providerId: dto.providerId,
+    }, DEFAULT_JOB_OPTIONS);
+
+    return review;
   }
 }
 ```
 
-### Job Data Types
+### Worker — Processing Jobs
 
 ```typescript
-export interface EmailJobData {
-  deliveryId: string;
-  notificationId: string;
-  userId: string;
-  type: string;
-  message: string;
-}
+import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnModuleInit } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Job, Queue } from 'bullmq';
+import { DEFAULT_JOB_OPTIONS } from '../bullmq/bullmq-default-options';
 
-export interface RefundJobData {
-  refundId: string;
-  paymentId: string;
-  amount: number;
-  reason: string;
+@Processor('marketplace.rating', {
+  concurrency: parseInt(process.env.WORKER_CONCURRENCY || '3', 10),
+})
+export class ProviderRatingWorker extends WorkerHost implements OnModuleInit {
+  constructor(
+    @InjectQueue('marketplace.rating') private readonly ratingQueue: Queue,
+    private readonly reviewAggregateRepo: ProviderReviewAggregateRepository,
+  ) {
+    super();
+  }
+
+  // Register repeatable jobs on startup
+  async onModuleInit(): Promise<void> {
+    await this.ratingQueue.add(
+      'refresh-all-provider-ratings',
+      {},
+      { ...DEFAULT_JOB_OPTIONS, repeat: { pattern: '0 3 * * *' } },  // 3AM daily
+    );
+  }
+
+  // Route all jobs through process()
+  async process(job: Job): Promise<void> {
+    switch (job.name) {
+      case 'recalculate-provider-rating':
+        return this.recalculateOne(job.data.providerId);
+      case 'refresh-all-provider-ratings':
+        return this.refreshAll();
+      default:
+        throw new Error(`Unknown job: ${job.name}`);
+    }
+  }
+
+  private async recalculateOne(providerId: string): Promise<void> {
+    await this.reviewAggregateRepo.refreshByProvider(providerId);
+  }
+
+  private async refreshAll(): Promise<void> {
+    await this.reviewAggregateRepo.refreshAllAggregates();
+  }
 }
+```
+
+### WorkersModule — Conditional Loading
+
+Every service has `src/workers/workers.module.ts`:
+
+```typescript
+@Module({
+  imports: [
+    BullModule.registerQueue(
+      { name: 'marketplace.notification' },
+      { name: 'marketplace.rating' },
+      { name: 'marketplace.analytics' },
+      { name: 'marketplace.cleanup' },
+    ),
+    // Feature modules needed by workers
+    ReviewModule,
+    RequestModule,
+  ],
+  providers: [
+    NotificationWorker,
+    ProviderRatingWorker,
+    AnalyticsWorker,
+    CleanupWorker,
+  ],
+})
+export class WorkersModule {}
+```
+
+### Conditional Import in app.module.ts
+
+```typescript
+// Conditionally load workers — workers run in the same process
+// but only when WORKERS_ENABLED=true
+const conditionalModules = process.env.WORKERS_ENABLED === 'true'
+  ? [WorkersModule]
+  : [];
+
+@Module({
+  imports: [
+    BullMQCoreModule,             // Always — so producers work in API pods too
+    ...conditionalModules,        // Only when WORKERS_ENABLED=true
+    // ... other modules
+  ],
+})
+export class AppModule {}
 ```
 
 ---
 
-## Job Options
+## Repeatable Jobs (Cron Replacement)
 
-### Retry Configuration
-
-```typescript
-await queue.add('job-name', data, {
-  attempts: 3,              // Retry up to 3 times
-  backoff: {
-    type: 'exponential',    // 2s, 4s, 8s delays
-    delay: 2000,            // Initial delay: 2 seconds
-  },
-});
-```
-
-### Priority Queuing
+Repeatable jobs are registered in `onModuleInit()` of each worker. They replace `@nestjs/schedule` `@Cron()` decorators.
 
 ```typescript
-await queue.add('urgent-job', data, {
-  priority: 1,              // Higher priority (1 = highest)
-});
-
-await queue.add('normal-job', data, {
-  priority: 10,             // Lower priority
-});
+// Pattern examples
+'0 3 * * *'    // 3:00 AM every day
+'0 */4 * * *'  // Every 4 hours
+'0 1 * * 0'    // 1:00 AM every Sunday
+'*/15 * * * *' // Every 15 minutes
 ```
 
-### Delayed Jobs
-
-```typescript
-await queue.add('scheduled-job', data, {
-  delay: 60000,             // Execute after 60 seconds
-});
-```
-
-### Job Timeouts
-
-```typescript
-@Process({ name: 'long-running', concurrency: 5 })
-async handleLongRunning(job: Job): Promise<void> {
-  // Job will timeout after 30 seconds
-  job.opts.timeout = 30000;
-  
-  await this.processLongOperation(job.data);
-}
-```
+BullMQ deduplicates repeatable jobs by `jobId`. Re-registering on startup is safe — it will not create duplicates.
 
 ---
 
-## Monitoring Jobs
+## Job Cleanup Strategy
 
-### Queue Dashboard (Optional)
+All services use the built-in BullMQ auto-cleanup via `removeOnComplete`/`removeOnFail`. Additionally each service has a `CleanupWorker` (in the `*.cleanup` queue) that purges database records for completed items:
 
-You can add **Bull Board** for a web UI to monitor jobs:
+| Service | Cleanup target | Retention |
+|---|---|---|
+| comms-service | notifications, deliveries | 90 days |
+| payment-service | processed webhooks, expired coupons | 30 days |
+| oversight-service | audit logs | 1 year |
+| oversight-service | activity logs | 90 days |
+| infrastructure-service | events | 90 days |
+
+---
+
+## Monitoring
+
+### Check Queue Depth (Bull Board — optional)
+
+Install BullMQ Board for a web UI:
 
 ```bash
-npm install @bull-board/express @bull-board/api
+npm install @bull-board/api @bull-board/express
 ```
 
 ```typescript
 import { createBullBoard } from '@bull-board/api';
-import { BullAdapter } from '@bull-board/api/bullAdapter';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';   // Note: BullMQAdapter, not BullAdapter
 import { ExpressAdapter } from '@bull-board/express';
+import { Queue } from 'bullmq';
 
 const serverAdapter = new ExpressAdapter();
 createBullBoard({
   queues: [
-    new BullAdapter(emailQueue),
-    new BullAdapter(paymentQueue),
+    new BullMQAdapter(emailQueue),
+    new BullMQAdapter(paymentQueue),
   ],
   serverAdapter,
 });
@@ -239,331 +381,86 @@ createBullBoard({
 app.use('/admin/queues', serverAdapter.getRouter());
 ```
 
-Access at: `http://localhost:3007/admin/queues` (comms-service)
-
-### Programmatic Monitoring
+### Programmatic Queue Inspection
 
 ```typescript
-// Get job counts
-const waiting = await queue.getWaitingCount();
-const active = await queue.getActiveCount();
+const waiting   = await queue.getWaitingCount();
+const active    = await queue.getActiveCount();
 const completed = await queue.getCompletedCount();
-const failed = await queue.getFailedCount();
+const failed    = await queue.getFailedCount();
+const delayed   = await queue.getDelayedCount();
 
-// Get specific job
-const job = await queue.getJob(jobId);
-console.log(job.progress);
-console.log(job.returnvalue);
-
-// Get failed jobs
-const failedJobs = await queue.getFailed();
-```
-
----
-
-## Error Handling
-
-### Automatic Retries
-
-Bull automatically retries failed jobs based on configuration:
-
-```typescript
-{
-  attempts: 3,
-  backoff: {
-    type: 'exponential',
-    delay: 2000,
-  }
-}
-
-// Retry schedule:
-// Attempt 1: Immediate
-// Attempt 2: After 2 seconds
-// Attempt 3: After 4 seconds
-// Attempt 4: After 8 seconds
-// Then marked as failed
-```
-
-### Manual Retry
-
-```typescript
-// Retry a failed job
-const job = await queue.getJob(jobId);
-await job.retry();
-
-// Retry all failed jobs
-const failedJobs = await queue.getFailed();
-for (const job of failedJobs) {
-  await job.retry();
-}
-```
-
-### Dead Letter Queue
-
-For permanently failed jobs:
-
-```typescript
-@OnQueueFailed()
-async onFailed(job: Job, error: Error) {
-  if (job.attemptsMade >= job.opts.attempts) {
-    // Job has exceeded retry attempts
-    await this.deadLetterQueue.add('failed-job', {
-      originalJob: job.data,
-      error: error.message,
-      timestamp: new Date(),
-    });
-  }
-}
-```
-
----
-
-## Performance Best Practices
-
-### 1. Concurrency Control
-
-Control how many jobs process simultaneously:
-
-```typescript
-@Process({ name: 'cpu-intensive', concurrency: 2 })
-async handleCPUIntensive(job: Job): Promise<void> {
-  // Only 2 jobs will run at the same time
-}
-
-@Process({ name: 'io-bound', concurrency: 10 })
-async handleIOBound(job: Job): Promise<void> {
-  // Can handle 10 concurrent jobs (I/O operations)
-}
-```
-
-### 2. Rate Limiting
-
-Limit job processing rate:
-
-```typescript
-await queue.add('rate-limited-job', data, {
-  limiter: {
-    max: 100,             // Max 100 jobs
-    duration: 60000,      // Per 60 seconds
-  },
+// Inspect failed jobs
+const failedJobs = await queue.getFailed(0, 20);
+failedJobs.forEach(job => {
+  console.log(job.id, job.failedReason, job.attemptsMade);
 });
-```
 
-### 3. Job Completion Cleanup
-
-Remove completed jobs to save memory:
-
-```typescript
-await queue.add('cleanup-job', data, {
-  removeOnComplete: true,   // Auto-remove on success
-  removeOnFail: false,      // Keep failed jobs for inspection
-});
-```
-
-### 4. Progress Tracking
-
-Update job progress for long-running tasks:
-
-```typescript
-@Process('long-task')
-async handleLongTask(job: Job): Promise<void> {
-  const total = 100;
-  
-  for (let i = 0; i < total; i++) {
-    await this.processItem(i);
-    
-    // Update progress
-    await job.progress((i / total) * 100);
-  }
-}
-```
-
----
-
-## Testing
-
-### Unit Testing Jobs
-
-```typescript
-describe('EmailQueueProcessor', () => {
-  let processor: EmailQueueProcessor;
-  let mockDeliveryRepo: jest.Mocked<NotificationDeliveryRepository>;
-
-  beforeEach(() => {
-    mockDeliveryRepo = {
-      updateDeliveryStatus: jest.fn(),
-    } as any;
-
-    processor = new EmailQueueProcessor(
-      mockLogger,
-      mockDeliveryRepo,
-      mockNotificationRepo,
-    );
-  });
-
-  it('should process email job successfully', async () => {
-    const job = {
-      data: {
-        deliveryId: '123',
-        userId: 'user-1',
-        type: 'welcome',
-        message: 'Welcome!',
-      },
-    } as Job;
-
-    await processor.handleSendEmail(job);
-
-    expect(mockDeliveryRepo.updateDeliveryStatus).toHaveBeenCalledWith(
-      '123',
-      'sent',
-    );
-  });
-});
-```
-
-### Integration Testing
-
-```typescript
-describe('Notification Queue Integration', () => {
-  let queue: Queue;
-
-  beforeAll(async () => {
-    queue = new Queue('email-queue', {
-      redis: { host: 'localhost', port: 6379 },
-    });
-  });
-
-  afterAll(async () => {
-    await queue.close();
-  });
-
-  it('should queue and process email job', async () => {
-    const job = await queue.add('send-email', {
-      deliveryId: '123',
-      userId: 'user-1',
-      type: 'test',
-      message: 'Test message',
-    });
-
-    // Wait for processing
-    await job.finished();
-
-    expect(job.returnvalue).toBeDefined();
-  });
-});
-```
-
----
-
-## Deployment
-
-### Production Considerations
-
-1. **Redis Persistence**: Enable AOF or RDB persistence for job durability
-2. **Memory Limits**: Configure Redis maxmemory to prevent OOM
-3. **Worker Scaling**: Run multiple worker instances for high throughput
-4. **Monitoring**: Set up alerts for queue depth and failed jobs
-5. **Cleanup**: Regularly clean old completed/failed jobs
-
-### Environment Variables
-
-```env
-REDIS_HOST=redis
-REDIS_PORT=6379
-REDIS_PASSWORD=          # Optional for production
-```
-
-### Docker Compose
-
-Bull uses the existing Redis service - no additional configuration needed:
-
-```yaml
-redis:
-  image: redis:7-alpine
-  container_name: marketplace-redis
-  ports:
-    - "6379:6379"
-  volumes:
-    - redis-data:/data
+// Manually retry a failed job
+await failedJob.retry();
 ```
 
 ---
 
 ## Troubleshooting
 
-### Jobs Not Processing
+### Workers not starting
 
-1. Check Redis connection:
 ```bash
-docker exec -it marketplace-redis redis-cli ping
-# Should return: PONG
+# Confirm WORKERS_ENABLED is set
+docker-compose exec identity-service printenv WORKERS_ENABLED
+# Should print: true
+
+# Check logs for worker registration messages
+docker-compose logs identity-service | grep -i "worker"
 ```
 
-2. Check queue status:
-```typescript
-const activeCount = await queue.getActiveCount();
-const waitingCount = await queue.getWaitingCount();
-console.log(`Active: ${activeCount}, Waiting: ${waitingCount}`);
-```
+### Jobs stuck in queue (not processed)
 
-3. Check worker is running:
 ```bash
-docker-compose logs comms-service | grep "Processor"
+# Verify Redis is reachable from the service container
+docker-compose exec marketplace-service nc -zv redis 6379
+
+# Check Redis key count (BullMQ stores jobs as sorted sets)
+docker exec -it marketplace-redis redis-cli KEYS "bull:marketplace.*"
 ```
 
-### High Failed Job Rate
+### Jobs failing repeatedly
 
-1. Check error logs:
 ```bash
-docker-compose logs payment-service | grep "Job failed"
+# Tail service logs for error details
+docker-compose logs -f payment-service | grep -i "failed\|error"
 ```
 
-2. Inspect failed jobs:
-```typescript
-const failedJobs = await queue.getFailed(0, 10);
-failedJobs.forEach(job => {
-  console.log(job.failedReason);
-});
-```
+Then check `failedReason` programmatically (see Monitoring section above) or via Bull Board UI.
 
-3. Increase retry attempts or backoff delay
+### Repeatable jobs not firing
 
-### Memory Issues
+Repeatable jobs require `WORKERS_ENABLED=true`. They are registered in `onModuleInit()` — check that the worker pod started cleanly:
 
-1. Enable job removal:
-```typescript
-removeOnComplete: 1000,  // Keep last 1000 completed jobs
-removeOnFail: 5000,      // Keep last 5000 failed jobs
-```
-
-2. Clean old jobs:
-```typescript
-await queue.clean(24 * 3600 * 1000, 'completed'); // Remove completed jobs older than 24h
-await queue.clean(7 * 24 * 3600 * 1000, 'failed'); // Remove failed jobs older than 7 days
+```bash
+docker-compose logs payment-service | grep "repeatable"
 ```
 
 ---
 
 ## Summary
 
-Background job processing with Bull provides:
+| | Before (Bull) | After (BullMQ) |
+|---|---|---|
+| Package | `@nestjs/bull` + `bull` | `@nestjs/bullmq` + `bullmq` |
+| Worker pattern | `@Process()` decorator | `WorkerHost.process()` |
+| Repeatable jobs | `@nestjs/schedule @Cron()` | `queue.add(..., repeat: { pattern })` in `onModuleInit` |
+| Worker activation | Always on | Conditional via `WORKERS_ENABLED=true` |
+| Services covered | 2 (comms, payment) | **All 6** |
+| Total queues | 3 | **22** |
+| Auto job cleanup | Manual | Built-in `removeOnComplete` + `CleanupWorker` |
 
-✅ **Async Processing** - Non-blocking operations  
-✅ **Automatic Retries** - Exponential backoff for transient failures  
-✅ **Concurrency Control** - Process multiple jobs in parallel  
-✅ **Progress Tracking** - Monitor long-running tasks  
-✅ **Reliability** - Redis-backed persistence  
-✅ **Scalability** - Horizontal scaling with multiple workers  
-
-**Services Implemented**:
-- ✅ Notification Service (email queue)
-- ✅ Payment Service (payment retry + refund queues)
-
-**Performance Impact**:
-- API response time: 90% faster (no blocking on email/payment processing)
-- Job failure recovery: Automatic with configurable retry
-- Throughput: Handles 100+ jobs/second per queue
-
----
+**Production checklist**:
+- [ ] Redis is running and reachable (`REDIS_HOST`, `REDIS_PORT` set)
+- [ ] `WORKERS_ENABLED=true` on worker pods, `false` on API pods
+- [ ] `WORKER_CONCURRENCY` tuned for your Redis/CPU capacity
+- [ ] Redis persistence (AOF or RDB) enabled to survive restarts
+- [ ] Alerts on queue depth and failed job count
 
 **Last Updated**: March 2026

@@ -1,4 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { WebhookRepository } from "../repositories/webhook.repository";
 import { PaymentRepository } from "../repositories/payment.repository";
@@ -13,6 +15,7 @@ export class WebhookService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    @InjectQueue("payment.webhook") private readonly webhookQueue: Queue,
     private readonly webhookRepository: WebhookRepository,
     private readonly paymentRepository: PaymentRepository,
     private readonly notificationClient: NotificationClient,
@@ -56,8 +59,11 @@ export class WebhookService {
       payload,
     );
 
-    // Process synchronously (for production consider enqueuing to a background job)
-    await this.processWebhook(webhook, gateway);
+    // Enqueue async processing — returns immediately (non-blocking)
+    await this.webhookQueue.add('process-webhook', {
+      webhookId: webhook.id,
+      gateway,
+    });
 
     return webhook;
   }

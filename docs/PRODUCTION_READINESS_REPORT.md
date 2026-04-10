@@ -1,7 +1,7 @@
 # Production Readiness Report
 
 **Local Service Marketplace Platform**
-**Generated:** April 6, 2026
+**Generated:** April 2026 (last updated: BullMQ workers migration complete)
 **Status: ✅ READY FOR PRODUCTION (with noted exceptions)**
 
 ---
@@ -66,7 +66,32 @@ All 10 Dockerfiles build successfully.
 
 ---
 
+## 3b. Background Workers (BullMQ)
+
+All 6 backend services have been fully migrated from Bull to **BullMQ** (`@nestjs/bullmq` + `bullmq`).
+
+| Service | Queues | Repeatable Jobs | Status |
+|---|---|---|---|
+| identity-service | 4 | token-cleanup, session-cleanup | ✅ |
+| marketplace-service | 4 | rating-recalculation, stale-job-cleanup | ✅ |
+| payment-service | 5 | expired-coupon-cleanup, payment-analytics | ✅ |
+| comms-service | 6 | email-digest, notification-cleanup | ✅ |
+| oversight-service | 3 | daily-analytics-aggregation | ✅ |
+| infrastructure-service | 3 | infra-event-cleanup | ✅ |
+
+**Total: 22 queues across 6 services.**
+
+Workers are opt-in via `WORKERS_ENABLED=true`. All services start and function correctly without workers (non-critical background tasks are skipped).
+
+- ✅ All `@Cron` decorators and `@nestjs/schedule` removed from all services
+- ✅ All repeatable jobs registered via BullMQ `addBulk()` on worker startup
+- ✅ Worker modules guard-loaded only when `WORKERS_ENABLED=true`
+- ✅ `WorkerConcurrency` configurable via `WORKER_CONCURRENCY` env var
+
+---
+
 ## 4. Environment Variables
+
 
 | Variable                               | Status    | Notes                                                         |
 | -------------------------------------- | --------- | ------------------------------------------------------------- |

@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { BullModule } from '@nestjs/bullmq';
 import { DatabaseModule } from '../common/database/database.module';
 import { RedisModule } from '../redis/redis.module';
 
@@ -26,7 +27,11 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
 
 @Module({
-  imports: [DatabaseModule, RedisModule],
+  imports: [
+    BullModule.registerQueue({ name: 'infra.background-jobs' }),
+    DatabaseModule,
+    RedisModule,
+  ],
   controllers: [
     EventController,
     BackgroundJobController,

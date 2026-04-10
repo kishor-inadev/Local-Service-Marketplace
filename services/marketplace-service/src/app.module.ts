@@ -12,12 +12,17 @@ import { NotificationModule } from "./common/notification/notification.module";
 import { UserModule } from "./common/user/user.module";
 import { AnalyticsModule } from "./common/analytics/analytics.module";
 import { HealthController } from "./common/health/health.controller";
+import { BullMQCoreModule } from "./bullmq/bullmq.module";
+import { WorkersModule } from "./workers/workers.module";
+
+const conditionalModules = process.env.WORKERS_ENABLED === 'true' ? [WorkersModule] : [];
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: ".env" }),
     LoggerModule,
     DatabaseModule,
+    BullMQCoreModule,
     RedisModule,
     KafkaModule,
     NotificationModule,
@@ -27,6 +32,7 @@ import { HealthController } from "./common/health/health.controller";
     ProposalModule,
     JobModule,
     ReviewModule,
+    ...conditionalModules,
   ],
   controllers: [HealthController],
 })

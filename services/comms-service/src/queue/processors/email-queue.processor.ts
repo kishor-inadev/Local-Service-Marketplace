@@ -1,9 +1,10 @@
-import { Process, Processor } from "@nestjs/bull";
-import { Job } from "bull";
-import { Inject, LoggerService } from "@nestjs/common";
-import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
-import { NotificationDeliveryRepository } from "../../notification/repositories/notification-delivery.repository";
-import { NotificationRepository } from "../../notification/repositories/notification.repository";
+/**
+ * @deprecated
+ * This file is kept for reference only.
+ * Email delivery is now handled by EmailWorker in src/workers/email.worker.ts
+ * which uses the @nestjs/bullmq WorkerHost pattern on queue "comms.email".
+ */
+export {};
 
 export interface EmailJobData {
   deliveryId: string;

@@ -1,22 +1,24 @@
-import { Module } from "@nestjs/common";
-import { BullModule } from "@nestjs/bull";
-import { EmailQueueProcessor } from "./processors/email-queue.processor";
-import { NotificationModule } from "../notification/notification.module";
+import { BullModule } from '@nestjs/bullmq';
+import { Module } from '@nestjs/common';
+import { DEFAULT_JOB_OPTIONS } from '../bullmq/bullmq-default-options';
 
+/**
+ * Registers every queue used by comms-service as a producer.
+ * Import this module wherever you need @InjectQueue().
+ *
+ * Workers (consumers) live in WorkersModule and are only loaded
+ * when WORKERS_ENABLED=true.
+ */
 @Module({
   imports: [
-    BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || "redis",
-        port: parseInt(process.env.REDIS_PORT) || 6379,
-      },
-    }),
-    BullModule.registerQueue({
-      name: "email-queue",
-    }),
-    NotificationModule,
+    BullModule.registerQueue(
+      { name: 'comms.email',   defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'comms.sms',     defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'comms.push',    defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'comms.digest',  defaultJobOptions: DEFAULT_JOB_OPTIONS },
+      { name: 'comms.cleanup', defaultJobOptions: DEFAULT_JOB_OPTIONS },
+    ),
   ],
-  providers: [EmailQueueProcessor],
   exports: [BullModule],
 })
 export class QueueModule {}

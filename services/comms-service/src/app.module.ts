@@ -6,8 +6,13 @@ import { MessagingModule } from "./messaging/messaging.module";
 import { DatabaseModule } from "./common/database/database.module";
 import { LoggerModule } from "./common/logger/logger.module";
 import { KafkaModule } from "./kafka/kafka.module";
+import { BullMQCoreModule } from "./bullmq/bullmq.module";
 import { QueueModule } from "./queue/queue.module";
 import { HealthController } from "./common/health/health.controller";
+
+// WorkersModule only loaded in worker pods (WORKERS_ENABLED=true)
+import { WorkersModule } from "./workers/workers.module";
+const workerModules = process.env.WORKERS_ENABLED === 'true' ? [WorkersModule] : [];
 
 @Module({
   imports: [
@@ -18,10 +23,12 @@ import { HealthController } from "./common/health/health.controller";
     ]),
     LoggerModule,
     DatabaseModule,
+    BullMQCoreModule,
     QueueModule,
     KafkaModule,
     NotificationModule,
     MessagingModule,
+    ...workerModules,
   ],
   controllers: [HealthController],
 })

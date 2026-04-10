@@ -221,7 +221,7 @@ SMS_ENABLED=false                               # Enable SMS notifications
 
 **Files:** `services/[service-name]/.env`
 
-All backend services (user, request, proposal, job, payment, messaging, notification, review, admin, analytics, infrastructure) share similar structure:
+All backend services (identity, marketplace, payment, comms, oversight, infrastructure) share similar structure:
 
 ### Application Settings
 ```env
@@ -274,6 +274,9 @@ KAFKA_CLIENT_ID=service-name
 ```env
 CACHE_ENABLED=false                    # Enable Redis caching
 EVENT_BUS_ENABLED=false                # Enable Kafka events
+WORKERS_ENABLED=false                  # Enable BullMQ background workers
+WORKER_CONCURRENCY=5                   # Concurrent worker threads per queue
+REDIS_RATE_LIMIT_ENABLED=false         # Redis-backed rate limiting (vs in-memory)
 ```
 
 ### Service Communication
@@ -354,7 +357,61 @@ TWILIO_PHONE_NUMBER=+1234567890
 
 ---
 
-## 🐳 Docker Compose Root .env
+## � Background Workers (BullMQ)
+
+Workers run inside each service process when `WORKERS_ENABLED=true`. They process queued tasks asynchronously — sending emails, calculating ratings, retrying failed payments, etc.
+
+### Enabling Workers
+
+```env
+# In docker.env (or each service's .env)
+WORKERS_ENABLED=true
+WORKER_CONCURRENCY=5          # Default 5; increase for high-traffic services
+
+# Redis is required when workers are enabled
+REDIS_HOST=redis
+REDIS_PORT=6379
+REDIS_URL=redis://redis:6379
+```
+
+### Queues per Service
+
+| Service | Queues |
+|---|---|
+| identity-service | `identity.email-verification`, `identity.password-reset`, `identity.welcome-email`, `identity.cleanup` |
+| marketplace-service | `marketplace.notifications`, `marketplace.rating`, `marketplace.analytics`, `marketplace.cleanup` |
+| payment-service | `payment.process`, `payment.refund`, `payment.webhook`, `payment.analytics`, `payment.cleanup` |
+| comms-service | `comms.email`, `comms.sms`, `comms.in-app`, `comms.push`, `comms.email-digest`, `comms.cleanup` |
+| oversight-service | `oversight.analytics`, `oversight.audit`, `oversight.cleanup` |
+| infrastructure-service | `infra.events`, `infra.jobs`, `infra.cleanup` |
+
+### Repeatable Jobs Schedule
+
+When workers are enabled, each service registers repeatable jobs on startup:
+
+| Job | Service | Schedule |
+|---|---|---|
+| Email digest | comms-service | Daily 8AM |
+| Rating recalculation | marketplace-service | Nightly 3AM |
+| Token/session cleanup | identity-service | Daily 2AM |
+| Expired coupon cleanup | payment-service | Weekly Sunday |
+| Analytics aggregation | oversight-service | Daily midnight |
+| Stale job cleanup | marketplace-service | Daily 1AM |
+
+### Scaling Workers
+
+To run workers in a separate process (not embedded in the API process):
+
+```env
+# In the worker-only container (see docker-compose.override.yml)
+WORKERS_ENABLED=true
+WORKER_ONLY=true               # Disables HTTP server, only runs workers
+WORKER_CONCURRENCY=10
+```
+
+---
+
+
 
 **File:** `.env` (root directory)
 

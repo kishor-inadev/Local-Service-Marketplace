@@ -36,6 +36,13 @@ export class CouponRepository {
     return parseInt(result.rows[0].count) > 0;
   }
 
+  async deleteExpired(): Promise<number> {
+    const result = await this.pool.query(
+      'DELETE FROM coupons WHERE expires_at IS NOT NULL AND expires_at < NOW()',
+    );
+    return result.rowCount ?? 0;
+  }
+
   async recordCouponUsage(
     couponId: string,
     userId: string,
