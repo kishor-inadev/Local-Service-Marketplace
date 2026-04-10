@@ -21,31 +21,28 @@ describe("BackgroundJobService", () => {
 			updateJobStatus: jest.fn().mockResolvedValue(null),
 		} as any;
 
-		const redisService = {
-			get: jest.fn().mockResolvedValue(null),
-			set: jest.fn().mockResolvedValue("OK"),
-			addJob: jest.fn().mockResolvedValue(undefined),
+		const jobQueue = {
+			add: jest.fn().mockResolvedValue({ id: 'bullmq-job-1' }),
+			getJobCounts: jest.fn().mockResolvedValue({ waiting: 0, active: 0, completed: 1, failed: 0 }),
 		} as any;
 
 		const logger = { log: jest.fn(), warn: jest.fn(), error: jest.fn() } as any;
 
-		const service = new BackgroundJobService(logger, backgroundJobRepository, redisService);
+		const service = new BackgroundJobService(logger, backgroundJobRepository, jobQueue);
 
-		return { service, backgroundJobRepository, redisService, logger };
+		return { service, backgroundJobRepository, jobQueue, logger };
 	};
 
 	describe("createJob", () => {
-		it("creates a job and adds to Redis queue", async () => {
-			const { service, backgroundJobRepository, redisService } = createService();
+		it("creates a job and adds to BullMQ queue", async () => {
+			const { service, backgroundJobRepository, jobQueue } = createService();
 
 			const result = await service.createJob({ jobType: "send_email", payload: { to: "test@test.com" } } as any);
 
 			expect(backgroundJobRepository.createJob).toHaveBeenCalled();
-			expect(redisService.addJob).toHaveBeenCalledWith(
-				"background-jobs",
+			expect(jobQueue.add).toHaveBeenCalledWith(
 				"send_email",
 				expect.objectContaining({ jobId: "job-1" }),
-				expect.objectContaining({ attempts: 3 }),
 			);
 			expect(result.id).toBe("job-1");
 		});

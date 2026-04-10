@@ -37,7 +37,9 @@ const mockDeliveryRepo = { createDelivery: jest.fn() };
 const mockUnsubscribeRepo = { isUnsubscribed: jest.fn() };
 const mockEmailClient = { sendEmail: jest.fn() };
 const mockSmsClient = { sendSms: jest.fn() };
-const mockEmailQueue = { add: jest.fn() };
+const mockEmailQueue = { add: jest.fn().mockResolvedValue({}) };
+const mockSmsQueue = { add: jest.fn().mockResolvedValue({}) };
+const mockPushQueue = { add: jest.fn().mockResolvedValue({}) };
 
 const mockFeatureFlags = {
   emailEnabled: true,
@@ -61,6 +63,8 @@ describe("NotificationService", () => {
         NotificationService,
         { provide: WINSTON_MODULE_NEST_PROVIDER, useValue: mockLogger },
         { provide: getQueueToken("comms.email"), useValue: mockEmailQueue },
+        { provide: getQueueToken("comms.sms"), useValue: mockSmsQueue },
+        { provide: getQueueToken("comms.push"), useValue: mockPushQueue },
         { provide: NotificationRepository, useValue: mockNotifRepo },
         { provide: NotificationDeliveryRepository, useValue: mockDeliveryRepo },
         { provide: UnsubscribeRepository, useValue: mockUnsubscribeRepo },
@@ -92,12 +96,11 @@ describe("NotificationService", () => {
       );
       expect(mockDeliveryRepo.createDelivery).toHaveBeenCalledTimes(2); // email + push
       expect(mockEmailQueue.add).toHaveBeenCalledWith(
-        "send-email",
+        "deliver-email",
         expect.objectContaining({
           userId: "user-uuid-1",
           type: "request_created",
         }),
-        expect.objectContaining({ attempts: 3 }),
       );
     });
   });
@@ -222,7 +225,6 @@ describe("NotificationService", () => {
     });
 
     it("should send SMS when channel is SMS", async () => {
-      mockSmsClient.sendSms.mockResolvedValue({ success: true });
       const result = await service.sendNotification({
         channel: NotificationChannel.SMS,
         recipient: "+1234567890",
@@ -230,12 +232,14 @@ describe("NotificationService", () => {
         message: "Hello",
       });
       expect(result.success).toBe(true);
-      expect(mockSmsClient.sendSms).toHaveBeenCalled();
+      expect(mockSmsQueue.add).toHaveBeenCalledWith(
+        "deliver-sms",
+        expect.objectContaining({ phone: "+1234567890" }),
+      );
     });
 
     it("should send both when channel is BOTH", async () => {
       mockEmailClient.sendEmail.mockResolvedValue({ success: true });
-      mockSmsClient.sendSms.mockResolvedValue({ success: true });
       const result = await service.sendNotification({
         channel: NotificationChannel.BOTH,
         recipient: "user@example.com",
@@ -244,7 +248,10 @@ describe("NotificationService", () => {
       });
       expect(result.success).toBe(true);
       expect(mockEmailClient.sendEmail).toHaveBeenCalled();
-      expect(mockSmsClient.sendSms).toHaveBeenCalled();
+      expect(mockSmsQueue.add).toHaveBeenCalledWith(
+        "deliver-sms",
+        expect.objectContaining({ message: "Hello" }),
+      );
     });
 
     it("should return error on failure", async () => {

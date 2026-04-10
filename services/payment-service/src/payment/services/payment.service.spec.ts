@@ -32,13 +32,13 @@ describe("PaymentService list validation", () => {
 
     const service = new PaymentService(
       makeLogger(),
-      { add: jest.fn() } as any, // notificationQueue
-      { add: jest.fn() } as any, // analyticsQueue
+      { add: jest.fn().mockResolvedValue({}) } as any, // notificationQueue
+      { add: jest.fn().mockResolvedValue({}) } as any, // analyticsQueue
       paymentRepository,
       {} as any,
       makeKafka(),
       {} as any,
-      {} as any,
+      { getUserById: jest.fn().mockResolvedValue(null) } as any, // userClient
       makeAnalytics(),
       makeGateway(),
     );
@@ -110,11 +110,12 @@ describe("PaymentService.createPayment", () => {
     const gateway = overrides.gateway ?? makeGateway();
     const kafka = makeKafka();
     const analytics = makeAnalytics();
+    const analyticsQueue = { add: jest.fn().mockResolvedValue({}) } as any;
 
     const service = new PaymentService(
       makeLogger(),
-      { add: jest.fn() } as any, // notificationQueue
-      { add: jest.fn() } as any, // analyticsQueue
+      { add: jest.fn().mockResolvedValue({}) } as any, // notificationQueue
+      analyticsQueue,                                  // analyticsQueue
       paymentRepository,
       couponService,
       kafka,
@@ -128,6 +129,7 @@ describe("PaymentService.createPayment", () => {
       service,
       kafka,
       analytics,
+      analyticsQueue,
       paymentRepository,
       couponService,
       gateway,
@@ -135,7 +137,7 @@ describe("PaymentService.createPayment", () => {
   };
 
   it("creates payment without coupon and tracks analytics", async () => {
-    const { service, kafka, analytics, paymentRepository, gateway } =
+    const { service, kafka, analyticsQueue, paymentRepository, gateway } =
       createService();
 
     await service.createPayment("job-1", 100, "USD", "user-1", "prov-1");
@@ -162,7 +164,8 @@ describe("PaymentService.createPayment", () => {
       "payment-events",
       expect.objectContaining({ eventType: "payment_completed" }),
     );
-    expect(analytics.track).toHaveBeenCalledWith(
+    expect(analyticsQueue.add).toHaveBeenCalledWith(
+      "track-payment-completed",
       expect.objectContaining({
         action: "payment_completed",
         resource: "payment",
