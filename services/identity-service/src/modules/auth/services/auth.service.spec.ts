@@ -91,7 +91,7 @@ const makeService = (
       get: jest.fn().mockReturnValue("5"), // MAX_LOGIN_ATTEMPTS & more
     } as any, // configService
     makeLogger(),
-    { add: jest.fn() } as any, // notificationQueue
+    { add: jest.fn().mockResolvedValue({}) } as any, // notificationQueue
   );
 
   return { service, userRepo, sessionRepo, loginAttemptRepo, jwtService };
