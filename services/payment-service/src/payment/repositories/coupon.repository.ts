@@ -16,9 +16,16 @@ export class CouponRepository {
     }
     return new Coupon({
       id: result.rows[0].id,
+      display_id: result.rows[0].display_id,
       code: result.rows[0].code,
       discount_percent: parseFloat(result.rows[0].discount_percent),
+      max_uses: result.rows[0].max_uses,
+      max_uses_per_user: result.rows[0].max_uses_per_user,
+      min_purchase_amount: result.rows[0].min_purchase_amount,
+      active: result.rows[0].active,
+      created_by: result.rows[0].created_by,
       expires_at: result.rows[0].expires_at,
+      created_at: result.rows[0].created_at,
     });
   }
 

@@ -1,5 +1,6 @@
 export class Job {
   id: string;
+  display_id: string;
   request_id: string;
   provider_id: string;
   customer_id: string; // ✅ NEW

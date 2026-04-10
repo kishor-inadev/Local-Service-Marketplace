@@ -1,5 +1,6 @@
 export class Coupon {
   id: string;
+  display_id: string;
   code: string;
   discount_percent: number;
   max_uses?: number; // ✅ NEW

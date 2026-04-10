@@ -14,7 +14,7 @@ export interface Job {
 	proposal_id?: string;
 	customer_id: string;
 	provider_id: string;
-	status: "scheduled" | "in_progress" | "completed" | "cancelled" | "disputed";
+	status: "pending" | "scheduled" | "in_progress" | "completed" | "cancelled" | "disputed";
 	started_at?: string;
 	completed_at?: string;
 	created_at: string;

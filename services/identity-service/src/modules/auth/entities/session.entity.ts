@@ -1,5 +1,6 @@
 export class Session {
   id: string;
+  display_id: string;
   user_id: string;
   refresh_token: string;
   ip_address?: string;

@@ -65,6 +65,7 @@ export interface TwoFASetup {
 
 export interface Session {
 	id: string;
+	display_id?: string;
 	user_agent?: string;
 	ip_address?: string;
 	created_at: string;

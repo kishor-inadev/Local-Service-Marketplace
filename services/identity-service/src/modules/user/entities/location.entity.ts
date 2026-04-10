@@ -1,5 +1,6 @@
 export class Location {
   id: string;
+  display_id: string;
   user_id?: string;
   latitude: number;
   longitude: number;

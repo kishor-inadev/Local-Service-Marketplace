@@ -12,7 +12,7 @@ export class DisputeRepository {
 	async getDisputeById(id: string): Promise<Dispute | null> {
 		id = await resolveId(this.pool, 'disputes', id);
 		const query = `
-      SELECT id, job_id, opened_by, reason, status, 
+      SELECT id, display_id, job_id, opened_by, reason, status, 
              resolution, resolved_by, resolved_at, created_at
       FROM disputes
       WHERE id = $1
@@ -24,7 +24,7 @@ export class DisputeRepository {
 
 	async getAllDisputes(limit: number = 50, offset: number = 0): Promise<Dispute[]> {
 		const query = `
-      SELECT id, job_id, opened_by, reason, status, 
+      SELECT id, display_id, job_id, opened_by, reason, status, 
              resolution, resolved_by, resolved_at, created_at
       FROM disputes
       ORDER BY created_at DESC
@@ -37,7 +37,7 @@ export class DisputeRepository {
 
 	async getDisputesByStatus(status: string): Promise<Dispute[]> {
 		const query = `
-      SELECT id, job_id, opened_by, reason, status, 
+      SELECT id, display_id, job_id, opened_by, reason, status, 
              resolution, resolved_by, resolved_at, created_at
       FROM disputes
       WHERE status = $1
@@ -53,7 +53,7 @@ export class DisputeRepository {
       UPDATE disputes
       SET status = $1, resolution = $2, resolved_by = $3, resolved_at = CURRENT_TIMESTAMP
       WHERE id = $4
-      RETURNING id, job_id, opened_by, reason, status, 
+      RETURNING id, display_id, job_id, opened_by, reason, status, 
                 resolution, resolved_by, resolved_at, created_at
     `;
 

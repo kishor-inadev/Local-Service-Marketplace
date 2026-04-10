@@ -1,5 +1,6 @@
 export class Dispute {
   id: string;
+  display_id: string;
   job_id: string;
   opened_by: string;
   reason: string;

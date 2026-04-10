@@ -16,7 +16,7 @@ export class AdminActionRepository {
     const query = `
       INSERT INTO admin_actions (admin_id, action, target_type, target_id, reason)
       VALUES ($1, $2, $3, $4, $5)
-      RETURNING id, admin_id, action, target_type, target_id, reason, created_at
+      RETURNING id, display_id, admin_id, action, target_type, target_id, reason, created_at
     `;
 
     const values = [adminId, action, targetType, targetId, reason];
@@ -29,7 +29,7 @@ export class AdminActionRepository {
     offset: number = 0,
   ): Promise<AdminAction[]> {
     const query = `
-      SELECT id, admin_id, action, target_type, target_id, reason, created_at
+      SELECT id, display_id, admin_id, action, target_type, target_id, reason, created_at
       FROM admin_actions
       ORDER BY created_at DESC
       LIMIT $1 OFFSET $2
@@ -41,7 +41,7 @@ export class AdminActionRepository {
 
   async getAdminActionsByAdminId(adminId: string): Promise<AdminAction[]> {
     const query = `
-      SELECT id, admin_id, action, target_type, target_id, reason, created_at
+      SELECT id, display_id, admin_id, action, target_type, target_id, reason, created_at
       FROM admin_actions
       WHERE admin_id = $1
       ORDER BY created_at DESC

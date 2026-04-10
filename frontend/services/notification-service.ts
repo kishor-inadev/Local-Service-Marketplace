@@ -2,6 +2,7 @@ import { apiClient } from './api-client';
 
 export interface Notification {
   id: string;
+  display_id?: string;
   user_id: string;
   type: string;
   message: string;

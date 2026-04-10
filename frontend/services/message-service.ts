@@ -8,6 +8,7 @@ function extractList<T>(payload: any): T[] {
 
 export interface Message {
   id: string;
+  display_id?: string;
   job_id: string;
   sender_id: string;
   message: string;

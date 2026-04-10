@@ -11,6 +11,7 @@ function extractList<T>(payload: any): T[] {
 
 export interface UserProfile {
   id: string;
+  display_id?: string;
   email: string;
   name?: string;
   phone?: string;

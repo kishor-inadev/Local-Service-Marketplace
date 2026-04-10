@@ -9,6 +9,7 @@ function extractList<T>(payload: any): T[] {
 
 export interface ServiceCategory {
 	id: string;
+	display_id?: string;
 	name: string;
 	description?: string;
 	icon?: string;

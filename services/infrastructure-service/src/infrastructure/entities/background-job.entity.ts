@@ -1,11 +1,12 @@
 export class BackgroundJob {
   id: string;
-  job_type: string;
+  displayId: string;
+  jobType: string;
   payload: any;
   status: string;
   attempts: number;
-  last_error?: string;
-  created_at: Date;
-  updated_at?: Date;
-  scheduled_for: Date;
+  lastError?: string;
+  createdAt: Date;
+  updatedAt?: Date;
+  scheduledFor: Date;
 }

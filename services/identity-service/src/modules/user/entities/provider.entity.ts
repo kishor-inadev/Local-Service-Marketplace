@@ -1,5 +1,6 @@
 export class Provider {
   id: string;
+  display_id: string;
   user_id: string;
   business_name: string;
   description?: string;
