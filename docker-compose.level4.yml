@@ -1,0 +1,176 @@
+# =============================================================================
+# Level 4 — Event-Driven Architecture  (10,000+ concurrent users)
+# =============================================================================
+# Activates: Redis + Kafka + Zookeeper
+# Enables:   CACHE_ENABLED + WORKERS_ENABLED + EVENT_BUS_ENABLED on every service
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.level4.yml --profile events up -d
+#
+# Stop:
+#   docker compose -f docker-compose.yml -f docker-compose.level4.yml --profile events down
+#
+# What changes vs Level 3:
+#   ✅ Kafka + Zookeeper start   (--profile events)
+#   ✅ EVENT_BUS_ENABLED=true    services publish and subscribe to Kafka topics
+#   ✅ KAFKA_BROKERS=kafka:29092 set on all services
+#   ✅ In-app + push notifications enabled on comms-service (async delivery via events)
+#   ✅ ANALYTICS_ENABLED + INFRASTRUCTURE_ENABLED on api-gateway
+#   ✅ Higher resource limits for Kafka consumers running inside each service
+#
+# Events published per service (subset):
+#   Identity:    user.registered, user.suspended
+#   Marketplace: request.created, proposal.accepted, job.completed, review.submitted
+#   Payment:     payment.completed, payment.failed, refund.created
+#   Comms:       notification.sent, notification.failed
+# =============================================================================
+
+services:
+
+  # ─── Redis — BullMQ queues + cache ────────────────────────────────────────
+  redis:
+    command:
+      - redis-server
+      - --maxmemory
+      - 512mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - "60"
+      - "1000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 640M
+        reservations:
+          cpus: '0.1'
+          memory: 256M
+
+  # ─── Core services — cache + workers + events ──────────────────────────────
+  identity-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 384M
+
+  marketplace-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.25'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 384M
+
+  payment-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 384M
+
+  comms-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=10
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - IN_APP_NOTIFICATIONS_ENABLED=true
+      - PUSH_NOTIFICATIONS_ENABLED=true
+      - NOTIFICATION_PREFERENCES_ENABLED=true
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.25'
+          memory: 384M
+
+  oversight-service:
+    environment:
+      - CACHE_ENABLED=true
+      - WORKERS_ENABLED=true
+      - WORKER_CONCURRENCY=5
+      - EVENT_BUS_ENABLED=true
+      - KAFKA_BROKERS=kafka:29092
+      - ANALYTICS_ENABLED=true
+      - DB_POOL_MAX=20
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  api-gateway:
+    environment:
+      - ANALYTICS_ENABLED=true
+      - INFRASTRUCTURE_ENABLED=true
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  # ─── Kafka resource limits ─────────────────────────────────────────────────
+  kafka:
+    environment:
+      KAFKA_LOG_RETENTION_HOURS: "168"
+      KAFKA_LOG_RETENTION_BYTES: "1073741824"
+      KAFKA_MESSAGE_MAX_BYTES: "1048576"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 768M
+        reservations:
+          cpus: '0.5'
+          memory: 512M
+
+  zookeeper:
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.1'
+          memory: 128M

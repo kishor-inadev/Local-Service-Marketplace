@@ -1,0 +1,119 @@
+# =============================================================================
+# Level 2 — Cache Layer  (500–1,000 concurrent users)
+# =============================================================================
+# Activates: Redis cache
+# Enables:   CACHE_ENABLED on every service
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.level2.yml --profile cache up -d
+#
+# Stop:
+#   docker compose -f docker-compose.yml -f docker-compose.level2.yml --profile cache down
+#
+# What changes vs Level 1 (default):
+#   ✅ Redis container starts  (--profile cache)
+#   ✅ CACHE_ENABLED=true      service query results cached in Redis
+#   ✅ Slightly higher CPU/memory limits to accommodate Redis connection pool
+#   ✅ DB_POOL_MAX raised to 15 (fewer direct DB hits needed per request)
+# =============================================================================
+
+services:
+
+  # ─── Redis tuning for pure caching role ────────────────────────────────────
+  redis:
+    command:
+      - redis-server
+      - --maxmemory
+      - 256mb
+      - --maxmemory-policy
+      - allkeys-lru
+      - --save
+      - "60"
+      - "1000"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+
+  # ─── Core services — enable cache ──────────────────────────────────────────
+  identity-service:
+    environment:
+      - CACHE_ENABLED=true
+      - DB_POOL_MAX=15
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  marketplace-service:
+    environment:
+      - CACHE_ENABLED=true
+      - DB_POOL_MAX=15
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  payment-service:
+    environment:
+      - CACHE_ENABLED=true
+      - DB_POOL_MAX=15
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  comms-service:
+    environment:
+      - CACHE_ENABLED=true
+      - DB_POOL_MAX=15
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+
+  oversight-service:
+    environment:
+      - CACHE_ENABLED=true
+      - ANALYTICS_ENABLED=true
+      - DB_POOL_MAX=15
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 384M
+        reservations:
+          cpus: '0.25'
+          memory: 192M
+
+  api-gateway:
+    environment:
+      - ANALYTICS_ENABLED=true
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
