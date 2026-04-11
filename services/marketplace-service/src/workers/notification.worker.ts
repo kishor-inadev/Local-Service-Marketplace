@@ -25,20 +25,20 @@ export class MarketplaceNotificationWorker extends WorkerHost implements OnModul
   async process(job: Job<any, any, string>): Promise<any> {
     try {
       switch (job.name) {
-        case 'notify-request-created':          return this.handleRequestCreated(job.data);
-        case 'notify-request-updated':          return this.handleRequestUpdated(job.data);
-        case 'notify-request-deleted':          return this.handleRequestDeleted(job.data);
-        case 'notify-proposal-submitted':       return this.handleProposalSubmitted(job.data);
-        case 'notify-proposal-accepted':        return this.handleProposalAccepted(job.data);
-        case 'notify-proposal-rejected':        return this.handleProposalRejected(job.data);
-        case 'notify-job-assigned':             return this.handleJobAssigned(job.data);
-        case 'notify-job-status-changed':       return this.handleJobStatusChanged(job.data);
-        case 'notify-job-completed':            return this.handleJobCompleted(job.data);
-        case 'notify-review-created':           return this.handleReviewCreated(job.data);
+        case 'notify-request-created': return this.handleRequestCreated(job.data);
+        case 'notify-request-updated': return this.handleRequestUpdated(job.data);
+        case 'notify-request-deleted': return this.handleRequestDeleted(job.data);
+        case 'notify-proposal-submitted': return this.handleProposalSubmitted(job.data);
+        case 'notify-proposal-accepted': return this.handleProposalAccepted(job.data);
+        case 'notify-proposal-rejected': return this.handleProposalRejected(job.data);
+        case 'notify-job-assigned': return this.handleJobAssigned(job.data);
+        case 'notify-job-status-changed': return this.handleJobStatusChanged(job.data);
+        case 'notify-job-completed': return this.handleJobCompleted(job.data);
+        case 'notify-review-created': return this.handleReviewCreated(job.data);
         default:
           throw new Error(`Unknown job name: ${job.name}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'MarketplaceNotificationWorker');
       throw error;

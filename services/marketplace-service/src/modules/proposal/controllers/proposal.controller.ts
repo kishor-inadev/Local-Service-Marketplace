@@ -118,7 +118,12 @@ export class ProposalController {
     @Request() req: any,
   ): Promise<ProposalResponseDto> {
     // Resource already validated by OwnershipGuard
-    return this.proposalService.withdrawProposal(id, req.user.userId);
+    return this.proposalService.withdrawProposal(
+      id,
+      req.user.userId,
+      req.user.role,
+      req.user.providerId,
+    );
   }
 
   @Patch("proposals/:id")
@@ -131,7 +136,13 @@ export class ProposalController {
     @Request() req: any,
   ): Promise<ProposalResponseDto> {
     // Resource already validated by OwnershipGuard
-    return this.proposalService.updateProposal(id, req.user.userId, body);
+    return this.proposalService.updateProposal(
+      id,
+      req.user.userId,
+      req.user.role,
+      body,
+      req.user.providerId,
+    );
   }
 
   @Get("proposals/:id")
@@ -151,7 +162,12 @@ export class ProposalController {
     @Request() req: any,
   ): Promise<{ success: boolean; message: string }> {
     // Resource already validated by OwnershipGuard
-    await this.proposalService.deleteProposal(id, req.user.userId);
+    await this.proposalService.deleteProposal(
+      id,
+      req.user.userId,
+      req.user.role,
+      req.user.providerId,
+    );
     return {
       success: true,
       message: "Proposal deleted successfully",

@@ -13,19 +13,19 @@ export class AnalyticsService {
     private readonly logger: LoggerService,
     private readonly userActivityRepository: UserActivityRepository,
     private readonly metricsRepository: MetricsRepository,
-  ) {}
+  ) { }
 
   async trackActivity(trackActivityDto: TrackActivityDto): Promise<UserActivityLog> {
     try {
       const activity = await this.userActivityRepository.trackActivity(trackActivityDto);
-      
+
       this.logger.log(
         `Activity tracked: ${trackActivityDto.action} by user ${trackActivityDto.user_id}`,
         'AnalyticsService',
       );
 
       return activity;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to track activity: ${error.message}`,
         error.stack,
@@ -52,7 +52,7 @@ export class AnalyticsService {
       );
 
       return { data, total };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to get user activity: ${error.message}`,
         error.stack,
@@ -78,7 +78,7 @@ export class AnalyticsService {
       );
 
       return { data, total };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to get all activity: ${error.message}`,
         error.stack,
@@ -98,7 +98,7 @@ export class AnalyticsService {
       );
 
       return data;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to get activity by action: ${error.message}`,
         error.stack,
@@ -126,7 +126,7 @@ export class AnalyticsService {
       );
 
       return metrics;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to get daily metrics: ${error.message}`,
         error.stack,
@@ -146,7 +146,7 @@ export class AnalyticsService {
       );
 
       return metric;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to get metric by date: ${error.message}`,
         error.stack,

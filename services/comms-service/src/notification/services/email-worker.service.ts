@@ -10,7 +10,7 @@ export class EmailWorkerService {
     private readonly logger: LoggerService,
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly notificationRepository: NotificationRepository,
-  ) {}
+  ) { }
 
   async processPendingEmails(): Promise<void> {
     this.logger.log(
@@ -66,7 +66,7 @@ export class EmailWorkerService {
             `Email sent successfully for delivery ${delivery.id}`,
             "EmailWorkerService",
           );
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error(
             `Failed to send email for delivery ${delivery.id}: ${error.message}`,
             "EmailWorkerService",
@@ -79,7 +79,7 @@ export class EmailWorkerService {
       }
 
       this.logger.log("Email processing completed", "EmailWorkerService");
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Email processing failed: ${error.message}`,
         "EmailWorkerService",

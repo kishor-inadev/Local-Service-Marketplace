@@ -398,6 +398,8 @@ export class ProposalService {
   async withdrawProposal(
     id: string,
     userId: string,
+    userRole: string = "provider",
+    providerId?: string,
   ): Promise<ProposalResponseDto> {
     this.logger.log(`Withdrawing proposal: ${id}`, ProposalService.name);
 
@@ -406,9 +408,12 @@ export class ProposalService {
       throw new NotFoundException("Proposal not found");
     }
 
-    if (existingProposal.provider_id !== userId) {
+    const isOwner = providerId && existingProposal.provider_id === providerId;
+    const isAdmin = userRole === "admin";
+
+    if (!isOwner && !isAdmin) {
       throw new ForbiddenException(
-        "Only the provider who submitted this proposal can withdraw it",
+        "Only the provider who submitted this proposal or an admin can withdraw it",
       );
     }
 
@@ -420,7 +425,7 @@ export class ProposalService {
 
     const proposal = await this.proposalRepository.withdrawProposal(
       existingProposal.id,
-      userId,
+      existingProposal.provider_id,
     );
     if (!proposal) {
       throw new NotFoundException("Proposal not found");
@@ -437,7 +442,9 @@ export class ProposalService {
   async updateProposal(
     id: string,
     userId: string,
+    userRole: string,
     fields: { price?: number; message?: string; estimated_hours?: number },
+    providerId?: string,
   ): Promise<ProposalResponseDto> {
     this.logger.log(`Updating proposal: ${id}`, ProposalService.name);
 
@@ -446,9 +453,12 @@ export class ProposalService {
       throw new NotFoundException("Proposal not found");
     }
 
-    if (existingProposal.provider_id !== userId) {
+    const isOwner = providerId && existingProposal.provider_id === providerId;
+    const isAdmin = userRole === "admin";
+
+    if (!isOwner && !isAdmin) {
       throw new ForbiddenException(
-        "Only the provider who submitted this proposal can update it",
+        "Only the provider who submitted this proposal or an admin can update it",
       );
     }
 
@@ -460,7 +470,7 @@ export class ProposalService {
 
     const proposal = await this.proposalRepository.updateProposal(
       id,
-      userId,
+      existingProposal.provider_id,
       fields,
     );
     if (!proposal) {
@@ -475,7 +485,12 @@ export class ProposalService {
     return ProposalResponseDto.fromEntity(proposal);
   }
 
-  async deleteProposal(id: string, userId: string): Promise<void> {
+  async deleteProposal(
+    id: string,
+    userId: string,
+    userRole: string,
+    providerId?: string,
+  ): Promise<void> {
     this.logger.log(`Deleting proposal: ${id}`, ProposalService.name);
 
     const existingProposal = await this.proposalRepository.getProposalById(id);
@@ -483,9 +498,12 @@ export class ProposalService {
       throw new NotFoundException("Proposal not found");
     }
 
-    if (existingProposal.provider_id !== userId) {
+    const isOwner = providerId && existingProposal.provider_id === providerId;
+    const isAdmin = userRole === "admin";
+
+    if (!isOwner && !isAdmin) {
       throw new ForbiddenException(
-        "Only the provider who submitted this proposal can delete it",
+        "Only the provider who submitted this proposal or an admin can delete it",
       );
     }
 
@@ -497,7 +515,10 @@ export class ProposalService {
     }
 
     // Withdraw the proposal (sets status to 'withdrawn')
-    await this.proposalRepository.withdrawProposal(existingProposal.id, userId);
+    await this.proposalRepository.withdrawProposal(
+      existingProposal.id,
+      existingProposal.provider_id,
+    );
 
     this.logger.log(
       `Proposal deleted successfully: ${id}`,

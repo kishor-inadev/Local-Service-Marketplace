@@ -111,7 +111,7 @@ export class NotificationClient {
 
       this.logger.log(`Email sent successfully to ${options.to}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send email to ${options.to}: ${error.message}`,
         error.stack,
@@ -142,7 +142,7 @@ export class NotificationClient {
 
       this.logger.log(`SMS sent successfully to ${options.phone}`);
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send SMS to ${options.phone}: ${error.message}`,
         error.stack,

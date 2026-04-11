@@ -490,7 +490,7 @@ export class AuthService {
       );
 
       return { accessToken };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Refresh token failed", {
         context: "AuthService",
         error: error.message,
@@ -964,7 +964,7 @@ export class AuthService {
       });
 
       return { message: "OTP sent successfully" };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to send OTP", {
         context: "AuthService",
         phone,
@@ -1080,7 +1080,7 @@ export class AuthService {
           last_login_at: user.last_login_at,
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("OTP verification error", {
         context: "AuthService",
         phone,
@@ -1278,7 +1278,7 @@ export class AuthService {
         name: user.name,
         phone: user.phone,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Token verification failed", {
         context: "AuthService",
         error: error.message,
@@ -1310,7 +1310,7 @@ export class AuthService {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error checking identifier", {
         context: "AuthService",
         type,
@@ -1348,7 +1348,7 @@ export class AuthService {
       }
 
       return false;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error checking OTP service availability", {
         context: "AuthService",
         type,
@@ -2103,7 +2103,7 @@ export class AuthService {
       const appleClientId = this.configService.get<string>("APPLE_CLIENT_ID");
       const payload = await verify(identityToken, { clientId: appleClientId });
       return payload.sub; // Apple user ID
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Apple token verification failed", {
         error: error.message,
       });

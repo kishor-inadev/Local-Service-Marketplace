@@ -101,19 +101,19 @@ export class PushWorker extends WorkerHost implements OnModuleInit {
           'PushWorker',
         );
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `PushWorker: delivery ${deliveryId} failed — ${error.message}`,
         error.stack,
         'PushWorker',
       );
       await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
-      
+
       // Capture in DLQ if max retries reached
       if (this.dlqService && job.attemptsMade >= 3) {
         await this.dlqService.captureFailedJob('comms.push', job, error);
       }
-      
+
       throw error;
     }
   }

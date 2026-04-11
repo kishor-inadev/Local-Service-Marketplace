@@ -64,7 +64,7 @@ export class CleanupWorker extends WorkerHost implements OnModuleInit {
         default:
           this.logger.warn(`CleanupWorker: unknown job name "${job.name}"`, 'CleanupWorker');
       }
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'CleanupWorker');
       throw error;

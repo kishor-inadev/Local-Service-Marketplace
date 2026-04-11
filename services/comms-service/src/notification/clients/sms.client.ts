@@ -72,7 +72,7 @@ export class SmsClient {
 
       this.logger.log(`SMS sent successfully to ${phone}`, "SmsClient");
       return { success: true, messageId: response.data?.messageId };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send SMS to ${phone}: ${error.message}`,
         error.stack,
@@ -110,7 +110,7 @@ export class SmsClient {
 
       this.logger.log(`OTP sent successfully to ${phone}`, "SmsClient");
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send OTP to ${phone}: ${error.message}`,
         error.stack,
@@ -157,7 +157,7 @@ export class SmsClient {
         "SmsClient",
       );
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to verify OTP for ${phone}: ${error.message}`,
         error.stack,
@@ -182,7 +182,7 @@ export class SmsClient {
     try {
       await this.httpClient.get("/health");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `SMS service health check failed: ${error.message}`,
         "SmsClient",

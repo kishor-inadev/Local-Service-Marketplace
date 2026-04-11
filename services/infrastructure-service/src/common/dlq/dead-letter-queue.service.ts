@@ -36,7 +36,7 @@ export class DeadLetterQueueService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     @Inject("DATABASE_POOL") private readonly pool: Pool,
-  ) {}
+  ) { }
 
   /**
    * Capture a failed job and store in DLQ
@@ -185,7 +185,7 @@ export class DeadLetterQueueService {
         `Replayed failed job ${failedJobId} to queue ${failedJob.queue_name}`,
         "DeadLetterQueueService",
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to replay job ${failedJobId}: ${error.message}`,
         error.stack,

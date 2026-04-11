@@ -50,16 +50,16 @@ export class RefundWorker extends WorkerHost implements OnModuleInit {
       await this.paymentRepository.updatePaymentStatus(paymentId, 'refunded', null);
 
       this.logger.log(`Refund ${refundId} completed successfully`, 'RefundWorker');
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Refund ${refundId} failed: ${err.message}`, err.stack, 'RefundWorker');
       await this.refundRepository.updateRefundStatus(refundId, 'failed');
-      
+
       // Capture in DLQ if max attempts reached
       if (this.dlqService && job.attemptsMade >= 3) {
         await this.dlqService.captureFailedJob('payment.refund', job, err);
       }
-      
+
       throw error;
     }
   }

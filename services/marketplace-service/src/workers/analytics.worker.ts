@@ -25,7 +25,7 @@ export class MarketplaceAnalyticsWorker extends WorkerHost implements OnModuleIn
     try {
       this.analyticsClient.track({ userId, action, resource, resourceId, metadata });
       this.logger.log(`Analytics tracked: ${action} on ${resource}/${resourceId}`, 'MarketplaceAnalyticsWorker');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Analytics track failed: ${error.message}`, error.stack, 'MarketplaceAnalyticsWorker');
       throw error;
     }
