@@ -249,7 +249,10 @@ This document explains **how authentication, validation, and authorization** wor
 └────────────────────────────────────────────────────────────────┘
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
-│                POST /api/v1/auth/login                         │
+│       NextAuth signIn('credentials', { email, password })      │
+│  Handled server-side by auth.config.ts CredentialsProvider    │
+│  Calls serverAuthService.loginWithEmail() internally          │
+│  POST /api/v1/user/auth/login                                 │
 │  { "email": "user@example.com", "password": "pass123" }       │
 └────────────────────────────────────────────────────────────────┘
                               ↓
@@ -264,9 +267,7 @@ This document explains **how authentication, validation, and authorization** wor
 │  Step 3: Verify password                                      │
 │    bcrypt.compare(password, user.password_hash)               │
 │    if (!match) {                                              │
-│      // Track failed attempt                                  │
 │      INSERT INTO login_attempts (user_id, ip, success)        │
-│      VALUES (user.id, req.ip, false)                          │
 │      throw UnauthorizedException                              │
 │    }                                                           │
 │                                                                │
@@ -276,48 +277,56 @@ This document explains **how authentication, validation, and authorization** wor
 │                                                                │
 │  Step 5: Track successful login                               │
 │    INSERT INTO login_attempts (user_id, ip, success)          │
-│    VALUES (user.id, req.ip, true)                             │
 │                                                                │
 │  Step 6: Create session                                       │
-│    INSERT INTO sessions (user_id, ip, user_agent)             │
-│    VALUES (user.id, req.ip, req.headers['user-agent'])        │
-│    RETURNING session_id                                       │
+│    INSERT INTO sessions (user_id, ip, user_agent) ...         │
 │                                                                │
-│  Step 7: Generate tokens                                      │
-│    access_token = jwt.sign(                                   │
-│      { sub: user.id, email, role },                           │
-│      SECRET, { expiresIn: '7d' }                              │
-│    )                                                           │
-│    refresh_token = jwt.sign(                                  │
-│      { sub: user.id, session_id },                            │
-│      REFRESH_SECRET, { expiresIn: '30d' }                     │
-│    )                                                           │
-│                                                                │
-│  Step 8: Check if SMS_ENABLED and user has 2FA enabled        │
-│    if (SMS_ENABLED && user.two_factor_enabled) {              │
-│      otp = generateOTP(6)                                     │
-│      POST http://sms-service:5000/api/sms/otp/send            │
-│      {                                                         │
-│        "phone": user.phone,                                   │
-│        "purpose": "login_2fa"                                 │
-│      }                                                         │
-│      return { requires_2fa: true, session_id }                │
-│    }                                                           │
-│                                                                │
-│  Step 9: Return tokens                                        │
+│  Step 7: Return tokens + basic user snapshot                  │
 │    return {                                                   │
-│      access_token,                                            │
-│      refresh_token,                                           │
-│      user: { id, email, name, role, email_verified }          │
+│      accessToken,                                             │
+│      refreshToken,                                            │
+│      user: { id, email, name, role, email_verified,           │
+│              phone_verified, timezone, language,              │
+│              profile_picture_url }                            │
 │    }                                                           │
 └────────────────────────────────────────────────────────────────┘
                               ↓
 ┌────────────────────────────────────────────────────────────────┐
-│                    FRONTEND TOKEN STORAGE                      │
-│  localStorage.setItem('access_token', access_token)           │
-│  localStorage.setItem('refresh_token', refresh_token)         │
-│  authStore.setUser(user)                                       │
-│  router.push('/dashboard')                                    │
+│         NextAuth jwt() CALLBACK — PROFILE HYDRATION           │
+│                                                                │
+│  On initial sign-in NextAuth immediately calls:               │
+│    GET /api/v1/user/auth/me                                   │
+│    Authorization: Bearer <accessToken>                        │
+│                                                                │
+│  /me returns the FULL current user profile:                   │
+│    { id, email, name, role, email_verified, phone_verified,   │
+│      phone, profile_picture_url, timezone, language,          │
+│      status, created_at, last_login_at }                      │
+│                                                                │
+│  All fields are stored in the server-side JWT cookie:         │
+│    id, email, name, image (profile_picture_url),              │
+│    role, emailVerified, phoneVerified, timezone, language,    │
+│    accessToken, refreshToken, accessTokenExpires              │
+└────────────────────────────────────────────────────────────────┘
+                              ↓
+┌────────────────────────────────────────────────────────────────┐
+│            NextAuth session() CALLBACK → CLIENT SESSION        │
+│  The full profile is available in any component via:          │
+│    const { data: session } = useSession()                     │
+│    session.user.id            // user UUID                    │
+│    session.user.email         // email address                │
+│    session.user.name          // display name                 │
+│    session.user.image         // avatar URL                   │
+│    session.user.role          // customer | provider | admin  │
+│    session.user.emailVerified // boolean                      │
+│    session.user.phoneVerified // boolean  ← from /me         │
+│    session.user.timezone      // e.g. "America/New_York"      │
+│    session.user.language      // e.g. "en"                    │
+│    session.accessToken        // for direct API calls         │
+│                                                                │
+│  Tokens are stored in HTTP-only cookies (no localStorage)     │
+│  NextAuth auto-refreshes access token when it expires         │
+│  router.push(getDashboardHomeByRole(role))                    │
 └────────────────────────────────────────────────────────────────┘
 ```
 

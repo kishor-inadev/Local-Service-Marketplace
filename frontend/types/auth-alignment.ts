@@ -91,6 +91,9 @@ export interface FrontendSession {
 		image?: string | null;
 		role: string;
 		emailVerified: boolean;
+		phoneVerified: boolean;
+		timezone: string | null;
+		language: string | null;
 	};
 	expires: string; // ISO date string
 	accessToken?: string;
@@ -110,6 +113,9 @@ export interface FrontendJWT {
   id?: string;
   role?: string;
   emailVerified?: boolean | Date | null;
+  phoneVerified?: boolean;
+  timezone?: string | null;
+  language?: string | null;
   accessToken?: string;
   refreshToken?: string;
   accessTokenExpires?: number; // Unix timestamp
@@ -165,6 +171,9 @@ export function transformBackendUserToFrontend(backendUser: BackendAuthResponse[
     image: backendUser.profile_picture_url || null,
     role: backendUser.role,
     emailVerified: backendUser.email_verified,
+    phoneVerified: backendUser.phone_verified,
+    timezone: backendUser.timezone,
+    language: backendUser.language,
   };
 }
 

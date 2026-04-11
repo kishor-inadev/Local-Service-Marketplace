@@ -188,16 +188,29 @@ export const authOptions = {
 	},
 	callbacks: {
 		async jwt({ token, user, trigger, session }: any) {
-			// Initial sign in
+			// Initial sign in — fetch full profile from /me to populate all user fields
 			if (user) {
+				// Enrich with complete profile data from /user/auth/me
+				let profile: Awaited<ReturnType<typeof serverAuthService.getProfileFromToken>> = null;
+				try {
+					profile = await serverAuthService.getProfileFromToken(user.accessToken);
+				} catch {
+					// If /me fails, fall back to login response data
+				}
+
 				return {
 					...token,
-					id: user.id,
-					email: user.email,
-					name: user.name,
-					image: user.image,
-					role: user.role,
-					emailVerified: typeof user.emailVerified === "boolean" ? user.emailVerified : false,
+					id: profile?.id ?? user.id,
+					email: profile?.email ?? user.email,
+					name: profile?.name ?? user.name,
+					image: profile?.profile_picture_url ?? user.image ?? null,
+					role: profile?.role ?? user.role,
+					emailVerified: profile !== null
+						? Boolean(profile.email_verified)
+						: typeof user.emailVerified === "boolean" ? user.emailVerified : false,
+					phoneVerified: profile !== null ? Boolean(profile.phone_verified) : false,
+					timezone: profile?.timezone ?? null,
+					language: profile?.language ?? null,
 					accessToken: user.accessToken,
 					refreshToken: user.refreshToken,
 					accessTokenExpires: Date.now() + TOKEN_CONFIG.ACCESS_TOKEN_EXPIRATION,
@@ -226,6 +239,9 @@ export const authOptions = {
 				session.user.image = token.image || session.user.image;
 				session.user.role = token.role || "customer";
 				session.user.emailVerified = Boolean(token.emailVerified);
+				session.user.phoneVerified = Boolean(token.phoneVerified);
+				session.user.timezone = token.timezone ?? null;
+				session.user.language = token.language ?? null;
 				session.accessToken = token.accessToken;
 				session.accessTokenExpires = token.accessTokenExpires;
 				session.error = token.error;

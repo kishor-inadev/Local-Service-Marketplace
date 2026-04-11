@@ -6,7 +6,14 @@ declare module "next-auth" {
    * Returned by `useSession`, `auth`, etc.
    */
   interface Session {
-		user: { id: string; role: string; emailVerified: boolean } & DefaultSession["user"];
+		user: {
+			id: string;
+			role: string;
+			emailVerified: boolean;
+			phoneVerified: boolean;
+			timezone: string | null;
+			language: string | null;
+		} & DefaultSession["user"];
 		accessToken?: string;
 		accessTokenExpires?: number; // Timestamp when access token expires
 		error?: "RefreshAccessTokenError";
@@ -30,6 +37,9 @@ declare module "next-auth/jwt" {
     id?: string;
     role?: string;
     emailVerified?: boolean | Date | null;
+    phoneVerified?: boolean;
+    timezone?: string | null;
+    language?: string | null;
     accessToken?: string;
     refreshToken?: string;
     accessTokenExpires?: number; // Timestamp when access token expires
