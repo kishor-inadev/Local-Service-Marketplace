@@ -118,7 +118,7 @@ export class RequestController {
     };
   }> {
     if (!files || files.length === 0) {
-      throw new BadRequestException("No files provided");
+      throw new BadRequestException("At least one image file is required");
     }
 
     // Resource already fetched and validated by OwnershipGuard
@@ -187,7 +187,7 @@ export class RequestController {
     limit: number;
   }> {
     if (req.user.role !== "admin" && req.user.userId !== userId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only view service requests belonging to your own account");
     }
     const result = await this.requestService.getRequestsByUser(userId);
     return { ...result, page: 1, limit: result.data.length || 1 };

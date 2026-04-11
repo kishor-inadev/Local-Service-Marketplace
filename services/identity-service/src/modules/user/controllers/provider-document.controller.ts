@@ -43,7 +43,7 @@ export class ProviderDocumentController {
     @Request() req: any,
   ) {
     if (!file) {
-      throw new BadRequestException("File is required");
+      throw new BadRequestException("Document file is required");
     }
 
     const userId = req.user.userId;
@@ -123,7 +123,7 @@ export class ProviderDocumentController {
       req.user.userId,
       reason || "Rejected by admin",
     );
-    return { success: true, data: document, message: "Document rejected" };
+    return { success: true, data: document, message: "Document rejected successfully" };
   }
 
   @Get("provider/:providerId")

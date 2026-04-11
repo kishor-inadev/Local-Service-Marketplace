@@ -72,7 +72,7 @@ export class AnalyticsController {
 		this.logger.log(`GET /analytics/user-activity/${userId} - Retrieve activity for user`, "AnalyticsController");
 
 		if (requestingUserRole !== "admin" && requestingUserId !== userId) {
-			throw new ForbiddenException("Access denied");
+			throw new ForbiddenException("You can only view your own activity log");
 		}
 
 		const result = await this.analyticsService.getUserActivity(userId, limit, offset);

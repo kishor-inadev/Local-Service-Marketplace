@@ -29,7 +29,7 @@ export class SubscriptionController {
 
   private assertProviderAccess(req: any, providerId: string) {
     if (req.user.role !== "admin" && req.user.providerId !== providerId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only manage subscriptions for your own provider account");
     }
   }
 

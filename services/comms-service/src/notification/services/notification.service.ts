@@ -102,7 +102,7 @@ export class NotificationService {
       throw new NotFoundException("Notification not found");
     }
     if (requestingUserId && notification.user_id !== requestingUserId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only access your own notifications");
     }
     return notification;
   }

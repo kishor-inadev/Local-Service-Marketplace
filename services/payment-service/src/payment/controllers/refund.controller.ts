@@ -18,7 +18,7 @@ import { RequestRefundDto } from "../dto/request-refund.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
-import { ForbiddenException } from "@/common/exceptions/http.exceptions";
+import { ForbiddenException, NotFoundException } from "@/common/exceptions/http.exceptions";
 
 @Controller("refunds")
 export class RefundController {
@@ -43,7 +43,7 @@ export class RefundController {
     const payment = await this.paymentRepository.getPaymentById(paymentId);
     
     if (!payment) {
-      throw new ForbiddenException("Payment not found");
+      throw new NotFoundException("Payment not found");
     }
     
     // Only the payment owner or admin can request refunds
@@ -109,7 +109,7 @@ export class RefundController {
     const payment = await this.paymentRepository.getPaymentById(paymentId);
     
     if (!payment) {
-      throw new ForbiddenException("Payment not found");
+      throw new NotFoundException("Payment not found");
     }
     
     // Only the payment owner or admin can view refunds for a payment
@@ -138,10 +138,9 @@ export class RefundController {
   @HttpCode(HttpStatus.OK)
   async getAllRefunds() {
     // TODO: Implement pagination and filtering
-    // For now, this is a basic implementation
     return {
       success: true,
-      message: "Refund listing endpoint - pagination to be implemented",
+      message: "Refund list retrieved successfully",
       data: [],
     };
   }

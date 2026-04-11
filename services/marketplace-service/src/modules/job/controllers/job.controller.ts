@@ -134,7 +134,7 @@ export class JobController {
     };
   }> {
     if (!files || files.length === 0) {
-      throw new BadRequestException("No files provided");
+      throw new BadRequestException("At least one photo file is required");
     }
 
     // Verify job exists and user is either provider or customer
@@ -184,7 +184,7 @@ export class JobController {
   }> {
     // RBAC check: only admin or the provider themselves can list their jobs here
     if (req.user.role !== "admin" && req.user.providerId !== providerId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only view jobs assigned to your own provider account");
     }
     const result = await this.jobService.getJobsByProvider(providerId);
     return { ...result, page: 1, limit: result.data.length || 1 };

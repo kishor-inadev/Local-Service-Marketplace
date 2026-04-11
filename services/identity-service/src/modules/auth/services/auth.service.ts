@@ -574,7 +574,7 @@ export class AuthService {
 
   async getProfile(userId: string): Promise<any> {
     if (!userId) {
-      throw new UnauthorizedException("Unauthorized");
+      throw new UnauthorizedException("User ID is required to retrieve profile");
     }
 
     const user = await this.userRepo.findById(userId);
@@ -608,7 +608,7 @@ export class AuthService {
     updateUserDto: UpdateUserDto,
   ): Promise<any> {
     if (!userId) {
-      throw new UnauthorizedException("Unauthorized");
+      throw new UnauthorizedException("User ID is required to update profile");
     }
 
     const updatedUser = await this.userRepo.update(

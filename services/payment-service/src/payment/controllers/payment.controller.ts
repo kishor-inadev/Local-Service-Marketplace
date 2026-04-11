@@ -130,9 +130,8 @@ export class PaymentController {
     @Query("end_date") endDate?: string,
   ) {
     if (req.user.role !== "admin" && req.user.providerId !== providerId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only view your own earnings summary");
     }
-    const start = startDate ? new Date(startDate) : undefined;
     const end = endDate ? new Date(endDate) : undefined;
     const earnings = await this.paymentService.getProviderEarnings(
       providerId,
@@ -150,7 +149,7 @@ export class PaymentController {
     @Query() queryDto: TransactionQueryDto,
   ) {
     if (req.user.role !== "admin" && req.user.providerId !== providerId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only view your own transaction history");
     }
     return this.paymentService.getProviderTransactions(providerId, queryDto);
   }
@@ -162,7 +161,7 @@ export class PaymentController {
     @Request() req: any,
   ) {
     if (req.user.role !== "admin" && req.user.providerId !== providerId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only view your own payout history");
     }
     const payouts = await this.paymentService.getProviderPayouts(providerId);
     return {
@@ -185,7 +184,7 @@ export class PaymentController {
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only view payments you are involved in");
     }
     return payment;
   }
@@ -210,7 +209,7 @@ export class PaymentController {
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only check the status of payments you are involved in");
     }
 
     return {
@@ -271,13 +270,13 @@ export class PaymentController {
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only view invoices for payments you are involved in");
     }
     const invoice = await this.invoiceService.generateInvoice(
       id,
       req.user.userId,
     );
-    return { success: true, message: "Invoice generated", data: invoice };
+    return { success: true, message: "Invoice retrieved successfully", data: invoice };
   }
 
   /**
@@ -297,7 +296,7 @@ export class PaymentController {
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only download invoices for payments you are involved in");
     }
     const invoice = await this.invoiceService.generateInvoice(
       id,
@@ -334,7 +333,7 @@ export class PaymentController {
     };
   }> {
     if (!file) {
-      throw new BadRequestException("No file provided");
+      throw new BadRequestException("Receipt file is required");
     }
 
     // Verify payment exists and user is authorized

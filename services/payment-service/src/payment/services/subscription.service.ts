@@ -29,10 +29,8 @@ export class SubscriptionService {
     actorProviderId?: string,
   ): Promise<Subscription> {
     if (actorRole !== "admin" && actorProviderId !== providerId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only create subscriptions for your own provider account");
     }
-
-    // Verify plan exists and is active
     const plan = await this.pricingPlanRepository.findById(planId);
 
     if (!plan) {
@@ -153,10 +151,8 @@ export class SubscriptionService {
     }
 
     if (actorRole !== "admin" && actorProviderId !== subscription.provider_id) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only cancel your own provider subscription");
     }
-
-    if (subscription.status === "cancelled") {
       throw new BadRequestException("Subscription is already cancelled");
     }
 
@@ -176,7 +172,7 @@ export class SubscriptionService {
     actorProviderId?: string,
   ): Promise<Subscription> {
     if (actorRole !== "admin" && actorProviderId !== providerId) {
-      throw new ForbiddenException("Access denied");
+      throw new ForbiddenException("You can only upgrade your own provider subscription");
     }
 
     // Get current subscription
