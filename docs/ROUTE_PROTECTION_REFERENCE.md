@@ -2,7 +2,7 @@
 
 This document provides a comprehensive overview of **which routes are public vs protected** in the Local Service Marketplace platform.
 
-**Last Updated:** March 15, 2026
+**Last Updated:** April 11, 2026
 
 ---
 
@@ -19,69 +19,112 @@ This document provides a comprehensive overview of **which routes are public vs 
 
 **Configured in:** `frontend/middleware.ts`
 
-### ✅ **Public Frontend Routes** (No Authentication Required)
+### ✅ Public Frontend Routes (No Authentication Required)
 
 | Route | Description |
-|-------|-------------|
+|---|---|
 | `/` | Homepage |
-| `/about` | About us page |
+| `/about` | About us |
 | `/contact` | Contact form |
-| `/help` | Help center |
+| `/help` | Help centre |
 | `/faq` | Frequently asked questions |
-| `/pricing` | Pricing plans |
+| `/pricing` | Subscription plans |
 | `/terms` | Terms of service |
 | `/privacy` | Privacy policy |
 | `/cookies` | Cookie policy |
 | `/careers` | Career opportunities |
-| `/how-it-works` | How it works guide |
-| `/login` | Login page |
-| `/signup` | Signup page |
-| `/forgot-password` | Forgot password page |
-| `/reset-password` | Reset password page |
-| `/auth/callback` | OAuth callback handler |
-| `/auth/error` | Auth error page |
-| `/requests` | Browse service requests (public marketplace) |
-| `/requests/[id]` | View request details |
+| `/how-it-works` | Platform explainer |
+| `/categories` | Browse service categories |
+| `/search` | Provider / request search |
 | `/providers` | Browse provider directory |
-| `/providers/[id]` | View provider profile |
-| `/unsubscribe` | Email unsubscribe page |
+| `/providers/:id` | Provider public profile |
+| `/requests` | Browse open service requests |
+| `/requests/:id` | View request details |
+| `/requests/create` | Create a new service request |
+| `/unsubscribe` | Email unsubscribe |
+| `/login` | Login |
+| `/signup` | Sign up |
+| `/phone-login` | Phone OTP login |
+| `/forgot-password` | Forgot password |
+| `/reset-password` | Reset password |
+| `/verify-email` | Email verification |
+| `/auth/callback` | OAuth callback |
+| `/error` | Auth error page |
 
-### 🔒 **Protected Frontend Routes** (Authentication Required)
+### 🔒 Protected Frontend Routes (Authentication Required)
 
-All routes under `/dashboard` require authentication:
+All routes under `/dashboard` or `/checkout` require authentication. Non-authenticated users are redirected to `/login`.
 
-| Route | Description | Role Required |
-|-------|-------------|---------------|
-| `/dashboard` | User dashboard homepage | User/Provider |
-| `/dashboard/profile` | User profile view | User/Provider |
-| `/dashboard/profile/edit` | Edit user profile | User/Provider |
-| `/dashboard/settings` | Account settings | User/Provider |
-| `/dashboard/settings/password` | Change password | User/Provider |
-| `/dashboard/settings/notifications` | Notification preferences | User/Provider |
-| `/dashboard/settings/payment-methods` | Payment methods | User/Provider |
-| `/dashboard/settings/subscription` | Subscription management | Provider |
-| `/dashboard/requests` | User's service requests | Customer |
-| `/dashboard/requests/[id]` | Request details | Customer |
-| `/dashboard/browse-requests` | Browse available requests | Provider |
-| `/dashboard/my-proposals` | Provider's proposals | Provider |
-| `/dashboard/jobs` | Active jobs | User/Provider |
-| `/dashboard/jobs/[id]` | Job details | User/Provider |
-| `/dashboard/messages` | Messages/chat | User/Provider |
-| `/dashboard/notifications` | Notifications center | User/Provider |
-| `/dashboard/reviews/submit` | Submit review | User/Provider |
-| `/dashboard/payments/history` | Payment history | User/Provider |
-| `/dashboard/earnings` | Provider earnings | Provider |
-| `/dashboard/availability` | Set availability | Provider |
-| `/dashboard/provider` | Provider profile management | Provider |
-| `/dashboard/admin` | Admin dashboard | Admin |
-| `/dashboard/admin/users` | Manage users | Admin |
-| `/dashboard/admin/disputes` | Manage disputes | Admin |
-| `/dashboard/admin/settings` | Admin settings | Admin |
-| `/requests/create` | Create new request | Customer |
+**Auto-redirect rules:**
+- Unauthenticated → any `/dashboard/*` or `/checkout` → `/login?callbackUrl=...`
+- Authenticated → `/login` or `/signup` → `/dashboard`
 
-**Auto-Redirects:**
-- Logged-in users visiting `/login` or `/signup` → Redirected to `/dashboard`
-- Non-logged-in users visiting `/dashboard` → Redirected to `/login`
+#### Shared (any authenticated role)
+
+| Route | Description |
+|---|---|
+| `/onboarding` | Role-aware onboarding wizard |
+| `/checkout?plan=:id` | Subscription checkout (provider) |
+| `/checkout?jobId=:id` | Job payment checkout (customer) |
+| `/dashboard` | Role-based overview |
+| `/dashboard/profile` | View own profile |
+| `/dashboard/profile/edit` | Edit profile |
+| `/dashboard/settings` | Settings hub |
+| `/dashboard/settings/password` | Change password |
+| `/dashboard/settings/notifications` | Notification preferences |
+| `/dashboard/settings/payment-methods` | Saved payment methods |
+| `/dashboard/settings/subscription` | Subscription management |
+| `/dashboard/jobs` | My jobs list |
+| `/dashboard/jobs/:id` | Job detail + actions |
+| `/dashboard/messages` | Conversations (feature-flagged) |
+| `/dashboard/notifications` | Notifications (feature-flagged) |
+| `/dashboard/disputes` | My disputes list |
+| `/dashboard/disputes/:id` | Dispute detail + status tracker |
+| `/dashboard/disputes/file` | File a new dispute |
+
+#### Customer-specific
+
+| Route | Description |
+|---|---|
+| `/dashboard/requests` | My service requests |
+| `/dashboard/requests/:id` | Request detail + proposals |
+| `/dashboard/requests/:id/edit` | Edit open request |
+| `/dashboard/payments/history` | Payment history |
+| `/dashboard/reviews` | Reviews I've written |
+| `/dashboard/reviews/submit` | Submit a review |
+| `/dashboard/favorites` | Saved providers |
+
+#### Provider-specific
+
+| Route | Role guard | Description |
+|---|---|---|
+| `/dashboard/browse-requests` | Provider | Browse open requests + submit proposals |
+| `/dashboard/my-proposals` | Provider | All submitted proposals |
+| `/dashboard/earnings` | Provider | Earnings dashboard + transactions |
+| `/dashboard/availability` | Provider | Weekly availability schedule |
+| `/dashboard/provider` | Provider | Edit business profile |
+| `/dashboard/provider/services` | Provider | Manage offered services |
+| `/dashboard/provider/portfolio` | Provider | Work photo gallery |
+| `/dashboard/provider/documents` | Provider | Verification documents |
+| `/dashboard/provider/reviews` | Provider | Reviews received + respond |
+
+#### Admin-specific
+
+| Route | Role guard | Description |
+|---|---|---|
+| `/dashboard/admin` | Admin | Platform overview metrics |
+| `/dashboard/admin/users` | Admin | User list, search, filter |
+| `/dashboard/admin/users/:id` | Admin | User detail, suspend, delete |
+| `/dashboard/admin/users/create` | Admin | Create user account |
+| `/dashboard/admin/providers` | Admin | Provider verification queue |
+| `/dashboard/admin/categories` | Admin | Category CRUD management |
+| `/dashboard/admin/disputes` | Admin | All disputes |
+| `/dashboard/admin/disputes/:id` | Admin | Dispute detail + resolution |
+| `/dashboard/admin/analytics` | Admin | Analytics dashboard |
+| `/dashboard/admin/audit-logs` | Admin | System audit log |
+| `/dashboard/admin/settings` | Admin | System settings (live editor) |
+
+
 
 ---
 
