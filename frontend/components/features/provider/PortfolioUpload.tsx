@@ -88,13 +88,13 @@ export function PortfolioUpload({ providerId, onUploadSuccess }: PortfolioUpload
       setTitle('');
       setDescription('');
       setFiles([]);
-      
+
       if (onUploadSuccess) {
         onUploadSuccess();
       }
 
       toast.success('Portfolio item created successfully!');
-    } catch (err) {
+    } catch (error: any) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
@@ -145,15 +145,14 @@ export function PortfolioUpload({ providerId, onUploadSuccess }: PortfolioUpload
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Images * (1-10 images, max 5MB each)
         </label>
-        
+
         {files.length < 10 && (
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors mb-4 ${
-              isDragActive 
-                ? 'border-blue-500 bg-blue-50' 
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors mb-4 ${isDragActive
+                ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-300 hover:border-gray-400'
-            }`}
+              }`}
           >
             <input {...getInputProps()} />
             <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />

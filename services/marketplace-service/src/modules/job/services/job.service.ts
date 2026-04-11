@@ -37,7 +37,7 @@ export class JobService {
     private readonly analyticsClient: AnalyticsClient,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   async createJob(dto: CreateJobDto): Promise<JobResponseDto> {
     this.logger.log(
@@ -78,7 +78,7 @@ export class JobService {
             jobUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/jobs/${job.id}`,
           },
         })
-        .catch((err) => {
+        .catch((error: any) => {
           this.logger.warn(
             `Failed to send job creation notification: ${err.message}`,
             JobService.name,

@@ -29,7 +29,7 @@ export class IdentityNotificationWorker extends WorkerHost implements OnModuleIn
         template,
         to,
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error('Identity notification failed', {
         context: 'IdentityNotificationWorker',
         template,

@@ -21,7 +21,7 @@ export class WebhookService {
     private readonly notificationClient: NotificationClient,
     private readonly userClient: UserClient,
     private readonly paymentGateway: PaymentGatewayService,
-  ) {}
+  ) { }
 
   /**
    * Handle an incoming webhook request.
@@ -100,8 +100,8 @@ export class WebhookService {
       // Look up payment by transaction ID (the gateway order/intent ID stored at creation)
       let payment = event.transactionId
         ? await this.paymentRepository.getPaymentByTransactionId(
-            event.transactionId,
-          )
+          event.transactionId,
+        )
         : null;
 
       // Fall back to application-level paymentId if present in metadata
@@ -143,7 +143,7 @@ export class WebhookService {
                 serviceName: "Service",
               },
             })
-            .catch((err) => {
+            .catch((err: any) => {
               this.logger.warn(
                 `Failed to send payment confirmation email: ${err.message}`,
                 "WebhookService",
@@ -177,7 +177,7 @@ export class WebhookService {
                   "Your payment could not be processed. Please check your payment method and try again.",
               },
             })
-            .catch((err) => {
+            .catch((err: any) => {
               this.logger.warn(
                 `Failed to send payment failure notification: ${err.message}`,
                 "WebhookService",
@@ -202,7 +202,7 @@ export class WebhookService {
         `Webhook ${webhook.id} processed successfully`,
         "WebhookService",
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to process webhook ${webhook.id}: ${error.message}`,
         "WebhookService",

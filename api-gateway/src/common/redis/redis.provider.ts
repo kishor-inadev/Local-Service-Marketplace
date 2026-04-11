@@ -29,7 +29,7 @@ export function getRedisClient(): Redis | null {
     lazyConnect: true,
   });
 
-  redisClient.on("error", (err) => {
+  redisClient.on("error", (err: any) => {
     console.error("[Redis] Rate limiter Redis error:", err.message);
   });
 

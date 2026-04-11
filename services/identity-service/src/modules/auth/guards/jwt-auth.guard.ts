@@ -4,7 +4,7 @@ import { UnauthorizedException } from "@/common/exceptions/http.exceptions";
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
@@ -24,7 +24,7 @@ export class JwtAuthGuard implements CanActivate {
       const payload = this.jwtService.verifyAccessToken(token);
       request.user = payload;
       return true;
-    } catch (error) {
+    } catch (error: any) {
       throw new UnauthorizedException("Invalid or expired token");
     }
   }

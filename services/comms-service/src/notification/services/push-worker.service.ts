@@ -10,7 +10,7 @@ export class PushWorkerService {
     private readonly logger: LoggerService,
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly notificationRepository: NotificationRepository,
-  ) {}
+  ) { }
 
   async processPendingPushNotifications(): Promise<void> {
     this.logger.log(
@@ -66,7 +66,7 @@ export class PushWorkerService {
             `Push notification sent successfully for delivery ${delivery.id}`,
             "PushWorkerService",
           );
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error(
             `Failed to send push notification for delivery ${delivery.id}: ${error.message}`,
             "PushWorkerService",
@@ -82,7 +82,7 @@ export class PushWorkerService {
         "Push notification processing completed",
         "PushWorkerService",
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Push notification processing failed: ${error.message}`,
         "PushWorkerService",

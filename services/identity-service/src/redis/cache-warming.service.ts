@@ -16,7 +16,7 @@ export class CacheWarmingService implements OnModuleInit {
     private readonly providerRepo: ProviderRepository,
     private readonly providerServiceRepo: ProviderServiceRepository,
     private readonly providerAvailabilityRepo: ProviderAvailabilityRepository,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.redisService.isCacheEnabled()) {
@@ -36,7 +36,7 @@ export class CacheWarmingService implements OnModuleInit {
       this.logger.info("Cache warming completed successfully", {
         context: "CacheWarmingService",
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Cache warming failed", {
         context: "CacheWarmingService",
         error: error.message,
@@ -99,7 +99,7 @@ export class CacheWarmingService implements OnModuleInit {
             );
 
             cachedCount++;
-          } catch (error) {
+          } catch (error: any) {
             this.logger.warn("Failed to cache provider", {
               context: "CacheWarmingService",
               providerId: provider.id,
@@ -113,7 +113,7 @@ export class CacheWarmingService implements OnModuleInit {
         context: "CacheWarmingService",
         cachedCount,
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to warm provider cache", {
         context: "CacheWarmingService",
         error: error.message,

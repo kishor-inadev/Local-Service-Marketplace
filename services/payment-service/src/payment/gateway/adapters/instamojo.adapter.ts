@@ -210,7 +210,7 @@ export class InstamojoAdapter implements IGatewayAdapter {
         this.logger.warn("Instamojo webhook MAC mismatch");
       }
       return isValid;
-    } catch (err) {
+    } catch (err: any) {
       this.logger.warn(`Instamojo webhook verification error: ${err?.message}`);
       return false;
     }

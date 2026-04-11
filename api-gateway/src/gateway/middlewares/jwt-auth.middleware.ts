@@ -194,7 +194,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
       );
 
       next();
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Token verification failed (${this.validationStrategy}): ${error.message}`,
         error.stack,
@@ -219,7 +219,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
         name: decoded.name,
         phone: decoded.phone,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Local JWT verification failed: ${error.message}`,
         "JwtAuthMiddleware",
@@ -257,7 +257,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
         name: data.name,
         phone: data.phone,
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `API token verification failed: ${error.message}`,
         "JwtAuthMiddleware",

@@ -109,7 +109,7 @@ export class ProviderService {
             dashboardUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/provider/dashboard`,
           },
         })
-        .catch((err) => {
+        .catch((err: any) => {
           this.logger.error("Failed to send provider welcome notification", {
             context: "ProviderService",
             error: err.message,
@@ -386,14 +386,14 @@ export class ProviderService {
     if (!provider) {
       throw new NotFoundException("Provider not found");
     }
-    
+
     const existingServices = await this.providerServiceRepo.findByProviderId(provider.id);
     if (existingServices.some(s => s.category_id === categoryId)) {
       throw new ConflictException("Service category already mapped to this provider");
     }
 
     const newService = await this.providerServiceRepo.create(provider.id, categoryId);
-    
+
     if (this.redisService.isCacheEnabled()) {
       await this.redisService.del(`provider:${provider.id}`);
     }
@@ -407,7 +407,7 @@ export class ProviderService {
 
   async removeProviderService(providerId: string, serviceId: string): Promise<void> {
     await this.providerServiceRepo.deleteById(serviceId);
-    
+
     if (this.redisService.isCacheEnabled()) {
       await this.redisService.del(`provider:${providerId}`);
     }

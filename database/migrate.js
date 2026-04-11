@@ -136,7 +136,7 @@ async function migrateUp(pool, targetVersion) {
       );
       await client.query('COMMIT');
       console.log(`  ✅ ${migration.version}_${migration.name} (${Date.now() - start}ms)`);
-    } catch (err) {
+    } catch (error: any) {
       await client.query('ROLLBACK');
       console.error(`  ❌ ${migration.version}_${migration.name} FAILED:`);
       console.error(`     ${err.message}`);
@@ -188,7 +188,7 @@ async function migrateDown(pool, targetVersion) {
       await client.query('DELETE FROM schema_migrations WHERE version = $1', [record.version]);
       await client.query('COMMIT');
       console.log(`  ✅ Rolled back ${record.version}_${record.name} (${Date.now() - start}ms)`);
-    } catch (err) {
+    } catch (error: any) {
       await client.query('ROLLBACK');
       console.error(`  ❌ Rollback ${record.version}_${record.name} FAILED:`);
       console.error(`     ${err.message}`);
@@ -319,7 +319,7 @@ Usage:
   node migrate.js create <name>   Create a new migration file
         `);
     }
-  } catch (err) {
+  } catch (error: any) {
     console.error('❌ Migration error:', err.message);
     process.exit(1);
   } finally {

@@ -45,7 +45,7 @@ async function bootstrap() {
 	process.on('unhandledRejection', (reason) => {
 		logger.error('Unhandled Rejection', { reason });
 	});
-	process.on('uncaughtException', (err) => {
+	process.on('uncaughtException', (error: any) => {
 		logger.error('Uncaught Exception', { error: err.message, stack: err.stack });
 		process.exit(1);
 	});

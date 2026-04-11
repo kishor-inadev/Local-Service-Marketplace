@@ -102,7 +102,7 @@ export class GatewayService {
       );
 
       return response;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error forwarding request: ${error.message}`,
         error.stack,
@@ -257,7 +257,7 @@ export class GatewayService {
           url: config.url,
           responseTime: response.headers["x-response-time"] || "N/A",
         };
-      } catch (error) {
+      } catch (error: any) {
         results[serviceName] = {
           status: "unhealthy",
           url: config.url,

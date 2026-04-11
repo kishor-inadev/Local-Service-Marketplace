@@ -132,7 +132,7 @@ export class FileServiceClient {
                 }
               );
               // Exponential backoff: 1s, 2s, 4s
-              return new Promise(resolve => 
+              return new Promise(resolve =>
                 setTimeout(resolve, Math.pow(2, retryCount - 1) * 1000)
               );
             },
@@ -155,7 +155,7 @@ export class FileServiceClient {
       });
 
       return response.data.files[0];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("File upload failed after all retries", {
         context: "FileServiceClient",
         error: error.message,
@@ -272,7 +272,7 @@ export class FileServiceClient {
                   category: options.category,
                 }
               );
-              return new Promise(resolve => 
+              return new Promise(resolve =>
                 setTimeout(resolve, Math.pow(2, retryCount - 1) * 1000)
               );
             },
@@ -295,7 +295,7 @@ export class FileServiceClient {
       });
 
       return response.data.files;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Multiple file upload failed after all retries", {
         context: "FileServiceClient",
         error: error.message,
@@ -354,7 +354,7 @@ export class FileServiceClient {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to get file metadata", {
         context: "FileServiceClient",
         fileId,
@@ -394,7 +394,7 @@ export class FileServiceClient {
         fileId,
         adminUserId,
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to delete file", {
         context: "FileServiceClient",
         fileId,
@@ -428,7 +428,7 @@ export class FileServiceClient {
       );
 
       return response.data.files || [];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Failed to get files by entity", {
         context: "FileServiceClient",
         entityType,

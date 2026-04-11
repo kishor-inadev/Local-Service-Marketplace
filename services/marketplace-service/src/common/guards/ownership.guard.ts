@@ -87,9 +87,13 @@ export class OwnershipGuard implements CanActivate {
       throw new ForbiddenException("Resource ownership cannot be determined");
     }
 
-    if (resourceOwnerId !== user.userId) {
+    const isOwner =
+      resourceOwnerId === user.userId ||
+      (user.providerId && resourceOwnerId === user.providerId);
+
+    if (!isOwner) {
       this.logger.warn(
-        `User ${user.userId} attempted to access ${config.resourceType} ${resourceId} owned by ${resourceOwnerId}`,
+        `User ${user.userId} (provider ${user.providerId}) attempted to access ${config.resourceType} ${resourceId} owned by ${resourceOwnerId}`,
         "OwnershipGuard",
       );
       throw new ForbiddenException(

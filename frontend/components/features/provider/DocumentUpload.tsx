@@ -31,7 +31,7 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
     const selectedFile = acceptedFiles[0];
-    
+
     if (selectedFile) {
       // Validate file size (5MB max)
       if (selectedFile.size > 5 * 1024 * 1024) {
@@ -89,13 +89,13 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
       setDocumentNumber('');
       setExpiryDate('');
       setSelectedType('government_id');
-      
+
       if (onUploadSuccess) {
         onUploadSuccess();
       }
 
       toast.success('Document uploaded successfully! It will be reviewed shortly.');
-    } catch (err) {
+    } catch (error: any) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {
       setUploading(false);
@@ -165,15 +165,14 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Upload File * (PDF, JPG, PNG - Max 5MB)
         </label>
-        
+
         {!file ? (
           <div
             {...getRootProps()}
-            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-              isDragActive 
-                ? 'border-blue-500 bg-blue-50' 
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${isDragActive
+                ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-300 hover:border-gray-400'
-            }`}
+              }`}
           >
             <input {...getInputProps()} />
             <Upload className="w-12 h-12 mx-auto mb-4 text-gray-400" />
@@ -242,7 +241,7 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
       {/* Info Box */}
       <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <p className="text-sm text-blue-800">
-          <strong>Note:</strong> Your document will be reviewed by our team within 24-48 hours. 
+          <strong>Note:</strong> Your document will be reviewed by our team within 24-48 hours.
           You'll receive a notification once it's verified.
         </p>
       </div>

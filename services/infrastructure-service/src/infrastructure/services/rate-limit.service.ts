@@ -13,7 +13,7 @@ export class RateLimitService {
     private readonly logger: LoggerService,
     private readonly rateLimitRepository: RateLimitRepository,
     private readonly redisService: RedisService,
-  ) {}
+  ) { }
 
   async checkRateLimit(
     key: string,
@@ -27,7 +27,7 @@ export class RateLimitService {
 
       if (currentCount) {
         const count = parseInt(currentCount);
-        
+
         if (count >= maxRequests) {
           const client = this.redisService.getClient();
           const ttl = client ? await client.ttl(redisKey) : 0;
@@ -68,7 +68,7 @@ export class RateLimitService {
         remaining: maxRequests - 1,
         resetAt: new Date(Date.now() + windowSeconds * 1000),
       };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to check rate limit: ${error.message}`,
         error.stack,
@@ -93,7 +93,7 @@ export class RateLimitService {
         `Rate limit reset for key: ${key}`,
         'RateLimitService',
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to reset rate limit: ${error.message}`,
         error.stack,
@@ -112,7 +112,7 @@ export class RateLimitService {
         'Cleaned up expired rate limits',
         'RateLimitService',
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to cleanup expired limits: ${error.message}`,
         error.stack,

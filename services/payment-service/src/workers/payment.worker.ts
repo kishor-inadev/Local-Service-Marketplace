@@ -47,7 +47,7 @@ export class PaymentWorker extends WorkerHost implements OnModuleInit {
       const transactionId = `txn_retry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
       await this.paymentRepository.updatePaymentStatus(paymentId, 'completed', transactionId);
       this.logger.log(`Payment retry successful for ${paymentId}`, 'PaymentWorker');
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Payment retry failed for ${paymentId}: ${err.message}`, err.stack, 'PaymentWorker');
       await this.paymentRepository.updatePaymentStatus(paymentId, 'failed', null);

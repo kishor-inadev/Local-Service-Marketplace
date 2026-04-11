@@ -107,7 +107,7 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
         `EmailWorker: delivery ${deliveryId} sent successfully`,
         'EmailWorker',
       );
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(
         `EmailWorker: delivery ${deliveryId} failed — ${err.message}`,
@@ -115,12 +115,12 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
         'EmailWorker',
       );
       await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
-      
+
       // Capture in DLQ if max attempts reached
       if (this.dlqService && job.attemptsMade >= 3) {
         await this.dlqService.captureFailedJob('comms.email', job, err);
       }
-      
+
       // Re-throw so BullMQ retries with exponential back-off
       throw error;
     }

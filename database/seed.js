@@ -175,7 +175,7 @@ class DatabaseSeeder {
 			const runStep = async (name, fn) => {
 				try {
 					await fn();
-				} catch (err) {
+				} catch (error: any) {
 					console.error(`   ❌ ${name} failed: ${err.message}`);
 				}
 			};
@@ -1601,8 +1601,8 @@ class DatabaseSeeder {
 			const windowStart = new Date(now.getTime() - randomInt(0, 60) * 1000);
 			const key =
 				randomInt(0, 2) === 0 ? `ip:${faker.internet.ip()}`
-				: randomInt(0, 1) === 0 ? `user:${this.userIds.length > 0 ? randomPick(this.userIds) : uuid()}`
-				: `global:${randomPick(endpoints)}`;
+					: randomInt(0, 1) === 0 ? `user:${this.userIds.length > 0 ? randomPick(this.userIds) : uuid()}`
+						: `global:${randomPick(endpoints)}`;
 
 			const success = await safeInsert(
 				`INSERT INTO rate_limits (id, key, request_count, window_start)
@@ -2124,10 +2124,10 @@ class DatabaseSeeder {
 				const roll = randomInt(0, 9);
 				const star =
 					roll < 1 ? 0
-					: roll < 2 ? 1
-					: roll < 3 ? 2
-					: roll < 6 ? 3
-					: 4;
+						: roll < 2 ? 1
+							: roll < 3 ? 2
+								: roll < 6 ? 3
+									: 4;
 				counts[star]++;
 			}
 

@@ -17,7 +17,7 @@ export class CacheWarmingService implements OnModuleInit {
     private readonly logger: LoggerService,
     private readonly redisService: RedisService,
     private readonly categoryRepository: CategoryRepository,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (!this.redisService.isCacheEnabled()) {
@@ -37,7 +37,7 @@ export class CacheWarmingService implements OnModuleInit {
         "Cache warming completed successfully",
         "CacheWarmingService",
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Cache warming failed: ${error.message}`,
         error.stack,
@@ -75,7 +75,7 @@ export class CacheWarmingService implements OnModuleInit {
         `Category cache warmed: ${categories.length} categories cached`,
         "CacheWarmingService",
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to warm category cache: ${error.message}`,
         error.stack,

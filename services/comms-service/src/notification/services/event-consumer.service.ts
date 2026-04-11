@@ -15,7 +15,7 @@ export class EventConsumerService implements OnModuleInit {
     private readonly logger: LoggerService,
     private readonly kafkaService: KafkaService,
     private readonly notificationRepository: NotificationRepository,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (this.kafkaService.isKafkaEnabled()) {
@@ -65,7 +65,7 @@ export class EventConsumerService implements OnModuleInit {
             "EventConsumerService",
           );
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error handling event ${event.eventType}: ${error.message}`,
         error.stack,

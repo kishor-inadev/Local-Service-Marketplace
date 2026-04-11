@@ -12,7 +12,7 @@ export class EventService {
 		@Inject(WINSTON_MODULE_NEST_PROVIDER)
 		private readonly logger: LoggerService,
 		private readonly eventRepository: EventRepository,
-	) {}
+	) { }
 
 	async createEvent(createEventDto: CreateEventDto): Promise<Event> {
 		try {
@@ -21,7 +21,7 @@ export class EventService {
 			this.logger.log(`Event created: ${createEventDto.eventType} (ID: ${event.id})`, "EventService");
 
 			return event;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to create event: ${error.message}`, error.stack, "EventService");
 			throw error;
 		}
@@ -39,7 +39,7 @@ export class EventService {
 			this.logger.log(`Retrieved ${data.length} events`, "EventService");
 
 			return { data, total, page: pagination.page, limit: pagination.limit };
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to get events: ${error.message}`, error.stack, "EventService");
 			throw error;
 		}
@@ -52,7 +52,7 @@ export class EventService {
 			this.logger.log(`Retrieved event by ID: ${id}`, "EventService");
 
 			return event;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to get event by ID: ${error.message}`, error.stack, "EventService");
 			throw error;
 		}

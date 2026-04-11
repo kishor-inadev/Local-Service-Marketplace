@@ -39,7 +39,7 @@ export class PaymentService {
     private readonly userClient: UserClient,
     private readonly analyticsClient: AnalyticsClient,
     private readonly paymentGateway: PaymentGatewayService,
-  ) {}
+  ) { }
 
   async createPayment(
     jobId: string,
@@ -124,7 +124,7 @@ export class PaymentService {
           currency,
           transactionId: chargeResult.transactionId,
         })
-        .catch((err) => {
+        .catch((err: any) => {
           this.logger.warn(`Failed to enqueue payment confirmation: ${err.message}`, 'PaymentService');
         });
     }
@@ -333,7 +333,7 @@ export class PaymentService {
     ];
     const userNameMap: Record<string, string> = {};
     await Promise.all(
-      userIds.map(async (userId: string) => {
+      userIds.map(async (userId: any) => {
         const user = await this.userClient.getUserById(userId);
         if (user?.name) userNameMap[userId] = user.name;
       }),

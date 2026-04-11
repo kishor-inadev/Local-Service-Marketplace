@@ -22,7 +22,7 @@ export class RefundService {
     private readonly paymentRepository: PaymentRepository,
     private readonly notificationClient: NotificationClient,
     private readonly userClient: UserClient,
-  ) {}
+  ) { }
 
   async createRefund(paymentId: string, amount?: number): Promise<Refund> {
     this.logger.log(
@@ -102,7 +102,7 @@ export class RefundService {
               "Your refund is being processed and should appear in your account within 5-10 business days.",
           },
         })
-        .catch((err) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to send refund notification: ${err.message}`,
             "RefundService",

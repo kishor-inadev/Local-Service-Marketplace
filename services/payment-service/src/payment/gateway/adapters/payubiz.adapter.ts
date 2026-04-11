@@ -240,7 +240,7 @@ export class PayUbizAdapter implements IGatewayAdapter {
         this.logger.warn("PayU webhook reverse hash mismatch");
       }
       return isValid;
-    } catch (err) {
+    } catch (err: any) {
       this.logger.warn(`PayU webhook verification error: ${err?.message}`);
       return false;
     }

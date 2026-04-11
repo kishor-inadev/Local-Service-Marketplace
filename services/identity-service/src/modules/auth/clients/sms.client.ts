@@ -109,7 +109,7 @@ export class SmsClient {
 
       this.logger.log("OTP sent successfully");
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         "Failed to send OTP",
         error.response?.data || error.message,
@@ -145,7 +145,7 @@ export class SmsClient {
       );
 
       return response.data;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         "Failed to verify OTP",
         error.response?.data || error.message,

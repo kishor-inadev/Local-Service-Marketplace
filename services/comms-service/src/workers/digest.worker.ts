@@ -48,7 +48,7 @@ export class DigestWorker extends WorkerHost implements OnModuleInit {
         default:
           this.logger.warn(`DigestWorker: unknown job name "${job.name}"`, 'DigestWorker');
       }
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'DigestWorker');
       throw error;
@@ -81,7 +81,7 @@ export class DigestWorker extends WorkerHost implements OnModuleInit {
           },
         });
         sent++;
-      } catch (error) {
+      } catch (error: any) {
         const err = error as Error;
         this.logger.warn(
           `DigestWorker: digest email failed for user ${group.userId} — ${err.message}`,

@@ -9,7 +9,7 @@ export class SocialAccountRepository {
   constructor(
     @Inject("DATABASE_POOL") private readonly pool: Pool,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+  ) { }
 
   /**
    * Find social account by provider and provider user ID
@@ -25,7 +25,7 @@ export class SocialAccountRepository {
         [provider, providerUserId],
       );
       return result.rows[0] || null;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error finding social account by provider", {
         context: "SocialAccountRepository",
         error,
@@ -46,7 +46,7 @@ export class SocialAccountRepository {
         [userId],
       );
       return result.rows;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error finding social accounts by user ID", {
         context: "SocialAccountRepository",
         error,
@@ -82,7 +82,7 @@ export class SocialAccountRepository {
       });
 
       return result.rows[0];
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error creating social account", {
         context: "SocialAccountRepository",
         error,
@@ -113,7 +113,7 @@ export class SocialAccountRepository {
         context: "SocialAccountRepository",
         id,
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error updating social account tokens", {
         context: "SocialAccountRepository",
         error,
@@ -139,7 +139,7 @@ export class SocialAccountRepository {
         userId,
         provider,
       });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error("Error deleting social account", {
         context: "SocialAccountRepository",
         error,

@@ -10,7 +10,7 @@ export class HealthController {
     @InjectQueue("comms.email") private readonly emailQueue: Queue,
     @InjectQueue("comms.sms") private readonly smsQueue: Queue,
     @InjectQueue("comms.push") private readonly pushQueue: Queue,
-  ) {}
+  ) { }
 
   @Get()
   async check() {
@@ -28,10 +28,10 @@ export class HealthController {
         status: "ok",
         responseTime: `${Date.now() - start}ms`,
       };
-    } catch (error) {
+    } catch (error: any) {
       health.status = "degraded";
-      health.database = { 
-        status: "error", 
+      health.database = {
+        status: "error",
         message: error instanceof Error ? error.message : String(error)
       };
     }
@@ -75,7 +75,7 @@ export class HealthController {
           },
         },
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: "error",
         message: error instanceof Error ? error.message : String(error),

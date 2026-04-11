@@ -68,7 +68,7 @@ export class SmsWorker extends WorkerHost {
       }
 
       this.logger.log(`SmsWorker: SMS sent to ${phone}`, 'SmsWorker');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `SmsWorker: SMS to ${phone} failed — ${error.message}`,
         error.stack,
@@ -77,12 +77,12 @@ export class SmsWorker extends WorkerHost {
       if (deliveryId) {
         await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
       }
-      
+
       // Capture in DLQ if max retries reached
       if (this.dlqService && job.attemptsMade >= 3) {
         await this.dlqService.captureFailedJob('comms.sms', job, error);
       }
-      
+
       throw error;
     }
   }
@@ -98,18 +98,18 @@ export class SmsWorker extends WorkerHost {
     try {
       await this.smsClient.sendOtp(phone, purpose);
       this.logger.log(`SmsWorker: OTP sent to ${phone}`, 'SmsWorker');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `SmsWorker: OTP to ${phone} failed — ${error.message}`,
         error.stack,
         'SmsWorker',
       );
-      
+
       // Capture in DLQ if max retries reached
       if (this.dlqService && job.attemptsMade >= 3) {
         await this.dlqService.captureFailedJob('comms.sms', job, error);
       }
-      
+
       throw error;
     }
   }
