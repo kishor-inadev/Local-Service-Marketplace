@@ -36,17 +36,19 @@ export class GatewayModule implements NestModule {
     // Apply rate limiting middleware to all routes
     consumer.apply(RateLimitMiddleware).forRoutes("*");
 
-    // Apply stricter rate limiting to authentication endpoints (10 req/15 min per IP)
+    // Apply stricter rate limiting to authentication endpoints (10 req/15 min per IP).
+    // Paths must include the /api/v1 prefix that controllers add, otherwise the
+    // middleware path-matching never fires.
     consumer
       .apply(AuthRateLimitMiddleware)
       .forRoutes(
-        { path: "/user/auth/login", method: RequestMethod.POST },
-        { path: "/user/auth/register", method: RequestMethod.POST },
-        { path: "/user/auth/refresh", method: RequestMethod.POST },
-        { path: "/user/auth/forgot-password", method: RequestMethod.POST },
-        { path: "/user/auth/reset-password", method: RequestMethod.POST },
-        { path: "/user/auth/verify-otp", method: RequestMethod.POST },
-        { path: "/user/auth/send-otp", method: RequestMethod.POST },
+        { path: "/api/v1/user/auth/login", method: RequestMethod.POST },
+        { path: "/api/v1/user/auth/register", method: RequestMethod.POST },
+        { path: "/api/v1/user/auth/refresh", method: RequestMethod.POST },
+        { path: "/api/v1/user/auth/forgot-password", method: RequestMethod.POST },
+        { path: "/api/v1/user/auth/reset-password", method: RequestMethod.POST },
+        { path: "/api/v1/user/auth/verify-otp", method: RequestMethod.POST },
+        { path: "/api/v1/user/auth/send-otp", method: RequestMethod.POST },
       );
   }
 }

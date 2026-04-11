@@ -46,7 +46,7 @@ export class CouponRepository {
   async recordCouponUsage(
     couponId: string,
     userId: string,
-  ): Promise<CouponUsage> {
+  ): Promise<CouponUsage | null> {
     const id = uuidv4();
     const query = `
       INSERT INTO coupon_usage (id, coupon_id, user_id, used_at)
@@ -56,6 +56,10 @@ export class CouponRepository {
     `;
     const values = [id, couponId, userId];
     const result = await this.pool.query(query, values);
+    // ON CONFLICT DO NOTHING returns 0 rows when a conflict occurs — guard against that
+    if (!result.rows.length) {
+      return null;
+    }
     return new CouponUsage({
       id: result.rows[0].id,
       coupon_id: result.rows[0].coupon_id,

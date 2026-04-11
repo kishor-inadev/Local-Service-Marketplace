@@ -76,6 +76,7 @@ export class NotificationController {
     const notifications =
       await this.notificationService.getNotificationsByUserId(userId, limit);
     const unreadCount = await this.notificationService.getUnreadCount(userId);
+    const total = await this.notificationService.getTotalCount(userId);
     return {
       success: true,
       message: "Notifications retrieved successfully",
@@ -83,8 +84,8 @@ export class NotificationController {
       meta: {
         page: 1,
         limit,
-        total: notifications.length,
-        totalPages: Math.ceil(notifications.length / limit),
+        total,
+        totalPages: Math.ceil(total / limit),
       },
     };
   }

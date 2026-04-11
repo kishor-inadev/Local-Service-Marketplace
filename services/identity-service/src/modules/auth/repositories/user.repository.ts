@@ -46,7 +46,7 @@ export class UserRepository {
   }
 
   async findByPhone(phone: string): Promise<User | null> {
-    const query = "SELECT * FROM users WHERE phone = $1";
+    const query = "SELECT * FROM users WHERE phone = $1 AND deleted_at IS NULL";
     const result = await this.pool.query(query, [phone]);
     return result.rows[0] || null;
   }

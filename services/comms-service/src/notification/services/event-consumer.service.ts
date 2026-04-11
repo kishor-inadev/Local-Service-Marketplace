@@ -177,6 +177,14 @@ export class EventConsumerService implements OnModuleInit {
       "job",
       `A job assigned to you has been cancelled${refSuffix}`,
     );
+    // Also notify the customer who placed the request
+    if (event.data.userId) {
+      await this.notificationRepository.createNotification(
+        event.data.userId,
+        "job",
+        `Your job has been cancelled${refSuffix}`,
+      );
+    }
   }
 
   private async handlePaymentCompleted(event: any): Promise<void> {

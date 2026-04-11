@@ -79,8 +79,10 @@ export class NotificationDeliveryRepository {
   }
 
   async getPendingDeliveries(): Promise<NotificationDelivery[]> {
+    // Only pick up deliveries older than 5 minutes to avoid re-enqueuing jobs
+    // that are currently being processed by the BullMQ workers.
     const query =
-      "SELECT * FROM notification_deliveries WHERE status = $1 ORDER BY created_at ASC LIMIT 100";
+      "SELECT * FROM notification_deliveries WHERE status = $1 AND created_at < NOW() - INTERVAL '5 minutes' ORDER BY created_at ASC LIMIT 100";
     const result = await this.pool.query(query, ["pending"]);
     return result.rows.map(
       (row) =>

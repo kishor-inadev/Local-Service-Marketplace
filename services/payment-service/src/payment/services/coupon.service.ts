@@ -23,9 +23,23 @@ export class CouponService {
       throw new NotFoundException("Coupon not found");
     }
 
+    // Check if coupon is active
+    if (!(coupon as any).active) {
+      throw new BadRequestException("Coupon is no longer active");
+    }
+
     // Check if coupon is expired
     if (coupon.expires_at && new Date(coupon.expires_at) < new Date()) {
       throw new BadRequestException("Coupon has expired");
+    }
+
+    // Check global usage cap
+    const maxUses = (coupon as any).max_uses;
+    if (maxUses != null) {
+      const usageCount = await this.couponRepository.getCouponUsageCount(coupon.id);
+      if (usageCount >= maxUses) {
+        throw new BadRequestException("Coupon usage limit has been reached");
+      }
     }
 
     return coupon;

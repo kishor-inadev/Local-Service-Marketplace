@@ -185,6 +185,27 @@ export class JobService {
       throw new BadRequestException("Cannot update status of cancelled job");
     }
 
+    // Role-based transition enforcement
+    const isCustomer = existingJob.customer_id === userId;
+    const isProvider = existingJob.provider_id === userId;
+
+    if (userRole !== "admin") {
+      const customerAllowed = ["completed", "disputed"];
+      const providerAllowed = ["in_progress", "completed"];
+
+      if (isCustomer && !customerAllowed.includes(dto.status)) {
+        throw new ForbiddenException(
+          `Customers can only set job status to: ${customerAllowed.join(", ")}`,
+        );
+      }
+
+      if (isProvider && !providerAllowed.includes(dto.status)) {
+        throw new ForbiddenException(
+          `Providers can only set job status to: ${providerAllowed.join(", ")}`,
+        );
+      }
+    }
+
     const job = await this.jobRepository.updateJobStatus(
       existingJob.id,
       dto.status,

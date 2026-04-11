@@ -13,6 +13,7 @@ import {
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { DisputeService } from "./services/dispute.service";
+import { CreateDisputeDto } from "./dto/create-dispute.dto";
 
 /**
  * User-facing dispute endpoints.
@@ -31,10 +32,10 @@ export class DisputeController {
 	@Post()
 	@HttpCode(HttpStatus.CREATED)
 	async createDispute(
-		@Body() body: { job_id: string; reason: string },
+		@Body() dto: CreateDisputeDto,
 		@Headers("x-user-id") userId: string,
 	) {
-		return this.disputeService.createDispute(body.job_id, userId, body.reason);
+		return this.disputeService.createDispute(dto.job_id, userId, dto.reason);
 	}
 
 	@Get("my")

@@ -43,43 +43,7 @@ export class AdminController {
 		private readonly contactMessageService: ContactMessageService,
 	) { }
 
-	// ── User-facing Dispute Endpoints (any authenticated user) ──────────
-
-	@UseGuards(JwtAuthGuard)
-	@Post("create-dispute")
-	@HttpCode(HttpStatus.CREATED)
-	async createDispute(
-		@Body() body: { job_id: string; reason: string },
-		@Headers("x-user-id") userId: string,
-	) {
-		return this.disputeService.createDispute(body.job_id, userId, body.reason);
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@Get("my-disputes")
-	async getMyDisputes(
-		@Headers("x-user-id") userId: string,
-		@Query("status") status?: string,
-		@Query("page") page?: string,
-		@Query("limit") limit?: string,
-	) {
-		return this.disputeService.getUserDisputes(userId, {
-			status,
-			page: page ? parseInt(page, 10) : 1,
-			limit: limit ? parseInt(limit, 10) : 20,
-		});
-	}
-
-	@UseGuards(JwtAuthGuard)
-	@Get("dispute/:id")
-	async getDisputeForUser(
-		@Param("id", FlexibleIdPipe) id: string,
-		@Headers("x-user-id") userId: string,
-	) {
-		return this.disputeService.getDisputeForUser(id, userId);
-	}
-
-	// Dispute Management Endpoints (admin only)
+	// ── Dispute Management Endpoints (admin only) ──────────
 	@Roles("admin")
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes/stats")

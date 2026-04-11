@@ -4,6 +4,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Job, Queue } from 'bullmq';
 import { NotificationRepository } from '../notification/repositories/notification.repository';
 import { EmailClient } from '../notification/clients/email.client';
+import { UserClient } from '../common/user/user.client';
 
 /**
  * DigestWorker — consumes the "comms.digest" queue.
@@ -22,6 +23,7 @@ export class DigestWorker extends WorkerHost implements OnModuleInit {
     @InjectQueue('comms.digest') private readonly digestQueue: Queue,
     private readonly notificationRepository: NotificationRepository,
     private readonly emailClient: EmailClient,
+    private readonly userClient: UserClient,
   ) {
     super();
   }
@@ -71,8 +73,17 @@ export class DigestWorker extends WorkerHost implements OnModuleInit {
     let sent = 0;
     for (const group of unreadGroups) {
       try {
+        // Resolve the user's real email — group.userId is a UUID from the notifications table
+        const userEmail = await this.userClient.getUserEmail(group.userId);
+        if (!userEmail) {
+          this.logger.warn(
+            `DigestWorker: could not resolve email for user ${group.userId} — skipping`,
+            'DigestWorker',
+          );
+          continue;
+        }
         await this.emailClient.sendEmail({
-          to: group.userId,
+          to: userEmail,
           subject: 'Your Daily Notification Digest',
           template: 'unread-digest',
           variables: {

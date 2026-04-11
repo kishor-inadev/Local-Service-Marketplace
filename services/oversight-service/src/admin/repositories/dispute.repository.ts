@@ -96,7 +96,8 @@ export class DisputeRepository {
 	async updateDispute(id: string, status: string, resolution: string, resolvedBy: string): Promise<Dispute> {
 		const query = `
       UPDATE disputes
-      SET status = $1, resolution = $2, resolved_by = $3, resolved_at = CURRENT_TIMESTAMP
+      SET status = $1, resolution = $2, resolved_by = $3,
+          resolved_at = CASE WHEN $1 IN ('resolved', 'closed') THEN CURRENT_TIMESTAMP ELSE resolved_at END
       WHERE id = $4
       RETURNING id, display_id, job_id, opened_by, reason, status, 
                 resolution, resolved_by, resolved_at, created_at

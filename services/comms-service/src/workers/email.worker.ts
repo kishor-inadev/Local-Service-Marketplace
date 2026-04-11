@@ -5,6 +5,7 @@ import { Job, Queue } from 'bullmq';
 import { NotificationDeliveryRepository } from '../notification/repositories/notification-delivery.repository';
 import { NotificationRepository } from '../notification/repositories/notification.repository';
 import { EmailClient } from '../notification/clients/email.client';
+import { UserClient } from '../common/user/user.client';
 import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 
 export interface DeliverEmailJobData {
@@ -36,6 +37,7 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly notificationRepository: NotificationRepository,
     private readonly emailClient: EmailClient,
+    private readonly userClient: UserClient,
     @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
@@ -82,24 +84,23 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
     try {
       const subject = (variables?.subject as string) || type || 'Notification';
 
-      if (to) {
-        // Direct email with explicit recipient
-        await this.emailClient.sendEmail({
-          to,
-          subject,
-          template: template || 'notification',
-          text: message,
-          variables: variables || { type, message },
-        });
-      } else {
-        // Notification-linked email — recipient resolved by emailClient from userId
-        await this.emailClient.sendEmail({
-          to: userId,
-          subject,
-          template: template || 'notification',
-          variables: { type, message },
-        });
+      // Resolve recipient: use explicit `to` from job payload or look up the
+      // user's email from identity-service when only a userId is provided.
+      const recipient = to ?? await this.userClient.getUserEmail(userId);
+
+      if (!recipient) {
+        throw new Error(
+          `EmailWorker: cannot resolve email address for userId ${userId} — delivery ${deliveryId} aborted`,
+        );
       }
+
+      await this.emailClient.sendEmail({
+        to: recipient,
+        subject,
+        template: template || 'notification',
+        text: message,
+        variables: variables || { type, message },
+      });
 
       await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'sent');
 

@@ -5,6 +5,7 @@ import {
 	Body,
 	Query,
 	Param,
+	Req,
 	Inject,
 	LoggerService,
 	UseGuards,
@@ -15,6 +16,7 @@ import {
 	DefaultValuePipe,
 	Headers,
 } from "@nestjs/common";
+import { Request } from "express";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { AnalyticsService } from "../services/analytics.service";
 import { MetricsAggregationService } from "../services/metrics-aggregation.service";
@@ -23,10 +25,9 @@ import { BackfillMetricsDto } from "../dto/backfill-metrics.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
-import { ForbiddenException } from "@/common/exceptions/http.exceptions";
+import { ForbiddenException, BadRequestException } from "@/common/exceptions/http.exceptions";
 import { InternalServiceGuard } from "@/common/guards/internal-service.guard";
 
-@UseGuards(JwtAuthGuard)
 @Controller("analytics")
 export class AnalyticsController {
 	constructor(
@@ -37,11 +38,17 @@ export class AnalyticsController {
 	) {}
 
 	@Post("activity")
+	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
-	async trackActivity(@Body() trackActivityDto: TrackActivityDto, @Headers("x-user-id") requestingUserId: string, @Headers("x-user-role") requestingUserRole: string) {
+	async trackActivity(@Body() trackActivityDto: TrackActivityDto, @Headers("x-user-id") requestingUserId: string, @Headers("x-user-role") requestingUserRole: string, @Req() req: Request) {
 		// Non-admins can only log their own activity
 		if (requestingUserRole !== "admin") {
 			trackActivityDto.user_id = requestingUserId;
+		}
+		// Capture IP address from forwarded header or direct connection
+		if (!trackActivityDto.ip_address) {
+			const forwarded = req.headers['x-forwarded-for'];
+			trackActivityDto.ip_address = (Array.isArray(forwarded) ? forwarded[0] : forwarded?.split(',')[0]) ?? (req as any).ip ?? null;
 		}
 		this.logger.log(
 			`POST /analytics/activity - Track activity for user ${trackActivityDto.user_id}`,
@@ -54,7 +61,7 @@ export class AnalyticsController {
 	}
 
 	@Get("user-activity")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	async getAllActivity(
 		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
@@ -68,6 +75,7 @@ export class AnalyticsController {
 	}
 
 	@Get("user-activity/:userId")
+	@UseGuards(JwtAuthGuard)
 	async getUserActivity(
 		@Param("userId", ParseUUIDPipe) userId: string,
 		@Headers("x-user-id") requestingUserId: string,
@@ -87,7 +95,7 @@ export class AnalyticsController {
 	}
 
 	@Get("user-activity/action/:action")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	async getActivityByAction(
 		@Param("action") action: string,
@@ -104,7 +112,7 @@ export class AnalyticsController {
 	}
 
 	@Get("metrics")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	async getDailyMetrics(
 		@Query("startDate") startDate?: string,
@@ -119,7 +127,7 @@ export class AnalyticsController {
 	}
 
 	@Get("metrics/:date")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	async getMetricByDate(@Param("date") date: string) {
 		this.logger.log(`GET /analytics/metrics/${date} - Retrieve metric for specific date`, "AnalyticsController");
@@ -131,7 +139,7 @@ export class AnalyticsController {
 
 	// Worker endpoints for background job processing
 	@Post("workers/aggregate-today")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	@HttpCode(HttpStatus.OK)
 	async aggregateTodayMetrics() {
@@ -146,7 +154,7 @@ export class AnalyticsController {
 	}
 
 	@Post("workers/aggregate-yesterday")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	@HttpCode(HttpStatus.OK)
 	async aggregateYesterdayMetrics() {
@@ -161,7 +169,7 @@ export class AnalyticsController {
 	}
 
 	@Post("workers/aggregate/:date")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	@HttpCode(HttpStatus.OK)
 	async aggregateMetricsForDate(@Param("date") date: string) {
@@ -176,10 +184,22 @@ export class AnalyticsController {
 	}
 
 	@Post("workers/backfill")
-	@UseGuards(RolesGuard)
+	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Roles("admin")
 	@HttpCode(HttpStatus.OK)
 	async backfillMetrics(@Body() body: BackfillMetricsDto) {
+		const start = new Date(body.startDate);
+		const end = new Date(body.endDate);
+
+		if (start > end) {
+			throw new BadRequestException("startDate must be before endDate");
+		}
+
+		const daysDiff = (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24);
+		if (daysDiff > 90) {
+			throw new BadRequestException("Backfill range cannot exceed 90 days");
+		}
+
 		this.logger.log(
 			`POST /analytics/workers/backfill - Backfill metrics from ${body.startDate} to ${body.endDate}`,
 			"AnalyticsController",
@@ -190,11 +210,7 @@ export class AnalyticsController {
 		return metrics;
 	}
 
-	/**
-	 * Internal service endpoint — tracks analytics events from other microservices
-	 * when Kafka is disabled. Protected by the shared GATEWAY_INTERNAL_SECRET header
-	 * (not JWT), so it can receive calls directly from marketplace-service, payment-service, etc.
-	 */
+
 	@Post("internal/track")
 	@UseGuards(InternalServiceGuard)
 	@HttpCode(HttpStatus.OK)

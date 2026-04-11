@@ -40,11 +40,11 @@ export class BlacklistGuard implements CanActivate {
     }
     
     // Check if all user tokens are revoked
-    const user = request.user; // Set by JwtAuthGuard
-    if (user && user.userId && user.iat) {
+    const user = request.user; // Set by JwtAuthGuard — payload contains { sub, email, role, iat }
+    if (user && user.sub && user.iat) {
       const areUserTokensRevoked =
         await this.blacklistService.areUserTokensRevoked(
-          user.userId,
+          user.sub,
           user.iat * 1000, // Convert to milliseconds
         );
       

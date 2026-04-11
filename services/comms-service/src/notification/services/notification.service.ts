@@ -151,6 +151,10 @@ export class NotificationService {
     return this.notificationRepository.getUnreadCount(userId);
   }
 
+  async getTotalCount(userId: string): Promise<number> {
+    return this.notificationRepository.countByUserId(userId);
+  }
+
   async markAllAsRead(userId: string): Promise<void> {
     this.logger.log(
       `Marking all notifications as read for user ${userId}`,
@@ -230,6 +234,10 @@ export class NotificationService {
       );
       return { success: true, ...results };
     } catch (error: any) {
+      // Re-throw client errors (BadRequestException) so callers receive proper 4xx responses
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
       this.logger.error(
         `Failed to send notification: ${error.message}`,
         error.stack,

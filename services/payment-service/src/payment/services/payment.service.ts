@@ -129,21 +129,40 @@ export class PaymentService {
         });
     }
 
-    // Publish event to Kafka if enabled
-    await this.kafkaService.publishEvent("payment-events", {
-      eventType: "payment_completed",
-      eventId: `${payment.id}-${Date.now()}`,
-      timestamp: new Date().toISOString(),
-      data: {
-        paymentId: payment.id,
-        jobId: payment.job_id,
-        amount: payment.amount,
-        currency: payment.currency,
-        status: "completed",
-        transactionId: payment.transaction_id,
-        gateway: activeGatewayName,
-      },
-    });
+    // Publish event to Kafka — only publish payment_completed when the gateway
+    // has actually confirmed the charge (synchronous gateways like Stripe).
+    // Async gateways (Razorpay, PayPal, PayUbiz, Instamojo) return 'pending';
+    // the webhook worker will publish the event when the webhook confirms success.
+    if (paymentStatus === "completed") {
+      await this.kafkaService.publishEvent("payment-events", {
+        eventType: "payment_completed",
+        eventId: `${payment.id}-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        data: {
+          paymentId: payment.id,
+          jobId: payment.job_id,
+          amount: payment.amount,
+          currency: payment.currency,
+          status: "completed",
+          transactionId: payment.transaction_id,
+          gateway: activeGatewayName,
+        },
+      });
+    } else {
+      await this.kafkaService.publishEvent("payment-events", {
+        eventType: "payment_pending",
+        eventId: `${payment.id}-${Date.now()}`,
+        timestamp: new Date().toISOString(),
+        data: {
+          paymentId: payment.id,
+          jobId: payment.job_id,
+          amount: payment.amount,
+          currency: payment.currency,
+          status: "pending",
+          gateway: activeGatewayName,
+        },
+      });
+    }
 
     // Track analytics via queue (non-blocking)
     this.analyticsQueue

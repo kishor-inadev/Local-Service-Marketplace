@@ -2,6 +2,8 @@ import { Injectable, Inject, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { NotificationDeliveryRepository } from "../repositories/notification-delivery.repository";
 import { NotificationRepository } from "../repositories/notification.repository";
+import { EmailClient } from "../clients/email.client";
+import { UserClient } from "../../common/user/user.client";
 
 @Injectable()
 export class EmailWorkerService {
@@ -10,6 +12,8 @@ export class EmailWorkerService {
     private readonly logger: LoggerService,
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly notificationRepository: NotificationRepository,
+    private readonly emailClient: EmailClient,
+    private readonly userClient: UserClient,
   ) { }
 
   async processPendingEmails(): Promise<void> {
@@ -50,12 +54,22 @@ export class EmailWorkerService {
             continue;
           }
 
-          // Simulate sending email (in production, integrate with email service like SendGrid, AWS SES)
-          await this.sendEmail(
-            notification.user_id,
-            notification.type,
-            notification.message,
-          );
+          // Resolve user email from identity-service, fall back to null on error
+          const userEmail = await this.userClient.getUserEmail(notification.user_id);
+          if (!userEmail) {
+            this.logger.warn(
+              `EmailWorkerService: could not resolve email for user ${notification.user_id} — skipping delivery ${delivery.id}`,
+              "EmailWorkerService",
+            );
+            await this.deliveryRepository.updateDeliveryStatus(delivery.id, "failed");
+            continue;
+          }
+          await this.emailClient.sendEmail({
+            to: userEmail,
+            subject: notification.type || "Notification",
+            template: "notification",
+            variables: { type: notification.type, message: notification.message },
+          });
 
           // Mark delivery as sent
           await this.deliveryRepository.updateDeliveryStatus(
@@ -87,26 +101,5 @@ export class EmailWorkerService {
     }
   }
 
-  private async sendEmail(
-    userId: string,
-    type: string,
-    message: string,
-  ): Promise<void> {
-    // Simulate email sending with delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // In production, integrate with email service provider:
-    // const emailService = new SendGrid(process.env.SENDGRID_API_KEY);
-    // await emailService.send({
-    //   to: userEmail,
-    //   from: 'noreply@marketplace.com',
-    //   subject: `Notification: ${type}`,
-    //   text: message,
-    // });
-
-    this.logger.log(
-      `Email sent to user ${userId} with type ${type}`,
-      "EmailWorkerService",
-    );
-  }
 }
+

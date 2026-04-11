@@ -256,4 +256,31 @@ export class SubscriptionRepository {
     const result = await this.pool.query(query);
     return result.rowCount || 0;
   }
+
+  /** Returns active subscriptions expiring within the next `hoursAhead` hours, with plan pricing info. */
+  async getSubscriptionsForRenewal(hoursAhead: number = 24): Promise<any[]> {
+    const query = `
+      SELECT s.id, s.provider_id, s.plan_id, s.expires_at,
+             pl.price, pl.billing_period
+      FROM subscriptions s
+      JOIN pricing_plans pl ON s.plan_id = pl.id
+      WHERE s.status = 'active'
+        AND s.expires_at IS NOT NULL
+        AND s.expires_at > NOW()
+        AND s.expires_at <= NOW() + INTERVAL '1 hour' * $1
+      ORDER BY s.expires_at ASC
+    `;
+    const result = await this.pool.query(query, [hoursAhead]);
+    return result.rows;
+  }
+
+  /** Extends a subscription's expires_at after a successful renewal charge. */
+  async renewSubscription(id: string, newExpiresAt: Date): Promise<void> {
+    const query = `
+      UPDATE subscriptions
+      SET expires_at = $1, status = 'active'
+      WHERE id = $2
+    `;
+    await this.pool.query(query, [newExpiresAt, id]);
+  }
 }

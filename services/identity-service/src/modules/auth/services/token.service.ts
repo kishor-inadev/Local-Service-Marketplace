@@ -75,8 +75,9 @@ export class TokenService {
     const expiresAt = new Date();
     expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10-minute TTL
 
-    // Delete any existing OTP tokens for this user before creating a new one
-    await this.emailVerificationTokenRepo.deleteByUserId(userId);
+    // Only delete short numeric tokens (OTPs ≤ 6 chars) to avoid removing
+    // the longer hex email-verification token the user may have just requested.
+    await this.emailVerificationTokenRepo.deleteOtpByUserId(userId);
 
     await this.emailVerificationTokenRepo.create(userId, otp, expiresAt);
     return otp;

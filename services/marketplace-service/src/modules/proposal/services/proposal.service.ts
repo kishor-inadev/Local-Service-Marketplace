@@ -198,6 +198,17 @@ export class ProposalService {
       existingProposal.id,
     );
 
+    // Reject all other pending proposals on this request so no request has
+    // multiple accepted proposals simultaneously (non-blocking, best-effort)
+    this.proposalRepository
+      .rejectSiblingProposals(existingProposal.request_id, existingProposal.id)
+      .catch((err: any) => {
+        this.logger.warn(
+          `Failed to reject sibling proposals for request ${existingProposal.request_id}: ${err.message}`,
+          ProposalService.name,
+        );
+      });
+
     this.logger.log(
       `Proposal accepted successfully: ${id}`,
       ProposalService.name,
@@ -247,6 +258,7 @@ export class ProposalService {
     id: string,
     userId: string,
     userRole: string,
+    reason?: string,
   ): Promise<ProposalResponseDto> {
     this.logger.log(`Rejecting proposal: ${id}`, ProposalService.name);
 
@@ -272,6 +284,7 @@ export class ProposalService {
 
     const proposal = await this.proposalRepository.rejectProposal(
       existingProposal.id,
+      reason,
     );
 
     this.logger.log(
@@ -435,6 +448,19 @@ export class ProposalService {
       `Proposal withdrawn successfully: ${id}`,
       ProposalService.name,
     );
+
+    // Publish withdrawal event to Kafka
+    await this.kafkaService.publishEvent("proposal-events", {
+      eventType: "proposal_withdrawn",
+      eventId: `${proposal.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        proposalId: proposal.id,
+        requestId: proposal.request_id,
+        providerId: proposal.provider_id,
+        status: proposal.status,
+      },
+    });
 
     return ProposalResponseDto.fromEntity(proposal);
   }

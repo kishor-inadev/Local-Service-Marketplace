@@ -6,6 +6,7 @@ import { PushWorker } from './push.worker';
 import { DigestWorker } from './digest.worker';
 import { CleanupWorker } from './cleanup.worker';
 import { NotificationModule } from '../notification/notification.module';
+import { UserModule } from '../common/user/user.module';
 import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 import { DatabaseModule } from '../common/database/database.module';
 import { getQueueRegistrationOptions } from '../config/queue-config';
@@ -37,6 +38,7 @@ import { getQueueRegistrationOptions } from '../config/queue-config';
       getQueueRegistrationOptions('comms.cleanup'),
     ),
     NotificationModule,
+    UserModule,
     DatabaseModule,
   ],
   providers: [

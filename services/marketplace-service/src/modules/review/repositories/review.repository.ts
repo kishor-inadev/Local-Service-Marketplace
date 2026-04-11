@@ -8,6 +8,26 @@ import { resolveId } from "@/common/utils/resolve-id.util";
 export class ReviewRepository {
   constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
+  /** Returns the job row so the service can validate status and resolve provider_id. */
+  async getJobForReview(jobId: string): Promise<{ id: string; provider_id: string; status: string } | null> {
+    const id = await resolveId(this.pool, "jobs", jobId).catch(() => null);
+    if (!id) return null;
+    const result = await this.pool.query(
+      `SELECT id, provider_id, status FROM jobs WHERE id = $1`,
+      [id],
+    );
+    return result.rows[0] ?? null;
+  }
+
+  /** Returns true if a review already exists for the given (job, user) pair. */
+  async existsForJobAndUser(jobId: string, userId: string): Promise<boolean> {
+    const result = await this.pool.query(
+      `SELECT 1 FROM reviews WHERE job_id = $1 AND user_id = $2 LIMIT 1`,
+      [jobId, userId],
+    );
+    return result.rows.length > 0;
+  }
+
   async createReview(createReviewDto: CreateReviewDto): Promise<Review> {
     const jobId = await resolveId(this.pool, "jobs", createReviewDto.job_id);
     const providerId = await resolveId(

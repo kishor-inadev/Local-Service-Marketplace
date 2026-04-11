@@ -22,6 +22,7 @@ import {
 import { FlexibleIdPipe } from "../../../common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "../../../common/pipes/strict-uuid.pipe";
 import { randomUUID } from "crypto";
+import * as crypto from "crypto";
 import { AuthGuard } from "@nestjs/passport";
 import { Request, Response } from "express";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
@@ -137,13 +138,15 @@ export class AuthController {
   }
 
   @Post("logout")
+  @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async logout(
     @Body() logoutDto: LogoutDto,
-    @Headers("x-user-id") userId: string,
+    @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ): Promise<{ message: string }> {
     this.logger.info("POST /auth/logout", { context: "AuthController" });
+    const userId = (req.user as any)?.sub;
     await this.authService.logout(logoutDto.refreshToken, userId);
 
     // Clear cookies
@@ -208,10 +211,12 @@ export class AuthController {
     
     const userId = req.user["sub"];
     
-    // Revoke all user tokens (15 min expiry for access tokens)
+    // Revoke all user tokens — use configured JWT expiry so blacklist TTL matches token lifetime
+    const jwtExpiry = process.env.JWT_EXPIRATION ?? '15m';
+    const jwtTtlSeconds = this.parseJwtExpiry(jwtExpiry);
     await this.tokenBlacklistService.revokeAllUserTokens(
       userId,
-      15 * 60, // 15 minutes
+      jwtTtlSeconds,
     );
     
     // Logout all sessions
@@ -565,12 +570,18 @@ export class AuthController {
     @Body() verifyTokenDto: VerifyTokenDto,
     @Headers("x-gateway-secret") gatewaySecret: string,
   ): Promise<VerifyTokenResponseDto> {
-    // Verify this request is from the API Gateway (internal only)
+    // Verify this request is from the API Gateway using timing-safe comparison
     const expectedSecret =
       process.env.GATEWAY_INTERNAL_SECRET ||
       "gateway-internal-secret-change-in-production";
 
-    if (gatewaySecret !== expectedSecret) {
+    const secretBuf = Buffer.from(gatewaySecret ?? "", "utf8");
+    const expectedBuf = Buffer.from(expectedSecret, "utf8");
+    const secretsMatch =
+      secretBuf.length === expectedBuf.length &&
+      crypto.timingSafeEqual(secretBuf, expectedBuf);
+
+    if (!secretsMatch) {
       this.logger.warn("Unauthorized token verification attempt", {
         context: "AuthController",
       });
@@ -609,8 +620,7 @@ export class AuthController {
   @Get("2fa/qr-code")
   @UseGuards(JwtAuthGuard)
   async get2FAQRCode(@Req() req: Request): Promise<{ qrCodeUrl: string }> {
-    const result = await this.authService.enable2FA(req.user["sub"]);
-    return { qrCodeUrl: result.qrCodeUrl };
+    return this.authService.get2FAQRCode(req.user["sub"]);
   }
 
   @Post("2fa/verify")
@@ -929,6 +939,20 @@ export class AuthController {
   private clearAuthCookies(res: Response): void {
     res.clearCookie("access_token", { path: "/" });
     res.clearCookie("refresh_token", { path: "/" });
+  }
+
+  /** Converts a JWT expiry string like "15m", "1h", "7d" to seconds. */
+  private parseJwtExpiry(expiry: string): number {
+    const unit = expiry.slice(-1);
+    const value = parseInt(expiry.slice(0, -1), 10);
+    if (isNaN(value)) return 15 * 60;
+    switch (unit) {
+      case 's': return value;
+      case 'm': return value * 60;
+      case 'h': return value * 3600;
+      case 'd': return value * 86400;
+      default: return 15 * 60;
+    }
   }
 
   private issueOAuthCode(accessToken: string, refreshToken: string): string {

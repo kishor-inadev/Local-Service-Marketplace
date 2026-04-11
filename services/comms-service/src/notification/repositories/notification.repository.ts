@@ -101,6 +101,12 @@ export class NotificationRepository {
     return parseInt(result.rows[0].count);
   }
 
+  async countByUserId(userId: string): Promise<number> {
+    const query = "SELECT COUNT(*)::int AS count FROM notifications WHERE user_id = $1";
+    const result = await this.pool.query(query, [userId]);
+    return result.rows[0].count;
+  }
+
   async markAllAsRead(userId: string): Promise<void> {
     const query =
       "UPDATE notifications SET read = true WHERE user_id = $1 AND read = false";

@@ -1,4 +1,5 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import * as crypto from 'crypto';
 import { UnauthorizedException } from '../exceptions/http.exceptions';
 
 /**
@@ -25,7 +26,14 @@ export class InternalServiceGuard implements CanActivate {
       throw new UnauthorizedException('Internal service secret not configured');
     }
 
-    if (!secret || secret !== expected) {
+    // Use timing-safe comparison to prevent timing attacks (CWE-208)
+    const secretBuf = Buffer.from(secret ?? '', 'utf8');
+    const expectedBuf = Buffer.from(expected, 'utf8');
+    const isValid =
+      secretBuf.length === expectedBuf.length &&
+      crypto.timingSafeEqual(secretBuf, expectedBuf);
+
+    if (!isValid) {
       throw new UnauthorizedException('Invalid or missing internal service secret');
     }
 

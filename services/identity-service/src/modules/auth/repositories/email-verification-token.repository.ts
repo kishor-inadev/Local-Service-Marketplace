@@ -37,6 +37,16 @@ export class EmailVerificationTokenRepository {
     await this.pool.query(query, [userId]);
   }
 
+  /**
+   * Deletes only short OTP-format tokens (≤ 6 characters) for the user.
+   * This avoids accidentally removing the longer hex email-verification token
+   * that may have been issued in the same session.
+   */
+  async deleteOtpByUserId(userId: string): Promise<void> {
+    const query = "DELETE FROM email_verification_tokens WHERE user_id = $1 AND LENGTH(token) <= 6";
+    await this.pool.query(query, [userId]);
+  }
+
   async findByUserIdAndToken(
     userId: string,
     token: string,

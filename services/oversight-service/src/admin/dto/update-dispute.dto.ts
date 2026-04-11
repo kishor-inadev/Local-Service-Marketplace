@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString, IsIn } from 'class-validator';
+import { IsNotEmpty, IsString, IsIn, IsOptional } from 'class-validator';
 
 export class UpdateDisputeDto {
 	@IsNotEmpty()
@@ -6,7 +6,7 @@ export class UpdateDisputeDto {
 	@IsIn(["open", "in_progress", "investigating", "resolved", "closed"])
 	status: string;
 
-	@IsNotEmpty()
+	@IsOptional()
 	@IsString()
-	resolution: string;
+	resolution?: string;
 }

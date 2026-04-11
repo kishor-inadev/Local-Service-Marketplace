@@ -4,6 +4,7 @@ import { Job } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { RefundRepository } from '../payment/repositories/refund.repository';
 import { PaymentRepository } from '../payment/repositories/payment.repository';
+import { PaymentGatewayService } from '../payment/gateway/payment-gateway.service';
 import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 
 export interface ProcessRefundJobData {
@@ -22,6 +23,7 @@ export class RefundWorker extends WorkerHost implements OnModuleInit {
     private readonly logger: LoggerService,
     private readonly refundRepository: RefundRepository,
     private readonly paymentRepository: PaymentRepository,
+    private readonly paymentGateway: PaymentGatewayService,
     @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
@@ -45,11 +47,27 @@ export class RefundWorker extends WorkerHost implements OnModuleInit {
     this.logger.log(`Processing refund ${refundId} for payment ${paymentId}`, 'RefundWorker');
 
     try {
-      // Simulate gateway refund — replace with actual gateway call
+      // Fetch payment to determine which gateway to refund through
+      const payment = await this.paymentRepository.getPaymentById(paymentId);
+      if (!payment) {
+        throw new Error(`Payment ${paymentId} not found — cannot process refund`);
+      }
+
+      if (!payment.transaction_id) {
+        throw new Error(`Payment ${paymentId} has no transaction_id — cannot initiate gateway refund`);
+      }
+
+      // Call actual gateway refund API
+      await this.paymentGateway.refundWith(payment.gateway ?? 'mock', {
+        transactionId: payment.transaction_id,
+        amount,
+        reason: job.data.reason,
+      });
+
       await this.refundRepository.updateRefundStatus(refundId, 'completed');
       await this.paymentRepository.updatePaymentStatus(paymentId, 'refunded', null);
 
-      this.logger.log(`Refund ${refundId} completed successfully`, 'RefundWorker');
+      this.logger.log(`Refund ${refundId} completed successfully via ${payment.gateway}`, 'RefundWorker');
     } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Refund ${refundId} failed: ${err.message}`, err.stack, 'RefundWorker');

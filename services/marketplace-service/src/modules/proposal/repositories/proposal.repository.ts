@@ -77,13 +77,27 @@ export class ProposalRepository {
   async acceptProposal(id: string): Promise<Proposal | null> {
     const query = `
       UPDATE proposals
-      SET status = 'accepted'
+      SET status = 'accepted', updated_at = NOW()
       WHERE id = $1
       RETURNING id, display_id, request_id, provider_id, price, message, estimated_hours, start_date, completion_date, rejected_reason, status, created_at, updated_at
     `;
 
     const result = await this.pool.query(query, [id]);
     return result.rows[0] || null;
+  }
+
+  /**
+   * Bulk-reject all pending proposals on a request except the one that was accepted.
+   * Called after acceptProposal so competing providers are notified and the request
+   * cannot appear to have multiple accepted proposals simultaneously.
+   */
+  async rejectSiblingProposals(requestId: string, acceptedProposalId: string): Promise<void> {
+    const query = `
+      UPDATE proposals
+      SET status = 'rejected', updated_at = NOW()
+      WHERE request_id = $1 AND id != $2 AND status = 'pending'
+    `;
+    await this.pool.query(query, [requestId, acceptedProposalId]);
   }
 
   async rejectProposal(id: string, reason?: string): Promise<Proposal | null> {
@@ -338,9 +352,12 @@ export class ProposalRepository {
       resolveId(this.pool, "service_requests", requestId),
       resolveId(this.pool, "providers", providerId),
     ]);
+    // Only block re-proposal if there is an active (pending or accepted) proposal.
+    // Rejected or withdrawn proposals allow re-submission.
     const query = `
       SELECT 1 FROM proposals
       WHERE request_id = $1 AND provider_id = $2
+        AND status NOT IN ('rejected', 'withdrawn')
     `;
 
     const result = await this.pool.query(query, [requestId, providerId]);

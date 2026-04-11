@@ -4,6 +4,7 @@ import { BackgroundJobWorker } from './background-job.worker';
 import { InfraCleanupWorker } from './cleanup.worker';
 import { BackgroundJobRepository } from '../infrastructure/repositories/background-job.repository';
 import { EventRepository } from '../infrastructure/repositories/event.repository';
+import { DatabaseModule } from '../common/database/database.module';
 import { getQueueRegistrationOptions } from '../config/queue-config';
 
 /**
@@ -19,6 +20,7 @@ import { getQueueRegistrationOptions } from '../config/queue-config';
       getQueueRegistrationOptions('infra.background-jobs'),
       getQueueRegistrationOptions('infra.cleanup'),
     ),
+    DatabaseModule,
   ],
   providers: [
     BackgroundJobWorker,

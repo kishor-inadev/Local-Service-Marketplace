@@ -198,6 +198,9 @@ export class MessagingGateway
       // Get the message to verify and notify sender
       const message = await this.messageService.getMessageById(data.messageId);
 
+      // Persist read status to the database
+      await this.messageService.markMessageAsRead(data.messageId);
+
       // Notify sender that message was read
       this.server.to(`user:${message.sender_id}`).emit("message:read", {
         messageId: data.messageId,

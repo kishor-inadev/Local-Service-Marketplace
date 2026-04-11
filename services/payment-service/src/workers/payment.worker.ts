@@ -4,6 +4,7 @@ import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { PaymentRepository } from '../payment/repositories/payment.repository';
+import { PaymentGatewayService } from '../payment/gateway/payment-gateway.service';
 import { DEFAULT_JOB_OPTIONS } from '../bullmq/bullmq-default-options';
 
 export interface PaymentRetryJobData {
@@ -22,6 +23,7 @@ export class PaymentWorker extends WorkerHost implements OnModuleInit {
     private readonly logger: LoggerService,
     @InjectQueue('payment.retry') private readonly retryQueue: Queue,
     private readonly paymentRepository: PaymentRepository,
+    private readonly paymentGateway: PaymentGatewayService,
   ) {
     super();
   }
@@ -40,13 +42,33 @@ export class PaymentWorker extends WorkerHost implements OnModuleInit {
   }
 
   private async handleRetryPayment(job: Job<PaymentRetryJobData>): Promise<void> {
-    const { paymentId } = job.data;
+    const { paymentId, amount, currency } = job.data;
     this.logger.log(`Retrying payment ${paymentId} (attempt ${job.attemptsMade + 1})`, 'PaymentWorker');
 
     try {
-      const transactionId = `txn_retry_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      await this.paymentRepository.updatePaymentStatus(paymentId, 'completed', transactionId);
-      this.logger.log(`Payment retry successful for ${paymentId}`, 'PaymentWorker');
+      // Fetch original payment to find the gateway used
+      const payment = await this.paymentRepository.getPaymentById(paymentId);
+      if (!payment) {
+        throw new Error(`Payment ${paymentId} not found — cannot retry`);
+      }
+
+      // Charge via the same gateway as the original payment
+      const chargeResult = await this.paymentGateway.chargeWith(
+        (payment as any).gateway ?? 'mock',
+        {
+          amount,
+          currency,
+          description: `Retry payment for job ${(payment as any).job_id ?? paymentId}`,
+          metadata: { payment_id: paymentId },
+        },
+      );
+
+      await this.paymentRepository.updatePaymentStatus(
+        paymentId,
+        chargeResult.status === 'succeeded' ? 'completed' : 'pending',
+        chargeResult.transactionId,
+      );
+      this.logger.log(`Payment retry successful for ${paymentId}, txn: ${chargeResult.transactionId}`, 'PaymentWorker');
     } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Payment retry failed for ${paymentId}: ${err.message}`, err.stack, 'PaymentWorker');

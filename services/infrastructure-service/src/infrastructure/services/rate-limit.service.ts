@@ -21,53 +21,30 @@ export class RateLimitService {
     windowSeconds: number = this.RATE_LIMIT_WINDOW,
   ): Promise<{ allowed: boolean; remaining: number; resetAt: Date }> {
     try {
-      // Try Redis first for faster lookups
       const redisKey = `rate_limit:${key}`;
-      const currentCount = await this.redisService.get(redisKey);
 
-      if (currentCount) {
-        const count = parseInt(currentCount);
+      // Atomic INCR: the new count is returned in a single round-trip.
+      // If the key didn't exist before, Redis creates it with value 1.
+      const newCount = await this.redisService.incr(redisKey);
 
-        if (count >= maxRequests) {
-          const client = this.redisService.getClient();
-          const ttl = client ? await client.ttl(redisKey) : 0;
-          const resetAt = new Date(Date.now() + ttl * 1000);
-
-          this.logger.log(
-            `Rate limit exceeded for key: ${key}`,
-            'RateLimitService',
-          );
-
-          return {
-            allowed: false,
-            remaining: 0,
-            resetAt,
-          };
-        }
-
-        // Increment counter
-        await this.redisService.incr(redisKey);
-
-        return {
-          allowed: true,
-          remaining: maxRequests - count - 1,
-          resetAt: new Date(Date.now() + windowSeconds * 1000),
-        };
+      if (newCount === 1) {
+        // First request in this window — set the expiry atomically on the same key.
+        await this.redisService.expire(redisKey, windowSeconds);
       }
 
-      // First request - create new rate limit in Redis
-      await this.redisService.set(redisKey, '1', windowSeconds);
+      const resetAt = new Date(Date.now() + windowSeconds * 1000);
 
-      this.logger.log(
-        `Rate limit initialized for key: ${key}`,
-        'RateLimitService',
-      );
+      if (newCount > maxRequests) {
+        // Fetch remaining TTL for a more accurate resetAt when the key already existed.
+        const client = this.redisService.getClient();
+        const ttl = client ? await client.ttl(redisKey) : windowSeconds;
+        const accurateResetAt = new Date(Date.now() + ttl * 1000);
 
-      return {
-        allowed: true,
-        remaining: maxRequests - 1,
-        resetAt: new Date(Date.now() + windowSeconds * 1000),
-      };
+        this.logger.log(`Rate limit exceeded for key: ${key}`, 'RateLimitService');
+        return { allowed: false, remaining: 0, resetAt: accurateResetAt };
+      }
+
+      return { allowed: true, remaining: maxRequests - newCount, resetAt };
     } catch (error: any) {
       this.logger.error(
         `Failed to check rate limit: ${error.message}`,

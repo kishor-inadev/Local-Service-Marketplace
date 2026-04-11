@@ -50,11 +50,13 @@ export class PushWorkerService {
             continue;
           }
 
-          // Simulate sending push notification (in production, integrate with FCM, APNs)
-          await this.sendPushNotification(
-            notification.user_id,
-            notification.type,
-            notification.message,
+          // Push notifications require a device token and FCM/APNs integration.
+          // The PushNotificationService (BullMQ comms.push queue) is the correct
+          // path for production push delivery. This HTTP-admin endpoint cannot
+          // resolve device tokens from a user_id alone, so we surface an error
+          // instead of silently faking success.
+          throw new Error(
+            `Push delivery ${delivery.id}: device token resolution requires PushNotificationService — use the BullMQ worker path instead`,
           );
 
           // Mark delivery as sent
@@ -89,28 +91,5 @@ export class PushWorkerService {
       );
     }
   }
-
-  private async sendPushNotification(
-    userId: string,
-    type: string,
-    message: string,
-  ): Promise<void> {
-    // Simulate push notification sending with delay
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // In production, integrate with push notification service:
-    // const fcm = new FCM(process.env.FCM_SERVER_KEY);
-    // await fcm.send({
-    //   to: deviceToken,
-    //   notification: {
-    //     title: type,
-    //     body: message,
-    //   },
-    // });
-
-    this.logger.log(
-      `Push notification sent to user ${userId} with type ${type}`,
-      "PushWorkerService",
-    );
-  }
 }
+

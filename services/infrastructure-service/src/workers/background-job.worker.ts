@@ -21,7 +21,9 @@ export class BackgroundJobWorker extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    const { jobId, jobType } = job.data;
+    const { jobId } = job.data;
+    // jobType is stored as the BullMQ job name, not inside job.data
+    const jobType = job.name;
     this.logger.log(`Processing background job ${jobId} of type ${jobType}`, 'BackgroundJobWorker');
 
     try {

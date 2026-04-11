@@ -235,7 +235,12 @@ export class PayUbizAdapter implements IGatewayAdapter {
         .digest("hex");
       const receivedHash = get("hash");
 
-      const isValid = expectedHash === receivedHash;
+      // Use timing-safe comparison to prevent HMAC timing attacks (CWE-208)
+      const expectedBuf = Buffer.from(expectedHash, "utf8");
+      const receivedBuf = Buffer.from(receivedHash ?? "", "utf8");
+      const isValid =
+        expectedBuf.length === receivedBuf.length &&
+        crypto.timingSafeEqual(expectedBuf, receivedBuf);
       if (!isValid) {
         this.logger.warn("PayU webhook reverse hash mismatch");
       }

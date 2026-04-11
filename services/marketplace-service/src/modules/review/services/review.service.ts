@@ -6,7 +6,7 @@ import { ReviewRepository } from "../repositories/review.repository";
 import { CreateReviewDto } from "../dto/create-review.dto";
 import { UpdateReviewDto } from "../dto/update-review.dto";
 import { Review } from "../entities/review.entity";
-import { NotFoundException } from "../../../common/exceptions/http.exceptions";
+import { NotFoundException, BadRequestException } from "../../../common/exceptions/http.exceptions";
 import { NotificationClient } from "../../../common/notification/notification.client";
 import { UserClient } from "../../../common/user/user.client";
 
@@ -24,9 +24,34 @@ export class ReviewService {
 
   async createReview(createReviewDto: CreateReviewDto): Promise<Review> {
     this.logger.log(
-      `Creating review for provider ${createReviewDto.provider_id}`,
+      `Creating review for job ${createReviewDto.job_id}`,
       "ReviewService",
     );
+
+    // 1. Validate that the referenced job is completed before allowing a review
+    const job = await this.reviewRepository.getJobForReview(createReviewDto.job_id);
+    if (!job) {
+      throw new NotFoundException("Job not found");
+    }
+    if (job.status !== "completed") {
+      throw new BadRequestException(
+        "Reviews can only be submitted for completed jobs",
+      );
+    }
+
+    // 2. Derive provider_id from the job — do not trust client-supplied value
+    createReviewDto.provider_id = job.provider_id;
+
+    // 3. Prevent duplicate reviews for the same job/user pair
+    const duplicate = await this.reviewRepository.existsForJobAndUser(
+      createReviewDto.job_id,
+      createReviewDto.user_id,
+    );
+    if (duplicate) {
+      throw new BadRequestException(
+        "You have already submitted a review for this job",
+      );
+    }
 
     const review = await this.reviewRepository.createReview(createReviewDto);
 

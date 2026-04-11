@@ -18,6 +18,7 @@ import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { ProposalService } from "../services/proposal.service";
 import { CreateProposalDto } from "../dto/create-proposal.dto";
 import { UpdateProposalDto } from "../dto/update-proposal.dto";
+import { RejectProposalDto } from "../dto/reject-proposal.dto";
 import { ProposalQueryDto } from "../dto/proposal-query.dto";
 import {
   ProposalResponseDto,
@@ -100,12 +101,14 @@ export class ProposalController {
   @HttpCode(HttpStatus.OK)
   async rejectProposal(
     @Param("id", StrictUuidPipe) id: string,
+    @Body() rejectDto: RejectProposalDto,
     @Request() req: any,
   ): Promise<ProposalResponseDto> {
     return this.proposalService.rejectProposal(
       id,
       req.user.userId,
       req.user.role,
+      rejectDto.reason,
     );
   }
 

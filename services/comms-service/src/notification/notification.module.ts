@@ -17,6 +17,7 @@ import { NotificationPreferencesRepository } from "./repositories/notification-p
 import { DeviceRepository } from "./repositories/device.repository";
 import { EmailClient } from "./clients/email.client";
 import { SmsClient } from "./clients/sms.client";
+import { UserClient } from "../common/user/user.client";
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { SmsClient } from "./clients/sms.client";
     DeviceRepository,
     EmailClient,
     SmsClient,
+    UserClient,
   ],
   exports: [
     NotificationService,

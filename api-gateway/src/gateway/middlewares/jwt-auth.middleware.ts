@@ -116,23 +116,19 @@ export class JwtAuthMiddleware implements NestMiddleware {
     const isPublicGetRoute =
       method === "GET" && matchRoute(publicGetRoutes, normalizedPath);
 
-    if (isPublicRoute || isPublicGetRoute) {
-      return next();
-    }
-
-    // 1. Identify public status
     const isPublic = isPublicRoute || isPublicGetRoute;
 
-    // 2. Extract JWT token from Authorization header (if present)
+    // Extract JWT token from Authorization header (if present).
+    // We attempt validation even on public routes so authenticated users get
+    // their user-context headers injected into downstream requests.
     const authHeader = req.headers.authorization;
     const hasToken = authHeader && authHeader.startsWith("Bearer ");
 
-    // 3. Case A: Token is present — we MUST validate it (even for public routes)
     if (hasToken) {
       const token = authHeader.substring(7);
       this.validateToken(token, req, next).catch((error) => {
-        // If it's a public route and the token just happened to be expired/invalid,
-        // we allow it as anonymous instead of blocking the user.
+        // If it's a public route and the token is expired/invalid,
+        // allow the request as anonymous instead of blocking the user.
         if (isPublic) {
           this.logger.warn(
             `Invalid token on public route ${method} ${path} — falling back to anonymous. Error: ${error.message}`,
@@ -152,9 +148,9 @@ export class JwtAuthMiddleware implements NestMiddleware {
       return;
     }
 
-    // 4. Case B: No token present
+    // No token present
     if (isPublic) {
-      // It's a public route and user is anonymous — allow.
+      // Public route and anonymous user — allow.
       return next();
     }
 
