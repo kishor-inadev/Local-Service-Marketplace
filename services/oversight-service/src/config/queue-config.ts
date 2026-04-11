@@ -593,6 +593,30 @@ export const QUEUE_CONFIGS: Record<string, QueueConfig> = {
       lockRenewTime: 30000,
     },
   },
+  'oversight.cleanup': {
+    name: 'oversight.cleanup',
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: {
+        type: 'fixed',
+        delay: 600000, // 10 minutes
+      },
+      removeOnComplete: true,
+      removeOnFail: { count: 5 },
+      timeout: 120000, // 120 seconds
+      priority: JobPriority.LOW,
+    },
+    limiter: {
+      max: 5,          // 5 cleanup jobs
+      duration: 60000, // per minute
+    },
+    settings: {
+      stalledInterval: 60000,
+      maxStalledCount: 1,
+      lockDuration: 130000,
+      lockRenewTime: 30000,
+    },
+  },
 
   // ============================================
   // INFRASTRUCTURE SERVICE QUEUES

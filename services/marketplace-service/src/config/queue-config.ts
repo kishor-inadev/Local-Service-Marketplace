@@ -441,6 +441,54 @@ export const QUEUE_CONFIGS: Record<string, QueueConfig> = {
       lockRenewTime: 15000,
     },
   },
+  'marketplace.rating': {
+    name: 'marketplace.rating',
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: {
+        type: 'fixed',
+        delay: 30000,
+      },
+      removeOnComplete: true,
+      removeOnFail: { count: 10 },
+      timeout: 60000, // 60 seconds
+      priority: JobPriority.NORMAL,
+    },
+    limiter: {
+      max: 50,         // 50 rating jobs
+      duration: 60000, // per minute
+    },
+    settings: {
+      stalledInterval: 60000,
+      maxStalledCount: 1,
+      lockDuration: 70000,
+      lockRenewTime: 15000,
+    },
+  },
+  'marketplace.cleanup': {
+    name: 'marketplace.cleanup',
+    defaultJobOptions: {
+      attempts: 2,
+      backoff: {
+        type: 'fixed',
+        delay: 600000, // 10 minutes
+      },
+      removeOnComplete: true,
+      removeOnFail: { count: 5 },
+      timeout: 120000, // 120 seconds
+      priority: JobPriority.LOW,
+    },
+    limiter: {
+      max: 5,          // 5 cleanup jobs
+      duration: 60000, // per minute
+    },
+    settings: {
+      stalledInterval: 60000,
+      maxStalledCount: 1,
+      lockDuration: 130000,
+      lockRenewTime: 30000,
+    },
+  },
 
   // ============================================
   // IDENTITY SERVICE QUEUES
