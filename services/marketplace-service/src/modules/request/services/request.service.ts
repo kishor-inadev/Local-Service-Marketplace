@@ -108,7 +108,7 @@ export class RequestService {
           description: dto.description,
           budget: request.budget,
         })
-        .catch((error: any) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to enqueue request creation notification: ${err.message}`,
             RequestService.name,
@@ -122,7 +122,7 @@ export class RequestService {
           description: dto.description,
           budget: request.budget,
         })
-        .catch((error: any) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to enqueue guest request creation notification: ${err.message}`,
             RequestService.name,
@@ -158,7 +158,8 @@ export class RequestService {
     );
 
     // RBAC: Customers can ONLY see their own requests via the root endpoint
-    if (user && user.role === 'customer') {
+    const isAuthenticated = user && user.userId && user.userId !== 'anonymous';
+    if (isAuthenticated && user.role === 'customer') {
       this.logger.log(`Enforcing customer-only filter for user ${user.userId}`, RequestService.name);
       queryDto.user_id = user.userId;
     }
@@ -311,7 +312,7 @@ export class RequestService {
             requestUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/requests/${id}`,
           },
         })
-        .catch((error: any) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to send request update notification: ${err.message}`,
             RequestService.name,

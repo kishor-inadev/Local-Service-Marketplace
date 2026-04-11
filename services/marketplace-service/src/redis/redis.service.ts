@@ -33,7 +33,7 @@ export class RedisService implements OnModuleDestroy {
         this.logger.log("Redis cache connected successfully", "RedisService");
       });
 
-      this.redisClient.on("error", (error: any) => {
+      this.redisClient.on("error", (err: any) => {
         this.logger.error(
           `Redis connection error: ${err.message}`,
           err.stack,
