@@ -19,7 +19,7 @@ export class SubscriptionService {
   constructor(
     private readonly subscriptionRepository: SubscriptionRepository,
     private readonly pricingPlanRepository: PricingPlanRepository,
-  ) {}
+  ) { }
 
   async createSubscription(
     providerId: string,
@@ -153,6 +153,7 @@ export class SubscriptionService {
     if (actorRole !== "admin" && actorProviderId !== subscription.provider_id) {
       throw new ForbiddenException("You can only cancel your own provider subscription");
     }
+    if (subscription.status === "cancelled") {
       throw new BadRequestException("Subscription is already cancelled");
     }
 

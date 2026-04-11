@@ -39,7 +39,7 @@ export class PaymentController {
     private readonly refundService: RefundService,
     private readonly invoiceService: InvoiceService,
     private readonly fileServiceClient: FileServiceClient,
-  ) {}
+  ) { }
 
   /**
    * Create a payment for a job
@@ -132,6 +132,7 @@ export class PaymentController {
     if (req.user.role !== "admin" && req.user.providerId !== providerId) {
       throw new ForbiddenException("You can only view your own earnings summary");
     }
+    const start = startDate ? new Date(startDate) : undefined;
     const end = endDate ? new Date(endDate) : undefined;
     const earnings = await this.paymentService.getProviderEarnings(
       providerId,
