@@ -10,6 +10,7 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  ForbiddenException,
   ParseUUIDPipe,
   HttpCode,
   HttpStatus,
@@ -33,6 +34,8 @@ export class ProviderDocumentController {
     private readonly fileServiceClient: FileServiceClient,
   ) {}
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Post("upload/:providerId")
   @UseInterceptors(FileInterceptor("file"))
   @HttpCode(HttpStatus.CREATED)
@@ -126,11 +129,16 @@ export class ProviderDocumentController {
     return { success: true, data: document, message: "Document rejected successfully" };
   }
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Get("provider/:providerId")
   async getProviderDocuments(
     @Param("providerId", FlexibleIdPipe) providerId: string,
     @Request() req: any,
   ) {
+    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+      throw new ForbiddenException("You can only view your own documents");
+    }
     return this.documentService.getProviderDocuments(providerId);
   }
 
@@ -158,6 +166,8 @@ export class ProviderDocumentController {
     return { success: true, data: status };
   }
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Delete(":documentId")
   async deleteDocument(
     @Param("documentId", ParseUUIDPipe) documentId: string,

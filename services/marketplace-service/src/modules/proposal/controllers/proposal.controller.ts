@@ -24,6 +24,8 @@ import {
   PaginatedProposalResponseDto,
 } from "../dto/proposal-response.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { RolesGuard } from "@/common/guards/roles.guard";
+import { Roles } from "@/common/decorators/roles.decorator";
 import { OwnershipGuard } from "@/common/guards/ownership.guard";
 import { Ownership } from "@/common/decorators/ownership.decorator";
 
@@ -32,6 +34,8 @@ import { Ownership } from "@/common/decorators/ownership.decorator";
 export class ProposalController {
   constructor(private readonly proposalService: ProposalService) {}
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Post("proposals")
   @HttpCode(HttpStatus.CREATED)
   async createProposal(
@@ -75,6 +79,8 @@ export class ProposalController {
     return this.proposalService.getProposalsForRequest(requestId, req.user);
   }
 
+  @Roles("customer", "admin")
+  @UseGuards(RolesGuard)
   @Post("proposals/:id/accept")
   @HttpCode(HttpStatus.OK)
   async acceptProposal(
@@ -88,6 +94,8 @@ export class ProposalController {
     );
   }
 
+  @Roles("customer", "admin")
+  @UseGuards(RolesGuard)
   @Post("proposals/:id/reject")
   @HttpCode(HttpStatus.OK)
   async rejectProposal(

@@ -46,7 +46,8 @@ export class PaymentController {
    * POST /payments
    */
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("customer", "admin")
   @HttpCode(HttpStatus.CREATED)
   async createPayment(
     @Body() createPaymentDto: CreatePaymentDto,

@@ -28,6 +28,8 @@ import {
 } from "../dto/job-response.dto";
 import { JobQueryDto } from "../dto/job-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { RolesGuard } from "@/common/guards/roles.guard";
+import { Roles } from "@/common/decorators/roles.decorator";
 import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../../common/file-service.client";
 import "multer";
@@ -40,6 +42,8 @@ export class JobController {
     private readonly fileServiceClient: FileServiceClient,
   ) {}
 
+  @Roles("customer", "admin")
+  @UseGuards(RolesGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createJob(
@@ -51,6 +55,8 @@ export class JobController {
     return this.jobService.createJob(createJobDto);
   }
 
+  @Roles("admin")
+  @UseGuards(RolesGuard)
   @Get("stats")
   @HttpCode(HttpStatus.OK)
   async getJobStats() {
@@ -205,6 +211,8 @@ export class JobController {
     return { ...result, page: 1, limit: result.data.length || 1 };
   }
 
+  @Roles("customer", "admin")
+  @UseGuards(RolesGuard)
   @Delete(":id")
   @HttpCode(HttpStatus.OK)
   async deleteJob(

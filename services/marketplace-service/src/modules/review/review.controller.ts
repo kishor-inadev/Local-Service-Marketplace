@@ -22,6 +22,8 @@ import { CreateReviewDto } from "./dto/create-review.dto";
 import { UpdateReviewDto } from "./dto/update-review.dto";
 import { RespondReviewDto } from "./dto/respond-review.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { RolesGuard } from "@/common/guards/roles.guard";
+import { Roles } from "@/common/decorators/roles.decorator";
 import { OwnershipGuard } from "@/common/guards/ownership.guard";
 import { Ownership } from "@/common/decorators/ownership.decorator";
 import { ForbiddenException } from "@/common/exceptions/http.exceptions";
@@ -33,7 +35,8 @@ export class ReviewController {
     private readonly reviewRepository: ReviewRepository,
   ) {}
 
-  @UseGuards(JwtAuthGuard)
+  @Roles("customer", "admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createReview(

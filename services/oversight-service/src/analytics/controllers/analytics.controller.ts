@@ -38,7 +38,11 @@ export class AnalyticsController {
 
 	@Post("activity")
 	@HttpCode(HttpStatus.OK)
-	async trackActivity(@Body() trackActivityDto: TrackActivityDto) {
+	async trackActivity(@Body() trackActivityDto: TrackActivityDto, @Headers("x-user-id") requestingUserId: string, @Headers("x-user-role") requestingUserRole: string) {
+		// Non-admins can only log their own activity
+		if (requestingUserRole !== "admin") {
+			trackActivityDto.user_id = requestingUserId;
+		}
 		this.logger.log(
 			`POST /analytics/activity - Track activity for user ${trackActivityDto.user_id}`,
 			"AnalyticsController",
@@ -50,6 +54,8 @@ export class AnalyticsController {
 	}
 
 	@Get("user-activity")
+	@UseGuards(RolesGuard)
+	@Roles("admin")
 	async getAllActivity(
 		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
 		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
@@ -81,6 +87,8 @@ export class AnalyticsController {
 	}
 
 	@Get("user-activity/action/:action")
+	@UseGuards(RolesGuard)
+	@Roles("admin")
 	async getActivityByAction(
 		@Param("action") action: string,
 		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
@@ -96,6 +104,8 @@ export class AnalyticsController {
 	}
 
 	@Get("metrics")
+	@UseGuards(RolesGuard)
+	@Roles("admin")
 	async getDailyMetrics(
 		@Query("startDate") startDate?: string,
 		@Query("endDate") endDate?: string,
@@ -109,6 +119,8 @@ export class AnalyticsController {
 	}
 
 	@Get("metrics/:date")
+	@UseGuards(RolesGuard)
+	@Roles("admin")
 	async getMetricByDate(@Param("date") date: string) {
 		this.logger.log(`GET /analytics/metrics/${date} - Retrieve metric for specific date`, "AnalyticsController");
 
