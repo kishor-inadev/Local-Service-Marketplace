@@ -5,6 +5,9 @@ import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/config/constants";
 import { isMessagingEnabled, isNotificationsEnabled } from "@/config/features";
+import { useSidebarStore } from "@/store/sidebarStore";
+import { cn } from "@/utils/helpers";
+import { Tooltip } from "@/components/ui/Tooltip";
 import {
 	LayoutDashboard,
 	FileText,
@@ -30,6 +33,8 @@ import {
 	Tag,
 	Scroll,
 	MessagesSquare,
+	PanelLeftClose,
+	PanelLeftOpen,
 } from "lucide-react";
 
 interface NavItem {
@@ -85,27 +90,44 @@ const sharedBottomLinks = (messaging: boolean, notifications: boolean): NavItem[
 	return links;
 };
 
-function NavLink({ item, isActive }: { item: NavItem; isActive: boolean }) {
+function NavLink({ item, isActive, isCollapsed }: { item: NavItem; isActive: boolean; isCollapsed: boolean }) {
 	const Icon = item.icon;
-	return (
+
+	const content = (
 		<Link
 			href={item.href}
-			className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors
-        ${
-					isActive ?
-						"bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
-					:	"text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
-				}`}>
-			<Icon className='h-4 w-4 flex-shrink-0' />
-			<span className='flex-1 min-w-0 truncate'>{item.label}</span>
-			{isActive && <ChevronRight className='h-3 w-3 flex-shrink-0 opacity-60' />}
+			className={cn(
+				"flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+				isActive ?
+					"bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
+				:	"text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
+				isCollapsed && "justify-center px-2"
+			)}>
+			<Icon className='h-5 w-5 flex-shrink-0' />
+			{!isCollapsed && (
+				<>
+					<span className='flex-1 min-w-0 truncate'>{item.label}</span>
+					{isActive && <ChevronRight className='h-3 w-3 flex-shrink-0 opacity-60' />}
+				</>
+			)}
 		</Link>
 	);
+
+	if (isCollapsed) {
+		return (
+			<Tooltip content={item.label} position="right">
+				{content}
+			</Tooltip>
+		);
+	}
+
+	return content;
 }
 
 export function DashboardSidebar() {
 	const pathname = usePathname();
 	const { user } = useAuth();
+	const { isCollapsed, toggleSidebar } = useSidebarStore();
 
 	const role = user?.role ?? "customer";
 
@@ -122,14 +144,38 @@ export function DashboardSidebar() {
 	};
 
 	return (
-		<aside className='w-60 flex-shrink-0 hidden lg:flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-screen'>
-			<div className='flex-1 py-6 px-3 overflow-y-auto'>
+		<aside
+			className={cn(
+				"flex-shrink-0 hidden lg:flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-screen transition-all duration-300 ease-in-out",
+				isCollapsed ? "w-20" : "w-64"
+			)}>
+			<div className='flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700'>
+				{!isCollapsed && (
+					<span className='text-sm font-bold text-gray-900 dark:text-white truncate'>
+						Menu
+					</span>
+				)}
+				<button
+					onClick={toggleSidebar}
+					className={cn(
+						"p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors",
+						isCollapsed && "mx-auto"
+					)}
+					title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
+					{isCollapsed ?
+						<PanelLeftOpen className='h-5 w-5' />
+					:	<PanelLeftClose className='h-5 w-5' />}
+				</button>
+			</div>
+
+			<div className='flex-1 py-4 px-3 overflow-y-auto'>
 				<nav className='space-y-1'>
 					{mainLinks.map((item) => (
 						<NavLink
 							key={item.href}
 							item={item}
 							isActive={isActive(item.href)}
+							isCollapsed={isCollapsed}
 						/>
 					))}
 				</nav>
@@ -141,6 +187,7 @@ export function DashboardSidebar() {
 								key={item.href}
 								item={item}
 								isActive={isActive(item.href)}
+								isCollapsed={isCollapsed}
 							/>
 						))}
 					</nav>
