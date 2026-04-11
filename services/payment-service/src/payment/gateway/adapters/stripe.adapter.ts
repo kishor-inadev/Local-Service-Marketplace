@@ -125,7 +125,7 @@ export class StripeAdapter implements IGatewayAdapter {
         webhookSecret,
       );
       return true;
-    } catch (err) {
+    } catch (err: any) {
       this.logger.warn(`Stripe webhook signature invalid: ${err?.message}`);
       return false;
     }

@@ -52,7 +52,7 @@ export function initializeSentry() {
 
     console.log(`[Sentry] ✅ Initialized for ${serviceName} (${environment})`);
     return true;
-  } catch (error) {
+  } catch (error: any) {
     console.error("[Sentry] ❌ Failed to initialize:", error);
     return false;
   }

@@ -18,7 +18,7 @@ export class GatewayController {
     private readonly gatewayService: GatewayService,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   /**
    * Gateway self health check – exposed under /api/v1/health so Newman tests
@@ -84,7 +84,7 @@ export class GatewayController {
 
       // Forward request to microservice with user context
       const isMultipart = headers["content-type"]?.includes("multipart/form-data");
-      
+
       const response = await this.gatewayService.forwardRequest(
         path,
         method,
@@ -122,7 +122,7 @@ export class GatewayController {
 
       // Microservices now return standardized responses, pass them through as-is
       res.status(response.status).json(response.data);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Gateway error: ${error.message}`,
         error.stack,

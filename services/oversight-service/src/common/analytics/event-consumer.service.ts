@@ -9,7 +9,7 @@ export class EventConsumerService implements OnModuleInit {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
     private readonly kafkaService: KafkaService,
     private readonly userActivityRepository: UserActivityRepository,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (this.kafkaService.isKafkaEnabled()) {
@@ -44,7 +44,7 @@ export class EventConsumerService implements OnModuleInit {
           await this.trackPaymentMetrics(event);
           break;
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error processing analytics event ${event.eventType}: ${error.message}`,
         error.stack,
@@ -56,7 +56,7 @@ export class EventConsumerService implements OnModuleInit {
   private async logUserActivity(event: any): Promise<void> {
     // Extract user ID from event data
     const userId = event.data.userId || event.data.providerId;
-    
+
     if (userId) {
       await this.userActivityRepository.trackActivity({
         user_id: userId,

@@ -46,7 +46,7 @@ export class RequestService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
-  ) {}
+  ) { }
 
   async createRequest(dto: CreateRequestDto): Promise<RequestResponseDto> {
     const userContext = dto.user_id ? `user ${dto.user_id}` : "anonymous user";
@@ -108,7 +108,7 @@ export class RequestService {
           description: dto.description,
           budget: request.budget,
         })
-        .catch((err) => {
+        .catch((error: any) => {
           this.logger.warn(
             `Failed to enqueue request creation notification: ${err.message}`,
             RequestService.name,
@@ -122,7 +122,7 @@ export class RequestService {
           description: dto.description,
           budget: request.budget,
         })
-        .catch((err) => {
+        .catch((error: any) => {
           this.logger.warn(
             `Failed to enqueue guest request creation notification: ${err.message}`,
             RequestService.name,
@@ -311,7 +311,7 @@ export class RequestService {
             requestUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/requests/${id}`,
           },
         })
-        .catch((err) => {
+        .catch((error: any) => {
           this.logger.warn(
             `Failed to send request update notification: ${err.message}`,
             RequestService.name,

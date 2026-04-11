@@ -9,7 +9,7 @@ const databasePoolFactory = async () => {
 	const pool = new Pool({
 		...(connectionString ?
 			{ connectionString }
-		:	{
+			: {
 				host: process.env.DATABASE_HOST || "localhost",
 				port: parseInt(process.env.DATABASE_PORT || "5432", 10),
 				user: process.env.DATABASE_USER || "postgres",
@@ -26,13 +26,13 @@ const databasePoolFactory = async () => {
 		const client = await pool.connect();
 		logger.log("Database connected successfully");
 		client.release();
-	} catch (error) {
+	} catch (error: any) {
 		logger.error("Database connection failed:", error);
 		throw error;
 	}
 
 	// Handle runtime pool errors (e.g. lost connections) to prevent crashes
-	pool.on('error', (err) => {
+	pool.on('error', (error: any) => {
 		logger.error('Unexpected database pool error', err);
 	});
 
@@ -42,7 +42,7 @@ const databasePoolFactory = async () => {
 @Global()
 @Module({ providers: [{ provide: "DATABASE_POOL", useFactory: databasePoolFactory }], exports: ["DATABASE_POOL"] })
 export class DatabaseModule implements OnModuleDestroy {
-	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
+	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
 	async onModuleDestroy() {
 		await this.pool.end();

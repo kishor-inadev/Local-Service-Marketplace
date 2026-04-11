@@ -5,7 +5,7 @@ const fs = require('fs');
 async function testUpload() {
   try {
     fs.writeFileSync('test.txt', 'hello world');
-    
+
     const form = new FormData();
     form.append('file', fs.createReadStream('test.txt'));
     form.append('document_type', 'government_id');
@@ -22,7 +22,7 @@ async function testUpload() {
       }
     );
     console.log('Success:', response.status, response.data);
-  } catch (error) {
+  } catch (error: any) {
     if (error.response) {
       console.error('Error:', error.response.status, error.response.data);
     } else {

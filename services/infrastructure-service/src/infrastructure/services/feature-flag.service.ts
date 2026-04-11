@@ -17,7 +17,7 @@ export class FeatureFlagService {
 		private readonly logger: LoggerService,
 		private readonly featureFlagRepository: FeatureFlagRepository,
 		private readonly redisService: RedisService,
-	) {}
+	) { }
 
 	async createFeatureFlag(createFlagDto: CreateFeatureFlagDto): Promise<FeatureFlag> {
 		try {
@@ -30,7 +30,7 @@ export class FeatureFlagService {
 			this.logger.log(`Feature flag created: ${flag.key}`, "FeatureFlagService");
 
 			return flag;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to create feature flag: ${error.message}`, error.stack, "FeatureFlagService");
 			throw error;
 		}
@@ -58,7 +58,7 @@ export class FeatureFlagService {
 			this.logger.log(`Feature flag retrieved from database: ${key}`, "FeatureFlagService");
 
 			return flag;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to get feature flag: ${error.message}`, error.stack, "FeatureFlagService");
 			throw error;
 		}
@@ -78,7 +78,7 @@ export class FeatureFlagService {
 			this.logger.log(`Retrieved ${data.length} feature flags`, "FeatureFlagService");
 
 			return { data, total, page: pagination.page, limit: pagination.limit };
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to get all feature flags: ${error.message}`, error.stack, "FeatureFlagService");
 			throw error;
 		}
@@ -97,7 +97,7 @@ export class FeatureFlagService {
 			this.logger.log(`Feature flag updated: ${key}`, "FeatureFlagService");
 
 			return flag;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to update feature flag: ${error.message}`, error.stack, "FeatureFlagService");
 			throw error;
 		}
@@ -112,7 +112,7 @@ export class FeatureFlagService {
 			await this.redisService.del(cacheKey);
 
 			this.logger.log(`Feature flag deleted: ${key}`, "FeatureFlagService");
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to delete feature flag: ${error.message}`, error.stack, "FeatureFlagService");
 			throw error;
 		}
@@ -140,7 +140,7 @@ export class FeatureFlagService {
 			}
 
 			return flag.rollout_percentage === 100;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to check feature enabled: ${error.message}`, error.stack, "FeatureFlagService");
 			// On error, default to false to prevent enabling untested features
 			return false;

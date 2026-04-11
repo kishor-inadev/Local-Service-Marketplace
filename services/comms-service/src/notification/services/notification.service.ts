@@ -37,7 +37,7 @@ export class NotificationService {
     private readonly emailClient: EmailClient,
     private readonly smsClient: SmsClient,
     private readonly featureFlags: FeatureFlagService,
-  ) {}
+  ) { }
 
   async createNotification(
     userId: string,
@@ -229,7 +229,7 @@ export class NotificationService {
         "NotificationService",
       );
       return { success: true, ...results };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send notification: ${error.message}`,
         error.stack,

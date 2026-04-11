@@ -3,7 +3,7 @@ import { Pool } from "pg";
 
 @Controller("health")
 export class HealthController {
-	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
+	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
 	@Get()
 	async check() {
@@ -18,7 +18,7 @@ export class HealthController {
 			const start = Date.now();
 			await this.pool.query("SELECT 1");
 			health.database = { status: "ok", responseTime: `${Date.now() - start}ms` };
-		} catch (error) {
+		} catch (error: any) {
 			health.status = "degraded";
 			health.database = { status: "error", message: error.message };
 		}

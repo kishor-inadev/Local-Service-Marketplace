@@ -20,7 +20,7 @@ export class ReviewService {
     private readonly userClient: UserClient,
     @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
     @InjectQueue('marketplace.rating') private readonly ratingQueue: Queue,
-  ) {}
+  ) { }
 
   async createReview(createReviewDto: CreateReviewDto): Promise<Review> {
     this.logger.log(
@@ -42,7 +42,7 @@ export class ReviewService {
         reviewId: review.id,
         rating: review.rating,
       })
-      .catch((err) => {
+      .catch((error: any) => {
         this.logger.warn(
           `Failed to enqueue review notification: ${err.message}`,
           'ReviewService',

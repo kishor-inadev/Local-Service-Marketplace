@@ -74,7 +74,7 @@ export class AnalyticsClient {
         metadata: options.metadata,
         ip_address: options.ipAddress,
       });
-    } catch (error) {
+    } catch (error: any) {
       // Intentional fire-and-forget — analytics failures must never surface to users
       this.logger.warn(
         `Analytics track failed for action "${options.action}": ${error?.message}`,

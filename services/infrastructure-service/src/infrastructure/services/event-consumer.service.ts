@@ -9,7 +9,7 @@ export class EventConsumerService implements OnModuleInit {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
     private readonly kafkaService: KafkaService,
     private readonly eventService: EventService,
-  ) {}
+  ) { }
 
   async onModuleInit() {
     if (this.kafkaService.isKafkaEnabled()) {
@@ -29,7 +29,7 @@ export class EventConsumerService implements OnModuleInit {
       });
 
       this.logger.log(`Event stored successfully: ${event.eventType}`, 'EventConsumerService');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error storing event ${event.eventType}: ${error.message}`,
         error.stack,

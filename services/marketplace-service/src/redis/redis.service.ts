@@ -33,7 +33,7 @@ export class RedisService implements OnModuleDestroy {
         this.logger.log("Redis cache connected successfully", "RedisService");
       });
 
-      this.redisClient.on("error", (err) => {
+      this.redisClient.on("error", (error: any) => {
         this.logger.error(
           `Redis connection error: ${err.message}`,
           err.stack,
@@ -64,7 +64,7 @@ export class RedisService implements OnModuleDestroy {
 
     try {
       return await this.redisClient.get(key);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Redis GET error for key ${key}: ${error.message}`,
         error.stack,
@@ -86,7 +86,7 @@ export class RedisService implements OnModuleDestroy {
       } else {
         await this.redisClient.set(key, value);
       }
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Redis SET error for key ${key}: ${error.message}`,
         error.stack,
@@ -103,7 +103,7 @@ export class RedisService implements OnModuleDestroy {
 
     try {
       await this.redisClient.del(key);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Redis DEL error for key ${key}: ${error.message}`,
         error.stack,
@@ -134,7 +134,7 @@ export class RedisService implements OnModuleDestroy {
           await this.redisClient.del(...keys);
         }
       } while (cursor !== "0");
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Redis DEL pattern error for ${pattern}: ${error.message}`,
         error.stack,
@@ -152,7 +152,7 @@ export class RedisService implements OnModuleDestroy {
     try {
       const result = await this.redisClient.exists(key);
       return result === 1;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Redis EXISTS error for key ${key}: ${error.message}`,
         error.stack,
@@ -170,7 +170,7 @@ export class RedisService implements OnModuleDestroy {
 
     try {
       return await this.redisClient.incr(key);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Redis INCR error for key ${key}: ${error.message}`,
         error.stack,
@@ -188,7 +188,7 @@ export class RedisService implements OnModuleDestroy {
 
     try {
       await this.redisClient.expire(key, seconds);
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Redis EXPIRE error for key ${key}: ${error.message}`,
         error.stack,
