@@ -31,7 +31,6 @@ CREATE TABLE users (
   deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_email_covering ON users(email) INCLUDE (id, role, status, email_verified, deleted_at, password_hash);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_status ON users(status);
@@ -132,7 +131,6 @@ CREATE TABLE user_devices (
   last_seen TIMESTAMP
 );
 
-CREATE INDEX idx_user_devices_user_id ON user_devices(user_id);
 CREATE INDEX idx_user_devices_device_id ON user_devices(device_id);
 CREATE UNIQUE INDEX idx_user_devices_unique ON user_devices(user_id, device_id);
 
@@ -354,8 +352,6 @@ CREATE TABLE proposals (
   updated_at TIMESTAMP
 );
 
-CREATE INDEX idx_proposals_request_id ON proposals(request_id);
-CREATE INDEX idx_proposals_provider_id ON proposals(provider_id);
 CREATE INDEX idx_proposals_status ON proposals(status);
 CREATE INDEX idx_proposals_created_at ON proposals(created_at DESC);
 CREATE INDEX idx_proposals_request_status ON proposals(request_id, status);
@@ -439,6 +435,7 @@ CREATE TABLE payment_webhooks (
   processed BOOLEAN DEFAULT false NOT NULL,
   event_type TEXT,
   external_id TEXT,
+  error_message TEXT,
   created_at TIMESTAMP DEFAULT now() NOT NULL,
   processed_at TIMESTAMP
 );
@@ -478,11 +475,11 @@ CREATE TABLE reviews (
   response_at TIMESTAMP,
   helpful_count INT DEFAULT 0 CHECK (helpful_count >= 0),
   verified_purchase BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT now() NOT NULL
+  created_at TIMESTAMP DEFAULT now() NOT NULL,
+  updated_at TIMESTAMP
 );
 
 CREATE INDEX idx_reviews_job_id ON reviews(job_id);
-CREATE INDEX idx_reviews_provider_id ON reviews(provider_id);
 CREATE INDEX idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX idx_reviews_created_at ON reviews(created_at DESC);
 CREATE INDEX idx_reviews_provider_rating ON reviews(provider_id, rating DESC);
@@ -649,7 +646,7 @@ CREATE TABLE audit_logs (
 );
 
 CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
-CREATE INDEX idx_audit_logs_entity ON audit_logs(entity, entity_id);
+CREATE INDEX idx_audit_logs_entity ON audit_logs(entity, entity_id, created_at DESC);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
 CREATE INDEX idx_audit_logs_action ON audit_logs(action, created_at DESC);
 
@@ -735,6 +732,46 @@ CREATE TABLE feature_flags (
 );
 
 -- =====================================================
+-- DEAD LETTER QUEUE (DLQ)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS failed_jobs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  queue_name VARCHAR(100) NOT NULL,
+  job_id VARCHAR(255) NOT NULL,
+  job_name VARCHAR(100) NOT NULL,
+  job_data JSONB NOT NULL,
+  error_message TEXT NOT NULL,
+  error_stack TEXT,
+  attempts INTEGER NOT NULL DEFAULT 0,
+  failed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  replayed_at TIMESTAMP WITH TIME ZONE,
+  status VARCHAR(20) NOT NULL DEFAULT 'failed' CHECK (status IN ('failed', 'replayed', 'discarded')),
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
+  UNIQUE (queue_name, job_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_queue_name ON failed_jobs(queue_name);
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_status ON failed_jobs(status);
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_failed_at ON failed_jobs(failed_at DESC);
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_queue_status ON failed_jobs(queue_name, status);
+
+CREATE OR REPLACE FUNCTION update_failed_jobs_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trigger_update_failed_jobs_updated_at
+  BEFORE UPDATE ON failed_jobs
+  FOR EACH ROW EXECUTE FUNCTION update_failed_jobs_updated_at();
+
+COMMENT ON TABLE failed_jobs IS 'Dead Letter Queue for storing failed BullMQ jobs after max retries exceeded';
+
+-- =====================================================
 -- DAILY METRICS
 -- =====================================================
 
@@ -742,6 +779,7 @@ CREATE TABLE daily_metrics (
   date DATE PRIMARY KEY,
   total_users INT NOT NULL DEFAULT 0,
   total_requests INT NOT NULL DEFAULT 0,
+  total_proposals INT NOT NULL DEFAULT 0,
   total_jobs INT NOT NULL DEFAULT 0,
   total_payments INT NOT NULL DEFAULT 0
 );
@@ -899,6 +937,10 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_provider_rating_trigger
   AFTER INSERT OR UPDATE ON reviews
   FOR EACH ROW EXECUTE FUNCTION update_provider_rating();
+
+CREATE TRIGGER update_reviews_updated_at
+  BEFORE UPDATE ON reviews
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to auto-update review aggregates
 CREATE OR REPLACE FUNCTION update_review_aggregates()
@@ -1496,6 +1538,81 @@ CREATE INDEX IF NOT EXISTS idx_provider_documents_expiring
   WHERE verified = true AND expires_at IS NOT NULL;
 
 -- =====================================================
+-- PERFORMANCE INDEXES (missing — identified by query audit)
+-- =====================================================
+
+-- SERVICE_REQUESTS: location_id FK lookup (LEFT JOIN in paginated list)
+CREATE INDEX IF NOT EXISTS idx_service_requests_location_id
+  ON service_requests(location_id)
+  WHERE location_id IS NOT NULL;
+
+-- SERVICE_REQUESTS: sort-by-preferred-date support
+CREATE INDEX IF NOT EXISTS idx_service_requests_preferred_date
+  ON service_requests(preferred_date DESC)
+  WHERE deleted_at IS NULL AND preferred_date IS NOT NULL;
+
+-- JOBS: cancelled_by FK (prevents seq scan on cascade delete)
+CREATE INDEX IF NOT EXISTS idx_jobs_cancelled_by
+  ON jobs(cancelled_by)
+  WHERE cancelled_by IS NOT NULL;
+
+-- JOBS: customer dashboard — filter by customer + status
+CREATE INDEX IF NOT EXISTS idx_jobs_customer_status
+  ON jobs(customer_id, status);
+
+-- PAYMENTS: user-side ordering for getPaymentsByUser (Bitmap OR left branch)
+CREATE INDEX IF NOT EXISTS idx_payments_user_created
+  ON payments(user_id, created_at DESC);
+
+-- PAYMENTS: admin listing filtered by status then sorted by date
+CREATE INDEX IF NOT EXISTS idx_payments_status_created
+  ON payments(status, created_at DESC);
+
+-- MESSAGES: DISTINCT ON conversation list (mixed ASC/DESC direction)
+CREATE INDEX IF NOT EXISTS idx_messages_job_created_desc
+  ON messages(job_id ASC, created_at DESC);
+
+-- NOTIFICATIONS: getNotificationsByUserId (no read predicate, sort by date)
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+  ON notifications(user_id, created_at DESC);
+
+-- REVIEWS: reviews-with-responses filter (response IS NOT NULL + response_at sort)
+CREATE INDEX IF NOT EXISTS idx_reviews_provider_responded
+  ON reviews(provider_id, response_at DESC)
+  WHERE response IS NOT NULL;
+
+-- DISPUTES: resolved_by FK (prevents seq scan on cascade delete)
+CREATE INDEX IF NOT EXISTS idx_disputes_resolved_by
+  ON disputes(resolved_by)
+  WHERE resolved_by IS NOT NULL;
+
+-- DISPUTES: time-ordered listing for getAllDisputes
+CREATE INDEX IF NOT EXISTS idx_disputes_created_at
+  ON disputes(created_at DESC);
+
+-- FAILED_JOBS: primary DLQ admin listing (queue + status + time)
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_queue_status_failed_at
+  ON failed_jobs(queue_name, status, failed_at DESC);
+
+-- FAILED_JOBS: status-only listing with time order
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_status_failed_at
+  ON failed_jobs(status, failed_at DESC);
+
+-- BACKGROUND_JOBS: status filter + attempts ordering
+CREATE INDEX IF NOT EXISTS idx_background_jobs_status_attempts
+  ON background_jobs(status, attempts ASC);
+
+-- EVENTS: event_type filter + time order for getEventsByType
+CREATE INDEX IF NOT EXISTS idx_events_event_type_created
+  ON events(event_type, created_at DESC);
+
+-- SERVICE_REQUEST_SEARCH: category/location equality lookups
+CREATE INDEX IF NOT EXISTS idx_service_request_search_category
+  ON service_request_search(category);
+CREATE INDEX IF NOT EXISTS idx_service_request_search_location
+  ON service_request_search(location);
+
+-- =====================================================
 -- DISPLAY ID SYSTEM
 -- =====================================================
 
@@ -1800,11 +1917,16 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 CREATE INDEX IF NOT EXISTS idx_schema_migrations_version ON schema_migrations(version);
 
--- Pre-seed integrated migrations (001-016)
+-- Pre-seed all integrated migrations (001-021)
+-- Fresh installs use schema.sql which is already the complete state,
+-- so all migrations are marked as applied to prevent re-running.
 INSERT INTO schema_migrations (version, name, checksum, execution_time_ms)
 VALUES
   ('001', 'add_user_name', 'integrated_in_schema', 0),
   ('002', 'production_readiness_fixes', 'integrated_in_schema', 0),
+  ('003', 'add_provider_documents', 'integrated_in_schema', 0),
+  ('004', 'add_notification_preferences', 'integrated_in_schema', 0),
+  ('005', 'add_failed_jobs_table', 'integrated_in_schema', 0),
   ('006', 'create_unsubscribe_table', 'integrated_in_schema', 0),
   ('007', 'add_anonymous_requests_support', 'integrated_in_schema', 0),
   ('008', 'add_payments_paid_at_field', 'integrated_in_schema', 0),
@@ -1818,6 +1940,8 @@ VALUES
   ('016', 'add_display_ids', 'integrated_in_schema', 0),
   ('017', 'add_missing_tables', 'integrated_in_schema', 0),
   ('018', 'query_performance_indexes', 'integrated_in_schema', 0),
-  ('019', 'unique_constraints_dedup', 'integrated_in_schema', 0)
+  ('019', 'unique_constraints_dedup', 'integrated_in_schema', 0),
+  ('020', 'add_edit_capabilities', 'integrated_in_schema', 0),
+  ('021', 'schema_sync', 'integrated_in_schema', 0)
 ON CONFLICT (version) DO NOTHING;
 
