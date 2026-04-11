@@ -31,7 +31,6 @@ CREATE TABLE users (
   deleted_at TIMESTAMP
 );
 
-CREATE INDEX idx_users_email ON users(email);
 CREATE INDEX idx_users_email_covering ON users(email) INCLUDE (id, role, status, email_verified, deleted_at, password_hash);
 CREATE INDEX idx_users_role ON users(role);
 CREATE INDEX idx_users_status ON users(status);
@@ -132,7 +131,6 @@ CREATE TABLE user_devices (
   last_seen TIMESTAMP
 );
 
-CREATE INDEX idx_user_devices_user_id ON user_devices(user_id);
 CREATE INDEX idx_user_devices_device_id ON user_devices(device_id);
 CREATE UNIQUE INDEX idx_user_devices_unique ON user_devices(user_id, device_id);
 
@@ -354,8 +352,6 @@ CREATE TABLE proposals (
   updated_at TIMESTAMP
 );
 
-CREATE INDEX idx_proposals_request_id ON proposals(request_id);
-CREATE INDEX idx_proposals_provider_id ON proposals(provider_id);
 CREATE INDEX idx_proposals_status ON proposals(status);
 CREATE INDEX idx_proposals_created_at ON proposals(created_at DESC);
 CREATE INDEX idx_proposals_request_status ON proposals(request_id, status);
@@ -484,7 +480,6 @@ CREATE TABLE reviews (
 );
 
 CREATE INDEX idx_reviews_job_id ON reviews(job_id);
-CREATE INDEX idx_reviews_provider_id ON reviews(provider_id);
 CREATE INDEX idx_reviews_user_id ON reviews(user_id);
 CREATE INDEX idx_reviews_created_at ON reviews(created_at DESC);
 CREATE INDEX idx_reviews_provider_rating ON reviews(provider_id, rating DESC);
@@ -651,7 +646,7 @@ CREATE TABLE audit_logs (
 );
 
 CREATE INDEX idx_audit_logs_user_id ON audit_logs(user_id);
-CREATE INDEX idx_audit_logs_entity ON audit_logs(entity, entity_id);
+CREATE INDEX idx_audit_logs_entity ON audit_logs(entity, entity_id, created_at DESC);
 CREATE INDEX idx_audit_logs_created_at ON audit_logs(created_at DESC);
 CREATE INDEX idx_audit_logs_action ON audit_logs(action, created_at DESC);
 
@@ -1541,6 +1536,81 @@ CREATE INDEX IF NOT EXISTS idx_provider_documents_pending
 CREATE INDEX IF NOT EXISTS idx_provider_documents_expiring
   ON provider_documents(expires_at ASC)
   WHERE verified = true AND expires_at IS NOT NULL;
+
+-- =====================================================
+-- PERFORMANCE INDEXES (missing — identified by query audit)
+-- =====================================================
+
+-- SERVICE_REQUESTS: location_id FK lookup (LEFT JOIN in paginated list)
+CREATE INDEX IF NOT EXISTS idx_service_requests_location_id
+  ON service_requests(location_id)
+  WHERE location_id IS NOT NULL;
+
+-- SERVICE_REQUESTS: sort-by-preferred-date support
+CREATE INDEX IF NOT EXISTS idx_service_requests_preferred_date
+  ON service_requests(preferred_date DESC)
+  WHERE deleted_at IS NULL AND preferred_date IS NOT NULL;
+
+-- JOBS: cancelled_by FK (prevents seq scan on cascade delete)
+CREATE INDEX IF NOT EXISTS idx_jobs_cancelled_by
+  ON jobs(cancelled_by)
+  WHERE cancelled_by IS NOT NULL;
+
+-- JOBS: customer dashboard — filter by customer + status
+CREATE INDEX IF NOT EXISTS idx_jobs_customer_status
+  ON jobs(customer_id, status);
+
+-- PAYMENTS: user-side ordering for getPaymentsByUser (Bitmap OR left branch)
+CREATE INDEX IF NOT EXISTS idx_payments_user_created
+  ON payments(user_id, created_at DESC);
+
+-- PAYMENTS: admin listing filtered by status then sorted by date
+CREATE INDEX IF NOT EXISTS idx_payments_status_created
+  ON payments(status, created_at DESC);
+
+-- MESSAGES: DISTINCT ON conversation list (mixed ASC/DESC direction)
+CREATE INDEX IF NOT EXISTS idx_messages_job_created_desc
+  ON messages(job_id ASC, created_at DESC);
+
+-- NOTIFICATIONS: getNotificationsByUserId (no read predicate, sort by date)
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+  ON notifications(user_id, created_at DESC);
+
+-- REVIEWS: reviews-with-responses filter (response IS NOT NULL + response_at sort)
+CREATE INDEX IF NOT EXISTS idx_reviews_provider_responded
+  ON reviews(provider_id, response_at DESC)
+  WHERE response IS NOT NULL;
+
+-- DISPUTES: resolved_by FK (prevents seq scan on cascade delete)
+CREATE INDEX IF NOT EXISTS idx_disputes_resolved_by
+  ON disputes(resolved_by)
+  WHERE resolved_by IS NOT NULL;
+
+-- DISPUTES: time-ordered listing for getAllDisputes
+CREATE INDEX IF NOT EXISTS idx_disputes_created_at
+  ON disputes(created_at DESC);
+
+-- FAILED_JOBS: primary DLQ admin listing (queue + status + time)
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_queue_status_failed_at
+  ON failed_jobs(queue_name, status, failed_at DESC);
+
+-- FAILED_JOBS: status-only listing with time order
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_status_failed_at
+  ON failed_jobs(status, failed_at DESC);
+
+-- BACKGROUND_JOBS: status filter + attempts ordering
+CREATE INDEX IF NOT EXISTS idx_background_jobs_status_attempts
+  ON background_jobs(status, attempts ASC);
+
+-- EVENTS: event_type filter + time order for getEventsByType
+CREATE INDEX IF NOT EXISTS idx_events_event_type_created
+  ON events(event_type, created_at DESC);
+
+-- SERVICE_REQUEST_SEARCH: category/location equality lookups
+CREATE INDEX IF NOT EXISTS idx_service_request_search_category
+  ON service_request_search(category);
+CREATE INDEX IF NOT EXISTS idx_service_request_search_location
+  ON service_request_search(location);
 
 -- =====================================================
 -- DISPLAY ID SYSTEM

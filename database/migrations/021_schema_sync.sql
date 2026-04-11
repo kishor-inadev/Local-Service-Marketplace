@@ -63,3 +63,72 @@ ALTER TABLE reviews
 CREATE OR REPLACE TRIGGER update_reviews_updated_at
   BEFORE UPDATE ON reviews
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- =====================================================
+-- 5. Performance index additions
+-- =====================================================
+
+-- Drop redundant indexes (their leading columns are covered by composite indexes)
+DROP INDEX IF EXISTS idx_users_email;
+DROP INDEX IF EXISTS idx_user_devices_user_id;
+DROP INDEX IF EXISTS idx_proposals_request_id;
+DROP INDEX IF EXISTS idx_proposals_provider_id;
+DROP INDEX IF EXISTS idx_reviews_provider_id;
+
+-- Upgrade audit_logs_entity to include created_at for ordered entity lookups
+DROP INDEX IF EXISTS idx_audit_logs_entity;
+CREATE INDEX IF NOT EXISTS idx_audit_logs_entity
+  ON audit_logs(entity, entity_id, created_at DESC);
+
+-- New missing indexes
+CREATE INDEX IF NOT EXISTS idx_service_requests_location_id
+  ON service_requests(location_id) WHERE location_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_service_requests_preferred_date
+  ON service_requests(preferred_date DESC)
+  WHERE deleted_at IS NULL AND preferred_date IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_jobs_cancelled_by
+  ON jobs(cancelled_by) WHERE cancelled_by IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_jobs_customer_status
+  ON jobs(customer_id, status);
+
+CREATE INDEX IF NOT EXISTS idx_payments_user_created
+  ON payments(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_payments_status_created
+  ON payments(status, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_messages_job_created_desc
+  ON messages(job_id ASC, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_notifications_user_created
+  ON notifications(user_id, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_provider_responded
+  ON reviews(provider_id, response_at DESC) WHERE response IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_disputes_resolved_by
+  ON disputes(resolved_by) WHERE resolved_by IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_disputes_created_at
+  ON disputes(created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_queue_status_failed_at
+  ON failed_jobs(queue_name, status, failed_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_failed_jobs_status_failed_at
+  ON failed_jobs(status, failed_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_background_jobs_status_attempts
+  ON background_jobs(status, attempts ASC);
+
+CREATE INDEX IF NOT EXISTS idx_events_event_type_created
+  ON events(event_type, created_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_service_request_search_category
+  ON service_request_search(category);
+
+CREATE INDEX IF NOT EXISTS idx_service_request_search_location
+  ON service_request_search(location);
