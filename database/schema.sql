@@ -479,7 +479,8 @@ CREATE TABLE reviews (
   response_at TIMESTAMP,
   helpful_count INT DEFAULT 0 CHECK (helpful_count >= 0),
   verified_purchase BOOLEAN DEFAULT true,
-  created_at TIMESTAMP DEFAULT now() NOT NULL
+  created_at TIMESTAMP DEFAULT now() NOT NULL,
+  updated_at TIMESTAMP
 );
 
 CREATE INDEX idx_reviews_job_id ON reviews(job_id);
@@ -941,6 +942,10 @@ $$ LANGUAGE plpgsql;
 CREATE TRIGGER update_provider_rating_trigger
   AFTER INSERT OR UPDATE ON reviews
   FOR EACH ROW EXECUTE FUNCTION update_provider_rating();
+
+CREATE TRIGGER update_reviews_updated_at
+  BEFORE UPDATE ON reviews
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Function to auto-update review aggregates
 CREATE OR REPLACE FUNCTION update_review_aggregates()

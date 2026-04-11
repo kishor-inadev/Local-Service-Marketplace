@@ -317,8 +317,8 @@ export class PaymentRepository {
     // payments table has user_id and provider_id — no cross-service JOIN needed
     let query = `
       SELECT COUNT(*)::int AS total
-      FROM payments
-      WHERE user_id = $1 OR provider_id = $1
+      FROM payments p
+      WHERE p.user_id = $1 OR p.provider_id = $1
     `;
 
     const values: any[] = [userId];

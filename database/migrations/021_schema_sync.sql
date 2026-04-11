@@ -53,3 +53,13 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE TRIGGER trigger_update_failed_jobs_updated_at
   BEFORE UPDATE ON failed_jobs
   FOR EACH ROW EXECUTE FUNCTION update_failed_jobs_updated_at();
+
+-- 4. reviews: add updated_at column
+--    Referenced in: marketplace-service/modules/review/repositories/review.repository.ts
+--    updateReview() sets updated_at = NOW() on every review edit.
+ALTER TABLE reviews
+  ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP;
+
+CREATE OR REPLACE TRIGGER update_reviews_updated_at
+  BEFORE UPDATE ON reviews
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
