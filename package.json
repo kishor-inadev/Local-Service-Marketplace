@@ -7,6 +7,7 @@
     "install:all": "pnpm install",
     "build:all": "pnpm -r build",
     "start:dev": "pnpm -r --parallel start:dev",
+    "fe:dev": "cd frontend && npm run dev",
     "docker:up": "docker compose up -d",
     "docker:l1": "docker compose up -d",
     "docker:up:l1": "pnpm docker:l1",
