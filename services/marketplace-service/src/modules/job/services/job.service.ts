@@ -453,6 +453,7 @@ export class JobService {
     id: string,
     userId: string,
     userRole: string,
+    reason?: string,
   ): Promise<void> {
     this.logger.log(`Deleting/cancelling job: ${id}`, JobService.name);
 
@@ -484,7 +485,7 @@ export class JobService {
     }
 
     // Cancel the job
-    await this.jobRepository.cancelJob(existingJob.id, userId, 'Cancelled by user');
+    await this.jobRepository.cancelJob(existingJob.id, userId, reason ?? 'Cancelled by user');
 
     this.logger.log(
       `Job cancelled successfully: ${existingJob.id}`,
