@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -16,10 +17,13 @@ import Link from 'next/link';
 import { ROUTES } from '@/config/constants';
 import { toast } from 'react-hot-toast';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 export default function FavoritesPage() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pendingProviderId, setPendingProviderId] = useState<string | null>(null);
 
   const { data: favorites, isLoading, error, refetch } = useQuery({
     queryKey: ['favorites', user?.id],
@@ -42,9 +46,16 @@ export default function FavoritesPage() {
   });
 
   const handleRemove = (providerId: string) => {
-    if (confirm('Remove this provider from your favorites?')) {
-      removeFavoriteMutation.mutate(providerId);
+    setPendingProviderId(providerId);
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmRemove = () => {
+    if (pendingProviderId) {
+      removeFavoriteMutation.mutate(pendingProviderId);
     }
+    setConfirmOpen(false);
+    setPendingProviderId(null);
   };
 
   if (isLoading) {
@@ -173,5 +184,15 @@ export default function FavoritesPage() {
 				</div>
 			</Layout>
 		</ProtectedRoute>
+		<ConfirmDialog
+			isOpen={confirmOpen}
+			onClose={() => { setConfirmOpen(false); setPendingProviderId(null); }}
+			onConfirm={handleConfirmRemove}
+			title="Remove from Favorites"
+			message="Remove this provider from your favorites?"
+			confirmLabel="Remove"
+			variant="danger"
+			isLoading={removeFavoriteMutation.isPending}
+		/>
 	);
 }

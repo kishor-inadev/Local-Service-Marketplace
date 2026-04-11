@@ -69,34 +69,35 @@ export default function CustomerDashboard() {
 
 	return (
 		<Layout>
-			<div className='container-custom py-12'>
+			<div className='container-custom py-10'>
 				{/* Welcome Section */}
-				<div className='mb-12'>
-					<h1 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-white mb-3'>
-						Welcome back, {user?.name || user?.email}!
+				<div className='mb-10'>
+					<p className='text-xs font-semibold uppercase tracking-widest text-primary-500 mb-2'>Dashboard</p>
+					<h1 className='text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-2'>
+						Welcome back, {user?.name?.split(' ')[0] || 'there'}
 					</h1>
-					<p className='text-lg text-gray-600 dark:text-gray-400'>Here's what's happening with your service requests</p>
+					<p className='text-gray-500 dark:text-gray-400'>Here’s what’s happening with your service requests</p>
 				</div>
 
 				{/* Quick Stats */}
 				<div
-					className={`grid grid-cols-1 ${isNotificationsEnabled() ? "md:grid-cols-3" : "md:grid-cols-2"} gap-6 mb-10`}>
+					className={`grid grid-cols-1 ${isNotificationsEnabled() ? "md:grid-cols-3" : "md:grid-cols-2"} gap-4 mb-8`}>
 					{requestsLoading ?
 						<SkeletonStatCard />
 						: <Card
 							hover
-							className='animate-fade-in'>
-							<CardContent className='flex items-center justify-between p-6'>
+							className='animate-fade-in border-l-4 border-l-primary-500'>
+							<CardContent className='flex items-center justify-between p-5'>
 								<div>
-									<p className='text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400'>
+									<p className='text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500'>
 										Active Requests
 									</p>
-									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-2'>
+									<p className='text-3xl font-bold text-gray-900 dark:text-white mt-1.5'>
 										{requests?.filter((r) => r.status === "open").length ?? 0}
 									</p>
 								</div>
-								<div className='h-12 w-12 rounded-2xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0'>
-									<FileText className='h-6 w-6 text-primary-600 dark:text-primary-400' />
+								<div className='h-11 w-11 rounded-xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0'>
+									<FileText className='h-5 w-5 text-primary-600 dark:text-primary-400' />
 								</div>
 							</CardContent>
 						</Card>

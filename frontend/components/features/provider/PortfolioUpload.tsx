@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { Upload, X, Image as ImageIcon, AlertCircle } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { createPortfolioItem } from '@/services/user-service';
@@ -92,7 +93,7 @@ export function PortfolioUpload({ providerId, onUploadSuccess }: PortfolioUpload
         onUploadSuccess();
       }
 
-      alert('Portfolio item created successfully!');
+      toast.success('Portfolio item created successfully!');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {

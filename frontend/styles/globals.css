@@ -3,8 +3,13 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
     @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    font-feature-settings: "cv11", "ss01";
   }
 }
 
@@ -37,10 +42,37 @@
   .focus-visible-ring {
     @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800;
   }
+
+  /* Frosted glass effect */
+  .glass {
+    @apply backdrop-blur-md bg-white/90 dark:bg-gray-900/80 border border-white/20 dark:border-white/5;
+  }
+
+  /* Gradient text for headings */
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent;
+  }
+
+  /* Shimmer skeleton loading */
+  .shimmer {
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 1000px 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  .dark .shimmer {
+    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background-size: 1000px 100%;
+  }
 }
 
 @layer components {
   .container-custom {
     @apply w-full mx-auto px-4 sm:px-6 lg:px-8;
+  }
+
+  /* Consistent section padding */
+  .section-padding {
+    @apply py-20 lg:py-28;
   }
 }

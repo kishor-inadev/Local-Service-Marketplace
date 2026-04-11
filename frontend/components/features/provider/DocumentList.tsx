@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import {
   getProviderDocuments,
   getDocumentVerificationStatus,
@@ -8,6 +9,7 @@ import {
   type ProviderDocument,
   type VerificationStatus
 } from '@/services/user-service';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 import { FileText, Check, X, Clock, AlertTriangle, Calendar, Eye } from 'lucide-react';
 
 export function DocumentList({ providerId }: { providerId?: string }) {
@@ -15,6 +17,9 @@ export function DocumentList({ providerId }: { providerId?: string }) {
   const [status, setStatus] = useState<VerificationStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDocument, setSelectedDocument] = useState<ProviderDocument | null>(null);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingDocId, setPendingDocId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (!providerId) {
@@ -47,17 +52,25 @@ export function DocumentList({ providerId }: { providerId?: string }) {
     }
   };
 
-  const deleteDocument = async (documentId: string) => {
-    if (!providerId) return;
-    if (!confirm('Are you sure you want to delete this document?')) return;
+  const handleDeleteClick = (documentId: string) => {
+    setPendingDocId(documentId);
+    setDeleteConfirmOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!pendingDocId || !providerId) return;
+    setDeleting(true);
     try {
-      await deleteProviderDocument(providerId, documentId);
+      await deleteProviderDocument(providerId, pendingDocId);
       loadDocuments();
       loadVerificationStatus();
     } catch (error) {
       console.error('Failed to delete document:', error);
-      alert('Failed to delete document');
+      toast.error('Failed to delete document');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+      setPendingDocId(null);
     }
   };
 
@@ -242,7 +255,7 @@ export function DocumentList({ providerId }: { providerId?: string }) {
 
                     {!doc.verified && (
                       <button
-                        onClick={() => deleteDocument(doc.id)}
+                        onClick={() => handleDeleteClick(doc.id)}
                         className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                         title="Delete Document"
                       >
@@ -289,5 +302,15 @@ export function DocumentList({ providerId }: { providerId?: string }) {
         </div>
       )}
     </div>
+    <ConfirmDialog
+      isOpen={deleteConfirmOpen}
+      onClose={() => { setDeleteConfirmOpen(false); setPendingDocId(null); }}
+      onConfirm={handleConfirmDelete}
+      title="Delete Document"
+      message="Are you sure you want to delete this document? This action cannot be undone."
+      confirmLabel="Delete"
+      variant="danger"
+      isLoading={deleting}
+    />
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import toast from 'react-hot-toast';
 import { Upload, FileText, X, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { useDropzone } from 'react-dropzone';
 import { uploadProviderDocument } from '@/services/user-service';
@@ -93,7 +94,7 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
         onUploadSuccess();
       }
 
-      alert('Document uploaded successfully! It will be reviewed shortly.');
+      toast.success('Document uploaded successfully! It will be reviewed shortly.');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Upload failed');
     } finally {

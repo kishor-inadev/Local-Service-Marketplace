@@ -1,13 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { CreditCard, Plus, Check, Trash2, AlertTriangle, Calendar, Shield } from 'lucide-react';
 import { paymentService, type SavedPaymentMethod } from '@/services/payment-service';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export function PaymentMethods() {
   const [methods, setMethods] = useState<SavedPaymentMethod[]>([]);
   const [loading, setLoading] = useState(true);
   const [showAddForm, setShowAddForm] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingMethodId, setPendingMethodId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     loadPaymentMethods();
@@ -30,19 +35,28 @@ export function PaymentMethods() {
       loadPaymentMethods();
     } catch (error) {
       console.error('Failed to set default:', error);
-      alert('Failed to set default payment method');
+      toast.error('Failed to set default payment method');
     }
   };
 
-  const deleteMethod = async (methodId: string) => {
-    if (!confirm('Are you sure you want to delete this payment method?')) return;
+  const handleDeleteClick = (methodId: string) => {
+    setPendingMethodId(methodId);
+    setDeleteConfirmOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!pendingMethodId) return;
+    setDeleting(true);
     try {
-      await paymentService.deletePaymentMethod(methodId);
+      await paymentService.deletePaymentMethod(pendingMethodId);
       loadPaymentMethods();
     } catch (error) {
       console.error('Failed to delete payment method:', error);
-      alert('Failed to delete payment method');
+      toast.error('Failed to delete payment method');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+      setPendingMethodId(null);
     }
   };
 
@@ -86,6 +100,7 @@ export function PaymentMethods() {
   }
 
   return (
+    <>
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-md">
         {/* Header */}
@@ -204,7 +219,7 @@ export function PaymentMethods() {
                     )}
                     
                     <button
-                      onClick={() => deleteMethod(method.id)}
+                      onClick={() => handleDeleteClick(method.id)}
                       className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
                       title="Delete"
                     >
@@ -259,5 +274,16 @@ export function PaymentMethods() {
         </div>
       )}
     </div>
+    <ConfirmDialog
+      isOpen={deleteConfirmOpen}
+      onClose={() => { setDeleteConfirmOpen(false); setPendingMethodId(null); }}
+      onConfirm={handleConfirmDelete}
+      title="Delete Payment Method"
+      message="Are you sure you want to delete this payment method? This action cannot be undone."
+      confirmLabel="Delete"
+      variant="danger"
+      isLoading={deleting}
+    />
+    </>
   );
 }

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useRef, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { MapPin, Search, X } from 'lucide-react';
 import { cn } from '@/utils/helpers';
 
@@ -253,7 +254,7 @@ export function LocationPicker({
         },
         (error) => {
           console.error('Geolocation error:', error);
-          alert('Unable to get your location. Please enter address manually or click on map.');
+          toast.error('Unable to get your location. Please enter address manually or click on map.');
         }
       );
     }

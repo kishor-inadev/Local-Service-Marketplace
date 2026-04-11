@@ -45,7 +45,7 @@ export function Navbar() {
   return (
 		<nav
 			aria-label='Main navigation'
-			className='bg-white dark:bg-gray-800 shadow-sm border-b dark:border-gray-700'>
+			className='sticky top-0 z-50 bg-white/95 dark:bg-gray-900/95 backdrop-blur-md border-b border-gray-100/80 dark:border-gray-800 shadow-sm'>
 			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 				<div className='flex justify-between h-16'>
 					{/* Logo */}
@@ -70,10 +70,10 @@ export function Navbar() {
 							<>
 								<Link
 									href={ROUTES.DASHBOARD}
-									className={`px-3 py-2 rounded-md text-sm font-medium ${
-										pathname === ROUTES.DASHBOARD ?
-											"text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20"
-										:	"text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
+								className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+									pathname === ROUTES.DASHBOARD ?
+										"text-primary-600 dark:text-primary-400 border-b-2 border-primary-500"
+									:	"text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
 									}`}>
 									Dashboard
 								</Link>
@@ -82,28 +82,28 @@ export function Navbar() {
 									<>
 										<Link
 											href={ROUTES.DASHBOARD_BROWSE_REQUESTS}
-											className={`px-3 py-2 rounded-md text-sm font-medium ${
-												pathname === ROUTES.DASHBOARD_BROWSE_REQUESTS ?
-													"text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20"
-												:	"text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
+										className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+											pathname === ROUTES.DASHBOARD_BROWSE_REQUESTS ?
+												"text-primary-600 dark:text-primary-400 border-b-2 border-primary-500"
+											:	"text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
 											}`}>
 											Browse Requests
 										</Link>
 										<Link
 											href={ROUTES.DASHBOARD_MY_PROPOSALS}
-											className={`px-3 py-2 rounded-md text-sm font-medium ${
-												pathname === ROUTES.DASHBOARD_MY_PROPOSALS ?
-													"text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20"
-												:	"text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
+										className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+											pathname === ROUTES.DASHBOARD_MY_PROPOSALS ?
+												"text-primary-600 dark:text-primary-400 border-b-2 border-primary-500"
+											:	"text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
 											}`}>
 											My Proposals
 										</Link>
 										<Link
 											href={ROUTES.DASHBOARD_EARNINGS}
-											className={`px-3 py-2 rounded-md text-sm font-medium ${
-												pathname === ROUTES.DASHBOARD_EARNINGS ?
-													"text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20"
-												:	"text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
+										className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+											pathname === ROUTES.DASHBOARD_EARNINGS ?
+												"text-primary-600 dark:text-primary-400 border-b-2 border-primary-500"
+											:	"text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
 											}`}>
 											Earnings
 										</Link>
@@ -114,19 +114,19 @@ export function Navbar() {
 									<>
 										<Link
 											href={ROUTES.DASHBOARD_REQUESTS}
-											className={`px-3 py-2 rounded-md text-sm font-medium ${
-												pathname?.startsWith(ROUTES.DASHBOARD_REQUESTS) ?
-													"text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20"
-												:	"text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
-											}`}>
-											Requests
-										</Link>
-										<Link
-											href={ROUTES.DASHBOARD_JOBS}
-											className={`px-3 py-2 rounded-md text-sm font-medium ${
-												pathname?.startsWith(ROUTES.DASHBOARD_JOBS) ?
-													"text-primary-600 bg-primary-50 dark:text-primary-400 dark:bg-primary-900/20"
-												:	"text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400"
+										className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+											pathname?.startsWith(ROUTES.DASHBOARD_REQUESTS) ?
+												"text-primary-600 dark:text-primary-400 border-b-2 border-primary-500"
+											:	"text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
+										}`}>
+										Requests
+									</Link>
+									<Link
+										href={ROUTES.DASHBOARD_JOBS}
+										className={`px-3 py-2 text-sm font-medium transition-colors duration-150 ${
+											pathname?.startsWith(ROUTES.DASHBOARD_JOBS) ?
+												"text-primary-600 dark:text-primary-400 border-b-2 border-primary-500"
+											:	"text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100"
 											}`}>
 											Jobs
 										</Link>
@@ -159,7 +159,7 @@ export function Navbar() {
 									<Link
 										href={ROUTES.DASHBOARD_NOTIFICATIONS}
 										aria-label={`Notifications${unreadCount > 0 ? ` (${unreadCount} unread)` : ""}`}
-										className='relative p-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'>
+										className='relative p-2 rounded-md text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'>
 										<Bell className='h-5 w-5' />
 										{unreadCount > 0 && (
 											<span className='absolute -top-1 -right-1 inline-flex items-center justify-center h-5 w-5 text-xs font-bold text-white bg-red-500 rounded-full'>
@@ -171,41 +171,42 @@ export function Navbar() {
 								<ThemeToggle />
 								{/* User Menu Dropdown */}
 								<div
-									className='relative border-l dark:border-gray-600 pl-4'
-									ref={userMenuRef}>
-									<button
-										onClick={() => setUserMenuOpen(!userMenuOpen)}
-										aria-expanded={userMenuOpen}
-										aria-haspopup='true'
-										className='flex items-center space-x-2 text-gray-700 dark:text-gray-300 hover:text-primary-600 dark:hover:text-primary-400'>
+								className='relative border-l border-gray-100 dark:border-gray-800 pl-4'
+								ref={userMenuRef}>
+								<button
+									onClick={() => setUserMenuOpen(!userMenuOpen)}
+									aria-expanded={userMenuOpen}
+									aria-haspopup='true'
+									className='flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 transition-colors duration-150'>
 										<User className='h-5 w-5' />
 										<span className='text-sm font-medium'>{user?.name || user?.email}</span>
 										<ChevronDown className='h-4 w-4' />
 									</button>
 									{userMenuOpen && (
-										<div className='absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border border-gray-200 dark:border-gray-700'>
+										<div
+								className='absolute right-0 mt-2 w-52 bg-white dark:bg-gray-900 rounded-xl shadow-lg shadow-black/10 py-1.5 z-50 border border-gray-100 dark:border-gray-800 ring-1 ring-inset ring-black/5 dark:ring-white/5'>
 											<Link
 												href={ROUTES.DASHBOARD_PROFILE}
 												onClick={() => setUserMenuOpen(false)}
-												className='block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
-												<User className='inline-block w-4 h-4 mr-2' />
+												className='flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
+												<User className='w-4 h-4 text-gray-400' />
 												View Profile
 											</Link>
 											<Link
 												href={ROUTES.DASHBOARD_SETTINGS}
 												onClick={() => setUserMenuOpen(false)}
-												className='block px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'>
-												<Settings className='inline-block w-4 h-4 mr-2' />
+												className='flex items-center gap-2 px-3.5 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors'>
+												<Settings className='w-4 h-4 text-gray-400' />
 												Settings
 											</Link>
-											<hr className='my-1 border-gray-200 dark:border-gray-700' />
+											<hr className='my-1.5 border-gray-100 dark:border-gray-800' />
 											<button
 												onClick={() => {
 													setUserMenuOpen(false);
 													handleLogout();
 												}}
-												className='block w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-gray-100 dark:hover:bg-gray-700'>
-												<LogOut className='inline-block w-4 h-4 mr-2' />
+												className='flex w-full items-center gap-2 px-3.5 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors'>
+												<LogOut className='w-4 h-4' />
 												Logout
 											</button>
 										</div>
@@ -241,7 +242,7 @@ export function Navbar() {
 								</Link>
 								<Link
 									href={ROUTES.SIGNUP}
-									className='px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-md hover:bg-primary-700 dark:bg-primary-500 dark:hover:bg-primary-600'>
+								className='px-4 py-2 text-sm font-medium text-white bg-gradient-to-b from-primary-500 to-primary-600 rounded-lg hover:from-primary-400 hover:to-primary-500 shadow-sm shadow-primary-500/25 hover:shadow-md transition-all duration-200'>
 									Sign Up
 								</Link>
 							</>

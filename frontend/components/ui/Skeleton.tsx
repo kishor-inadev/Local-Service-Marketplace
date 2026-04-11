@@ -16,12 +16,12 @@ export function Skeleton({
   height,
   count = 1,
 }: SkeletonProps) {
-  const baseStyles = 'animate-pulse bg-gray-200 dark:bg-gray-700';
+  const baseStyles = 'shimmer rounded-lg';
 
   const variantStyles = {
     text: 'h-4 rounded',
     circular: 'rounded-full',
-    rectangular: 'rounded-md',
+    rectangular: 'rounded-lg',
   };
 
   const style = {

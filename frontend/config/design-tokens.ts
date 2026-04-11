@@ -148,16 +148,16 @@ export const COLORS = {
   // Background Colors
   background: {
     primary: 'bg-gray-50 dark:bg-gray-900',
-    secondary: 'bg-white dark:bg-gray-800',
-    accent: 'bg-blue-50 dark:bg-blue-900/20',
-    hover: 'hover:bg-gray-100 dark:hover:bg-gray-700',
+    secondary: 'bg-white dark:bg-gray-900',
+    accent: 'bg-primary-50 dark:bg-primary-900/20',
+    hover: 'hover:bg-gray-100 dark:hover:bg-gray-800/60',
   },
   
   // Border Colors
   border: {
-    default: 'border-gray-200 dark:border-gray-700',
+    default: 'border-gray-100 dark:border-gray-700/60',
     subtle: 'border-gray-100 dark:border-gray-800',
-    strong: 'border-gray-300 dark:border-gray-600',
+    strong: 'border-gray-200 dark:border-gray-600',
   },
 };
 

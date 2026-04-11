@@ -400,22 +400,27 @@ function LoginContent() {
 	};
 
 	return (
-		<div className='min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 py-12 px-4 sm:px-6 lg:px-8'>
-			<div className='max-w-md w-full space-y-8'>
-				{/* Header */}
-				<div>
-					<h2 className='mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100'>
+		<div className='min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-50/50 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-950 py-16 px-4 sm:px-6 lg:px-8'>
+			<div className='max-w-md w-full'>
+				{/* Brand Header */}
+				<div className='text-center mb-8'>
+					<Link href='/' className='inline-block text-xl font-bold text-primary-600 dark:text-primary-400 mb-6'>
+						Local Service Marketplace
+					</Link>
+					<h2 className='text-2xl font-bold text-gray-900 dark:text-gray-100'>
 						Sign in to your account
 					</h2>
-					<p className='mt-2 text-center text-sm text-gray-600 dark:text-gray-400'>
+					<p className='mt-2 text-sm text-gray-500 dark:text-gray-400'>
 						Or{" "}
 						<Link
 							href='/signup'
-							className='font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 focus:outline-none focus:underline'>
+							className='font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 focus:outline-none focus:underline'>
 							create a new account
 						</Link>
 					</p>
 				</div>
+
+				<div className='bg-white dark:bg-gray-900 rounded-2xl shadow-soft ring-1 ring-inset ring-black/[0.04] dark:ring-white/[0.04] p-8 space-y-6'>
 
 				{/* Step Indicator */}
 				<div className='flex items-center justify-center space-x-2 text-sm'>
@@ -719,10 +724,10 @@ function LoginContent() {
 				{/* Social Login Divider */}
 				<div className='relative my-6'>
 					<div className='absolute inset-0 flex items-center'>
-						<div className='w-full border-t border-gray-300 dark:border-gray-700'></div>
+						<div className='w-full border-t border-gray-100 dark:border-gray-800'></div>
 					</div>
-					<div className='relative flex justify-center text-sm'>
-						<span className='px-2 bg-gray-50 dark:bg-gray-900 text-gray-500 dark:text-gray-400'>Or continue with</span>
+					<div className='relative flex justify-center text-xs'>
+						<span className='px-3 bg-white dark:bg-gray-900 text-gray-400 uppercase tracking-wide'>Or continue with</span>
 					</div>
 				</div>
 
@@ -732,7 +737,7 @@ function LoginContent() {
 						type='button'
 						onClick={() => handleSocialLogin("google")}
 						disabled={isLoading}
-						className='flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+						className='flex items-center justify-center px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 						aria-label='Sign in with Google'>
 						<svg
 							className='w-5 h-5 mr-2'
@@ -762,7 +767,7 @@ function LoginContent() {
 						type='button'
 						onClick={() => handleSocialLogin("facebook")}
 						disabled={isLoading}
-						className='flex items-center justify-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
+						className='flex items-center justify-center px-4 py-2.5 border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors'
 						aria-label='Sign in with Facebook'>
 						<svg
 							className='w-5 h-5 mr-2'
@@ -774,6 +779,7 @@ function LoginContent() {
 						Facebook
 					</button>
 				</div>
+			</div>
 			</div>
 		</div>
 	);

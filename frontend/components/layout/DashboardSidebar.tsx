@@ -146,10 +146,10 @@ export function DashboardSidebar() {
 	return (
 		<aside
 			className={cn(
-				"flex-shrink-0 hidden lg:flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 min-h-screen transition-all duration-300 ease-in-out",
+				"flex-shrink-0 hidden lg:flex flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 h-screen sticky top-0 transition-all duration-300 ease-in-out",
 				isCollapsed ? "w-20" : "w-64"
 			)}>
-			<div className='flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-700'>
+			<div className='flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800'>
 				{!isCollapsed && (
 					<span className='text-sm font-bold text-gray-900 dark:text-white truncate'>
 						Menu
@@ -158,7 +158,7 @@ export function DashboardSidebar() {
 				<button
 					onClick={toggleSidebar}
 					className={cn(
-						"p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors",
+						"p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors",
 						isCollapsed && "mx-auto"
 					)}
 					title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
@@ -169,7 +169,7 @@ export function DashboardSidebar() {
 			</div>
 
 			<div className='flex-1 py-4 px-3 overflow-y-auto'>
-				<nav className='space-y-1'>
+				<nav className='space-y-0.5'>
 					{mainLinks.map((item) => (
 						<NavLink
 							key={item.href}
@@ -180,8 +180,8 @@ export function DashboardSidebar() {
 					))}
 				</nav>
 
-				<div className='mt-6 pt-6 border-t border-gray-200 dark:border-gray-700'>
-					<nav className='space-y-1'>
+				<div className='mt-4 pt-4 border-t border-gray-100 dark:border-gray-800'>
+					<nav className='space-y-0.5'>
 						{bottomLinks.map((item) => (
 							<NavLink
 								key={item.href}

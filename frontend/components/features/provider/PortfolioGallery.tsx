@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Image as ImageIcon, Edit, Trash2, GripVertical, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { getProviderPortfolio, updatePortfolioItem, deletePortfolioItem, reorderPortfolio } from '@/services/user-service';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 interface PortfolioItem {
   id: string;
@@ -156,6 +158,9 @@ export function PortfolioGallery({ providerId }: { providerId: string }) {
   const [editingItem, setEditingItem] = useState<PortfolioItem | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [pendingItemId, setPendingItemId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -206,7 +211,7 @@ export function PortfolioGallery({ providerId }: { providerId: string }) {
       await reorderPortfolio(providerId, orderedIds);
     } catch (error) {
       console.error('Failed to save order:', error);
-      alert('Failed to save new order');
+      toast.error('Failed to save new order');
     }
   };
 
@@ -229,19 +234,28 @@ export function PortfolioGallery({ providerId }: { providerId: string }) {
       loadPortfolio();
     } catch (error) {
       console.error('Failed to update portfolio item:', error);
-      alert('Failed to update portfolio item');
+      toast.error('Failed to update portfolio item');
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this portfolio item?')) return;
+  const handleDelete = (id: string) => {
+    setPendingItemId(id);
+    setDeleteConfirmOpen(true);
+  };
 
+  const handleConfirmDelete = async () => {
+    if (!pendingItemId) return;
+    setDeleting(true);
     try {
-      await deletePortfolioItem(providerId, id);
+      await deletePortfolioItem(providerId, pendingItemId);
       loadPortfolio();
     } catch (error) {
       console.error('Failed to delete portfolio item:', error);
-      alert('Failed to delete portfolio item');
+      toast.error('Failed to delete portfolio item');
+    } finally {
+      setDeleting(false);
+      setDeleteConfirmOpen(false);
+      setPendingItemId(null);
     }
   };
 
@@ -355,5 +369,15 @@ export function PortfolioGallery({ providerId }: { providerId: string }) {
         </div>
       )}
     </div>
+    <ConfirmDialog
+      isOpen={deleteConfirmOpen}
+      onClose={() => { setDeleteConfirmOpen(false); setPendingItemId(null); }}
+      onConfirm={handleConfirmDelete}
+      title="Delete Portfolio Item"
+      message="Are you sure you want to delete this portfolio item? This action cannot be undone."
+      confirmLabel="Delete"
+      variant="danger"
+      isLoading={deleting}
+    />
   );
 }
