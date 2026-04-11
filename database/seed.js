@@ -30,8 +30,16 @@ const uuid = () => {
 	return crypto.randomUUID();
 };
 
-// Generates an 11-char uppercase hex display ID (matches VARCHAR(11) UNIQUE NOT NULL columns)
-const displayId = () => crypto.randomBytes(6).toString('hex').substring(0, 11).toUpperCase();
+// Generates a display_id matching the schema trigger format: PREFIX (3 chars) + 8 chars from A-Z0-9
+// e.g. USR + 8 chars = 'USRA3B9XZ12' (11 chars total), matching VARCHAR(11) UNIQUE NOT NULL
+const displayId = (prefix = 'GEN') => {
+	const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+	let result = prefix;
+	for (let i = 0; i < 8; i++) {
+		result += chars[Math.floor(Math.random() * 36)];
+	}
+	return result;
+};
 
 const uniqueEmail = (firstName, lastName) => {
 	const timestamp = Date.now();
@@ -314,7 +322,7 @@ class DatabaseSeeder {
 				const success = await safeInsert(
 					`INSERT INTO service_categories (id, display_id, name, description, icon, active) 
            VALUES ($1, $2, $3, $4, $5, $6)`,
-					[id, displayId(), category.name, category.description, category.icon, true],
+					[id, displayId('CAT'), category.name, category.description, category.icon, true],
 				);
 
 				if (success) {
@@ -353,7 +361,7 @@ class DatabaseSeeder {
 			`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, email_verified, status) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        ON CONFLICT (email) DO NOTHING`,
-			[adminId, displayId(), adminEmail, "Admin User", "+12345678900", hashedPassword, "admin", true, "active"],
+			[adminId, displayId('USR'), adminEmail, "Admin User", "+12345678900", hashedPassword, "admin", true, "active"],
 		);
 		const existingAdmin = await safeQuery("SELECT id FROM users WHERE email = $1", [adminEmail]);
 		if (existingAdmin.rows.length > 0) {
@@ -373,7 +381,7 @@ class DatabaseSeeder {
        ON CONFLICT (email) DO NOTHING`,
 			[
 				admin2Id,
-				displayId(),
+				displayId('USR'),
 				admin2Email,
 				"Admin Support",
 				"+12345678901",
@@ -407,7 +415,7 @@ class DatabaseSeeder {
          ON CONFLICT (email) DO NOTHING`,
 				[
 					id,
-					displayId(),
+					displayId('USR'),
 					email,
 					`${firstName} ${lastName}`,
 					`+1${randomInt(2000000000, 9999999999)}`,
@@ -447,7 +455,7 @@ class DatabaseSeeder {
          ON CONFLICT (email) DO NOTHING`,
 				[
 					id,
-					displayId(),
+					displayId('USR'),
 					email,
 					`${firstName} ${lastName}`,
 					`+1${randomInt(2000000000, 9999999999)}`,
@@ -492,7 +500,7 @@ class DatabaseSeeder {
          ON CONFLICT (refresh_token) WHERE refresh_token IS NOT NULL DO UPDATE SET expires_at = EXCLUDED.expires_at`,
 				[
 					uuid(),
-					displayId(),
+					displayId('SES'),
 					randomPick(this.userIds),
 					crypto.randomBytes(32).toString("hex"),
 					faker.internet.ip(),
@@ -660,7 +668,7 @@ class DatabaseSeeder {
          ON CONFLICT (user_id) DO NOTHING`,
 				[
 					id,
-					displayId(),
+					displayId('PRV'),
 					userId,
 					faker.company.name() + " " + uuid().substring(0, 8),
 					faker.company.catchPhrase() + ". " + faker.lorem.paragraph(),
@@ -814,7 +822,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 				[
 					id,
-					displayId(),
+					displayId('LOC'),
 					userId,
 					city.lat + (Math.random() - 0.5) * 0.2,
 					city.lng + (Math.random() - 0.5) * 0.2,
@@ -867,7 +875,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)`,
 				[
 					id,
-					displayId(),
+					displayId('REQ'),
 					userId,
 					categoryId,
 					locationId,
@@ -927,7 +935,7 @@ class DatabaseSeeder {
          ON CONFLICT DO NOTHING`,
 				[
 					id,
-					displayId(),
+					displayId('PRP'),
 					requestId,
 					providerId,
 					randomInt(50, 5000) * 100,
@@ -973,7 +981,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
 				[
 					id,
-					displayId(),
+					displayId('JOB'),
 					proposal.requestId,
 					proposal.providerId,
 					customerId,
@@ -1027,7 +1035,7 @@ class DatabaseSeeder {
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)`,
 					[
 						id,
-						displayId(),
+						displayId('JOB'),
 						effectivePool[i],
 						providerId,
 						customerId,
@@ -1103,7 +1111,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)`,
 				[
 					id,
-					displayId(),
+					displayId('PAY'),
 					job.id,
 					job.customer_id,
 					job.provider_id,
@@ -1147,7 +1155,7 @@ class DatabaseSeeder {
            VALUES ($1, $2, $3, $4, $5, $6)`,
 					[
 						uuid(),
-						displayId(),
+						displayId('RFD'),
 						payment.id,
 						refundAmount,
 						randomPick(["pending", "completed", "failed"]),
@@ -1186,7 +1194,7 @@ class DatabaseSeeder {
            ON CONFLICT (job_id, user_id) DO NOTHING`,
 					[
 						uuid(),
-						displayId(),
+						displayId('REV'),
 						job.id,
 						job.customer_id,
 						job.provider_id,
@@ -1228,7 +1236,7 @@ class DatabaseSeeder {
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 					[
 						id,
-						displayId(),
+						displayId('MSG'),
 						jobId,
 						randomPick(participants),
 						faker.lorem.sentences(randomInt(1, 3)),
@@ -1296,7 +1304,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 				[
 					uuid(),
-					displayId(),
+					displayId('NTF'),
 					randomPick(this.userIds),
 					randomPick(types),
 					faker.lorem.sentence(),
@@ -1377,7 +1385,7 @@ class DatabaseSeeder {
          ON CONFLICT (code) DO NOTHING`,
 				[
 					id,
-					displayId(),
+					displayId('CPN'),
 					code,
 					randomInt(5, 50),
 					randomInt(10, 1000),
@@ -1437,7 +1445,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
 				[
 					uuid(),
-					displayId(),
+					displayId('REV'),
 					job.id,
 					job.customer_id,
 					faker.lorem.paragraph(),
@@ -1526,7 +1534,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5)`,
 				[
 					uuid(),
-					displayId(),
+					displayId('EVT'),
 					randomPick(eventTypes),
 					JSON.stringify({
 						entity_id: uuid(),
@@ -1563,7 +1571,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
 				[
 					uuid(),
-					displayId(),
+					displayId('BGJ'),
 					randomPick(jobTypes),
 					JSON.stringify({ data: "sample", retryable: true }),
 					status,
@@ -1706,7 +1714,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
 				[
 					uuid(),
-					displayId(),
+					displayId('ADM'),
 					randomPick(this.adminIds),
 					randomPick(actions),
 					targetType,
@@ -1891,7 +1899,7 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
 				[
 					uuid(),
-					displayId(),
+					displayId('SUB'),
 					providerId,
 					planId,
 					status,
