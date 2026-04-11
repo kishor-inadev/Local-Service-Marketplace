@@ -9,7 +9,7 @@ export class CategoryRepository {
 
   async getAllCategories(): Promise<ServiceCategory[]> {
     const query = `
-      SELECT id, name, created_at
+      SELECT id, display_id, name, description, icon, active, created_at
       FROM service_categories
       ORDER BY name ASC
     `;
@@ -20,7 +20,7 @@ export class CategoryRepository {
 
   async getCategoryById(id: string): Promise<ServiceCategory | null> {
     const query = `
-      SELECT id, name, created_at
+      SELECT id, display_id, name, description, icon, active, created_at
       FROM service_categories
       WHERE id = $1
     `;
@@ -33,7 +33,7 @@ export class CategoryRepository {
     const query = `
       INSERT INTO service_categories (name)
       VALUES ($1)
-      RETURNING id, name, created_at
+      RETURNING id, display_id, name, description, icon, active, created_at
     `;
 
     const result = await this.pool.query(query, [name]);
@@ -51,7 +51,7 @@ export class CategoryRepository {
     limit: number = 10,
   ): Promise<ServiceCategory[]> {
     const query = `
-      SELECT id, name, created_at
+      SELECT id, display_id, name, description, icon, active, created_at
       FROM service_categories
       WHERE name ILIKE $1
       ORDER BY name ASC
@@ -85,6 +85,11 @@ export class CategoryRepository {
       values.push(updateCategoryDto.icon);
     }
 
+    if (updateCategoryDto.active !== undefined) {
+      fields.push(`active = $${paramIndex++}`);
+      values.push(updateCategoryDto.active);
+    }
+
     if (fields.length === 0) {
       // No fields to update, just return the current category
       return this.getCategoryById(id);
@@ -96,7 +101,7 @@ export class CategoryRepository {
       UPDATE service_categories
       SET ${fields.join(", ")}
       WHERE id = $${paramIndex}
-      RETURNING id, name, description, icon, created_at
+      RETURNING id, display_id, name, description, icon, active, created_at
     `;
 
     const result = await this.pool.query(query, values);
