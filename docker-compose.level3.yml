@@ -27,7 +27,7 @@ services:
     command:
       - redis-server
       - --maxmemory
-      - 512mb
+      - 128mb
       - --maxmemory-policy
       - allkeys-lru
       - --save
@@ -36,11 +36,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 640M
+          cpus: '${CPU_REDIS_W:-0.25}'
+          memory: ${MEM_REDIS_W:-160M}
         reservations:
-          cpus: '0.1'
-          memory: 256M
+          cpus: '0.05'
+          memory: 64M
 
   # ─── Core services — cache + workers ───────────────────────────────────────
   identity-service:
@@ -52,11 +52,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 640M
+          cpus: '${CPU_IDENTITY_W:-0.5}'
+          memory: ${MEM_SERVICE_W:-256M}
         reservations:
-          cpus: '0.25'
-          memory: 320M
+          cpus: '0.1'
+          memory: 128M
 
   marketplace-service:
     environment:
@@ -67,11 +67,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 640M
+          cpus: '${CPU_MARKETPLACE_W:-0.5}'
+          memory: ${MEM_SERVICE_W:-256M}
         reservations:
-          cpus: '0.25'
-          memory: 320M
+          cpus: '0.1'
+          memory: 128M
 
   payment-service:
     environment:
@@ -82,11 +82,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 640M
+          cpus: '${CPU_PAYMENT_W:-0.25}'
+          memory: ${MEM_SERVICE_W:-256M}
         reservations:
-          cpus: '0.25'
-          memory: 320M
+          cpus: '0.1'
+          memory: 128M
 
   comms-service:
     environment:
@@ -98,11 +98,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 640M
+          cpus: '${CPU_COMMS_W:-0.25}'
+          memory: ${MEM_SERVICE_W:-256M}
         reservations:
-          cpus: '0.25'
-          memory: 320M
+          cpus: '0.1'
+          memory: 128M
 
   oversight-service:
     environment:
@@ -114,11 +114,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.75'
-          memory: 512M
+          cpus: '${CPU_OVERSIGHT_W:-0.25}'
+          memory: ${MEM_SERVICE_W:-256M}
         reservations:
-          cpus: '0.25'
-          memory: 256M
+          cpus: '0.1'
+          memory: 128M
 
   api-gateway:
     environment:
@@ -126,8 +126,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: '${CPU_GATEWAY_W:-0.25}'
+          memory: ${MEM_SERVICE_W:-256M}
         reservations:
-          cpus: '0.25'
-          memory: 256M
+          cpus: '0.1'
+          memory: 128M

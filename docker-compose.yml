@@ -24,8 +24,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: '${CPU_DB:-0.5}'
+          memory: ${MEM_DB:-384M}
+        reservations:
+          memory: 128M
 
   # NOTE: MongoDB not needed - file-upload-service is external
   
@@ -50,6 +52,13 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '${CPU_REDIS:-0.05}'
+          memory: ${MEM_REDIS:-64M}
+        reservations:
+          memory: 32M
 
   # Zookeeper for Kafka
   zookeeper:
@@ -157,8 +166,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 384M
+          cpus: '${CPU_IDENTITY:-0.25}'
+          memory: ${MEM_SERVICE:-256M}
+        reservations:
+          memory: 64M
 
   # marketplace-service: request + proposal + job + review merged
   marketplace-service:
@@ -216,8 +227,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 384M
+          cpus: '${CPU_MARKETPLACE:-0.25}'
+          memory: ${MEM_SERVICE:-256M}
+        reservations:
+          memory: 64M
 
   payment-service:
     build:
@@ -299,8 +312,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 384M
+          cpus: '${CPU_PAYMENT:-0.15}'
+          memory: ${MEM_SERVICE:-256M}
+        reservations:
+          memory: 64M
 
   # comms-service: notification + messaging merged
   comms-service:
@@ -357,8 +372,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 384M
+          cpus: '${CPU_COMMS:-0.15}'
+          memory: ${MEM_SERVICE:-256M}
+        reservations:
+          memory: 64M
 
   # oversight-service: admin + analytics merged
   oversight-service:
@@ -408,8 +425,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '${CPU_OVERSIGHT:-0.15}'
+          memory: ${MEM_SERVICE:-256M}
+        reservations:
+          memory: 64M
 
   infrastructure-service:
     build:
@@ -463,8 +482,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '${CPU_INFRA:-0.1}'
+          memory: ${MEM_SERVICE:-256M}
+        reservations:
+          memory: 64M
 
   # File Upload Service - External microservice (like email and SMS services)
   # NOTE: This service is deployed externally and accessed via HTTPS
@@ -540,8 +561,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 384M
+          cpus: '${CPU_GATEWAY:-0.25}'
+          memory: ${MEM_SERVICE:-256M}
+        reservations:
+          memory: 64M
 
   # Frontend service skipped for local development
 
@@ -567,7 +590,7 @@ services:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3700}
       - INTERNAL_API_URL=${INTERNAL_API_URL:-http://api-gateway:3000}
       - NEXTAUTH_URL=${NEXTAUTH_URL:-http://localhost:3000}
-      - AUTH_SECRET=${AUTH_SECRET}
+      - AUTH_SECRET=${AUTH_SECRET:-}
     depends_on:
       api-gateway:
         condition: service_healthy
@@ -582,11 +605,11 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1.0'
-          memory: 512M
+          cpus: '${CPU_FRONTEND:-0.1}'
+          memory: ${MEM_FRONTEND:-160M}
         reservations:
-          cpus: '0.25'
-          memory: 256M
+          cpus: '0.05'
+          memory: 128M
 
 volumes:
   postgres_data:

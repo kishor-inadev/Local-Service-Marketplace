@@ -4,29 +4,30 @@
 # Docker Compose automatically merges this file with docker-compose.yml
 # when you run `docker compose up` — no extra flags needed.
 #
-# Purpose: Wire every backend service to the LOCAL postgres container
-# via PgBouncer (transaction-mode connection pooler) instead of a cloud
-# database (Neon, etc.).
-#
-# Connection flow (local):
-#   Service pool (max 10)  →  pgbouncer:5432  →  postgres:5432
-#   pgbouncer: max_client_conn=200, pool_size=25 backend connections
-#   postgres: max_connections=200 (raised from default 100)
-#
+# Purpose: Wire every backend service to the LOCAL postgres container directly.
 # For production / cloud builds, run WITHOUT this file:
 #   docker compose -f docker-compose.yml up -d
+#
+# PgBouncer is available but OPT-IN via the 'pooling' profile:
+#   COMPOSE_PROFILES=workers,pooling   ← enables PgBouncer
+#   COMPOSE_PROFILES=workers           ← skips PgBouncer (default, saves ~30MB RAM)
+#
+# PgBouncer is only worth enabling for load testing or staging (50+ concurrent users).
+# For a single local dev user, connecting directly to postgres is faster and simpler.
 # =============================================================================
 
 services:
   # ---------------------------------------------------------------------------
-  # PgBouncer — transaction-mode pooler in front of local postgres.
-  # All backend services connect here (port 5432 on the pgbouncer container)
-  # instead of connecting to postgres directly.
+  # PgBouncer — transaction-mode pooler (opt-in via 'pooling' profile)
   # ---------------------------------------------------------------------------
   pgbouncer:
     image: edoburu/pgbouncer:latest
     container_name: marketplace-pgbouncer
     restart: unless-stopped
+    profiles:
+      - pooling
+      - scaling
+      - full
     environment:
       - DB_USER=postgres
       - DB_PASSWORD=${POSTGRES_PASSWORD}
@@ -57,118 +58,93 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '0.1'
+          memory: 32M
 
   # ---------------------------------------------------------------------------
-  # identity-service
+  # identity-service — connect directly to postgres for local dev
   # ---------------------------------------------------------------------------
   identity-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
-      - DATABASE_HOST=pgbouncer
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
 
   # ---------------------------------------------------------------------------
   # marketplace-service
   # ---------------------------------------------------------------------------
   marketplace-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
-      - DATABASE_HOST=pgbouncer
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
-      identity-service:
-        condition: service_started
 
   # ---------------------------------------------------------------------------
   # payment-service
   # ---------------------------------------------------------------------------
   payment-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
-      - DATABASE_HOST=pgbouncer
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
-      identity-service:
-        condition: service_started
-      comms-service:
-        condition: service_started
 
   # ---------------------------------------------------------------------------
   # comms-service
   # ---------------------------------------------------------------------------
   comms-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
-      - DATABASE_HOST=pgbouncer
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
 
   # ---------------------------------------------------------------------------
   # oversight-service
   # ---------------------------------------------------------------------------
   oversight-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
-      - DATABASE_HOST=pgbouncer
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
 
   # ---------------------------------------------------------------------------
   # infrastructure-service
   # ---------------------------------------------------------------------------
   infrastructure-service:
     environment:
-      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@pgbouncer:5432/marketplace
-      - DATABASE_HOST=pgbouncer
+      - DATABASE_URL=postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/marketplace
+      - DATABASE_HOST=postgres
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
       - DATABASE_PASSWORD=${POSTGRES_PASSWORD}
       - DATABASE_NAME=marketplace
       - DATABASE_SSL=false
       - NODE_ENV=development
-    depends_on:
-      pgbouncer:
-        condition: service_healthy
-
-  # ---------------------------------------------------------------------------
-  # api-gateway
-  # ---------------------------------------------------------------------------
-  # Host port configured via API_GATEWAY_PORT in .env (default: 3700)
-  # Set to 3800 to avoid Windows Hyper-V excluded port range
 
