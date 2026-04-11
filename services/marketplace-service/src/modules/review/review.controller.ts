@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -17,8 +19,11 @@ import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { ReviewService } from "./services/review.service";
 import { ReviewRepository } from "./repositories/review.repository";
 import { CreateReviewDto } from "./dto/create-review.dto";
+import { UpdateReviewDto } from "./dto/update-review.dto";
 import { RespondReviewDto } from "./dto/respond-review.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { OwnershipGuard } from "@/common/guards/ownership.guard";
+import { Ownership } from "@/common/decorators/ownership.decorator";
 import { ForbiddenException } from "@/common/exceptions/http.exceptions";
 
 @Controller("reviews")
@@ -156,5 +161,62 @@ export class ReviewController {
     @Param("providerId", FlexibleIdPipe) providerId: string,
   ) {
     return this.reviewService.getProviderRating(providerId);
+  }
+
+  /**
+   * Update a review (only by review author within 30 days)
+   * PATCH /reviews/:id
+   */
+  @UseGuards(JwtAuthGuard, OwnershipGuard)
+  @Ownership({ resourceType: "review", userIdField: "user_id" })
+  @Patch(":id")
+  @HttpCode(HttpStatus.OK)
+  async updateReview(
+    @Param("id", StrictUuidPipe) id: string,
+    @Body() updateReviewDto: UpdateReviewDto,
+    @Request() req: any,
+  ) {
+    // Check if review is still editable (within 30 days)
+    const review = req.resource; // Injected by OwnershipGuard
+    const daysSinceCreation = Math.floor(
+      (Date.now() - new Date(review.created_at).getTime()) / (1000 * 60 * 60 * 24),
+    );
+    
+    if (daysSinceCreation > 30) {
+      throw new ForbiddenException(
+        "Reviews can only be edited within 30 days of creation",
+      );
+    }
+    
+    const updatedReview = await this.reviewService.updateReview(
+      id,
+      updateReviewDto,
+    );
+    
+    return {
+      success: true,
+      message: "Review updated successfully",
+      data: updatedReview,
+    };
+  }
+
+  /**
+   * Delete a review (only by review author or admin)
+   * DELETE /reviews/:id
+   */
+  @UseGuards(JwtAuthGuard, OwnershipGuard)
+  @Ownership({ resourceType: "review", userIdField: "user_id" })
+  @Delete(":id")
+  @HttpCode(HttpStatus.OK)
+  async deleteReview(
+    @Param("id", StrictUuidPipe) id: string,
+    @Request() req: any,
+  ) {
+    await this.reviewService.deleteReview(id);
+    
+    return {
+      success: true,
+      message: "Review deleted successfully",
+    };
   }
 }

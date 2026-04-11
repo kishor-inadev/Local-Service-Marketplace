@@ -85,4 +85,8 @@ export class ProposalQueryDto {
   @IsOptional()
   @IsEnum(SortOrder)
   sortOrder?: SortOrder = SortOrder.DESC;
+
+  @IsOptional()
+  @IsString()
+  customer_id?: string;
 }

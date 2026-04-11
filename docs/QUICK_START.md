@@ -11,7 +11,7 @@ Get the platform running in 3 steps. For full documentation see [GETTING_STARTED
 
 ---
 
-## Step 1 — Configure secrets
+## Step 1 â€” Configure secrets
 
 ```powershell
 .\scripts\setup-env-files.ps1
@@ -27,37 +27,48 @@ GATEWAY_INTERNAL_SECRET=
 
 ---
 
-## Step 2 — Start services
+## Step 2 â€” Start services
 
 ```powershell
+# Start core services (postgres, pgbouncer, all microservices, api-gateway)
 docker-compose up -d
+
+# Start Redis (required for token blacklist + caching)
+docker-compose --profile cache up -d redis
 ```
 
 Wait ~60 seconds, then verify:
 
 ```
-http://localhost:3700/health   ? API Gateway
-http://localhost:3000          ? Frontend
+http://localhost:3700/health   -> API Gateway (JSON response)
+http://localhost:3000          -> Frontend
 ```
 
 ---
 
-## Step 3 — Seed sample data (optional)
+## Step 3 â€” Seed sample data (optional)
 
 ```powershell
-.\scripts\seed-database.ps1
+cd database; node seed.js
 ```
 
-Creates 151 users and 1000+ records.
-Default credentials: `admin@marketplace.com` / `password123`, also `provider1@example.com` / `password123` and `customer1@example.com` / `password123`
+Creates 320+ users and 1000+ records across all tables.
+
+Default credentials:
+- Admin: `admin@marketplace.com` / `password123`
+- Provider: `provider1@example.com` / `password123`
+- Customer: `customer1@example.com` / `password123`
 
 ---
 
 ## Common Commands
 
 ```powershell
-# View logs
-docker-compose logs -f <service-name>
+# Check status of all containers
+docker-compose ps
+
+# View logs for a service
+docker-compose logs -f identity-service
 
 # Restart a service
 docker-compose restart identity-service
@@ -65,11 +76,14 @@ docker-compose restart identity-service
 # Rebuild after code changes
 docker-compose up -d --build
 
-# Stop everything
+# Stop everything (keep data)
 docker-compose down
 
 # Full reset (deletes all data)
 docker-compose down -v
+
+# Seed the database
+cd database; node seed.js
 ```
 
 ---
@@ -81,6 +95,8 @@ docker-compose down -v
 | [GETTING_STARTED.md](GETTING_STARTED.md) | Full startup guide for each environment |
 | [MARKETPLACE_GUIDE.md](MARKETPLACE_GUIDE.md) | Admin / Provider / Customer capabilities |
 | [ENVIRONMENT_VARIABLES_GUIDE.md](ENVIRONMENT_VARIABLES_GUIDE.md) | All config options |
+| [BULLMQ_CONFIGURATION_GUIDE.md](BULLMQ_CONFIGURATION_GUIDE.md) | Background job queues |
 | [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues and fixes |
 | [api/API_SPECIFICATION.md](api/API_SPECIFICATION.md) | API endpoint reference |
 | [guides/AUTHENTICATION_WORKFLOW.md](guides/AUTHENTICATION_WORKFLOW.md) | Auth and token flow |
+| [deployment/SCALING_STRATEGY.md](deployment/SCALING_STRATEGY.md) | Scaling levels and infrastructure |

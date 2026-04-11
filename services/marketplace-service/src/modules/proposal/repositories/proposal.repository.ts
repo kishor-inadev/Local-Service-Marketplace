@@ -435,4 +435,11 @@ export class ProposalRepository {
     const result = await this.pool.query(query);
     return result.rows;
   }
+
+  async getRequestOwner(requestId: string): Promise<string | null> {
+    requestId = await resolveId(this.pool, "service_requests", requestId);
+    const query = `SELECT user_id FROM service_requests WHERE id = $1`;
+    const result = await this.pool.query(query, [requestId]);
+    return result.rows[0]?.user_id || null;
+  }
 }

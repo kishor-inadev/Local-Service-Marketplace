@@ -474,4 +474,34 @@ export class ProposalService {
 
     return ProposalResponseDto.fromEntity(proposal);
   }
+
+  async deleteProposal(id: string, userId: string): Promise<void> {
+    this.logger.log(`Deleting proposal: ${id}`, ProposalService.name);
+
+    const existingProposal = await this.proposalRepository.getProposalById(id);
+    if (!existingProposal) {
+      throw new NotFoundException("Proposal not found");
+    }
+
+    if (existingProposal.provider_id !== userId) {
+      throw new ForbiddenException(
+        "Only the provider who submitted this proposal can delete it",
+      );
+    }
+
+    // Only allow deletion of pending proposals
+    if (existingProposal.status !== "pending") {
+      throw new BadRequestException(
+        "Only pending proposals can be deleted. Use withdraw for other statuses.",
+      );
+    }
+
+    // Withdraw the proposal (sets status to 'withdrawn')
+    await this.proposalRepository.withdrawProposal(existingProposal.id, userId);
+
+    this.logger.log(
+      `Proposal deleted successfully: ${id}`,
+      ProposalService.name,
+    );
+  }
 }

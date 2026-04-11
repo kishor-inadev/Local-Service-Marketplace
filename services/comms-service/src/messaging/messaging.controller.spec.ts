@@ -80,7 +80,7 @@ describe("MessagingController", () => {
     it("should return paginated messages", async () => {
       const paginated = { data: [mockMessage], total: 1, page: 1, limit: 20 };
       mockMessageService.getMessagesForJob.mockResolvedValue(paginated);
-      const result = await controller.getMessagesForJob("job-uuid-1", 1, 20);
+      const result = await controller.getMessagesForJob("job-uuid-1", { user: { userId: "user-uuid-1" } }, 1, 20);
       expect(result).toEqual(paginated);
     });
   });

@@ -5,9 +5,10 @@ describe("HealthController", () => {
   const mockPool = {
     query: jest.fn().mockResolvedValue({ rows: [{ "?column?": 1 }] }),
   };
+  const mockQueue = { getJobCounts: jest.fn().mockResolvedValue({ waiting: 0, active: 0, completed: 0, failed: 0, delayed: 0 }) };
 
   beforeEach(() => {
-    controller = new HealthController(mockPool as any);
+    controller = new HealthController(mockPool as any, mockQueue as any, mockQueue as any, mockQueue as any);
   });
 
   it("should return health status", async () => {

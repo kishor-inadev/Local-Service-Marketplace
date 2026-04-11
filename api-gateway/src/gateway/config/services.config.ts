@@ -67,6 +67,8 @@ export const routingConfig = {
   "/review-aggregates": "marketplace-service",
   // payment-service
   "/payments": "payment-service",
+  "/refunds": "payment-service",
+  "/coupons": "payment-service",
   "/payment-methods": "payment-service",
   "/subscriptions": "payment-service",
   "/pricing-plans": "payment-service",
@@ -75,6 +77,7 @@ export const routingConfig = {
   "/messages": "comms-service",
   "/notifications": "comms-service",
   "/notification-preferences": "comms-service",
+  "/devices": "comms-service",
   // oversight-service (admin + analytics)
   "/admin": "oversight-service",
   "/analytics": "oversight-service",
@@ -83,6 +86,7 @@ export const routingConfig = {
   "/background-jobs": "infrastructure-service",
   "/rate-limits": "infrastructure-service",
   "/feature-flags": "infrastructure-service",
+  "/dlq": "infrastructure-service",
   // file-upload-service
   "/files": "file-upload-service",
 };

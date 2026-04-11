@@ -19,11 +19,11 @@
 
 ---
 
-### 🗄️ Database
+### Database
 
 ```powershell
 # Seed database with test data (1000+ records)
-.\scripts\seed-database.ps1
+cd database; node seed.js
 
 # Connect to database manually
 docker exec -it marketplace-postgres psql -U postgres -d marketplace
@@ -33,21 +33,27 @@ docker exec marketplace-postgres psql -U postgres -d marketplace -c "\dt"
 
 # View user count
 docker exec marketplace-postgres psql -U postgres -d marketplace -c "SELECT COUNT(*) FROM users;"
+
+# Apply schema to fresh database
+Get-Content database\schema.sql | docker exec -i marketplace-postgres psql -U postgres -d marketplace
 ```
 
 ---
 
-### 🐳 Docker Services
+### Docker Services
 
 ```powershell
-# Start all services
+# Start core services
 docker-compose up -d
+
+# Start Redis (required for token blacklist + caching)
+docker-compose --profile cache up -d redis
 
 # Stop all services
 docker-compose down
 
-# View running services
-docker ps
+# View running services and health
+docker-compose ps
 
 # View logs
 docker-compose logs -f [service-name]
@@ -61,38 +67,43 @@ docker-compose up -d --build
 
 ---
 
-### 💻 Frontend
+### Frontend
 
 ```powershell
 # Start development server
 cd frontend
-npm run dev
+pnpm dev
 
 # Build for production
-npm run build
+pnpm build
 
 # Start production server
-npm start
+pnpm start
 
 # Run tests
-npm test
+pnpm test
 ```
 
 ---
 
-### 🔍 Health Checks
+### Health Checks
 
 ```powershell
-# Check API Gateway
-Invoke-WebRequest -Uri "http://localhost:3700/health"
+# Check all containers
+docker-compose ps
 
-# Check specific service
-Invoke-WebRequest -Uri "http://localhost:3001/health"  # identity-service
-Invoke-WebRequest -Uri "http://localhost:3003/health"  # marketplace-service
-Invoke-WebRequest -Uri "http://localhost:3006/health"  # payment-service
+# Check API Gateway
+curl http://localhost:3700/health -UseBasicParsing
 
 # Check all services
-.\scripts\verify-integration.ps1
+curl http://localhost:3001/health -UseBasicParsing  # identity-service
+curl http://localhost:3003/health -UseBasicParsing  # marketplace-service
+curl http://localhost:3006/health -UseBasicParsing  # payment-service
+curl http://localhost:3007/health -UseBasicParsing  # comms-service
+curl http://localhost:3010/health -UseBasicParsing  # oversight-service
+
+# Check Redis
+docker exec marketplace-redis redis-cli ping
 ```
 
 ---
@@ -170,18 +181,18 @@ Local-Service-Marketplace/
 
 ---
 
-## 📝 Default Credentials
+### Default Credentials
 
-### Admin User (after seeding):
+Admin user (after seeding):
 ```
 Email: admin@marketplace.com
 Password: password123
 ```
 
-### Test Users (after seeding):
+Test users (after seeding):
 ```
-Password: password123
-(All generated users use the same password)
+provider1@example.com / password123
+customer1@example.com / password123
 ```
 
 ---
@@ -238,44 +249,50 @@ docker-compose up -d
 
 ---
 
-## 📚 Documentation
+## Documentation
 
-### Essential Docs:
-- [Quick Start](docs/QUICK_START.md)
-- [Integration Status](docs/INTEGRATION_STATUS_REPORT.md)
-- [Documentation Index](docs/00_DOCUMENTATION_INDEX.md)
-- [Cleanup Summary](docs/DOCUMENTATION_CLEANUP_SUMMARY.md)
-
-### By Category:
-- **API:** [docs/api/](docs/api/)
-- **Architecture:** [docs/architecture/](docs/architecture/)
-- **Services:** [docs/services/](docs/services/)
-- **Deployment:** [docs/deployment/](docs/deployment/)
-- **Guides:** [docs/guides/](docs/guides/)
+| Doc | Purpose |
+|-----|---------|
+| [QUICK_START.md](QUICK_START.md) | 3-step startup |
+| [GETTING_STARTED.md](GETTING_STARTED.md) | Full setup for all environments |
+| [MARKETPLACE_GUIDE.md](MARKETPLACE_GUIDE.md) | Roles, workflows, capabilities |
+| [ENVIRONMENT_VARIABLES_GUIDE.md](ENVIRONMENT_VARIABLES_GUIDE.md) | All env vars explained |
+| [BULLMQ_CONFIGURATION_GUIDE.md](BULLMQ_CONFIGURATION_GUIDE.md) | Background job queues |
+| [TROUBLESHOOTING.md](TROUBLESHOOTING.md) | Common issues and fixes |
+| [api/API_SPECIFICATION.md](api/API_SPECIFICATION.md) | API endpoint reference |
+| [guides/AUTHENTICATION_WORKFLOW.md](guides/AUTHENTICATION_WORKFLOW.md) | Auth flow |
+| [guides/KAFKA_INTEGRATION.md](guides/KAFKA_INTEGRATION.md) | Event-driven setup |
+| [deployment/SCALING_STRATEGY.md](deployment/SCALING_STRATEGY.md) | Scaling levels |
 
 ---
 
-## ⚡ Quick Start from Scratch
+## Quick Start from Scratch
 
 ```powershell
-# 1. Generate and apply secrets
-.\scripts\generate-production-secrets.ps1
-.\scripts\apply-secrets.ps1
+# 1. Configure secrets
+.\scripts\setup-env-files.ps1
+# Edit docker.env with your JWT_SECRET, JWT_REFRESH_SECRET, GATEWAY_INTERNAL_SECRET
 
-# 2. Start Docker services
+# 2. Start core services
 docker-compose up -d
 
-# 3. Wait for services to be ready (30 seconds)
-Start-Sleep -Seconds 30
+# 3. Start Redis
+docker-compose --profile cache up -d redis
 
-# 4. Seed database
-.\scripts\seed-database.ps1
+# 4. Wait for all services to be healthy
+docker-compose ps
 
-# 5. Start frontend
+# 5. Apply database schema
+Get-Content database\schema.sql | docker exec -i marketplace-postgres psql -U postgres -d marketplace
+
+# 6. Seed database
+cd database; node seed.js
+
+# 7. Start frontend
 cd frontend
-npm run dev
+pnpm dev
 
-# 6. Open browser
+# 8. Open browser
 start http://localhost:3000
 ```
 

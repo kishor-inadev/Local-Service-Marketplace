@@ -27,6 +27,7 @@ import { Request, Response } from "express";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { AuthService } from "../services/auth.service";
+import { TokenBlacklistService } from "../services/token-blacklist.service";
 import { SignupDto } from "../dto/signup.dto";
 import { RegisterDto, RegisterResponseDto } from "../dto/register.dto";
 import { LoginDto } from "../dto/login.dto";
@@ -79,6 +80,7 @@ export class AuthController {
 
   constructor(
     private readonly authService: AuthService,
+    private readonly tokenBlacklistService: TokenBlacklistService,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
   ) {}
 
@@ -148,6 +150,77 @@ export class AuthController {
     this.clearAuthCookies(res);
 
     return { message: "Logged out successfully" };
+  }
+
+  /**
+   * Revoke current token (immediate logout)
+   * POST /auth/revoke-token
+   */
+  @Post("revoke-token")
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async revokeToken(
+    @Req() req: Request,
+    @Headers("authorization") authHeader: string,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string }> {
+    this.logger.info("POST /auth/revoke-token", { context: "AuthController" });
+    
+    // Extract token
+    const token = authHeader?.substring(7); // Remove "Bearer "
+    if (!token) {
+      throw new UnauthorizedException("No token provided");
+    }
+    
+    // Get token expiration from decoded payload
+    const user = req.user as any;
+    const expiresIn = user.exp - Math.floor(Date.now() / 1000);
+    
+    // Revoke in blacklist
+    await this.tokenBlacklistService.revokeToken(token, expiresIn);
+    
+    // Also logout from session
+    if (user.sessionId) {
+      await this.authService.logout(null, user.sub);
+    }
+    
+    // Clear cookies
+    this.clearAuthCookies(res);
+    
+    return { message: "Token revoked successfully" };
+  }
+
+  /**
+   * Revoke all tokens for user (e.g., after password reset)
+   * POST /auth/revoke-all-tokens
+   */
+  @Post("revoke-all-tokens")
+  @UseGuards(JwtAuthGuard)
+  @HttpCode(HttpStatus.OK)
+  async revokeAllTokens(
+    @Req() req: Request,
+    @Res({ passthrough: true }) res: Response,
+  ): Promise<{ message: string }> {
+    this.logger.info("POST /auth/revoke-all-tokens", {
+      context: "AuthController",
+      userId: req.user["sub"],
+    });
+    
+    const userId = req.user["sub"];
+    
+    // Revoke all user tokens (15 min expiry for access tokens)
+    await this.tokenBlacklistService.revokeAllUserTokens(
+      userId,
+      15 * 60, // 15 minutes
+    );
+    
+    // Logout all sessions
+    await this.authService.logout(null, userId);
+    
+    // Clear cookies
+    this.clearAuthCookies(res);
+    
+    return { message: "All tokens revoked successfully" };
   }
 
   @Post("refresh")

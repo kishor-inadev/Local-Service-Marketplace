@@ -2,6 +2,8 @@ import {
   Controller,
   Get,
   Post,
+  Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -14,6 +16,7 @@ import { CategoryService } from "../services/category.service";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
+import { UpdateCategoryDto } from "../dto/update-category.dto";
 
 @Controller("categories")
 export class CategoryController {
@@ -49,5 +52,33 @@ export class CategoryController {
   @HttpCode(HttpStatus.CREATED)
   async createCategory(@Body("name") name: string): Promise<any> {
     return this.categoryService.createCategory(name);
+  }
+
+  @Roles("admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch(":id")
+  @HttpCode(HttpStatus.OK)
+  async updateCategory(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Body() updateCategoryDto: UpdateCategoryDto,
+  ): Promise<any> {
+    const updated = await this.categoryService.updateCategory(id, updateCategoryDto);
+    return {
+      success: true,
+      message: "Category updated successfully",
+      data: updated,
+    };
+  }
+
+  @Roles("admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Delete(":id")
+  @HttpCode(HttpStatus.OK)
+  async deleteCategory(@Param("id", ParseUUIDPipe) id: string): Promise<any> {
+    await this.categoryService.deleteCategory(id);
+    return {
+      success: true,
+      message: "Category deactivated successfully",
+    };
   }
 }

@@ -188,6 +188,10 @@ class ApiClient {
     return [];
   }
 
+  extractList<T>(payload: any): T[] {
+    return ApiClient.extractList<T>(payload);
+  }
+
   // Public HTTP methods
   async get<T = any>(url: string, config?: AxiosRequestConfig) {
     return this.client.get<T>(url, config);

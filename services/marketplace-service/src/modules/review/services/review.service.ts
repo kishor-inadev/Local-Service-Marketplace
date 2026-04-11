@@ -4,6 +4,7 @@ import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { ReviewRepository } from "../repositories/review.repository";
 import { CreateReviewDto } from "../dto/create-review.dto";
+import { UpdateReviewDto } from "../dto/update-review.dto";
 import { Review } from "../entities/review.entity";
 import { NotFoundException } from "../../../common/exceptions/http.exceptions";
 import { NotificationClient } from "../../../common/notification/notification.client";
@@ -106,5 +107,45 @@ export class ReviewService {
     }
 
     return review;
+  }
+
+  async updateReview(
+    id: string,
+    updateReviewDto: UpdateReviewDto,
+  ): Promise<Review> {
+    this.logger.log(`Updating review ${id}`, "ReviewService");
+
+    const review = await this.reviewRepository.updateReview(id, updateReviewDto);
+
+    if (!review) {
+      throw new NotFoundException("Review not found");
+    }
+
+    // Enqueue rating recalculation if rating changed
+    if (updateReviewDto.rating !== undefined) {
+      this.ratingQueue
+        .add("recalculate-provider-rating", { providerId: review.provider_id })
+        .catch(() => null);
+    }
+
+    return review;
+  }
+
+  async deleteReview(id: string): Promise<void> {
+    this.logger.log(`Deleting review ${id}`, "ReviewService");
+
+    const review = await this.reviewRepository.getReviewById(id);
+    if (!review) {
+      throw new NotFoundException("Review not found");
+    }
+
+    await this.reviewRepository.deleteReview(id);
+
+    // Enqueue rating recalculation
+    this.ratingQueue
+      .add("recalculate-provider-rating", { providerId: review.provider_id })
+      .catch(() => null);
+
+    this.logger.log(`Review ${id} deleted successfully`, "ReviewService");
   }
 }

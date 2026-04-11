@@ -2,6 +2,8 @@ import { Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
 import { BullModule } from "@nestjs/bullmq";
 import { PaymentController } from "./controllers/payment.controller";
+import { RefundController } from "./controllers/refund.controller";
+import { CouponController } from "./controllers/coupon.controller";
 import { SavedPaymentMethodController } from "./controllers/saved-payment-method.controller";
 import { PricingPlanController } from "./controllers/pricing-plan.controller";
 import { SubscriptionController } from "./controllers/subscription.controller";
@@ -46,6 +48,8 @@ import { FileServiceClient } from "../common/file-service.client";
   ],
   controllers: [
     PaymentController,
+    RefundController,
+    CouponController,
     SavedPaymentMethodController,
     PricingPlanController,
     SubscriptionController,

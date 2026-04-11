@@ -1,10 +1,11 @@
 import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
-import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
+import { Inject, LoggerService, OnModuleInit, Optional } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Job, Queue } from 'bullmq';
 import { NotificationDeliveryRepository } from '../notification/repositories/notification-delivery.repository';
 import { NotificationRepository } from '../notification/repositories/notification.repository';
 import { EmailClient } from '../notification/clients/email.client';
+import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 
 export interface DeliverEmailJobData {
   deliveryId: string;
@@ -35,6 +36,7 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly notificationRepository: NotificationRepository,
     private readonly emailClient: EmailClient,
+    @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
   }
@@ -113,6 +115,12 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
         'EmailWorker',
       );
       await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
+      
+      // Capture in DLQ if max attempts reached
+      if (this.dlqService && job.attemptsMade >= 3) {
+        await this.dlqService.captureFailedJob('comms.email', job, err);
+      }
+      
       // Re-throw so BullMQ retries with exponential back-off
       throw error;
     }

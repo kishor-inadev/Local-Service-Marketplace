@@ -1,9 +1,10 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
+import { Inject, LoggerService, OnModuleInit, Optional } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { RefundRepository } from '../payment/repositories/refund.repository';
 import { PaymentRepository } from '../payment/repositories/payment.repository';
+import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 
 export interface ProcessRefundJobData {
   refundId: string;
@@ -21,6 +22,7 @@ export class RefundWorker extends WorkerHost implements OnModuleInit {
     private readonly logger: LoggerService,
     private readonly refundRepository: RefundRepository,
     private readonly paymentRepository: PaymentRepository,
+    @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
   }
@@ -52,6 +54,12 @@ export class RefundWorker extends WorkerHost implements OnModuleInit {
       const err = error as Error;
       this.logger.error(`Refund ${refundId} failed: ${err.message}`, err.stack, 'RefundWorker');
       await this.refundRepository.updateRefundStatus(refundId, 'failed');
+      
+      // Capture in DLQ if max attempts reached
+      if (this.dlqService && job.attemptsMade >= 3) {
+        await this.dlqService.captureFailedJob('payment.refund', job, err);
+      }
+      
       throw error;
     }
   }

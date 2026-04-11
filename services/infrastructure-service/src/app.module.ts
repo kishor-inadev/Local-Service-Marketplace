@@ -5,6 +5,7 @@ import { DatabaseModule } from './common/database/database.module';
 import { RedisModule } from './redis/redis.module';
 import { KafkaModule } from './kafka/kafka.module';
 import { InfrastructureModule } from './infrastructure/infrastructure.module';
+import { DlqModule } from './dlq/dlq.module';
 import { HealthController } from './common/health/health.controller';
 import { BullMQCoreModule } from './bullmq/bullmq.module';
 import { WorkersModule } from './workers/workers.module';
@@ -20,6 +21,7 @@ const conditionalModules = process.env.WORKERS_ENABLED === 'true' ? [WorkersModu
 		RedisModule,
 		KafkaModule,
 		InfrastructureModule,
+		DlqModule,
 		...conditionalModules,
 	],
 	controllers: [HealthController],

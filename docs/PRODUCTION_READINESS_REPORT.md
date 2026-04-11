@@ -1,7 +1,7 @@
 # Production Readiness Report
 
 **Local Service Marketplace Platform**
-**Generated:** April 2026 (last updated: BullMQ workers migration complete)
+**Generated:** April 11, 2026 (last updated: Session 5 — BullMQ scalability + token revocation + API completeness)
 **Status: ✅ READY FOR PRODUCTION (with noted exceptions)**
 
 ---
@@ -46,8 +46,13 @@ All 10 Dockerfiles build successfully.
 - ✅ Zero `TODO` / `FIXME` / `HACK` markers in production source files
 - ✅ File upload service (`identity-service`) fully implemented — `uploadFile`, `uploadMultiple`, `deleteFile` all functional
 - ✅ Provider welcome email uses real user email lookup (not synthetic address)
-- ✅ TypeScript `baseUrl` deprecation silenced via `"ignoreDeprecations": "6.0"` across all services
+- ✅ TypeScript `baseUrl` deprecation silenced via `"ignoreDeprecations": "6.0"` across all 7 tsconfig.json files (api-gateway, all 6 services, database)
 - ✅ `comms-service` `tsconfig.json` explicit `rootDir: "./src"` added
+- ✅ Token revocation implemented via Redis blacklist (identity-service) — tokens are invalidated immediately on logout
+- ✅ Review edit/delete APIs with 30-day edit window and ownership validation
+- ✅ Message edit/delete APIs with 15-minute edit window and `edited`/`edited_at` column tracking
+- ✅ Service category soft delete via `active` boolean column
+- ✅ Proposal and job delete operations with ownership + status validation
 
 ### email-service (Node.js)
 
@@ -114,6 +119,7 @@ Workers are opt-in via `WORKERS_ENABLED=true`. All services start and function c
 
 - ✅ Passwords hashed with bcrypt
 - ✅ JWT access tokens (15 min) + refresh tokens (7 days)
+- ✅ Token revocation via Redis blacklist — immediate logout invalidation
 - ✅ Rate limiting on all services
 - ✅ CORS restricted to `http://localhost:3000` (update to production domain)
 - ✅ Sensitive actions logged with `user_id` + `request_id` + `timestamp`
@@ -150,13 +156,29 @@ Workers are opt-in via `WORKERS_ENABLED=true`. All services start and function c
 - **Impact:** Facebook login button will fail if shown to users
 - **Fix:** Set real `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` or hide the button
 
----
+### 6.5 Redis Startup
 
-## 7. Deployment Checklist
+- **Status:** Redis is required for token blacklist and BullMQ workers
+- **Note:** Redis is gated behind the `cache` profile in `docker-compose.yml`. Start it explicitly:
+  ```powershell
+  docker-compose --profile cache up -d redis
+  ```
+- **Impact without Redis:** Token blacklist and background workers are non-functional; core API still responds
+
+### 6.6 Real-time Chat
+
+- **Status:** Chat works via React Query polling
+- **Impact:** Messages appear after a polling interval (~5s), not instantly
+- **Fix (future):** Implement Socket.IO in comms-service and update frontend connection
+
+---
 
 Before production go-live, complete the following:
 
 - [x] Set `EMAIL_USER` + `EMAIL_PASS` in `docker.env` for transactional email (✅ Brevo SMTP configured)
+- [x] TypeScript deprecation warnings resolved across all services (✅ `ignoreDeprecations: "6.0"`)
+- [x] Redis token blacklist implemented (✅ identity-service)
+- [x] Database migration file created for `messages.edited`, `service_categories.active` (✅ migration 020)
 - [ ] Set `STRIPE_SECRET_KEY` + `STRIPE_WEBHOOK_SECRET` (or chosen PSP) and update `PAYMENT_GATEWAY`
 - [ ] Change `CORS_ORIGIN` to production frontend domain
 - [ ] Change `FRONTEND_URL` to production domain

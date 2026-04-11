@@ -1,4 +1,4 @@
-import { Injectable, Inject, NotFoundException } from "@nestjs/common";
+import { Injectable, Inject, NotFoundException, BadRequestException } from "@nestjs/common";
 import { Pool } from "pg";
 import { Review } from "../entities/review.entity";
 import { CreateReviewDto } from "../dto/create-review.dto";
@@ -232,4 +232,45 @@ export class ReviewRepository {
     const result = await this.pool.query(query, [providerId, rating, limit]);
     return result.rows;
   }
+
+  async updateReview(
+    id: string,
+    updateData: { rating?: number; comment?: string },
+  ): Promise<Review> {
+    const updateFields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (updateData.rating !== undefined) {
+      updateFields.push(`rating = $${paramIndex++}`);
+      values.push(updateData.rating);
+    }
+
+    if (updateData.comment !== undefined) {
+      updateFields.push(`comment = $${paramIndex++}`);
+      values.push(updateData.comment);
+    }
+
+    if (updateFields.length === 0) {
+      throw new BadRequestException("No fields to update");
+    }
+
+    values.push(id);
+
+    const query = `
+      UPDATE reviews
+      SET ${updateFields.join(", ")}, updated_at = NOW()
+      WHERE id = $${paramIndex}
+      RETURNING *
+    `;
+
+    const result = await this.pool.query(query, values);
+    return result.rows[0];
+  }
+
+  async deleteReview(id: string): Promise<void> {
+    const query = `DELETE FROM reviews WHERE id = $1`;
+    await this.pool.query(query, [id]);
+  }
 }
+

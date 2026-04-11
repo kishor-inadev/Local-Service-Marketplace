@@ -1,9 +1,11 @@
 import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
-import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
+import { Inject, LoggerService, OnModuleInit, Optional } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Job, Queue } from 'bullmq';
 import { NotificationDeliveryRepository } from '../notification/repositories/notification-delivery.repository';
 import { NotificationRepository } from '../notification/repositories/notification.repository';
+import { PushNotificationService } from '../notification/services/push-notification.service';
+import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 
 export interface DeliverPushJobData {
   deliveryId: string;
@@ -11,6 +13,7 @@ export interface DeliverPushJobData {
   userId: string;
   type: string;
   message: string;
+  deviceToken?: string;
 }
 
 /**
@@ -33,6 +36,8 @@ export class PushWorker extends WorkerHost implements OnModuleInit {
     @InjectQueue('comms.push') private readonly pushQueue: Queue,
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly notificationRepository: NotificationRepository,
+    private readonly pushNotificationService: PushNotificationService,
+    @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
   }
@@ -65,7 +70,7 @@ export class PushWorker extends WorkerHost implements OnModuleInit {
   // ─────────────────────────────────────────────────────────────────
 
   private async handleDeliverPush(job: Job<DeliverPushJobData>): Promise<void> {
-    const { deliveryId, userId, type, message } = job.data;
+    const { deliveryId, userId, type, message, deviceToken } = job.data;
 
     this.logger.log(
       `PushWorker: delivering push for delivery ${deliveryId} (attempt ${job.attemptsMade + 1})`,
@@ -73,11 +78,29 @@ export class PushWorker extends WorkerHost implements OnModuleInit {
     );
 
     try {
-      // TODO: integrate with FCM / APNs
-      // await fcmClient.send({ userId, title: type, body: message });
+      // Send push notification via Firebase Cloud Messaging
+      const success = await this.pushNotificationService.sendPushNotification({
+        userId,
+        title: type,
+        body: message,
+        deviceToken,
+        data: {
+          notificationId: job.data.notificationId,
+          type,
+        },
+      });
 
-      await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'sent');
-      this.logger.log(`PushWorker: delivery ${deliveryId} sent`, 'PushWorker');
+      if (success) {
+        await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'sent');
+        this.logger.log(`PushWorker: delivery ${deliveryId} sent`, 'PushWorker');
+      } else {
+        // Failed but not due to exception (e.g., no device token)
+        await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
+        this.logger.warn(
+          `PushWorker: delivery ${deliveryId} failed (no device token or FCM error)`,
+          'PushWorker',
+        );
+      }
     } catch (error) {
       this.logger.error(
         `PushWorker: delivery ${deliveryId} failed — ${error.message}`,
@@ -85,6 +108,12 @@ export class PushWorker extends WorkerHost implements OnModuleInit {
         'PushWorker',
       );
       await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
+      
+      // Capture in DLQ if max retries reached
+      if (this.dlqService && job.attemptsMade >= 3) {
+        await this.dlqService.captureFailedJob('comms.push', job, error);
+      }
+      
       throw error;
     }
   }

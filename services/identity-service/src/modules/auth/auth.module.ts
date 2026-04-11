@@ -18,6 +18,8 @@ import { MagicLinkTokenRepository } from "./repositories/magic-link-token.reposi
 import { LoginHistoryRepository } from "./repositories/login-history.repository";
 import { AccountDeletionRequestRepository } from "./repositories/account-deletion-request.repository";
 import { JwtAuthGuard } from "./guards/jwt-auth.guard";
+import { BlacklistGuard } from "./guards/blacklist.guard";
+import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { FacebookStrategy } from "./strategies/facebook.strategy";
 import { SmsClient } from "./clients/sms.client";
@@ -77,6 +79,7 @@ const createOAuthProviders = (configService: ConfigService) => {
     AuthService,
     JwtService,
     TokenService,
+    TokenBlacklistService,
     UserRepository,
     SessionRepository,
     EmailVerificationTokenRepository,
@@ -88,6 +91,7 @@ const createOAuthProviders = (configService: ConfigService) => {
     LoginHistoryRepository,
     AccountDeletionRequestRepository,
     JwtAuthGuard,
+    BlacklistGuard,
     SmsClient,
     // Conditionally provide Google OAuth strategy
     {
@@ -118,6 +122,6 @@ const createOAuthProviders = (configService: ConfigService) => {
       inject: [ConfigService],
     },
   ],
-  exports: [JwtService, JwtAuthGuard],
+  exports: [JwtService, JwtAuthGuard, BlacklistGuard, TokenBlacklistService],
 })
 export class AuthModule {}

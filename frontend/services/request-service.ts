@@ -126,7 +126,7 @@ class RequestService {
 
 	async getMyRequests(): Promise<ServiceRequest[]> {
 		const response = await apiClient.get<any>(`/requests/my`);
-		return extractList<ServiceRequest>(response.data);
+		return apiClient.extractList<ServiceRequest>(response.data);
 	}
 
 	async getCategories(): Promise<ServiceCategory[]> {

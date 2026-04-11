@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -23,6 +24,8 @@ import {
   PaginatedProposalResponseDto,
 } from "../dto/proposal-response.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { OwnershipGuard } from "@/common/guards/ownership.guard";
+import { Ownership } from "@/common/decorators/ownership.decorator";
 
 @UseGuards(JwtAuthGuard)
 @Controller()
@@ -99,21 +102,27 @@ export class ProposalController {
   }
 
   @Post("proposals/:id/withdraw")
+  @UseGuards(OwnershipGuard)
+  @Ownership({ resourceType: "proposal", userIdField: "provider_id" })
   @HttpCode(HttpStatus.OK)
   async withdrawProposal(
     @Param("id", StrictUuidPipe) id: string,
     @Request() req: any,
   ): Promise<ProposalResponseDto> {
+    // Resource already validated by OwnershipGuard
     return this.proposalService.withdrawProposal(id, req.user.userId);
   }
 
   @Patch("proposals/:id")
+  @UseGuards(OwnershipGuard)
+  @Ownership({ resourceType: "proposal", userIdField: "provider_id" })
   @HttpCode(HttpStatus.OK)
   async updateProposal(
     @Param("id", StrictUuidPipe) id: string,
     @Body() body: UpdateProposalDto,
     @Request() req: any,
   ): Promise<ProposalResponseDto> {
+    // Resource already validated by OwnershipGuard
     return this.proposalService.updateProposal(id, req.user.userId, body);
   }
 
@@ -123,5 +132,21 @@ export class ProposalController {
     @Param("id", FlexibleIdPipe) id: string,
   ): Promise<ProposalResponseDto> {
     return this.proposalService.getProposalById(id);
+  }
+
+  @Delete("proposals/:id")
+  @UseGuards(OwnershipGuard)
+  @Ownership({ resourceType: "proposal", userIdField: "provider_id" })
+  @HttpCode(HttpStatus.OK)
+  async deleteProposal(
+    @Param("id", StrictUuidPipe) id: string,
+    @Request() req: any,
+  ): Promise<{ success: boolean; message: string }> {
+    // Resource already validated by OwnershipGuard
+    await this.proposalService.deleteProposal(id, req.user.userId);
+    return {
+      success: true,
+      message: "Proposal deleted successfully",
+    };
   }
 }

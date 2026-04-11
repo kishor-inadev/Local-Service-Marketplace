@@ -1,10 +1,11 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
+import { Inject, LoggerService, OnModuleInit, Optional } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { WebhookRepository } from '../payment/repositories/webhook.repository';
 import { PaymentRepository } from '../payment/repositories/payment.repository';
 import { PaymentGatewayService } from '../payment/gateway/payment-gateway.service';
+import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 
 export interface ProcessWebhookJobData {
   webhookId: string;
@@ -21,6 +22,7 @@ export class WebhookWorker extends WorkerHost implements OnModuleInit {
     private readonly webhookRepository: WebhookRepository,
     private readonly paymentRepository: PaymentRepository,
     private readonly paymentGateway: PaymentGatewayService,
+    @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
   }
@@ -71,6 +73,12 @@ export class WebhookWorker extends WorkerHost implements OnModuleInit {
     } catch (error) {
       this.logger.error(`Webhook ${webhookId} processing failed: ${error.message}`, error.stack, 'WebhookWorker');
       await this.webhookRepository.markFailed(webhookId, error.message);
+      
+      // Capture in DLQ if max retries reached
+      if (this.dlqService && job.attemptsMade >= 3) {
+        await this.dlqService.captureFailedJob('payment.webhook', job, error);
+      }
+      
       throw error;
     }
   }

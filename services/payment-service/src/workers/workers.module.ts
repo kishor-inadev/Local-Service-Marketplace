@@ -19,23 +19,40 @@ import { SavedPaymentMethodRepository } from '../payment/repositories/saved-paym
 import { PaymentRepository } from '../payment/repositories/payment.repository';
 import { RefundRepository } from '../payment/repositories/refund.repository';
 import { PaymentGatewayModule } from '../payment/gateway/payment-gateway.module';
+import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
+import { DatabaseModule } from '../common/database/database.module';
+import { getQueueRegistrationOptions } from '../config/queue-config';
 
+/**
+ * Payment Workers Module
+ * 
+ * Queue Configuration:
+ *   - payment.retry:        30s timeout, CRITICAL priority, 5 attempts
+ *   - payment.refund:       30s timeout, CRITICAL priority, 3 attempts
+ *   - payment.webhook:      20s timeout, HIGH priority,     5 attempts
+ *   - payment.notification: 10s timeout, HIGH priority,     3 attempts
+ *   - payment.analytics:    60s timeout, NORMAL priority,   2 attempts
+ *   - payment.subscription: 30s timeout, HIGH priority,     3 attempts
+ *   - payment.method-expiry:60s timeout, LOW priority,      2 attempts
+ *   - payment.cleanup:      120s timeout, LOW priority,     2 attempts
+ */
 @Module({
   imports: [
     BullModule.registerQueue(
-      { name: 'payment.retry' },
-      { name: 'payment.refund' },
-      { name: 'payment.webhook' },
-      { name: 'payment.notification' },
-      { name: 'payment.analytics' },
-      { name: 'payment.subscription' },
-      { name: 'payment.method-expiry' },
-      { name: 'payment.cleanup' },
+      getQueueRegistrationOptions('payment.retry'),
+      getQueueRegistrationOptions('payment.refund'),
+      getQueueRegistrationOptions('payment.webhook'),
+      getQueueRegistrationOptions('payment.notification'),
+      getQueueRegistrationOptions('payment.analytics'),
+      getQueueRegistrationOptions('payment.subscription'),
+      getQueueRegistrationOptions('payment.method-expiry'),
+      getQueueRegistrationOptions('payment.cleanup'),
     ),
     NotificationModule,
     UserModule,
     AnalyticsModule,
     PaymentGatewayModule,
+    DatabaseModule,
   ],
   providers: [
     PaymentWorker,
@@ -53,6 +70,8 @@ import { PaymentGatewayModule } from '../payment/gateway/payment-gateway.module'
     CouponRepository,
     SubscriptionRepository,
     SavedPaymentMethodRepository,
+    // DLQ service for failed job capture
+    DeadLetterQueueService,
   ],
 })
 export class WorkersModule {}

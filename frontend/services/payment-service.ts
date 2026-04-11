@@ -176,7 +176,6 @@ class PaymentService {
 			return { data: payload as Transaction[], total: payload.length };
 		}
 		return { data: [], total: 0 };
-		return apiClient.extractList<PaginatedTransactions>(response.data);
 	}
 
 	async getProviderPayouts(providerId: string): Promise<Payout[]> {

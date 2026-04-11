@@ -439,4 +439,5 @@ export class JobRepository {
     const result = await this.pool.query(query, [amount, jobId]);
     return result.rows[0] || null;
   }
+
 }

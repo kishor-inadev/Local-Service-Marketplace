@@ -6,6 +6,9 @@ import { PushWorker } from './push.worker';
 import { DigestWorker } from './digest.worker';
 import { CleanupWorker } from './cleanup.worker';
 import { NotificationModule } from '../notification/notification.module';
+import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
+import { DatabaseModule } from '../common/database/database.module';
+import { getQueueRegistrationOptions } from '../config/queue-config';
 
 /**
  * WorkersModule — only imported when WORKERS_ENABLED=true.
@@ -16,17 +19,25 @@ import { NotificationModule } from '../notification/notification.module';
  * In production deploy two container types:
  *   - web pod:    WORKERS_ENABLED=false  (no workers, smaller footprint)
  *   - worker pod: WORKERS_ENABLED=true   (workers only, no HTTP traffic)
+ * 
+ * Queue Configuration:
+ *   - Email:   10s timeout, HIGH priority, 3 attempts
+ *   - SMS:     15s timeout, HIGH priority, 3 attempts
+ *   - Push:    5s timeout,  HIGH priority, 3 attempts
+ *   - Digest:  60s timeout, LOW priority,  2 attempts
+ *   - Cleanup: 120s timeout, LOW priority, 2 attempts
  */
 @Module({
   imports: [
     BullModule.registerQueue(
-      { name: 'comms.email' },
-      { name: 'comms.sms' },
-      { name: 'comms.push' },
-      { name: 'comms.digest' },
-      { name: 'comms.cleanup' },
+      getQueueRegistrationOptions('comms.email'),
+      getQueueRegistrationOptions('comms.sms'),
+      getQueueRegistrationOptions('comms.push'),
+      getQueueRegistrationOptions('comms.digest'),
+      getQueueRegistrationOptions('comms.cleanup'),
     ),
     NotificationModule,
+    DatabaseModule,
   ],
   providers: [
     EmailWorker,
@@ -34,6 +45,7 @@ import { NotificationModule } from '../notification/notification.module';
     PushWorker,
     DigestWorker,
     CleanupWorker,
+    DeadLetterQueueService,
   ],
 })
 export class WorkersModule {}

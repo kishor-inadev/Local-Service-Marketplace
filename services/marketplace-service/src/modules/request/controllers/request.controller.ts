@@ -28,7 +28,9 @@ import {
 } from "../dto/request-response.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { RolesGuard } from "@/common/guards/roles.guard";
+import { OwnershipGuard } from "@/common/guards/ownership.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
+import { Ownership } from "@/common/decorators/ownership.decorator";
 import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../../common/file-service.client";
 import "multer";
@@ -98,7 +100,8 @@ export class RequestController {
   }
 
   // Authenticated — owner can upload images for their service request
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, OwnershipGuard)
+  @Ownership({ resourceType: "request", userIdField: "user_id" })
   @Post(":id/images")
   @HttpCode(HttpStatus.CREATED)
   @UseInterceptors(FilesInterceptor("files", 10))
@@ -118,11 +121,8 @@ export class RequestController {
       throw new BadRequestException("No files provided");
     }
 
-    // Verify request exists and user owns it
-    const request = await this.requestService.getRequestById(requestId);
-    if (request.user_id !== req.user.userId && req.user.role !== "admin") {
-      throw new ForbiddenException("You can only upload images to your own service requests");
-    }
+    // Resource already fetched and validated by OwnershipGuard
+    const request = req.resource;
 
     // Upload files to external file service
     const uploadedFiles = await this.fileServiceClient.uploadMultipleFiles(
@@ -147,7 +147,8 @@ export class RequestController {
   }
 
   // Authenticated — owner can update their own request
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, OwnershipGuard)
+  @Ownership({ resourceType: "request", userIdField: "user_id" })
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
   async updateRequest(
@@ -155,6 +156,7 @@ export class RequestController {
     @Body() updateRequestDto: UpdateRequestDto,
     @Req() req: any,
   ): Promise<RequestResponseDto> {
+    // Resource already validated by OwnershipGuard
     return this.requestService.updateRequest(
       id,
       updateRequestDto,

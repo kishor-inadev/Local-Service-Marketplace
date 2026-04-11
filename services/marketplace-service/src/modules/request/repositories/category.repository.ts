@@ -1,6 +1,7 @@
 import { Injectable, Inject } from "@nestjs/common";
 import { Pool } from "pg";
 import { ServiceCategory } from "../entities/service-category.entity";
+import { UpdateCategoryDto } from "../dto/update-category.dto";
 
 @Injectable()
 export class CategoryRepository {
@@ -59,5 +60,56 @@ export class CategoryRepository {
 
     const result = await this.pool.query(query, [`%${searchTerm}%`, limit]);
     return result.rows;
+  }
+
+  async updateCategory(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<ServiceCategory> {
+    const fields: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (updateCategoryDto.name !== undefined) {
+      fields.push(`name = $${paramIndex++}`);
+      values.push(updateCategoryDto.name);
+    }
+
+    if (updateCategoryDto.description !== undefined) {
+      fields.push(`description = $${paramIndex++}`);
+      values.push(updateCategoryDto.description);
+    }
+
+    if (updateCategoryDto.icon !== undefined) {
+      fields.push(`icon = $${paramIndex++}`);
+      values.push(updateCategoryDto.icon);
+    }
+
+    if (fields.length === 0) {
+      // No fields to update, just return the current category
+      return this.getCategoryById(id);
+    }
+
+    values.push(id);
+
+    const query = `
+      UPDATE service_categories
+      SET ${fields.join(", ")}
+      WHERE id = $${paramIndex}
+      RETURNING id, name, description, icon, created_at
+    `;
+
+    const result = await this.pool.query(query, values);
+    return result.rows[0];
+  }
+
+  async softDeleteCategory(id: string): Promise<void> {
+    const query = `
+      UPDATE service_categories
+      SET active = false
+      WHERE id = $1
+    `;
+
+    await this.pool.query(query, [id]);
   }
 }

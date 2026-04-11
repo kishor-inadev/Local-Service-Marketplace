@@ -1,9 +1,10 @@
 import { Processor, WorkerHost } from '@nestjs/bullmq';
-import { Inject, LoggerService } from '@nestjs/common';
+import { Inject, LoggerService, Optional } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Job } from 'bullmq';
 import { SmsClient } from '../notification/clients/sms.client';
 import { NotificationDeliveryRepository } from '../notification/repositories/notification-delivery.repository';
+import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 
 export interface DeliverSmsJobData {
   phone: string;
@@ -33,6 +34,7 @@ export class SmsWorker extends WorkerHost {
     private readonly logger: LoggerService,
     private readonly smsClient: SmsClient,
     private readonly deliveryRepository: NotificationDeliveryRepository,
+    @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
   }
@@ -75,6 +77,12 @@ export class SmsWorker extends WorkerHost {
       if (deliveryId) {
         await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'failed');
       }
+      
+      // Capture in DLQ if max retries reached
+      if (this.dlqService && job.attemptsMade >= 3) {
+        await this.dlqService.captureFailedJob('comms.sms', job, error);
+      }
+      
       throw error;
     }
   }
@@ -96,6 +104,12 @@ export class SmsWorker extends WorkerHost {
         error.stack,
         'SmsWorker',
       );
+      
+      // Capture in DLQ if max retries reached
+      if (this.dlqService && job.attemptsMade >= 3) {
+        await this.dlqService.captureFailedJob('comms.sms', job, error);
+      }
+      
       throw error;
     }
   }

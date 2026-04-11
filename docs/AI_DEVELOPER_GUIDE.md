@@ -50,33 +50,30 @@ AI agents must follow these rules:
 ```
 Local-Service-Marketplace/
 
-frontend/              # Next.js application
+frontend/                    # Next.js application (port 3000)
 
-api-gateway/           # NestJS API Gateway (port 3700)
+api-gateway/                 # NestJS API Gateway (port 3700)
 
 services/
-  identity-service/      # Auth + Users + Providers (port 3001)
-  marketplace-service/   # Requests + Proposals + Jobs + Reviews (port 3003)
-  payment-service/       # Payments + Refunds (port 3006)
-  comms-service/         # Notifications + Messaging (port 3007)
-  oversight-service/     # Admin + Analytics (port 3010)
-  infrastructure-service/ # Events + Feature flags (port 3012)
-  email-service/         # SMTP email delivery
-  sms-service/           # SMS/OTP delivery
+  identity-service/          # Auth + Users + Providers + Portfolio (port 3001)
+  marketplace-service/       # Requests + Proposals + Jobs + Reviews (port 3003)
+  payment-service/           # Payments + Refunds + Subscriptions (port 3006)
+  comms-service/             # Notifications + Messaging (port 3007)
+  oversight-service/         # Admin + Analytics + Disputes (port 3010)
+  infrastructure-service/    # Events + Feature flags + Background jobs (port 3012)
+  email-service/             # SMTP delivery (internal, port 4000)
+  sms-service/               # SMS/OTP delivery (internal, port 5000)
 
 database/
-  schema.sql
-  migrations/
+  schema.sql                 # Authoritative full schema (45+ tables)
+  migrations/                # Incremental SQL migrations (001– prefix)
+  seed.js                    # Test data seeder (320+ users, 1000+ records)
 
-docker/
-  docker-compose.yml
-
-docs/
-  ARCHITECTURE.md
-  MICROSERVICE_BOUNDARY_MAP.md
-  SCALING_STRATEGY.md
-  SYSTEM_DIAGRAM.md
-  AI_DEVELOPER_GUIDE.md
+docker-compose.yml           # Core docker setup
+docker.env                   # Docker environment variables
+config/                      # Shared config (queue-config.ts)
+docs/                        # Documentation
+scripts/                     # PowerShell utility scripts
 ```
 
 ---
@@ -85,187 +82,107 @@ docs/
 
 AI agents must generate code only within the responsibility of each service.
 
-Auth Service
+**identity-service** (port 3001)
 
 Handles:
+- signup, login, JWT authentication, token refresh, token revocation (Redis blacklist)
+- password reset, email verification, OAuth (Google), phone login
+- user profiles, provider profiles, provider availability
+- provider portfolio (images), provider documents (verification)
+- favorites, locations
 
-- signup
-- login
-- JWT authentication
-- password reset
-- session management
-- social login
-
-Tables
-
+Tables owned:
 ```
-users
-sessions
-email_verification_tokens
-password_reset_tokens
-login_attempts
-social_accounts
-user_devices
+users, sessions, email_verification_tokens, password_reset_tokens
+login_attempts, social_accounts, user_devices, login_history
+two_factor_secrets, magic_link_tokens, account_deletion_requests
+providers, provider_services, provider_availability
+provider_portfolio, provider_documents
+favorites, locations, notification_preferences
 ```
 
 ---
 
-User Service
+**marketplace-service** (port 3003)
 
 Handles:
+- service requests (post, browse, search)
+- proposals (submit, accept, reject, withdraw)
+- jobs (lifecycle: pending → in_progress → completed)
+- reviews and ratings (with aggregate computation)
+- service categories (CRUD, soft delete via active flag)
 
-- provider profiles
-- provider services
-- user favorites
-- locations
-
-Tables
-
+Tables owned:
 ```
-providers
-provider_services
-provider_availability
-favorites
-locations
+service_requests, service_categories
+proposals, jobs
+reviews, provider_review_aggregates
 ```
 
 ---
 
-Request Service
+**payment-service** (port 3006)
 
 Handles:
+- payment processing (Stripe/Razorpay)
+- refunds, coupons, coupon usage
+- pricing plans and subscriptions
+- saved payment methods
+- payment webhooks
 
-- service requests
-- request search
-- request categories
-
-Tables
-
+Tables owned:
 ```
-service_requests
-service_categories
-service_request_search
-```
-
----
-
-Proposal Service
-
-Handles provider proposals.
-
-Tables
-
-```
-proposals
+payments, refunds, payment_webhooks
+coupons, coupon_usage
+pricing_plans, saved_payment_methods, subscriptions
 ```
 
 ---
 
-Job Service
+**comms-service** (port 3007)
 
-Handles job lifecycle.
+Handles:
+- in-app notifications and delivery tracking
+- job-scoped chat messages (with edit/delete support)
+- message attachments
+- delegates email to email-service, SMS to sms-service
 
-Tables
-
+Tables owned:
 ```
-jobs
-```
-
----
-
-Payment Service
-
-Handles financial transactions.
-
-Tables
-
-```
-payments
-refunds
-payment_webhooks
-coupons
-coupon_usage
+notifications, notification_deliveries
+messages, attachments
+unsubscribes
 ```
 
 ---
 
-Review Service
+**oversight-service** (port 3010)
 
-Handles ratings.
+Handles:
+- admin actions and audit logs
+- dispute management
+- system settings
+- analytics (user activity, daily metrics)
 
-Tables
-
+Tables owned:
 ```
-reviews
-```
-
----
-
-Messaging Service
-
-Handles chat messages and file attachments.
-
-Tables
-
-```
-messages
-attachments
+admin_actions, disputes, audit_logs
+system_settings, user_activity_logs, daily_metrics
 ```
 
 ---
 
-Notification Service
+**infrastructure-service** (port 3012)
 
-Handles system notifications.
+Handles:
+- event store (all domain events)
+- background job tracking
+- rate limits per user/IP
+- feature flags
 
-Tables
-
+Tables owned:
 ```
-notifications
-notification_deliveries
-```
-
----
-
-Admin Service
-
-Handles moderation and system configuration.
-
-Tables
-
-```
-admin_actions
-disputes
-audit_logs
-system_settings
-```
-
----
-
-Analytics Service
-
-Handles usage analytics.
-
-Tables
-
-```
-user_activity_logs
-daily_metrics
-```
-
----
-
-Infrastructure Service
-
-Handles infrastructure support tables.
-
-Tables
-
-```
-events
-background_jobs
-rate_limits
-feature_flags
+events, background_jobs, rate_limits, feature_flags
 ```
 
 ---
@@ -320,16 +237,16 @@ Instead call the Payment Service API.
 
 # 7. Background Jobs
 
-Heavy tasks must run through worker services.
+All background jobs use **BullMQ** (`@nestjs/bullmq` package). The shared queue configuration lives in `config/queue-config.ts`.
 
-Examples
+Each service has a `workers/` module with processors for:
+- Sending emails and SMS notifications
+- Payment retries
+- Analytics aggregation
+- Token/session cleanup
+- Rating recalculation
 
-- email sending
-- analytics processing
-- notification delivery
-- payment retry logic
-
-Workers consume jobs from Redis queues.
+Workers consume jobs from Redis queues. Redis must be running (start with `--profile cache`).
 
 ---
 

@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -17,6 +18,7 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  ForbiddenException,
 } from "@nestjs/common";
 import { FileInterceptor } from "@nestjs/platform-express";
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
@@ -25,6 +27,7 @@ import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { MessageService } from "./services/message.service";
 import { AttachmentService } from "./services/attachment.service";
 import { CreateMessageDto } from "./dto/create-message.dto";
+import { UpdateMessageDto } from "./dto/update-message.dto";
 import { CreateAttachmentDto } from "./dto/create-attachment.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { FileServiceClient } from "../common/file-service.client";
@@ -199,5 +202,87 @@ export class MessagingController {
     );
     const item = await this.messageService.markMessageAsRead(id);
     return { success: true, data: item, message: "Message marked as read" };
+  }
+
+  /**
+   * Edit a message (only by sender, within 15 minutes)
+   * PATCH /messages/:id
+   */
+  @Patch(":id")
+  @HttpCode(HttpStatus.OK)
+  async updateMessage(
+    @Param("id", StrictUuidPipe) id: string,
+    @Body() updateMessageDto: UpdateMessageDto,
+    @Request() req: any,
+  ) {
+    this.logger.log(
+      `PATCH /messages/${id} - Update message`,
+      "MessagingController",
+    );
+
+    // Get message to check ownership
+    const message = await this.messageService.getMessageById(id);
+
+    // Only sender can edit
+    if (message.sender_id !== req.user.userId && req.user.role !== "admin") {
+      throw new ForbiddenException(
+        "You can only edit your own messages",
+      );
+    }
+
+    // Check if message is still editable (within 15 minutes)
+    const minutesSinceCreation = Math.floor(
+      (Date.now() - new Date(message.created_at).getTime()) / (1000 * 60),
+    );
+
+    if (minutesSinceCreation > 15 && req.user.role !== "admin") {
+      throw new ForbiddenException(
+        "Messages can only be edited within 15 minutes of sending",
+      );
+    }
+
+    const updatedMessage = await this.messageService.updateMessage(
+      id,
+      updateMessageDto.message,
+    );
+
+    return {
+      success: true,
+      data: updatedMessage,
+      message: "Message updated successfully",
+    };
+  }
+
+  /**
+   * Delete a message (only by sender or admin)
+   * DELETE /messages/:id
+   */
+  @Delete(":id")
+  @HttpCode(HttpStatus.OK)
+  async deleteMessage(
+    @Param("id", StrictUuidPipe) id: string,
+    @Request() req: any,
+  ) {
+    this.logger.log(
+      `DELETE /messages/${id} - Delete message`,
+      "MessagingController",
+    );
+
+    // Get message to check ownership
+    const message = await this.messageService.getMessageById(id);
+
+    // Only sender or admin can delete
+    if (message.sender_id !== req.user.userId && req.user.role !== "admin") {
+      throw new ForbiddenException(
+        "You can only delete your own messages",
+      );
+    }
+
+    await this.messageService.deleteMessage(id);
+
+    return {
+      success: true,
+      message: "Message deleted successfully",
+    };
   }
 }

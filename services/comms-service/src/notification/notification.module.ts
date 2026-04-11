@@ -2,7 +2,9 @@ import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { NotificationController } from "./notification.controller";
 import { NotificationPreferencesController } from "./controllers/notification-preferences.controller";
+import { DeviceController } from "./controllers/device.controller";
 import { NotificationService } from "./services/notification.service";
+import { PushNotificationService } from "./services/push-notification.service";
 import { EmailWorkerService } from "./services/email-worker.service";
 import { PushWorkerService } from "./services/push-worker.service";
 import { EventConsumerService } from "./services/event-consumer.service";
@@ -12,6 +14,7 @@ import { NotificationRepository } from "./repositories/notification.repository";
 import { NotificationDeliveryRepository } from "./repositories/notification-delivery.repository";
 import { UnsubscribeRepository } from "./repositories/unsubscribe.repository";
 import { NotificationPreferencesRepository } from "./repositories/notification-preferences.repository";
+import { DeviceRepository } from "./repositories/device.repository";
 import { EmailClient } from "./clients/email.client";
 import { SmsClient } from "./clients/sms.client";
 
@@ -23,9 +26,10 @@ import { SmsClient } from "./clients/sms.client";
       { name: 'comms.push' },
     ),
   ],
-  controllers: [NotificationController, NotificationPreferencesController],
+  controllers: [NotificationController, NotificationPreferencesController, DeviceController],
   providers: [
     NotificationService,
+    PushNotificationService,
     EmailWorkerService,
     PushWorkerService,
     EventConsumerService,
@@ -35,11 +39,13 @@ import { SmsClient } from "./clients/sms.client";
     NotificationDeliveryRepository,
     UnsubscribeRepository,
     NotificationPreferencesRepository,
+    DeviceRepository,
     EmailClient,
     SmsClient,
   ],
   exports: [
     NotificationService,
+    PushNotificationService,
     EmailWorkerService,
     PushWorkerService,
     NotificationPreferencesService,
@@ -48,6 +54,7 @@ import { SmsClient } from "./clients/sms.client";
     NotificationDeliveryRepository,
     UnsubscribeRepository,
     NotificationPreferencesRepository,
+    DeviceRepository,
     EmailClient,
     SmsClient,
   ],

@@ -30,7 +30,11 @@ GATEWAY_INTERNAL_SECRET=<generate with: openssl rand -base64 48>
 ```powershell
 docker-compose up -d
 ```
+Redis is required for token blacklisting and caching. Start it with:
 
+```powershell
+docker-compose --profile cache up -d redis
+```
 | URL | Service |
 |-----|---------|
 | http://localhost:3000 | Frontend (Next.js) |
@@ -40,10 +44,15 @@ docker-compose up -d
 ### 3. Seed Sample Data (Optional)
 
 ```powershell
-.\scripts\seed-database.ps1
+cd database; node seed.js
 ```
 
-Creates 151 users, 1000+ records. Default admin: `admin@marketplace.com` / `password123`
+Creates 320+ users and 1000+ records across all tables.
+
+Default credentials:
+- Admin: `admin@marketplace.com` / `password123`
+- Provider: `provider1@example.com` / `password123`
+- Customer: `customer1@example.com` / `password123`
 
 ---
 
@@ -219,8 +228,6 @@ After running tests:
 - **HTML report** - Interactive detailed report in `test-reports/`
 - **JSON report** - Machine-readable results for CI/CD
 
-See [docs/TESTING_GUIDE.md](docs/TESTING_GUIDE.md) for complete documentation.
-
 ### Collection
 
 All API endpoints are documented in:
@@ -241,11 +248,11 @@ Import into Postman for manual testing or use Newman for automation.
 
 | Service | Owns Tables |
 |---------|-------------|
-| identity-service | users, sessions, tokens, oauth_accounts |
-| marketplace-service | service_requests, proposals, jobs, reviews |
-| payment-service | payments, refunds, coupons |
-| comms-service | notifications, messages |
-| oversight-service | admin_actions, disputes, audit_logs, analytics |
+| identity-service | users, sessions, tokens, providers, provider_portfolio, provider_documents |
+| marketplace-service | service_requests, proposals, jobs, reviews, service_categories |
+| payment-service | payments, refunds, coupons, pricing_plans, subscriptions |
+| comms-service | notifications, messages, notification_preferences |
+| oversight-service | admin_actions, disputes, audit_logs, daily_metrics |
 | infrastructure-service | events, feature_flags, rate_limits, background_jobs |
 
 ---
@@ -339,11 +346,13 @@ docker-compose down -v
 | Topic | File |
 |-------|------|
 | **Getting started (all environments)** | [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) |
+| **Quick start** | [docs/QUICK_START.md](docs/QUICK_START.md) |
 | **Marketplace guide (roles & capabilities)** | [docs/MARKETPLACE_GUIDE.md](docs/MARKETPLACE_GUIDE.md) |
 | Architecture detail | [docs/architecture/ARCHITECTURE.md](docs/architecture/ARCHITECTURE.md) |
 | API specification | [docs/api/API_SPECIFICATION.md](docs/api/API_SPECIFICATION.md) |
 | Service boundaries | [docs/architecture/MICROSERVICE_BOUNDARY_MAP.md](docs/architecture/MICROSERVICE_BOUNDARY_MAP.md) |
 | Environment variables | [docs/ENVIRONMENT_VARIABLES_GUIDE.md](docs/ENVIRONMENT_VARIABLES_GUIDE.md) |
+| Background jobs (BullMQ) | [docs/BULLMQ_CONFIGURATION_GUIDE.md](docs/BULLMQ_CONFIGURATION_GUIDE.md) |
 | Token validation | [api-gateway/TOKEN_VALIDATION_GUIDE.md](api-gateway/TOKEN_VALIDATION_GUIDE.md) |
 | Authentication flow | [docs/guides/AUTHENTICATION_WORKFLOW.md](docs/guides/AUTHENTICATION_WORKFLOW.md) |
 | Database seeding | [docs/DATABASE_SEEDING.md](docs/DATABASE_SEEDING.md) |

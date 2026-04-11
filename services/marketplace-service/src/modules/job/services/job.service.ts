@@ -448,4 +448,80 @@ export class JobService {
     this.logger.log(`Fetching job stats`, JobService.name);
     return this.jobRepository.getJobStats();
   }
+
+  async deleteJob(
+    id: string,
+    userId: string,
+    userRole: string,
+    reason?: string,
+  ): Promise<void> {
+    this.logger.log(`Deleting/cancelling job: ${id}`, JobService.name);
+
+    // Validate job exists
+    const existingJob = await this.jobRepository.getJobById(id);
+    if (!existingJob) {
+      throw new NotFoundException("Job not found");
+    }
+
+    // Ownership check: customer, provider, or admin can cancel
+    const isCustomer = existingJob.customer_id === userId;
+    const isProvider = existingJob.provider_id === userId;
+    const isAdmin = userRole === "admin";
+
+    if (!isCustomer && !isProvider && !isAdmin) {
+      throw new ForbiddenException(
+        "You can only delete jobs you are involved in",
+      );
+    }
+
+    // Status check: Only pending or scheduled jobs can be cancelled
+    if (
+      existingJob.status !== "pending" &&
+      existingJob.status !== "scheduled"
+    ) {
+      throw new BadRequestException(
+        `Cannot delete job with status: ${existingJob.status}. Only pending or scheduled jobs can be cancelled.`,
+      );
+    }
+
+    // Cancel the job
+    await this.jobRepository.cancelJob(existingJob.id, userId, reason ?? 'Cancelled by user');
+
+    this.logger.log(
+      `Job cancelled successfully: ${existingJob.id}`,
+      JobService.name,
+    );
+
+    // Invalidate cache
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.del(`job:${existingJob.id}`);
+    }
+
+    // Publish event to Kafka if enabled
+    await this.kafkaService.publishEvent("job-events", {
+      eventType: "job_cancelled",
+      eventId: `${existingJob.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        jobId: existingJob.id,
+        requestId: existingJob.request_id,
+        providerId: existingJob.provider_id,
+        customerId: existingJob.customer_id,
+        cancelledBy: userId,
+      },
+    });
+
+    // Track analytics
+    this.analyticsClient.track({
+      userId: userId,
+      action: "job_cancelled",
+      resource: "job",
+      resourceId: existingJob.id,
+      metadata: {
+        providerId: existingJob.provider_id,
+        requestId: existingJob.request_id,
+        cancelledBy: userId,
+      },
+    });
+  }
 }

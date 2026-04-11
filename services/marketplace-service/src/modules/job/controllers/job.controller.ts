@@ -3,6 +3,7 @@ import {
   Post,
   Get,
   Patch,
+  Delete,
   Body,
   Param,
   Query,
@@ -20,6 +21,7 @@ import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { JobService } from "../services/job.service";
 import { CreateJobDto } from "../dto/create-job.dto";
 import { UpdateJobStatusDto } from "../dto/update-job-status.dto";
+import { CancelJobDto } from "../dto/cancel-job.dto";
 import {
   JobResponseDto,
   PaginatedJobResponseDto,
@@ -201,5 +203,19 @@ export class JobController {
   }> {
     const result = await this.jobService.getJobsByStatus(status, req.user);
     return { ...result, page: 1, limit: result.data.length || 1 };
+  }
+
+  @Delete(":id")
+  @HttpCode(HttpStatus.OK)
+  async deleteJob(
+    @Param("id", StrictUuidPipe) id: string,
+    @Request() req: any,
+    @Body() body?: CancelJobDto,
+  ): Promise<{ success: boolean; message: string }> {
+    await this.jobService.deleteJob(id, req.user.userId, req.user.role, body?.reason);
+    return {
+      success: true,
+      message: "Job cancelled successfully",
+    };
   }
 }
