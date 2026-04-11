@@ -1,13 +1,18 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Calendar, CreditCard, AlertCircle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { paymentService, type Subscription } from '@/services/payment-service';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 export function SubscriptionManagement({ providerId }: { providerId: string }) {
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
   const [activeSubscription, setActiveSubscription] = useState<Subscription | null>(null);
   const [loading, setLoading] = useState(true);
+  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [pendingSubId, setPendingSubId] = useState<string | null>(null);
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     loadSubscriptions();
@@ -29,18 +34,25 @@ export function SubscriptionManagement({ providerId }: { providerId: string }) {
     }
   };
 
-  const cancelSubscription = async (subscriptionId: string) => {
-    if (!confirm('Are you sure you want to cancel your subscription? You will retain access until the end of your billing period.')) {
-      return;
-    }
+  const handleCancelClick = (subscriptionId: string) => {
+    setPendingSubId(subscriptionId);
+    setCancelConfirmOpen(true);
+  };
 
+  const handleConfirmCancel = async () => {
+    if (!pendingSubId) return;
+    setCancelling(true);
     try {
-      await paymentService.cancelSubscription(subscriptionId);
+      await paymentService.cancelSubscription(pendingSubId);
       loadSubscriptions();
-      alert('Subscription cancelled successfully. You will retain access until the end of your billing period.');
+      toast.success('Subscription cancelled successfully. You will retain access until the end of your billing period.');
     } catch (error) {
       console.error('Failed to cancel subscription:', error);
-      alert('Failed to cancel subscription');
+      toast.error('Failed to cancel subscription');
+    } finally {
+      setCancelling(false);
+      setCancelConfirmOpen(false);
+      setPendingSubId(null);
     }
   };
 
@@ -138,7 +150,7 @@ export function SubscriptionManagement({ providerId }: { providerId: string }) {
 					{activeSubscription.status === "active" && !activeSubscription.cancelled_at && (
 						<div className='flex gap-3'>
 							<button
-								onClick={() => cancelSubscription(activeSubscription.id)}
+								onClick={() => handleCancelClick(activeSubscription.id)}
 								className='px-6 py-2 bg-white dark:bg-gray-700 bg-opacity-20 dark:bg-opacity-40 hover:bg-opacity-30 dark:hover:bg-opacity-60 rounded-lg font-medium transition-colors'>
 								Cancel Subscription
 							</button>
@@ -238,5 +250,15 @@ export function SubscriptionManagement({ providerId }: { providerId: string }) {
 				</a>
 			</div>
 		</div>
+		<ConfirmDialog
+			isOpen={cancelConfirmOpen}
+			onClose={() => { setCancelConfirmOpen(false); setPendingSubId(null); }}
+			onConfirm={handleConfirmCancel}
+			title="Cancel Subscription"
+			message="Are you sure you want to cancel your subscription? You will retain access until the end of your billing period."
+			confirmLabel="Cancel Subscription"
+			variant="danger"
+			isLoading={cancelling}
+		/>
 	);
 }

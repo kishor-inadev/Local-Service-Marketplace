@@ -1,8 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import { Bell, Mail, MessageSquare, Star, DollarSign, Briefcase, AlertTriangle } from 'lucide-react';
 import { notificationService, type NotificationPreferences as NotificationPreferencesType } from '@/services/notification-service';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
 interface PreferenceSetting {
   key: keyof Omit<NotificationPreferencesType, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
@@ -92,6 +94,7 @@ export function NotificationPreferences() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [localPreferences, setLocalPreferences] = useState<Partial<NotificationPreferencesType>>({});
+  const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
 
   useEffect(() => {
     loadPreferences();
@@ -122,10 +125,10 @@ export function NotificationPreferences() {
     try {
       const data = await notificationService.updateNotificationPreferences(localPreferences);
       setPreferences(data);
-      alert('Notification preferences saved successfully!');
+      toast.success('Notification preferences saved successfully!');
     } catch (error) {
       console.error('Failed to save preferences:', error);
-      alert('Failed to save preferences. Please try again.');
+      toast.error('Failed to save preferences. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -138,30 +141,31 @@ export function NotificationPreferences() {
       const data = await notificationService.enableAllNotifications();
       setPreferences(data);
       setLocalPreferences(data);
-      alert('All notifications enabled!');
+      toast.success('All notifications enabled!');
     } catch (error) {
       console.error('Failed to enable all:', error);
-      alert('Failed to enable all notifications');
+      toast.error('Failed to enable all notifications');
     } finally {
       setSaving(false);
     }
   };
 
-  const disableAll = async () => {
-    if (!confirm('Are you sure you want to disable all notifications? You may miss important updates.')) {
-      return;
-    }
+  const handleDisableAllClick = () => {
+    setDisableConfirmOpen(true);
+  };
 
+  const disableAll = async () => {
     setSaving(true);
+    setDisableConfirmOpen(false);
 
     try {
       const data = await notificationService.disableAllNotifications();
       setPreferences(data);
       setLocalPreferences(data);
-      alert('All notifications disabled');
+      toast.success('All notifications disabled');
     } catch (error) {
       console.error('Failed to disable all:', error);
-      alert('Failed to disable all notifications');
+      toast.error('Failed to disable all notifications');
     } finally {
       setSaving(false);
     }
@@ -186,6 +190,7 @@ export function NotificationPreferences() {
   const activitySettings = PREFERENCE_SETTINGS.filter(s => s.category === 'activities');
 
   return (
+    <>
     <div className="max-w-4xl mx-auto">
       <div className="bg-white rounded-lg shadow-md">
         {/* Header */}
@@ -210,7 +215,7 @@ export function NotificationPreferences() {
                 Enable All
               </button>
               <button
-                onClick={disableAll}
+                onClick={handleDisableAllClick}
                 disabled={saving}
                 className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 dark:text-gray-300"
               >
@@ -314,5 +319,15 @@ export function NotificationPreferences() {
         </div>
       </div>
     </div>
+    <ConfirmDialog
+      isOpen={disableConfirmOpen}
+      onClose={() => setDisableConfirmOpen(false)}
+      onConfirm={disableAll}
+      title="Disable All Notifications"
+      message="Are you sure you want to disable all notifications? You may miss important updates."
+      confirmLabel="Disable All"
+      variant="warning"
+    />
+    </>
   );
 }

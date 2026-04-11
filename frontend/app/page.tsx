@@ -322,10 +322,12 @@ export default function HomePage() {
 			/>
 			<div className='bg-white dark:bg-gray-950'>
 				{/* Hero Section */}
-				<div className='relative isolate overflow-hidden bg-gradient-to-br from-blue-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900'>
+				<div className='relative isolate overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-50/70 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-950'>
 					<div className='absolute inset-0 -z-10 overflow-hidden'>
+						{/* Decorative glow */}
+						<div className='absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary-300/15 dark:bg-primary-500/8 blur-3xl rounded-full pointer-events-none' />
 						<svg
-							className='absolute left-[max(50%,25rem)] top-0 h-[64rem] w-[128rem] -translate-x-1/2 stroke-gray-200 dark:stroke-gray-700 [mask-image:radial-gradient(64rem_64rem_at_top,white,transparent)]'
+							className='absolute left-[max(50%,25rem)] top-0 h-[64rem] w-[128rem] -translate-x-1/2 stroke-gray-200/60 dark:stroke-gray-700/40 [mask-image:radial-gradient(64rem_64rem_at_top,white,transparent)]'
 							aria-hidden='true'>
 							<defs>
 								<pattern
@@ -344,7 +346,7 @@ export default function HomePage() {
 							<svg
 								x='50%'
 								y={-1}
-								className='overflow-visible fill-gray-50 dark:fill-gray-900'>
+								className='overflow-visible fill-gray-50/80 dark:fill-gray-900'>
 								<path
 									d='M-200 0h201v201h-201Z M600 0h201v201h-201Z M-400 600h201v201h-201Z M200 800h201v201h-201Z'
 									strokeWidth={0}
@@ -359,30 +361,30 @@ export default function HomePage() {
 						</svg>
 					</div>
 
-					<div className='mx-auto max-w-7xl px-6 py-20 sm:py-32 lg:px-8'>
+					<div className='mx-auto max-w-7xl px-6 py-24 sm:py-36 lg:px-8'>
 						<div className='mx-auto max-w-4xl text-center'>
 							{/* Trust Badge */}
 							<div className='mb-8 flex justify-center'>
-								<div className='relative rounded-full px-4 py-2 text-sm leading-6 text-gray-600 dark:text-gray-300 ring-1 ring-gray-900/10 dark:ring-gray-100/10 hover:ring-gray-900/20 dark:hover:ring-gray-100/20 bg-white dark:bg-gray-800 shadow-sm flex items-center gap-1.5'>
+								<div className='relative rounded-full px-4 py-2 text-sm leading-6 text-gray-600 dark:text-gray-300 ring-1 ring-gray-900/10 dark:ring-gray-100/10 hover:ring-gray-900/20 dark:hover:ring-gray-100/20 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm shadow-sm flex items-center gap-1.5'>
 									<Star className='h-4 w-4 text-yellow-400 fill-yellow-400' />
 									Rated 4.9/5 by 50,000+ customers • Trusted since 2020
 								</div>
 							</div>
 
-							<h1 className='text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-7xl'>
-								Your Local Service <br />
-								<span className='text-blue-600 dark:text-blue-400'>Marketplace</span>
+							<h1 className='text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-7xl leading-tight'>
+								Your <span className='gradient-text'>Local Service</span><br />
+								Marketplace
 							</h1>
-							<p className='mt-6 text-xl leading-8 text-gray-700 dark:text-gray-300 max-w-3xl mx-auto'>
+							<p className='mt-6 text-xl leading-8 text-gray-600 dark:text-gray-400 max-w-3xl mx-auto'>
 								Connect with verified, licensed professionals in your neighborhood. From home repairs to lawn care, find
 								trusted experts for any job. Post your request free, get multiple quotes, and hire with confidence.
 							</p>
 
-							<div className='mt-10 flex flex-col sm:flex-row items-center justify-center gap-4'>
+							<div className='mt-10 flex flex-col sm:flex-row items-center justify-center gap-3'>
 								<Link href='/signup'>
 									<Button
 										size='lg'
-										className='font-semibold text-lg px-8 py-6 w-full sm:w-auto'>
+										className='font-semibold px-8 py-3.5 w-full sm:w-auto shadow-primary hover:shadow-primary-lg'>
 										Get Started Free →
 									</Button>
 								</Link>
@@ -390,7 +392,7 @@ export default function HomePage() {
 									<Button
 										variant='outline'
 										size='lg'
-										className='font-semibold text-lg px-8 py-6 w-full sm:w-auto'>
+										className='font-semibold px-8 py-3.5 w-full sm:w-auto'>
 										Post a Job Request
 									</Button>
 								</Link>
@@ -400,13 +402,13 @@ export default function HomePage() {
 							<HeroSearch />
 
 							{/* Trust Indicators */}
-							<div className='mt-12 flex flex-wrap justify-center gap-6 text-sm text-gray-600 dark:text-gray-400'>
+							<div className='mt-12 flex flex-wrap justify-center gap-5 text-sm text-gray-500 dark:text-gray-400'>
 								{trustIndicators.map(({ label, Icon }) => (
 									<div
 										key={label}
 										className='flex items-center gap-1.5'>
-										<Icon className='h-4 w-4 text-primary-600 dark:text-primary-400' />
-										<span className='font-medium'>{label}</span>
+										<Icon className='h-4 w-4 text-primary-500' />
+										<span>{label}</span>
 									</div>
 								))}
 							</div>
@@ -415,7 +417,7 @@ export default function HomePage() {
 				</div>
 
 				{/* Stats Section */}
-				<div className='bg-gradient-to-r from-blue-600 to-blue-800 py-16'>
+				<div className='bg-gradient-to-r from-primary-600 to-primary-700 py-16 shadow-xl'>
 					<div className='mx-auto max-w-7xl px-6 lg:px-8'>
 						<div className='grid grid-cols-2 gap-8 md:grid-cols-4'>
 							{stats.map((stat) => (
@@ -425,12 +427,12 @@ export default function HomePage() {
 									<div className='text-4xl md:text-5xl font-bold text-white group-hover:scale-110 transition-transform'>
 										{stat.value}
 									</div>
-									<div className='mt-2 text-base md:text-lg text-blue-100'>{stat.label}</div>
+									<div className='mt-2 text-sm md:text-base text-primary-100'>{stat.label}</div>
 								</div>
 							))}
 						</div>
-						<div className='mt-12 text-center'>
-							<p className='text-blue-100 text-lg'>
+						<div className='mt-10 text-center'>
+							<p className='text-primary-100 text-sm'>
 								🎉 1,000+ jobs completed this week • 500+ new providers joined this month
 							</p>
 						</div>
@@ -443,26 +445,26 @@ export default function HomePage() {
 						<h2 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100'>
 							Popular Service Categories
 						</h2>
-						<p className='mt-4 text-lg text-gray-600 dark:text-gray-400'>
+						<p className='mt-4 text-lg text-gray-500 dark:text-gray-400'>
 							Explore our most requested services or browse over 150+ categories
 						</p>
 					</div>
-					<div className='mx-auto mt-16 grid max-w-6xl grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4'>
+					<div className='mx-auto mt-16 grid max-w-6xl grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4'>
 						{serviceCategories.map((category) => (
 							<Link
 								key={category.name}
 								href={`/requests/create?q=${encodeURIComponent(category.name)}`}>
 								<Card
 									hover
-									className='cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 dark:bg-gray-800 dark:border-gray-700 h-full'>
+									className='cursor-pointer transition-all hover:shadow-lg hover:-translate-y-1 h-full group'>
 									<CardContent className='flex flex-col items-center text-center p-6'>
 										<div
 											className={`h-14 w-14 rounded-2xl ${category.color} flex items-center justify-center text-3xl mb-4 transition-transform group-hover:scale-110`}>
 											{category.icon}
 										</div>
-										<h3 className='font-semibold text-gray-900 dark:text-gray-100 text-base'>{category.name}</h3>
-										<p className='mt-1.5 text-xs text-gray-500 dark:text-gray-400'>{category.description}</p>
-										<p className='mt-3 text-xs font-semibold text-primary-600 dark:text-primary-400'>{category.jobs}</p>
+										<h3 className='font-semibold text-gray-900 dark:text-gray-100 text-sm'>{category.name}</h3>
+										<p className='mt-1 text-xs text-gray-400 dark:text-gray-500'>{category.description}</p>
+										<p className='mt-2.5 text-xs font-semibold text-primary-600 dark:text-primary-400'>{category.jobs}</p>
 									</CardContent>
 								</Card>
 							</Link>
@@ -473,7 +475,7 @@ export default function HomePage() {
 							<Button
 								variant='outline'
 								size='lg'
-								className='text-lg px-8'>
+								className='text-sm px-8'>
 								View All 150+ Categories →
 							</Button>
 						</Link>
@@ -574,19 +576,19 @@ export default function HomePage() {
 							The safest, easiest way to hire local service professionals
 						</p>
 					</div>
-					<div className='mx-auto mt-16 grid max-w-6xl gap-8 sm:grid-cols-2 lg:grid-cols-3'>
+					<div className='mx-auto mt-16 grid max-w-6xl gap-6 sm:grid-cols-2 lg:grid-cols-3'>
 						{features.map((feature) => (
 							<Card
 								key={feature.title}
 								hover
-								className='transition-all hover:shadow-xl dark:bg-gray-800 dark:border-gray-700'>
+								className='transition-all hover:shadow-lg hover:-translate-y-1'>
 								<CardContent className='p-8'>
 									<div className='flex flex-col'>
-										<div className={`flex h-14 w-14 items-center justify-center rounded-2xl ${feature.iconBg} mb-5`}>
-											<feature.Icon className={`h-7 w-7 ${feature.iconColor}`} />
+										<div className={`flex h-12 w-12 items-center justify-center rounded-xl ${feature.iconBg} mb-5`}>
+											<feature.Icon className={`h-6 w-6 ${feature.iconColor}`} />
 										</div>
-										<h3 className='text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3'>{feature.title}</h3>
-										<p className='text-gray-600 dark:text-gray-400 leading-relaxed'>{feature.description}</p>
+										<h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2'>{feature.title}</h3>
+										<p className='text-sm text-gray-500 dark:text-gray-400 leading-relaxed'>{feature.description}</p>
 									</div>
 								</CardContent>
 							</Card>
@@ -622,19 +624,20 @@ export default function HomePage() {
 				</div>
 
 				{/* Provider CTA Section */}
-				<div className='bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 relative overflow-hidden'>
-					<div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+				<div className='bg-gradient-to-br from-gray-900 via-primary-950/30 to-gray-900 relative overflow-hidden'>
+					<div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.04]"></div>
+					<div className='absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-primary-500/5 blur-3xl rounded-full pointer-events-none' />
 					<div className='mx-auto max-w-7xl px-6 py-24 lg:px-8 relative'>
 						<div className='mx-auto max-w-4xl text-center'>
-							<div className='inline-flex items-center rounded-full bg-blue-500/20 px-6 py-2 mb-6 backdrop-blur-sm'>
-								<span className='text-blue-100 font-medium'>💼 For Service Professionals</span>
+							<div className='inline-flex items-center rounded-full bg-white/10 px-5 py-1.5 mb-6 backdrop-blur-sm ring-1 ring-white/20'>
+								<span className='text-gray-200 text-sm font-medium'>💼 For Service Professionals</span>
 							</div>
 							<h2 className='text-4xl md:text-5xl font-bold text-white'>Grow Your Local Business</h2>
-							<p className='mt-6 text-xl text-blue-100 leading-relaxed'>
+							<p className='mt-6 text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto'>
 								Join 15,000+ trusted professionals earning more with our platform. Get matched with ready-to-hire
 								customers in your area. Set your own rates, choose your jobs, and get paid fast.
 							</p>
-							<div className='mt-10 flex flex-col sm:flex-row items-center justify-center gap-4'>
+							<div className='mt-10 flex flex-col sm:flex-row items-center justify-center gap-3'>
 								<Link href='/signup'>
 									<Button
 										size='lg'
@@ -653,33 +656,33 @@ export default function HomePage() {
 							</div>
 
 							{/* Provider Benefits */}
-							<div className='mt-16 grid grid-cols-1 sm:grid-cols-3 gap-8'>
-								<div className='bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20'>
-									<div className='text-4xl font-bold text-white mb-2'>$0</div>
-									<div className='text-lg font-semibold text-blue-100 mb-1'>To Join</div>
-									<div className='text-sm text-blue-200'>No subscription fees or upfront costs</div>
+							<div className='mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6'>
+								<div className='bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10'>
+									<div className='text-4xl font-bold text-white mb-1'>$0</div>
+									<div className='text-sm font-semibold text-gray-300 mb-1'>To Join</div>
+									<div className='text-xs text-gray-500'>No subscription fees or upfront costs</div>
 								</div>
-								<div className='bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20'>
-									<div className='text-4xl font-bold text-white mb-2'>95%</div>
-									<div className='text-lg font-semibold text-blue-100 mb-1'>You Keep</div>
-									<div className='text-sm text-blue-200'>Industry-low 5% service fee</div>
+								<div className='bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10'>
+									<div className='text-4xl font-bold text-white mb-1'>95%</div>
+									<div className='text-sm font-semibold text-gray-300 mb-1'>You Keep</div>
+									<div className='text-xs text-gray-500'>Industry-low 5% service fee</div>
 								</div>
-								<div className='bg-white/10 backdrop-blur-sm rounded-2xl p-6 border border-white/20'>
-									<div className='text-4xl font-bold text-white mb-2'>1-2</div>
-									<div className='text-lg font-semibold text-blue-100 mb-1'>Day Payout</div>
-									<div className='text-sm text-blue-200'>Fast, secure payment transfers</div>
+								<div className='bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10'>
+									<div className='text-4xl font-bold text-white mb-1'>1-2</div>
+									<div className='text-sm font-semibold text-gray-300 mb-1'>Day Payout</div>
+									<div className='text-xs text-gray-500'>Fast, secure payment transfers</div>
 								</div>
 							</div>
 
 							{/* Additional Provider Benefits */}
-							<div className='mt-12 flex flex-wrap justify-center gap-6 text-blue-100'>
+							<div className='mt-12 flex flex-wrap justify-center gap-6 text-gray-500'>
 								{["Build Your Brand", "Verified Reviews", "Marketing Tools", "Calendar Management", "Mobile App"].map(
 									(benefit) => (
 										<div
 											key={benefit}
 											className='flex items-center gap-2'>
-											<Check className='h-4 w-4 text-blue-300' />
-											<span>{benefit}</span>
+											<Check className='h-4 w-4 text-primary-400' />
+											<span className='text-sm'>{benefit}</span>
 										</div>
 									),
 								)}
@@ -833,30 +836,30 @@ export default function HomePage() {
 						</div>
 
 						{/* Competitive Advantages */}
-						<div className='bg-gradient-to-br from-gray-900 to-gray-800 dark:from-gray-800 dark:to-gray-950 rounded-3xl p-12 text-white dark:border dark:border-gray-700'>
+						<div className='bg-gradient-to-br from-gray-950 to-gray-900 rounded-2xl p-10 ring-1 ring-white/5'>
 							<div className='grid md:grid-cols-2 lg:grid-cols-4 gap-8'>
 								<div className='text-center md:text-left'>
-									<div className='text-3xl mb-3'>🏆</div>
-									<div className='font-bold mb-2'>Best-in-Class Platform</div>
-									<div className='text-sm text-gray-300'>Rated #1 by customers 4 years running</div>
+									<div className='text-2xl mb-3'>🏆</div>
+									<div className='font-semibold text-white mb-1 text-sm'>Best-in-Class Platform</div>
+									<div className='text-xs text-gray-500'>Rated #1 by customers 4 years running</div>
 								</div>
 
 								<div className='text-center md:text-left'>
-									<div className='text-3xl mb-3'>⚡</div>
-									<div className='font-bold mb-2'>Fastest Response Times</div>
-									<div className='text-sm text-gray-300'>Average 2.3 hour quote turnaround</div>
+									<div className='text-2xl mb-3'>⚡</div>
+									<div className='font-semibold text-white mb-1 text-sm'>Fastest Response Times</div>
+									<div className='text-xs text-gray-500'>Average 2.3 hour quote turnaround</div>
 								</div>
 
 								<div className='text-center md:text-left'>
-									<div className='text-3xl mb-3'>💰</div>
-									<div className='font-bold mb-2'>Lowest Fees</div>
-									<div className='text-sm text-gray-300'>Providers keep 95% vs 70-80% elsewhere</div>
+									<div className='text-2xl mb-3'>💰</div>
+									<div className='font-semibold text-white mb-1 text-sm'>Lowest Fees</div>
+									<div className='text-xs text-gray-500'>Providers keep 95% vs 70-80% elsewhere</div>
 								</div>
 
 								<div className='text-center md:text-left'>
-									<div className='text-3xl mb-3'>🌟</div>
-									<div className='font-bold mb-2'>Verified Quality</div>
-									<div className='text-sm text-gray-300'>Multi-step vetting & ongoing monitoring</div>
+									<div className='text-2xl mb-3'>🌟</div>
+									<div className='font-semibold text-white mb-1 text-sm'>Verified Quality</div>
+									<div className='text-xs text-gray-500'>Multi-step vetting &amp; ongoing monitoring</div>
 								</div>
 							</div>
 						</div>
@@ -899,15 +902,15 @@ export default function HomePage() {
 								{faqs.map((faq, index) => (
 									<Card
 										key={index}
-										className='overflow-hidden dark:bg-gray-800 dark:border-gray-700'>
-										<CardContent className='p-8'>
-											<h3 className='text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-start gap-3'>
-												<span className='flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 text-sm font-bold'>
-													?
+										className='overflow-hidden transition-all hover:border-primary-200 dark:hover:border-primary-800/60'>
+										<CardContent className='p-7'>
+											<h3 className='text-base font-semibold text-gray-900 dark:text-gray-100 mb-3 flex items-start gap-3'>
+												<span className='flex-shrink-0 flex h-6 w-6 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-900/50 text-primary-600 dark:text-primary-400 text-xs font-bold ring-1 ring-primary-200 dark:ring-primary-800'>
+													Q
 												</span>
 												{faq.question}
 											</h3>
-											<p className='text-gray-600 dark:text-gray-400 leading-relaxed ml-10'>{faq.answer}</p>
+											<p className='text-sm text-gray-500 dark:text-gray-400 leading-relaxed ml-9'>{faq.answer}</p>
 										</CardContent>
 									</Card>
 								))}

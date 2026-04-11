@@ -16,12 +16,15 @@ import { proposalService } from '@/services/proposal-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
 import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 export default function MyProposalsPage() {
 	const queryClient = useQueryClient();
 	const { user, isAuthenticated } = useAuth();
 	const router = useRouter();
 	const [statusFilter, setStatusFilter] = useState<string>("");
+	const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
+	const [pendingProposalId, setPendingProposalId] = useState<string | null>(null);
 
 	// Fetch provider's proposals
 	const {
@@ -59,9 +62,16 @@ export default function MyProposalsPage() {
 	};
 
 	const handleWithdraw = (proposalId: string) => {
-		if (confirm("Are you sure you want to withdraw this proposal?")) {
-			withdrawMutation.mutate(proposalId);
+		setPendingProposalId(proposalId);
+		setWithdrawConfirmOpen(true);
+	};
+
+	const handleConfirmWithdraw = () => {
+		if (pendingProposalId) {
+			withdrawMutation.mutate(pendingProposalId);
 		}
+		setWithdrawConfirmOpen(false);
+		setPendingProposalId(null);
 	};
 
 	return (
@@ -286,6 +296,16 @@ export default function MyProposalsPage() {
 					}
 				</div>
 			</Layout>
+			<ConfirmDialog
+				isOpen={withdrawConfirmOpen}
+				onClose={() => { setWithdrawConfirmOpen(false); setPendingProposalId(null); }}
+				onConfirm={handleConfirmWithdraw}
+				title="Withdraw Proposal"
+				message="Are you sure you want to withdraw this proposal? This action cannot be undone."
+				confirmLabel="Withdraw"
+				variant="warning"
+				isLoading={withdrawMutation.isPending}
+			/>
 		</ProtectedRoute>
 	);
 }
