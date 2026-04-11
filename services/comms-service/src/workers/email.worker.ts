@@ -1,4 +1,4 @@
-import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
+import { Processor, WorkerHost, InjectQueue, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit, Optional } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Job, Queue } from 'bullmq';
@@ -163,5 +163,38 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
         message: notification.message,
       });
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'EmailWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'EmailWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'EmailWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'EmailWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'EmailWorker');
   }
 }

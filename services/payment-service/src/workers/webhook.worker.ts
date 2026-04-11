@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit, Optional } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -81,5 +81,38 @@ export class WebhookWorker extends WorkerHost implements OnModuleInit {
       
       throw error;
     }
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'WebhookWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'WebhookWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'WebhookWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'WebhookWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'WebhookWorker');
   }
 }

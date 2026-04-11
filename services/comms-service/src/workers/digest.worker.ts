@@ -1,4 +1,4 @@
-import { Processor, WorkerHost, InjectQueue } from '@nestjs/bullmq';
+import { Processor, WorkerHost, InjectQueue, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Job, Queue } from 'bullmq';
@@ -41,11 +41,17 @@ export class DigestWorker extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'send-unread-digest':
-        return this.handleSendUnreadDigest();
-      default:
-        this.logger.warn(`DigestWorker: unknown job name "${job.name}"`, 'DigestWorker');
+    try {
+      switch (job.name) {
+        case 'send-unread-digest':
+          return this.handleSendUnreadDigest();
+        default:
+          this.logger.warn(`DigestWorker: unknown job name "${job.name}"`, 'DigestWorker');
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'DigestWorker');
+      throw error;
     }
   }
 
@@ -85,5 +91,38 @@ export class DigestWorker extends WorkerHost implements OnModuleInit {
     }
 
     this.logger.log(`DigestWorker: digest sent to ${sent}/${unreadGroups.length} users`, 'DigestWorker');
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'DigestWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'DigestWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'DigestWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'DigestWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'DigestWorker');
   }
 }

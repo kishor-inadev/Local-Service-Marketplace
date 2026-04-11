@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
@@ -47,21 +47,27 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'check-expiring-subscriptions':
-        return this.handleCheckExpiringSubscriptions();
-      case 'expire-old-subscriptions':
-        return this.handleExpireOldSubscriptions();
-      case 'renew-subscriptions':
-        return this.handleRenewSubscriptions();
-      case 'notify-subscription-expiring':
-        return this.handleNotifySubscriptionExpiring(job.data);
-      case 'notify-subscription-cancelled':
-        return this.handleNotifySubscriptionCancelled(job.data);
-      case 'notify-subscription-activated':
-        return this.handleNotifySubscriptionActivated(job.data);
-      default:
-        throw new Error(`Unknown job name: ${job.name}`);
+    try {
+      switch (job.name) {
+        case 'check-expiring-subscriptions':
+          return this.handleCheckExpiringSubscriptions();
+        case 'expire-old-subscriptions':
+          return this.handleExpireOldSubscriptions();
+        case 'renew-subscriptions':
+          return this.handleRenewSubscriptions();
+        case 'notify-subscription-expiring':
+          return this.handleNotifySubscriptionExpiring(job.data);
+        case 'notify-subscription-cancelled':
+          return this.handleNotifySubscriptionCancelled(job.data);
+        case 'notify-subscription-activated':
+          return this.handleNotifySubscriptionActivated(job.data);
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'SubscriptionWorker');
+      throw error;
     }
   }
 
@@ -124,5 +130,38 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
       template: 'subscriptionActivated',
       variables: { subscription_id: subscriptionId },
     });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'SubscriptionWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'SubscriptionWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'SubscriptionWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'SubscriptionWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'SubscriptionWorker');
   }
 }

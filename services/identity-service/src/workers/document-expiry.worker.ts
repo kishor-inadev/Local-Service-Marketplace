@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
@@ -42,13 +42,19 @@ export class DocumentExpiryWorker extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'check-document-expiry':
-        return this.handleCheckDocumentExpiry(job.data);
-      case 'expire-overdue-documents':
-        return this.handleExpireOverdueDocuments();
-      default:
-        throw new Error(`Unknown job name: ${job.name}`);
+    try {
+      switch (job.name) {
+        case 'check-document-expiry':
+          return this.handleCheckDocumentExpiry(job.data);
+        case 'expire-overdue-documents':
+          return this.handleExpireOverdueDocuments();
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, { context: 'DocumentExpiryWorker', stack: err.stack });
+      throw error;
     }
   }
 
@@ -62,5 +68,37 @@ export class DocumentExpiryWorker extends WorkerHost implements OnModuleInit {
 
   private async handleExpireOverdueDocuments(): Promise<void> {
     this.logger.info('Expiring overdue documents', { context: 'DocumentExpiryWorker' });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.info(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, { context: 'DocumentExpiryWorker' });
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.info(`Job "${job.name}/${job.id}" completed`, { context: 'DocumentExpiryWorker' });
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      { context: 'DocumentExpiryWorker', stack: error.stack },
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, { context: 'DocumentExpiryWorker', stack: error.stack });
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, { context: 'DocumentExpiryWorker' });
   }
 }

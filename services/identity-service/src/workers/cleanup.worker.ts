@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
@@ -47,15 +47,21 @@ export class IdentityCleanupWorker extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'expire-verification-tokens':
-        return this.handleExpireVerificationTokens();
-      case 'purge-expired-sessions':
-        return this.handlePurgeExpiredSessions();
-      case 'purge-login-attempts':
-        return this.handlePurgeLoginAttempts();
-      default:
-        throw new Error(`Unknown job name: ${job.name}`);
+    try {
+      switch (job.name) {
+        case 'expire-verification-tokens':
+          return this.handleExpireVerificationTokens();
+        case 'purge-expired-sessions':
+          return this.handlePurgeExpiredSessions();
+        case 'purge-login-attempts':
+          return this.handlePurgeLoginAttempts();
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, { context: 'IdentityCleanupWorker', stack: err.stack });
+      throw error;
     }
   }
 
@@ -73,5 +79,37 @@ export class IdentityCleanupWorker extends WorkerHost implements OnModuleInit {
     this.logger.info('Purging old login attempts', { context: 'IdentityCleanupWorker' });
     // Purge login attempts older than 30 days
     await this.userRepository.deleteOldLoginAttempts(30);
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.info(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, { context: 'IdentityCleanupWorker' });
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.info(`Job "${job.name}/${job.id}" completed`, { context: 'IdentityCleanupWorker' });
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      { context: 'IdentityCleanupWorker', stack: error.stack },
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, { context: 'IdentityCleanupWorker', stack: error.stack });
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, { context: 'IdentityCleanupWorker' });
   }
 }

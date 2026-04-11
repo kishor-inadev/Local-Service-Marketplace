@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -29,11 +29,17 @@ export class AuditWorker extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'write-audit-log':
-        return this.handleWriteAuditLog(job as Job<WriteAuditLogJobData>);
-      default:
-        throw new Error(`Unknown job name: ${job.name}`);
+    try {
+      switch (job.name) {
+        case 'write-audit-log':
+          return this.handleWriteAuditLog(job as Job<WriteAuditLogJobData>);
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'AuditWorker');
+      throw error;
     }
   }
 
@@ -41,5 +47,38 @@ export class AuditWorker extends WorkerHost implements OnModuleInit {
     const { userId, action, entity, entityId, details } = job.data;
     await this.auditLogRepository.createAuditLog(userId, action, entity, entityId, details ?? {});
     this.logger.log(`Audit log written: ${action} on ${entity}/${entityId}`, 'AuditWorker');
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'AuditWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'AuditWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'AuditWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'AuditWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'AuditWorker');
   }
 }

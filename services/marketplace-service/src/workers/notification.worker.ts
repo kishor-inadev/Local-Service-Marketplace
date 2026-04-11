@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -23,19 +23,25 @@ export class MarketplaceNotificationWorker extends WorkerHost implements OnModul
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'notify-request-created':          return this.handleRequestCreated(job.data);
-      case 'notify-request-updated':          return this.handleRequestUpdated(job.data);
-      case 'notify-request-deleted':          return this.handleRequestDeleted(job.data);
-      case 'notify-proposal-submitted':       return this.handleProposalSubmitted(job.data);
-      case 'notify-proposal-accepted':        return this.handleProposalAccepted(job.data);
-      case 'notify-proposal-rejected':        return this.handleProposalRejected(job.data);
-      case 'notify-job-assigned':             return this.handleJobAssigned(job.data);
-      case 'notify-job-status-changed':       return this.handleJobStatusChanged(job.data);
-      case 'notify-job-completed':            return this.handleJobCompleted(job.data);
-      case 'notify-review-created':           return this.handleReviewCreated(job.data);
-      default:
-        throw new Error(`Unknown job name: ${job.name}`);
+    try {
+      switch (job.name) {
+        case 'notify-request-created':          return this.handleRequestCreated(job.data);
+        case 'notify-request-updated':          return this.handleRequestUpdated(job.data);
+        case 'notify-request-deleted':          return this.handleRequestDeleted(job.data);
+        case 'notify-proposal-submitted':       return this.handleProposalSubmitted(job.data);
+        case 'notify-proposal-accepted':        return this.handleProposalAccepted(job.data);
+        case 'notify-proposal-rejected':        return this.handleProposalRejected(job.data);
+        case 'notify-job-assigned':             return this.handleJobAssigned(job.data);
+        case 'notify-job-status-changed':       return this.handleJobStatusChanged(job.data);
+        case 'notify-job-completed':            return this.handleJobCompleted(job.data);
+        case 'notify-review-created':           return this.handleReviewCreated(job.data);
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'MarketplaceNotificationWorker');
+      throw error;
     }
   }
 
@@ -163,5 +169,38 @@ export class MarketplaceNotificationWorker extends WorkerHost implements OnModul
       template: 'reviewReceived',
       variables: { reviewId, rating },
     });
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'MarketplaceNotificationWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'MarketplaceNotificationWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'MarketplaceNotificationWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'MarketplaceNotificationWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'MarketplaceNotificationWorker');
   }
 }

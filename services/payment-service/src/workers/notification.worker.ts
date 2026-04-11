@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
 import { Job } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
@@ -59,19 +59,25 @@ export class PaymentNotificationWorker extends WorkerHost implements OnModuleIni
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'notify-payment-completed':
-        return this.handlePaymentCompleted(job as Job<NotifyPaymentCompletedJobData>);
-      case 'notify-refund-processed':
-        return this.handleRefundProcessed(job as Job<NotifyRefundProcessedJobData>);
-      case 'notify-payment-failed':
-        return this.handlePaymentFailed(job as Job<NotifyPaymentFailedJobData>);
-      case 'notify-card-saved':
-        return this.handleCardSaved(job as Job<NotifyCardSavedJobData>);
-      case 'notify-card-deleted':
-        return this.handleCardDeleted(job as Job<NotifyCardDeletedJobData>);
-      default:
-        throw new Error(`Unknown job name: ${job.name}`);
+    try {
+      switch (job.name) {
+        case 'notify-payment-completed':
+          return this.handlePaymentCompleted(job as Job<NotifyPaymentCompletedJobData>);
+        case 'notify-refund-processed':
+          return this.handleRefundProcessed(job as Job<NotifyRefundProcessedJobData>);
+        case 'notify-payment-failed':
+          return this.handlePaymentFailed(job as Job<NotifyPaymentFailedJobData>);
+        case 'notify-card-saved':
+          return this.handleCardSaved(job as Job<NotifyCardSavedJobData>);
+        case 'notify-card-deleted':
+          return this.handleCardDeleted(job as Job<NotifyCardDeletedJobData>);
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'PaymentNotificationWorker');
+      throw error;
     }
   }
 
@@ -138,5 +144,38 @@ export class PaymentNotificationWorker extends WorkerHost implements OnModuleIni
       variables: { cardBrand, lastFour },
     });
     this.logger.log(`Card-deleted notification sent to user ${userId}`, 'PaymentNotificationWorker');
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'PaymentNotificationWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'PaymentNotificationWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'PaymentNotificationWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'PaymentNotificationWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'PaymentNotificationWorker');
   }
 }

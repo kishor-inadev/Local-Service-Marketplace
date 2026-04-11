@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Job, Queue } from 'bullmq';
@@ -38,15 +38,21 @@ export class ProviderRatingWorker extends WorkerHost implements OnModuleInit {
   }
 
   async process(job: Job<any, any, string>): Promise<any> {
-    switch (job.name) {
-      case 'full-aggregate-refresh':
-        return this.handleFullAggregateRefresh();
-      case 'quick-aggregate-refresh':
-        return this.handleQuickAggregateRefresh();
-      case 'recalculate-provider-rating':
-        return this.handleRecalculateProviderRating(job.data);
-      default:
-        throw new Error(`Unknown job name: ${job.name}`);
+    try {
+      switch (job.name) {
+        case 'full-aggregate-refresh':
+          return this.handleFullAggregateRefresh();
+        case 'quick-aggregate-refresh':
+          return this.handleQuickAggregateRefresh();
+        case 'recalculate-provider-rating':
+          return this.handleRecalculateProviderRating(job.data);
+        default:
+          throw new Error(`Unknown job name: ${job.name}`);
+      }
+    } catch (error) {
+      const err = error as Error;
+      this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'ProviderRatingWorker');
+      throw error;
     }
   }
 
@@ -66,5 +72,38 @@ export class ProviderRatingWorker extends WorkerHost implements OnModuleInit {
     const { providerId } = data;
     this.logger.log(`Recalculating rating for provider ${providerId}`, 'ProviderRatingWorker');
     await this.aggregateRepository.refreshByProvider(providerId);
+  }
+
+  // ─────────────────────────────────────────────────────────────────
+  // Worker lifecycle hooks
+  // ─────────────────────────────────────────────────────────────────
+
+  @OnWorkerEvent('active')
+  onActive(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" started (attempt ${job.attemptsMade + 1})`, 'ProviderRatingWorker');
+  }
+
+  @OnWorkerEvent('completed')
+  onCompleted(job: Job): void {
+    this.logger.log(`Job "${job.name}/${job.id}" completed`, 'ProviderRatingWorker');
+  }
+
+  @OnWorkerEvent('failed')
+  onFailed(job: Job | undefined, error: Error): void {
+    this.logger.error(
+      `Job "${job?.name ?? 'unknown'}/${job?.id ?? '?'}" failed (attempt ${job?.attemptsMade ?? 0}): ${error.message}`,
+      error.stack,
+      'ProviderRatingWorker',
+    );
+  }
+
+  @OnWorkerEvent('error')
+  onError(error: Error): void {
+    this.logger.error(`Worker error: ${error.message}`, error.stack, 'ProviderRatingWorker');
+  }
+
+  @OnWorkerEvent('stalled')
+  onStalled(jobId: string): void {
+    this.logger.warn(`Job ${jobId} stalled and will be requeued`, 'ProviderRatingWorker');
   }
 }
