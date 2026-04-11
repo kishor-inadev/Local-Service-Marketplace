@@ -68,7 +68,7 @@ export class EmailClient {
         "EmailClient",
       );
       return { success: true, messageId: response.data?.messageId };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send email to ${options.to}: ${error.message}`,
         error.stack,
@@ -108,7 +108,7 @@ export class EmailClient {
         "EmailClient",
       );
       return { success: true, messageId: response.data?.messageId };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send template email to ${to}: ${error.message}`,
         error.stack,
@@ -129,7 +129,7 @@ export class EmailClient {
     try {
       await this.httpClient.get("/health");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Email service health check failed: ${error.message}`,
         "EmailClient",

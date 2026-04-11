@@ -70,15 +70,15 @@ export class WebhookWorker extends WorkerHost implements OnModuleInit {
 
       await this.webhookRepository.markProcessed(webhookId);
       this.logger.log(`Webhook ${webhookId} processed successfully`, 'WebhookWorker');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Webhook ${webhookId} processing failed: ${error.message}`, error.stack, 'WebhookWorker');
       await this.webhookRepository.markFailed(webhookId, error.message);
-      
+
       // Capture in DLQ if max retries reached
       if (this.dlqService && job.attemptsMade >= 3) {
         await this.dlqService.captureFailedJob('payment.webhook', job, error);
       }
-      
+
       throw error;
     }
   }

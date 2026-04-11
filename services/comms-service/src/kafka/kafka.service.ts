@@ -62,7 +62,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
           "Kafka producer and consumer connected successfully",
           "KafkaService",
         );
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error(
           `Failed to connect to Kafka: ${error.message}. Events will not be published/consumed.`,
           error.stack,
@@ -111,7 +111,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
         `Event published to topic ${topic}: ${event.eventType || topic}`,
         "KafkaService",
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to publish event to ${topic}: ${error.message}`,
         error.stack,
@@ -138,7 +138,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
             "KafkaService",
           );
           await callback(event);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error(
             `Failed to process event: ${error.message}`,
             error.stack,

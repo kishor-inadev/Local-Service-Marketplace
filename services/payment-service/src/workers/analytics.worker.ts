@@ -70,7 +70,7 @@ export class PaymentAnalyticsWorker extends WorkerHost implements OnModuleInit {
         `PaymentAnalyticsWorker: event "${action}" tracked successfully`,
         'PaymentAnalyticsWorker',
       );
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(
         `PaymentAnalyticsWorker: failed to track event "${action}" — ${err.message}`,

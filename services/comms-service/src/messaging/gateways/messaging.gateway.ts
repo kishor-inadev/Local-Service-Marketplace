@@ -29,8 +29,7 @@ type AuthenticatedSocket = Socket & {
   namespace: "/messaging",
 })
 export class MessagingGateway
-  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
-{
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server: Server;
 
@@ -94,7 +93,7 @@ export class MessagingGateway
 
       // Notify user is online
       this.server.emit("user:online", { userId });
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Connection error: ${error.message}`, error.stack);
       client.disconnect();
     }
@@ -153,7 +152,7 @@ export class MessagingGateway
       this.server.to(`job:${data.job_id}`).emit("message:received", message);
 
       return { success: true, message };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Error sending message: ${error.message}`, error.stack);
       return { error: error.message };
     }
@@ -207,7 +206,7 @@ export class MessagingGateway
       });
 
       return { success: true };
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Error marking message as read: ${error.message}`,
         error.stack,
@@ -319,7 +318,7 @@ export class MessagingGateway
       }
 
       return payload;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`JWT verification error: ${error.message}`);
       return null;
     }

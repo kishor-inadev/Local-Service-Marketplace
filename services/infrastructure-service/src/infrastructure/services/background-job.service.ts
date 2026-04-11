@@ -19,7 +19,7 @@ export class BackgroundJobService {
 		private readonly logger: LoggerService,
 		private readonly backgroundJobRepository: BackgroundJobRepository,
 		@InjectQueue('infra.background-jobs') private readonly jobQueue: Queue,
-	) {}
+	) { }
 
 	async createJob(createJobDto: CreateBackgroundJobDto): Promise<BackgroundJob> {
 		try {
@@ -35,7 +35,7 @@ export class BackgroundJobService {
 			this.logger.log(`Background job created: ${createJobDto.jobType} (ID: ${job.id})`, "BackgroundJobService");
 
 			return job;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to create background job: ${error.message}`, error.stack, "BackgroundJobService");
 			throw error;
 		}
@@ -48,7 +48,7 @@ export class BackgroundJobService {
 			this.logger.log(`Retrieved background job by ID: ${id}`, "BackgroundJobService");
 
 			return job;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to get background job: ${error.message}`, error.stack, "BackgroundJobService");
 			throw error;
 		}
@@ -70,7 +70,7 @@ export class BackgroundJobService {
 			this.logger.log(`Retrieved ${data.length} background jobs`, "BackgroundJobService");
 
 			return { data, total, page: pagination.page, limit: pagination.limit };
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to get all jobs: ${error.message}`, error.stack, "BackgroundJobService");
 			throw error;
 		}
@@ -89,7 +89,7 @@ export class BackgroundJobService {
 			this.logger.log(`Updated job ${id} status to: ${status}`, "BackgroundJobService");
 
 			return job;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to update job status: ${error.message}`, error.stack, "BackgroundJobService");
 			throw error;
 		}
@@ -102,7 +102,7 @@ export class BackgroundJobService {
 			this.logger.log(`Incremented attempts for job: ${id}`, "BackgroundJobService");
 
 			return job;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to increment job attempts: ${error.message}`, error.stack, "BackgroundJobService");
 			throw error;
 		}
@@ -113,7 +113,7 @@ export class BackgroundJobService {
 			await this.backgroundJobRepository.deleteJob(id);
 
 			this.logger.log(`Deleted background job: ${id}`, "BackgroundJobService");
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to delete job: ${error.message}`, error.stack, "BackgroundJobService");
 			throw error;
 		}
@@ -126,7 +126,7 @@ export class BackgroundJobService {
 			this.logger.log("Retrieved queue statistics", "BackgroundJobService");
 
 			return counts;
-		} catch (error) {
+		} catch (error: any) {
 			this.logger.error(`Failed to get queue stats: ${error.message}`, error.stack, "BackgroundJobService");
 			throw error;
 		}

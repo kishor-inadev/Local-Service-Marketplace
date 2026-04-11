@@ -13,7 +13,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     @Inject(WINSTON_MODULE_NEST_PROVIDER) private readonly logger: LoggerService,
   ) {
     this.isEnabled = process.env.EVENT_BUS_ENABLED === 'true';
-    
+
     if (this.isEnabled) {
       const brokers = process.env.KAFKA_BROKERS?.split(',') || ['kafka:29092'];
       const clientId = process.env.KAFKA_CLIENT_ID || "oversight-service";
@@ -35,16 +35,16 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
     if (this.isEnabled) {
       try {
         await this.consumer.connect();
-        
+
         // Subscribe to all event topics
-        await this.consumer.subscribe({ 
-          topics: ['request-events', 'proposal-events', 'job-events', 'payment-events'], 
-          fromBeginning: false 
+        await this.consumer.subscribe({
+          topics: ['request-events', 'proposal-events', 'job-events', 'payment-events'],
+          fromBeginning: false
         });
-        
+
         this.isConnected = true;
         this.logger.log('Kafka consumer connected successfully', 'KafkaService');
-      } catch (error) {
+      } catch (error: any) {
         this.logger.error(
           `Failed to connect to Kafka: ${error.message}. Events will not be consumed.`,
           error.stack,
@@ -79,7 +79,7 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
             'KafkaService',
           );
           await callback(event);
-        } catch (error) {
+        } catch (error: any) {
           this.logger.error(
             `Failed to process event: ${error.message}`,
             error.stack,

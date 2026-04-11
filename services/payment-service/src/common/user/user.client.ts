@@ -56,7 +56,7 @@ export class UserClient {
     try {
       const response = await this.httpClient.get(`/api/v1/users/${userId}`);
       return response.data as UserData;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Failed to fetch user ${userId}: ${error.message}`);
       return null;
     }
@@ -80,7 +80,7 @@ export class UserClient {
     try {
       await this.httpClient.get("/health");
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`User service health check failed: ${error.message}`);
       return false;
     }

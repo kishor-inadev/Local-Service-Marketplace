@@ -1,5 +1,5 @@
 {
-  "compilerOptions": {
+	"compilerOptions": {
 		"module": "commonjs",
 		"declaration": true,
 		"removeComments": true,
@@ -9,14 +9,18 @@
 		"target": "ES2021",
 		"sourceMap": true,
 		"outDir": "./dist",
-
 		"incremental": true,
+		"strict": true,
 		"skipLibCheck": true,
 		"strictNullChecks": false,
 		"noImplicitAny": false,
 		"strictBindCallApply": false,
 		"forceConsistentCasingInFileNames": false,
 		"noFallthroughCasesInSwitch": false,
-		"paths": { "@/*": ["./src/*"] }
+		"paths": {
+			"@/*": [
+				"./src/*"
+			]
+		}
 	}
 }

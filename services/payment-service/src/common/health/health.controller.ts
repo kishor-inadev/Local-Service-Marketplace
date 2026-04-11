@@ -11,7 +11,7 @@ export class HealthController {
     @InjectQueue("payment.analytics") private readonly analyticsQueue: Queue,
     @InjectQueue("payment.refund") private readonly refundQueue: Queue,
     @InjectQueue("payment.webhook") private readonly webhookQueue: Queue,
-  ) {}
+  ) { }
 
   @Get()
   async check() {
@@ -29,7 +29,7 @@ export class HealthController {
         status: "ok",
         responseTime: `${Date.now() - start}ms`,
       };
-    } catch (error) {
+    } catch (error: any) {
       health.status = "degraded";
       health.database = { status: "error", message: error.message };
     }
@@ -99,7 +99,7 @@ export class HealthController {
         queues,
         warnings: warnings.length > 0 ? warnings : undefined,
       };
-    } catch (error) {
+    } catch (error: any) {
       return {
         status: "error",
         message: error.message,

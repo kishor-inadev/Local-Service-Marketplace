@@ -21,12 +21,12 @@ const databasePoolFactory = {
       ...(connectionString
         ? { connectionString }
         : {
-            host: configService.get<string>("DATABASE_HOST"),
-            port: configService.get<number>("DATABASE_PORT"),
-            user: configService.get<string>("DATABASE_USER"),
-            password: configService.get<string>("DATABASE_PASSWORD"),
-            database: configService.get<string>("DATABASE_NAME"),
-          }),
+          host: configService.get<string>("DATABASE_HOST"),
+          port: configService.get<number>("DATABASE_PORT"),
+          user: configService.get<string>("DATABASE_USER"),
+          password: configService.get<string>("DATABASE_PASSWORD"),
+          database: configService.get<string>("DATABASE_NAME"),
+        }),
       ssl:
         sslEnabled || connectionString?.includes("sslmode=require")
           ? { rejectUnauthorized: false }
@@ -43,7 +43,7 @@ const databasePoolFactory = {
     try {
       await pool.query("SELECT NOW()");
       logger.log("Database connected successfully");
-    } catch (error) {
+    } catch (error: any) {
       logger.error("Database connection failed:", error);
       throw error;
     }
@@ -61,7 +61,7 @@ const databasePoolFactory = {
 @Global()
 @Module({ providers: [databasePoolFactory], exports: [DATABASE_POOL] })
 export class DatabaseModule implements OnModuleDestroy {
-  constructor(@Inject(DATABASE_POOL) private readonly pool: Pool) {}
+  constructor(@Inject(DATABASE_POOL) private readonly pool: Pool) { }
 
   async onModuleDestroy() {
     await this.pool.end();

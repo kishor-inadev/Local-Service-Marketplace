@@ -32,7 +32,7 @@ export class BackgroundJobWorker extends WorkerHost implements OnModuleInit {
 
       await this.backgroundJobRepository.updateJobStatus(jobId, 'completed');
       this.logger.log(`Background job ${jobId} completed successfully`, 'BackgroundJobWorker');
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(`Background job ${jobId} failed: ${error.message}`, error.stack, 'BackgroundJobWorker');
       await this.backgroundJobRepository.updateJobStatus(jobId, 'failed');
       throw error;

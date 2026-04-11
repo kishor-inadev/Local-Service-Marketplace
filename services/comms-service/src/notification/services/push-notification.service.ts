@@ -74,7 +74,7 @@ export class PushNotificationService {
         "Firebase Cloud Messaging initialized successfully",
         "PushNotificationService",
       );
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to initialize Firebase: ${error.message}`,
         error.stack,
@@ -150,7 +150,7 @@ export class PushNotificationService {
       );
 
       return true;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send push notification for user ${userId}: ${error.message}`,
         error.stack,
@@ -216,7 +216,7 @@ export class PushNotificationService {
       }
 
       return response.successCount;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to send multicast push notification: ${error.message}`,
         error.stack,

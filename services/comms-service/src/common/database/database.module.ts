@@ -16,12 +16,12 @@ const databasePoolFactory = async () => {
     ...(connectionString
       ? { connectionString }
       : {
-          host: process.env.DATABASE_HOST || "localhost",
-          port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
-          database: process.env.DATABASE_NAME || "marketplace",
-          user: process.env.DATABASE_USER || "postgres",
-          password: process.env.DATABASE_PASSWORD,
-        }),
+        host: process.env.DATABASE_HOST || "localhost",
+        port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+        database: process.env.DATABASE_NAME || "marketplace",
+        user: process.env.DATABASE_USER || "postgres",
+        password: process.env.DATABASE_PASSWORD,
+      }),
     ssl:
       sslEnabled || connectionString?.includes("sslmode=require")
         ? { rejectUnauthorized: false }
@@ -36,7 +36,7 @@ const databasePoolFactory = async () => {
     const client = await pool.connect();
     logger.log("Database connected successfully");
     client.release();
-  } catch (error) {
+  } catch (error: any) {
     logger.error("Database connection failed:", error);
     throw error;
   }
@@ -55,7 +55,7 @@ const databasePoolFactory = async () => {
   exports: ["DATABASE_POOL"],
 })
 export class DatabaseModule implements OnModuleDestroy {
-  constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
+  constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
   async onModuleDestroy() {
     await this.pool.end();

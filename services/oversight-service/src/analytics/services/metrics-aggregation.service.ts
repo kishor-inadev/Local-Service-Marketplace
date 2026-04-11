@@ -9,7 +9,7 @@ export class MetricsAggregationService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly metricsRepository: MetricsRepository,
-  ) {}
+  ) { }
 
   /**
    * Aggregate metrics for a specific date
@@ -30,7 +30,7 @@ export class MetricsAggregationService {
       );
 
       return metric;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to aggregate metrics for ${date}: ${error.message}`,
         error.stack,
@@ -88,7 +88,7 @@ export class MetricsAggregationService {
       );
 
       return metrics;
-    } catch (error) {
+    } catch (error: any) {
       this.logger.error(
         `Failed to backfill metrics: ${error.message}`,
         error.stack,

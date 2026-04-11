@@ -64,7 +64,7 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
         default:
           throw new Error(`Unknown job name: ${job.name}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       const err = error as Error;
       this.logger.error(`Job "${job.name}/${job.id}" threw: ${err.message}`, err.stack, 'SubscriptionWorker');
       throw error;
