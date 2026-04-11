@@ -33,7 +33,7 @@ export class IdentityNotificationWorker extends WorkerHost implements OnModuleIn
       this.logger.error('Identity notification failed', {
         context: 'IdentityNotificationWorker',
         template,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
