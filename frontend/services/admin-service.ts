@@ -5,19 +5,39 @@ export interface User {
 	display_id?: string;
 	email: string;
 	name?: string;
+	phone?: string;
 	role: string;
 	status: "active" | "suspended" | "deleted";
+	email_verified?: boolean;
+	profile_picture_url?: string;
+	timezone?: string;
+	language?: string;
+	last_login_at?: string;
 	created_at: string;
+	updated_at?: string;
 }
 
-type ApiUser = Partial<User> & { createdAt?: string };
+type ApiUser = Partial<User> & { 
+	createdAt?: string; 
+	displayId?: string;
+	emailVerified?: boolean;
+	profilePictureUrl?: string;
+	lastLoginAt?: string;
+};
 
 const normalizeUser = (user: ApiUser): User => ({
 	id: String(user.id || ""),
+	display_id: user.display_id || user.displayId,
 	email: String(user.email || ""),
 	name: user.name || undefined,
+	phone: user.phone || undefined,
 	role: String(user.role || "customer"),
 	status: (user.status as User["status"]) || "active",
+	email_verified: user.email_verified ?? user.emailVerified,
+	profile_picture_url: user.profile_picture_url || user.profilePictureUrl,
+	timezone: user.timezone,
+	language: user.language,
+	last_login_at: user.last_login_at || user.lastLoginAt,
 	created_at: String(user.created_at || user.createdAt || ""),
 });
 

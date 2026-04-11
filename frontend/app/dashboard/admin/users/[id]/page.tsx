@@ -13,7 +13,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { adminService } from "@/services/admin-service";
 import { formatDate } from "@/utils/helpers";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
-import { ArrowLeft, User, Mail, Shield, Calendar, Ban, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, Mail, Shield, Calendar, Ban, CheckCircle, Phone, Globe, Clock, Languages, Fingerprint } from "lucide-react";
 import Link from "next/link";
 import toast from "react-hot-toast";
 
@@ -95,8 +95,30 @@ export default function AdminUserDetailPage() {
 								<Card>
 									<CardHeader>
 										<div className='flex items-center justify-between'>
-											<h1 className='text-2xl font-bold text-gray-900 dark:text-white'>User Details</h1>
-											<StatusBadge status={user.status || "active"} />
+											<div className="flex items-center gap-4">
+												{user.profile_picture_url && (
+													<img 
+														src={user.profile_picture_url} 
+														alt={user.name || "User"} 
+														className="h-16 w-16 rounded-full object-cover border-2 border-primary-100 shadow-sm"
+													/>
+												)}
+												<div>
+													<h1 className='text-2xl font-bold text-gray-900 dark:text-white'>
+														{user.name || "User Details"}
+													</h1>
+													<p className="text-sm text-gray-500 font-mono">#{user.display_id || user.id.slice(0, 8)}</p>
+												</div>
+											</div>
+											<div className="flex flex-col items-end gap-2">
+												<StatusBadge status={user.status || "active"} />
+												{user.email_verified && (
+													<span className="flex items-center gap-1 text-xs font-medium text-green-600 dark:text-green-400">
+														<CheckCircle className="h-3 w-3" />
+														Verified
+													</span>
+												)}
+											</div>
 										</div>
 									</CardHeader>
 									<CardContent>
@@ -111,26 +133,58 @@ export default function AdminUserDetailPage() {
 											<div className='flex items-center gap-3'>
 												<Mail className='h-5 w-5 text-gray-400' />
 												<div>
-													<p className='text-sm text-gray-500 dark:text-gray-400'>Email</p>
+													<p className='text-sm text-gray-500 dark:text-gray-400'>Email Address</p>
 													<p className='font-medium text-gray-900 dark:text-white'>{user.email}</p>
 												</div>
 											</div>
+											{user.phone && (
+												<div className='flex items-center gap-3'>
+													<Phone className='h-5 w-5 text-gray-400' />
+													<div>
+														<p className='text-sm text-gray-500 dark:text-gray-400'>Phone Number</p>
+														<p className='font-medium text-gray-900 dark:text-white'>{user.phone}</p>
+													</div>
+												</div>
+											)}
 											<div className='flex items-center gap-3'>
 												<Shield className='h-5 w-5 text-gray-400' />
 												<div>
-													<p className='text-sm text-gray-500 dark:text-gray-400'>Role</p>
-													<span className='inline-block px-2 py-1 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded capitalize'>
+													<p className='text-sm text-gray-500 dark:text-gray-400'>Platform Role</p>
+													<span className='inline-block px-2 py-0.5 text-xs font-medium bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded capitalize'>
 														{user.role}
 													</span>
 												</div>
 											</div>
 											<div className='flex items-center gap-3'>
+												<Languages className='h-5 w-5 text-gray-400' />
+												<div>
+													<p className='text-sm text-gray-500 dark:text-gray-400'>Preferred Language</p>
+													<p className='font-medium text-gray-900 dark:text-white uppercase'>{user.language || "English (en)"}</p>
+												</div>
+											</div>
+											<div className='flex items-center gap-3'>
+												<Globe className='h-5 w-5 text-gray-400' />
+												<div>
+													<p className='text-sm text-gray-500 dark:text-gray-400'>Timezone</p>
+													<p className='font-medium text-gray-900 dark:text-white'>{user.timezone || "N/A"}</p>
+												</div>
+											</div>
+											<div className='flex items-center gap-3'>
 												<Calendar className='h-5 w-5 text-gray-400' />
 												<div>
-													<p className='text-sm text-gray-500 dark:text-gray-400'>Joined</p>
+													<p className='text-sm text-gray-500 dark:text-gray-400'>Member Since</p>
 													<p className='font-medium text-gray-900 dark:text-white'>{formatDate(user.created_at)}</p>
 												</div>
 											</div>
+											{user.last_login_at && (
+												<div className='flex items-center gap-3'>
+													<Clock className='h-5 w-5 text-gray-400' />
+													<div>
+														<p className='text-sm text-gray-500 dark:text-gray-400'>Last Login</p>
+														<p className='font-medium text-gray-900 dark:text-white'>{formatDate(user.last_login_at)}</p>
+													</div>
+												</div>
+											)}
 										</div>
 									</CardContent>
 								</Card>
@@ -181,7 +235,17 @@ export default function AdminUserDetailPage() {
 									<CardHeader>
 										<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Actions</h2>
 									</CardHeader>
-									<CardContent className='space-y-3'>
+									<CardContent className='space-y-4'>
+										<div>
+											<p className='text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1 mb-1'>
+												<Fingerprint className="h-3 w-3" />
+												Internal ID
+											</p>
+											<p className='font-mono text-xs text-gray-700 dark:text-gray-300 break-all bg-gray-50 dark:bg-gray-800 p-2 rounded'>
+												{user.id}
+											</p>
+										</div>
+										<hr className="border-gray-100 dark:border-gray-800" />
 										{user.status !== "suspended" ?
 											<Button
 												variant='danger'
@@ -192,7 +256,8 @@ export default function AdminUserDetailPage() {
 												Suspend User
 											</Button>
 										:	<Button
-												className='w-full'
+												className='w-full border-green-500 text-green-600 hover:bg-green-50'
+												variant="outline"
 												onClick={() => activateMutation.mutate()}
 												isLoading={activateMutation.isPending}>
 												<CheckCircle className='h-4 w-4 mr-2' />

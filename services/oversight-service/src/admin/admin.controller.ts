@@ -41,7 +41,7 @@ export class AdminController {
 		private readonly auditLogService: AuditLogService,
 		private readonly systemSettingService: SystemSettingService,
 		private readonly contactMessageService: ContactMessageService,
-	) {}
+	) { }
 
 	// ── User-facing Dispute Endpoints (any authenticated user) ──────────
 

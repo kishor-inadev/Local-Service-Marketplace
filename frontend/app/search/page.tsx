@@ -213,7 +213,7 @@ export default function SearchPage() {
                 </div>
                 <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                   {(activeTab === 'all' ? providers.slice(0, 6) : providers).map((provider: any) => (
-                    <Link key={provider.id} href={`/providers/${provider.display_id || provider.user_id || provider.id}`}>
+                    <Link key={provider.id} href={`/providers/${provider.user_id || provider.id}`}>
                       <Card hover className="h-full">
                         <CardContent className="p-5">
                           <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
@@ -260,7 +260,7 @@ export default function SearchPage() {
                 </div>
                 <div className="grid gap-4">
                   {(activeTab === 'all' ? filteredRequests.slice(0, 5) : filteredRequests).map((request: any) => (
-                    <Link key={request.id} href={`/requests/${request.display_id || request.id}`}>
+                    <Link key={request.id} href={`/requests/${request.id}`}>
                       <Card hover>
                         <CardContent className="p-5">
                           <div className="flex items-start justify-between">

@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -206,7 +206,7 @@ export default function BrowseRequestsPage() {
 														<Button
 															size='sm'
 															variant='outline'
-															onClick={() => router.push(`/requests/${request.display_id || request.id}`)}>
+															onClick={() => router.push(`/requests/${request.id}`)}>
 															View Details
 														</Button>
 													</div>

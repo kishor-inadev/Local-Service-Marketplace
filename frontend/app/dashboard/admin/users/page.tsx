@@ -323,7 +323,7 @@ export default function AdminUsersPage() {
 											header: "Action",
 											align: "right",
 											cell: (row: UserRow) => (
-										<Link href={`/dashboard/admin/users/${row.display_id || row.id}`}>
+										<Link href={`/dashboard/admin/users/${row.id}`}>
 													<Button
 														variant='outline'
 														size='sm'>

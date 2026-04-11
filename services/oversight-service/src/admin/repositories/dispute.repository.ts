@@ -7,7 +7,7 @@ import { resolveId } from '@/common/utils/resolve-id.util';
 
 @Injectable()
 export class DisputeRepository {
-	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
+	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
 	async createDispute(jobId: string, openedBy: string, reason: string): Promise<Dispute> {
 		const query = `

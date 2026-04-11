@@ -254,7 +254,7 @@ export default function AdminDisputesPage() {
 											header: "Action",
 											align: "right",
 											cell: (row: DisputeRow) => (
-										<Link href={`/dashboard/admin/disputes/${row.display_id || row.id}`}>
+										<Link href={`/dashboard/admin/disputes/${row.id}`}>
 													<Button
 														variant='outline'
 														size='sm'>
