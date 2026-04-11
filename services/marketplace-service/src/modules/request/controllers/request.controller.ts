@@ -49,6 +49,9 @@ export class RequestController {
     @Body() createRequestDto: CreateRequestDto,
     @Req() req: any,
   ): Promise<RequestResponseDto> {
+    if (req.user?.role === "provider") {
+      throw new ForbiddenException("Providers cannot create service requests");
+    }
     if (req.user?.userId) {
       createRequestDto.user_id = req.user.userId;
     }

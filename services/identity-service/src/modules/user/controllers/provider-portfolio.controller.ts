@@ -22,6 +22,8 @@ import { ProviderPortfolioService } from "../services/provider-portfolio.service
 import { CreatePortfolioDto } from "../dto/create-portfolio.dto";
 import { UpdatePortfolioItemDto } from "../dto/update-portfolio-item.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
+import { RolesGuard } from "../../../common/guards/roles.guard";
+import { Roles } from "../../../common/decorators/roles.decorator";
 import { FileServiceClient } from "../../../common/file-service.client";
 
 @UseGuards(JwtAuthGuard)
@@ -32,6 +34,8 @@ export class ProviderPortfolioController {
     private readonly fileServiceClient: FileServiceClient,
   ) {}
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Post(":providerId")
   @UseInterceptors(FilesInterceptor("images", 10)) // Max 10 images
   @HttpCode(HttpStatus.CREATED)
@@ -112,6 +116,8 @@ export class ProviderPortfolioController {
     return { success: true, data: transformedItem };
   }
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Put(":itemId")
   async updatePortfolioItem(
     @Param("itemId", ParseUUIDPipe) itemId: string,
@@ -131,6 +137,8 @@ export class ProviderPortfolioController {
     };
   }
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Put(":providerId/reorder")
   async reorderPortfolio(
     @Param("providerId", StrictUuidPipe) providerId: string,
@@ -150,6 +158,8 @@ export class ProviderPortfolioController {
     };
   }
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Delete(":itemId")
   async deletePortfolioItem(
     @Param("itemId", ParseUUIDPipe) itemId: string,

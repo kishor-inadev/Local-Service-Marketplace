@@ -56,6 +56,8 @@ export class SubscriptionController {
     };
   }
 
+  @Roles("provider", "admin")
+  @UseGuards(RolesGuard)
   @Post(":subscriptionId/activate")
   @HttpCode(HttpStatus.OK)
   async activateSubscription(

@@ -34,6 +34,8 @@ import { SendEmailDto } from "./dto/send-email.dto";
 import { SendSmsDto, SendOtpDto, VerifyOtpDto } from "./dto/send-sms.dto";
 import { UnsubscribeDto, CheckUnsubscribeDto } from "./dto/unsubscribe.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
+import { RolesGuard } from "@/common/guards/roles.guard";
+import { Roles } from "@/common/decorators/roles.decorator";
 
 @UseGuards(JwtAuthGuard)
 @Controller("notifications")
@@ -213,6 +215,8 @@ export class NotificationController {
    * This is the main endpoint that other services should use
    * Rate limited to 20 notifications per minute
    */
+  @Roles("admin")
+  @UseGuards(RolesGuard)
   @Post("send")
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
@@ -229,6 +233,8 @@ export class NotificationController {
    * Send email directly (legacy endpoint, use /send instead)
    * Rate limited to 10 emails per minute per IP
    */
+  @Roles("admin")
+  @UseGuards(RolesGuard)
   @Post("email/send")
   @Throttle({ email: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
@@ -245,6 +251,8 @@ export class NotificationController {
    * Send SMS directly
    * Rate limited to 5 SMS per hour per IP
    */
+  @Roles("admin")
+  @UseGuards(RolesGuard)
   @Post("sms/send")
   @Throttle({ sms: { limit: 5, ttl: 3600000 } })
   @HttpCode(HttpStatus.OK)
@@ -261,6 +269,8 @@ export class NotificationController {
    * Send OTP via SMS
    * Rate limited to 5 OTP per hour per IP
    */
+  @Roles("admin")
+  @UseGuards(RolesGuard)
   @Post("otp/send")
   @Throttle({ sms: { limit: 5, ttl: 3600000 } })
   @HttpCode(HttpStatus.OK)
@@ -296,12 +306,11 @@ export class NotificationController {
 
   // ========== Worker endpoints (for background job scheduler) ==========
 
+  @Roles("admin")
+  @UseGuards(RolesGuard)
   @Post("workers/process-emails")
   @HttpCode(HttpStatus.OK)
-  async processEmails(@Headers("x-user-role") userRole: string) {
-    if (userRole !== "admin") {
-      throw new ForbiddenException("Admin access required");
-    }
+  async processEmails() {
     this.logger.log(
       "POST /notifications/workers/process-emails - Process email queue",
       "NotificationController",
@@ -310,12 +319,11 @@ export class NotificationController {
     return {};
   }
 
+  @Roles("admin")
+  @UseGuards(RolesGuard)
   @Post("workers/process-push")
   @HttpCode(HttpStatus.OK)
-  async processPush(@Headers("x-user-role") userRole: string) {
-    if (userRole !== "admin") {
-      throw new ForbiddenException("Admin access required");
-    }
+  async processPush() {
     // Feature flag check: Push notifications
     if (!this.featureFlags.pushNotificationsEnabled) {
       throw new BadRequestException(

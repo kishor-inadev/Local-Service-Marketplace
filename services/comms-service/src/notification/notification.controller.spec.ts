@@ -186,14 +186,8 @@ describe("NotificationController", () => {
   describe("processEmails (worker)", () => {
     it("should process emails for admin users", async () => {
       mockEmailWorker.processPendingEmails.mockResolvedValue(undefined);
-      const result = await controller.processEmails("admin");
+      const result = await controller.processEmails();
       expect(result).toEqual({});
-    });
-
-    it("should throw ForbiddenException for non-admin users", async () => {
-      await expect(controller.processEmails("customer")).rejects.toThrow(
-        ForbiddenException,
-      );
     });
   });
 
@@ -202,19 +196,13 @@ describe("NotificationController", () => {
       mockPushWorker.processPendingPushNotifications.mockResolvedValue(
         undefined,
       );
-      const result = await controller.processPush("admin");
+      const result = await controller.processPush();
       expect(result).toEqual({});
-    });
-
-    it("should throw ForbiddenException for non-admin", async () => {
-      await expect(controller.processPush("customer")).rejects.toThrow(
-        ForbiddenException,
-      );
     });
 
     it("should throw BadRequestException when push disabled", async () => {
       mockFeatureFlags.pushNotificationsEnabled = false;
-      await expect(controller.processPush("admin")).rejects.toThrow(
+      await expect(controller.processPush()).rejects.toThrow(
         BadRequestException,
       );
     });
