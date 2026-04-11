@@ -184,9 +184,8 @@ class PaymentService {
 		if (!providerId) {
 			throw new Error("User not authenticated");
 		}
-		// No dedicated payouts endpoint — use transactions with completed status
-		const result = await this.getProviderTransactions(providerId, 50, undefined, 'completed');
-		return (result.data as unknown as Payout[]) ?? [];
+		const response = await apiClient.get<any>(`/payments/provider/${providerId}/payouts`);
+		return apiClient.extractList<Payout>(response.data);
 	}
 }
 
