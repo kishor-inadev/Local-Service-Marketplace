@@ -6,7 +6,7 @@ import { DocumentExpiryWorker } from './document-expiry.worker';
 import { NotificationModule } from '../common/notification/notification.module';
 import { UserRepository } from '../modules/auth/repositories/user.repository';
 import { SessionRepository } from '../modules/auth/repositories/session.repository';
-import { getQueueRegistrationOptions } from '../../../../config/queue-config';
+import { getQueueRegistrationOptions } from '../config/queue-config';
 
 /**
  * Identity Workers Module

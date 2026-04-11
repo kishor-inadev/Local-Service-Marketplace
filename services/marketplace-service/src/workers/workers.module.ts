@@ -9,7 +9,7 @@ import { UserModule } from '../common/user/user.module';
 import { AnalyticsModule } from '../common/analytics/analytics.module';
 import { ProviderReviewAggregateRepository } from '../modules/review/repositories/provider-review-aggregate.repository';
 import { RequestRepository } from '../modules/request/repositories/request.repository';
-import { getQueueRegistrationOptions } from '../../../../config/queue-config';
+import { getQueueRegistrationOptions } from '../config/queue-config';
 
 /**
  * Marketplace Workers Module

@@ -8,7 +8,7 @@ import { CleanupWorker } from './cleanup.worker';
 import { NotificationModule } from '../notification/notification.module';
 import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 import { DatabaseModule } from '../common/database/database.module';
-import { getQueueRegistrationOptions } from '../../../../config/queue-config';
+import { getQueueRegistrationOptions } from '../config/queue-config';
 
 /**
  * WorkersModule — only imported when WORKERS_ENABLED=true.

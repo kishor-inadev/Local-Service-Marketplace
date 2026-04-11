@@ -2,7 +2,7 @@ import { Module } from "@nestjs/common";
 import { BullModule } from "@nestjs/bullmq";
 import { DeadLetterQueueController } from "./dlq.controller";
 import { DeadLetterQueueService } from "../common/dlq/dead-letter-queue.service";
-import { getQueueRegistrationOptions } from "../../../../../config/queue-config";
+import { getQueueRegistrationOptions } from "../../config/queue-config";
 
 /**
  * Dead Letter Queue Module

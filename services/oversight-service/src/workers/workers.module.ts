@@ -5,7 +5,7 @@ import { OversightCleanupWorker } from './cleanup.worker';
 import { AuditLogRepository } from '../admin/repositories/audit-log.repository';
 import { UserActivityRepository } from '../analytics/repositories/user-activity.repository';
 import { MetricsRepository } from '../analytics/repositories/metrics.repository';
-import { getQueueRegistrationOptions } from '../../../../config/queue-config';
+import { getQueueRegistrationOptions } from '../config/queue-config';
 
 /**
  * Oversight Workers Module
