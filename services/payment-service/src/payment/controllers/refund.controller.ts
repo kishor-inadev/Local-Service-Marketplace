@@ -73,7 +73,7 @@ export class RefundController {
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
   async getRefundById(
-    @Param("id", StrictUuidPipe) id: string,
+    @Param("id", FlexibleIdPipe) id: string,
     @Request() req: any,
   ) {
     const refund = await this.refundService.getRefundById(id);

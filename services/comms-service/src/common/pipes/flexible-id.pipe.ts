@@ -2,7 +2,7 @@ import { PipeTransform, Injectable, BadRequestException } from "@nestjs/common";
 
 const UUID_REGEX =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const DISPLAY_ID_REGEX = /^[A-Z]{2,4}[A-Z0-9]{8}$/;
+const DISPLAY_ID_REGEX = /^[A-Z]{3}[A-Z0-9]{8}$/; // exactly 3-char prefix + 8 alphanumeric = 11 chars
 
 @Injectable()
 export class FlexibleIdPipe implements PipeTransform {

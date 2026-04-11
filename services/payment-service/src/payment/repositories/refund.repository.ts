@@ -2,6 +2,7 @@ import { Injectable, Inject } from "@nestjs/common";
 import { Pool } from "pg";
 import { Refund } from "../entities/refund.entity";
 import { v4 as uuidv4 } from "uuid";
+import { resolveId } from "../../common/utils/resolve-id.util";
 
 @Injectable()
 export class RefundRepository {
@@ -27,6 +28,7 @@ export class RefundRepository {
   }
 
   async getRefundById(id: string): Promise<Refund | null> {
+    id = await resolveId(this.pool, "refunds", id);
     const query = "SELECT * FROM refunds WHERE id = $1";
     const result = await this.pool.query(query, [id]);
     if (result.rows.length === 0) {

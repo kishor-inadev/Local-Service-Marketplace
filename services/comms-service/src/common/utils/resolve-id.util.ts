@@ -1,5 +1,5 @@
-import { Pool } from "pg";
-import { NotFoundException } from "@nestjs/common";
+﻿import { Pool } from "pg";
+import { BadRequestException, NotFoundException } from "@nestjs/common";
 
 /**
  * Given an id string that could be either a UUID or a display_id,
@@ -31,6 +31,29 @@ const ALLOWED_TABLES = new Set([
   "events",
 ]);
 
+// Display ID prefix per table — must match the schema trigger functions exactly
+const TABLE_PREFIXES: Record<string, string> = {
+  users: "USR",
+  sessions: "SES",
+  providers: "PRV",
+  service_categories: "CAT",
+  locations: "LOC",
+  service_requests: "REQ",
+  proposals: "PRP",
+  jobs: "JOB",
+  payments: "PAY",
+  refunds: "RFD",
+  reviews: "REV",
+  messages: "MSG",
+  notifications: "NTF",
+  coupons: "CPN",
+  disputes: "DSP",
+  admin_actions: "ADM",
+  events: "EVT",
+  background_jobs: "BGJ",
+  subscriptions: "SUB",
+};
+
 export async function resolveId(
   pool: Pool,
   table: string,
@@ -49,10 +72,20 @@ export async function resolveId(
     return idOrDisplayId;
   }
 
+  // Validate display_id prefix matches the expected table prefix
+  const upper = idOrDisplayId.toUpperCase();
+  const expectedPrefix = TABLE_PREFIXES[table];
+  if (expectedPrefix && !upper.startsWith(expectedPrefix)) {
+    throw new BadRequestException(
+      `Invalid ID format: expected a ${expectedPrefix}... display ID for ${table} (got '${idOrDisplayId}'). ` +
+        `Provide either a UUID or a valid display ID starting with '${expectedPrefix}'.`,
+    );
+  }
+
   // lookup by display_id — table name is safe because it passed the whitelist above
   const result = await pool.query(
     `SELECT id FROM ${table} WHERE display_id = $1`,
-    [idOrDisplayId.toUpperCase()],
+    [upper],
   );
 
   if (!result.rows[0]) {
