@@ -158,7 +158,8 @@ export class RequestService {
     );
 
     // RBAC: Customers can ONLY see their own requests via the root endpoint
-    if (user && user.role === 'customer') {
+    const isAuthenticated = user && user.userId && user.userId !== 'anonymous';
+    if (isAuthenticated && user.role === 'customer') {
       this.logger.log(`Enforcing customer-only filter for user ${user.userId}`, RequestService.name);
       queryDto.user_id = user.userId;
     }
