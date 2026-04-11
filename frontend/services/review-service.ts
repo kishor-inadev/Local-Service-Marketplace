@@ -95,6 +95,15 @@ const reviewService = {
   getReview,
   getJobReview,
   getProviderReviewAggregates,
+  getMyReviews: async (params?: { page?: number; limit?: number }): Promise<{ data: ReviewWithDetails[]; total: number }> => {
+    const qs = new URLSearchParams();
+    if (params?.page) qs.append('page', String(params.page));
+    if (params?.limit) qs.append('limit', String(params.limit));
+    const response = await apiClient.get<any>(`/reviews/my?${qs.toString()}`);
+    const raw = response.data;
+    if (Array.isArray(raw)) return { data: raw, total: raw.length };
+    return { data: raw?.data ?? [], total: raw?.total ?? 0 };
+  },
 };
 
 export default reviewService;

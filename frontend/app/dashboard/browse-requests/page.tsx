@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
@@ -13,8 +13,10 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { requestService } from '@/services/request-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
-import { Search, Filter, MapPin, Calendar, DollarSign } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, DollarSign, X, Send } from 'lucide-react';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { CreateProposalForm } from '@/components/forms/CreateProposalForm';
+import { getProviderProfileByUserId } from '@/services/user-service';
 
 export default function BrowseRequestsPage() {
   const router = useRouter();
@@ -22,6 +24,13 @@ export default function BrowseRequestsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('open');
+  const [proposalTargetId, setProposalTargetId] = useState<string | null>(null);
+
+  const { data: provider } = useQuery({
+    queryKey: ['provider-profile-by-user', user?.id],
+    queryFn: () => getProviderProfileByUserId(user!.id),
+    enabled: isAuthenticated && user?.role === 'provider' && !!user?.id,
+  });
 
   // Fetch all open requests (marketplace view for providers)
   const {
@@ -56,6 +65,8 @@ export default function BrowseRequestsPage() {
       request.category?.name?.toLowerCase().includes(searchLower)
     );
   }) || [];
+
+  const proposalTargetRequest = filteredRequests.find((r: any) => r.id === proposalTargetId);
 
   return (
 		<ProtectedRoute requiredRoles={["provider"]}>
@@ -113,11 +124,7 @@ export default function BrowseRequestsPage() {
 												onChange={(e) => setSelectedCategory(e.target.value)}>
 												<option value=''>All Categories</option>
 												{categories?.map((cat: any) => (
-													<option
-														key={cat.id}
-														value={cat.id}>
-														{cat.name}
-													</option>
+													<option key={cat.id} value={cat.id}>{cat.name}</option>
 												))}
 											</select>
 										</div>
@@ -131,9 +138,7 @@ export default function BrowseRequestsPage() {
 							: filteredRequests.length > 0 ?
 								<div className='space-y-4'>
 									{filteredRequests.map((request: any) => (
-										<Card
-											key={request.id}
-											hover>
+										<Card key={request.id} hover>
 											<CardContent className='p-6'>
 												<div className='flex items-start justify-between'>
 													<div className='flex-1'>
@@ -173,14 +178,12 @@ export default function BrowseRequestsPage() {
 															</div>
 														</div>
 
-														{/* Customer Info */}
 														{request.user_id && (
 															<div className='flex items-center text-sm text-gray-600 dark:text-gray-400 mb-4'>
 																<span>Customer: {request.customer?.name || "Anonymous"}</span>
 															</div>
 														)}
 
-														{/* Proposal Count */}
 														{request.proposal_count > 0 && (
 															<div className='text-sm text-gray-500 dark:text-gray-400'>
 																{request.proposal_count} proposal{request.proposal_count !== 1 ? "s" : ""} submitted
@@ -188,10 +191,21 @@ export default function BrowseRequestsPage() {
 														)}
 													</div>
 
-													{/* Action */}
-													<div className='ml-4'>
+													{/* Actions */}
+													<div className='ml-4 flex flex-col gap-2'>
+														{request.status === 'open' && (
+															<Button
+																size='sm'
+																variant='primary'
+																onClick={() => setProposalTargetId(request.id)}
+																className='flex items-center gap-1'>
+																<Send className='h-3 w-3' />
+																Submit Proposal
+															</Button>
+														)}
 														<Button
 															size='sm'
+															variant='outline'
 															onClick={() => router.push(`/requests/${request.display_id || request.id}`)}>
 															View Details
 														</Button>
@@ -210,7 +224,6 @@ export default function BrowseRequestsPage() {
 								</Card>
 							}
 
-							{/* Results Summary */}
 							{!isLoading && filteredRequests.length > 0 && (
 								<div className='mt-6 text-center text-sm text-gray-600 dark:text-gray-400'>
 									Showing {filteredRequests.length} request{filteredRequests.length !== 1 ? "s" : ""}
@@ -219,6 +232,38 @@ export default function BrowseRequestsPage() {
 						</>
 					}
 				</div>
+
+				{/* Submit Proposal Modal */}
+				{proposalTargetId && proposalTargetRequest && (
+					<div className='fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4'>
+						<div className='bg-white dark:bg-gray-900 rounded-xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto'>
+							<div className='flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700'>
+								<div>
+									<h2 className='text-xl font-semibold text-gray-900 dark:text-white'>Submit Proposal</h2>
+									<p className='text-sm text-gray-500 dark:text-gray-400 mt-1'>
+										Request #{proposalTargetRequest.display_id || proposalTargetRequest.id.substring(0, 8)}
+									</p>
+								</div>
+								<button
+									onClick={() => setProposalTargetId(null)}
+									className='p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors'>
+									<X className='h-5 w-5 text-gray-500' />
+								</button>
+							</div>
+							<div className='p-6'>
+								<p className='text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3'>
+									{proposalTargetRequest.description}
+								</p>
+								<CreateProposalForm
+									requestId={proposalTargetRequest.id}
+									providerId={provider?.id}
+									onSuccess={() => setProposalTargetId(null)}
+									onCancel={() => setProposalTargetId(null)}
+								/>
+							</div>
+						</div>
+					</div>
+				)}
 			</Layout>
 		</ProtectedRoute>
 	);

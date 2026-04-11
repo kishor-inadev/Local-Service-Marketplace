@@ -230,6 +230,82 @@ class AdminService {
 		}>("/payments/stats");
 		return response.data;
 	}
+
+	async getPendingProviders(params?: { page?: number; limit?: number }): Promise<{ data: any[]; total: number }> {
+		const qs = new URLSearchParams();
+		if (params?.page) qs.append('page', String(params.page));
+		if (params?.limit) qs.append('limit', String(params.limit));
+		qs.append('verification_status', 'pending');
+		const response = await apiClient.get<any>(`/providers?${qs.toString()}`);
+		const raw = response.data;
+		return { data: raw?.data ?? [], total: raw?.total ?? 0 };
+	}
+
+	async getProviderDocuments(providerId: string): Promise<any[]> {
+		const response = await apiClient.get<any>(`/providers/${providerId}/documents`);
+		return apiClient.extractList<any>(response.data);
+	}
+
+	async verifyProvider(providerId: string): Promise<any> {
+		const response = await apiClient.patch<any>(`/providers/${providerId}/verify`, {});
+		return response.data;
+	}
+
+	async rejectProvider(providerId: string, reason: string): Promise<any> {
+		const response = await apiClient.patch<any>(`/providers/${providerId}/reject`, { reason });
+		return response.data;
+	}
+
+	async verifyDocument(documentId: string): Promise<any> {
+		const response = await apiClient.patch<any>(`/provider-documents/${documentId}/verify`, {});
+		return response.data;
+	}
+
+	async rejectDocument(documentId: string, reason: string): Promise<any> {
+		const response = await apiClient.patch<any>(`/provider-documents/${documentId}/reject`, { reason });
+		return response.data;
+	}
+
+	async getCategories(): Promise<any[]> {
+		const response = await apiClient.get<any>('/categories');
+		return apiClient.extractList<any>(response.data);
+	}
+
+	async createCategory(data: { name: string; description?: string; icon?: string }): Promise<any> {
+		const response = await apiClient.post<any>('/categories', data);
+		return response.data;
+	}
+
+	async updateCategory(id: string, data: { name?: string; description?: string; icon?: string; active?: boolean }): Promise<any> {
+		const response = await apiClient.patch<any>(`/categories/${id}`, data);
+		return response.data;
+	}
+
+	async deleteCategory(id: string): Promise<void> {
+		await apiClient.delete(`/categories/${id}`);
+	}
+
+	async getDailyMetrics(params?: { days?: number }): Promise<any[]> {
+		const qs = new URLSearchParams();
+		if (params?.days) qs.append('days', String(params.days));
+		const response = await apiClient.get<any>(`/analytics/daily-metrics?${qs.toString()}`);
+		return apiClient.extractList<any>(response.data);
+	}
+
+	async getAnalyticsSummary(): Promise<any> {
+		const response = await apiClient.get<any>('/analytics/summary');
+		return response.data;
+	}
+
+	async updateSystemSetting(key: string, value: string): Promise<any> {
+		const response = await apiClient.patch<any>(`/admin/settings/${key}`, { value });
+		return response.data;
+	}
+
+	async getSystemSettings(): Promise<any[]> {
+		const response = await apiClient.get<any>('/admin/settings');
+		return apiClient.extractList<any>(response.data);
+	}
 }
 
 export const adminService = new AdminService();
