@@ -78,7 +78,7 @@ export class JobService {
             jobUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/jobs/${job.id}`,
           },
         })
-        .catch((error: any) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to send job creation notification: ${err.message}`,
             JobService.name,

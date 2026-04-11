@@ -108,7 +108,7 @@ export class RequestService {
           description: dto.description,
           budget: request.budget,
         })
-        .catch((error: any) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to enqueue request creation notification: ${err.message}`,
             RequestService.name,
@@ -122,7 +122,7 @@ export class RequestService {
           description: dto.description,
           budget: request.budget,
         })
-        .catch((error: any) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to enqueue guest request creation notification: ${err.message}`,
             RequestService.name,
@@ -311,7 +311,7 @@ export class RequestService {
             requestUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/requests/${id}`,
           },
         })
-        .catch((error: any) => {
+        .catch((err: any) => {
           this.logger.warn(
             `Failed to send request update notification: ${err.message}`,
             RequestService.name,

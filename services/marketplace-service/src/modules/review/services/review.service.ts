@@ -42,7 +42,7 @@ export class ReviewService {
         reviewId: review.id,
         rating: review.rating,
       })
-      .catch((error: any) => {
+      .catch((err: any) => {
         this.logger.warn(
           `Failed to enqueue review notification: ${err.message}`,
           'ReviewService',

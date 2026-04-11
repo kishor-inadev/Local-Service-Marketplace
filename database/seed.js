@@ -175,8 +175,8 @@ class DatabaseSeeder {
 			const runStep = async (name, fn) => {
 				try {
 					await fn();
-				} catch (error: any) {
-					console.error(`   ❌ ${name} failed: ${err.message}`);
+				} catch (error) {
+					console.error(`   ❌ ${name} failed: ${error.message}`);
 				}
 			};
 

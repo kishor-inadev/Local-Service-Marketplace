@@ -271,14 +271,14 @@ function LoginContent() {
 	// Show message if redirected from signup
 	useEffect(() => {
 		const message = searchParams.get("message");
-		const error = searchParams.get("error");
+		const errorParam = searchParams.get("error");
 
 		if (message === "signup_success") {
 			toast.success("Account created successfully! Please log in.");
 		}
 
 		// Show error messages from URL (e.g., from NextAuth or error page)
-		if (error) {
+		if (errorParam) {
 			const errorMessages: Record<string, string> = {
 				CredentialsSignin: "Invalid email or password.",
 				SessionRequired: "Please sign in to continue.",
@@ -286,7 +286,7 @@ function LoginContent() {
 				EmailNotVerified: "Please verify your email before signing in.",
 				Default: "An authentication error occurred. Please try again.",
 			};
-			toast.error(errorMessages[error] || errorMessages["Default"]);
+			toast.error(errorMessages[errorParam] || errorMessages["Default"]);
 		}
 	}, [searchParams]);
 

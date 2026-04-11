@@ -108,157 +108,160 @@ export function SubscriptionManagement({ providerId }: { providerId: string }) {
   }
 
   return (
-		<div className='max-w-4xl mx-auto space-y-6'>
-			{/* Active Subscription Card */}
-			{activeSubscription ?
-				<div className='bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg p-8 text-white'>
-					<div className='flex items-start justify-between mb-6'>
-						<div>
-							<h3 className='text-2xl font-bold mb-2'>{activeSubscription.plan_name || "Current Plan"}</h3>
-							<p className='text-blue-100'>Your active subscription</p>
-						</div>
-						{getStatusBadge(activeSubscription.status)}
-					</div>
+    <>
+      <div className='max-w-4xl mx-auto space-y-6'>
+        {/* Active Subscription Card */}
+        {activeSubscription ?
+          <div className='bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg shadow-lg p-8 text-white'>
+            <div className='flex items-start justify-between mb-6'>
+              <div>
+                <h3 className='text-2xl font-bold mb-2'>{activeSubscription.plan_name || "Current Plan"}</h3>
+                <p className='text-blue-100'>Your active subscription</p>
+              </div>
+              {getStatusBadge(activeSubscription.status)}
+            </div>
 
-					<div className='grid md:grid-cols-3 gap-6 mb-6'>
-						<div>
-							<p className='text-blue-200 text-sm mb-1'>Price</p>
-							<p className='text-3xl font-bold'>
-								${activeSubscription.plan_price || 0}
-								<span className='text-lg font-normal'>/{activeSubscription.billing_period || "month"}</span>
-							</p>
-						</div>
+            <div className='grid md:grid-cols-3 gap-6 mb-6'>
+              <div>
+                <p className='text-blue-200 text-sm mb-1'>Price</p>
+                <p className='text-3xl font-bold'>
+                  ${activeSubscription.plan_price || 0}
+                  <span className='text-lg font-normal'>/{activeSubscription.billing_period || "month"}</span>
+                </p>
+              </div>
 
-						<div>
-							<p className='text-blue-200 text-sm mb-1'>Started</p>
-							<p className='text-xl font-semibold'>{new Date(activeSubscription.started_at).toLocaleDateString()}</p>
-						</div>
+              <div>
+                <p className='text-blue-200 text-sm mb-1'>Started</p>
+                <p className='text-xl font-semibold'>{new Date(activeSubscription.started_at).toLocaleDateString()}</p>
+              </div>
 
-						{activeSubscription.expires_at && (
-							<div>
-								<p className='text-blue-200 text-sm mb-1'>
-									{activeSubscription.status === "cancelled" ? "Access Until" : "Renews On"}
-								</p>
-								<p className='text-xl font-semibold'>{new Date(activeSubscription.expires_at).toLocaleDateString()}</p>
-								<p className='text-blue-200 text-sm mt-1'>
-									({getDaysRemaining(activeSubscription.expires_at)} days remaining)
-								</p>
-							</div>
-						)}
-					</div>
+              {activeSubscription.expires_at && (
+                <div>
+                  <p className='text-blue-200 text-sm mb-1'>
+                    {activeSubscription.status === "cancelled" ? "Access Until" : "Renews On"}
+                  </p>
+                  <p className='text-xl font-semibold'>{new Date(activeSubscription.expires_at).toLocaleDateString()}</p>
+                  <p className='text-blue-200 text-sm mt-1'>
+                    ({getDaysRemaining(activeSubscription.expires_at)} days remaining)
+                  </p>
+                </div>
+              )}
+            </div>
 
-					{activeSubscription.status === "active" && !activeSubscription.cancelled_at && (
-						<div className='flex gap-3'>
-							<button
-								onClick={() => handleCancelClick(activeSubscription.id)}
-								className='px-6 py-2 bg-white dark:bg-gray-700 bg-opacity-20 dark:bg-opacity-40 hover:bg-opacity-30 dark:hover:bg-opacity-60 rounded-lg font-medium transition-colors'>
-								Cancel Subscription
-							</button>
-							<a
-								href='/pricing'
-								className='px-6 py-2 bg-white dark:bg-gray-100 text-blue-600 dark:text-blue-700 rounded-lg font-medium hover:bg-opacity-90 dark:hover:bg-gray-200 transition-colors'>
-								Upgrade Plan
-							</a>
-						</div>
-					)}
+            {activeSubscription.status === "active" && !activeSubscription.cancelled_at && (
+              <div className='flex gap-3'>
+                <button
+                  onClick={() => handleCancelClick(activeSubscription.id)}
+                  className='px-6 py-2 bg-white dark:bg-gray-700 bg-opacity-20 dark:bg-opacity-40 hover:bg-opacity-30 dark:hover:bg-opacity-60 rounded-lg font-medium transition-colors'>
+                  Cancel Subscription
+                </button>
+                <a
+                  href='/pricing'
+                  className='px-6 py-2 bg-white dark:bg-gray-100 text-blue-600 dark:text-blue-700 rounded-lg font-medium hover:bg-opacity-90 dark:hover:bg-gray-200 transition-colors'>
+                  Upgrade Plan
+                </a>
+              </div>
+            )}
 
-					{activeSubscription.cancelled_at && (
-						<div className='p-4 bg-white dark:bg-gray-700 bg-opacity-20 dark:bg-opacity-40 rounded-lg'>
-							<p className='text-sm'>
-								<AlertCircle className='w-4 h-4 inline mr-2' />
-								Your subscription was cancelled on {new Date(activeSubscription.cancelled_at).toLocaleDateString()}. You
-								will retain access until{" "}
-								{activeSubscription.expires_at && new Date(activeSubscription.expires_at).toLocaleDateString()}.
-							</p>
-						</div>
-					)}
-				</div>
-			:	<div className='bg-white rounded-lg shadow-md p-12 text-center'>
-					<CreditCard className='w-16 h-16 mx-auto mb-4 text-gray-300' />
-					<h3 className='text-xl font-semibold mb-2'>No Active Subscription</h3>
-					<p className='text-gray-600 mb-6'>Subscribe to a plan to unlock premium features and grow your business</p>
-					<a
-						href='/pricing'
-						className='inline-block px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium'>
-						View Pricing Plans
-					</a>
-				</div>
-			}
+            {activeSubscription.cancelled_at && (
+              <div className='p-4 bg-white dark:bg-gray-700 bg-opacity-20 dark:bg-opacity-40 rounded-lg'>
+                <p className='text-sm'>
+                  <AlertCircle className='w-4 h-4 inline mr-2' />
+                  Your subscription was cancelled on {new Date(activeSubscription.cancelled_at).toLocaleDateString()}. You
+                  will retain access until{" "}
+                  {activeSubscription.expires_at && new Date(activeSubscription.expires_at).toLocaleDateString()}.
+                </p>
+              </div>
+            )}
+          </div>
+          : <div className='bg-white rounded-lg shadow-md p-12 text-center'>
+            <CreditCard className='w-16 h-16 mx-auto mb-4 text-gray-300' />
+            <h3 className='text-xl font-semibold mb-2'>No Active Subscription</h3>
+            <p className='text-gray-600 mb-6'>Subscribe to a plan to unlock premium features and grow your business</p>
+            <a
+              href='/pricing'
+              className='inline-block px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 font-medium'>
+              View Pricing Plans
+            </a>
+          </div>
+        }
 
-			{/* Subscription History */}
-			{subscriptions.length > 0 && (
-				<div className='bg-white rounded-lg shadow-md'>
-					<div className='p-6 border-b border-gray-200'>
-						<h3 className='text-xl font-semibold flex items-center gap-2'>
-							<Calendar className='w-5 h-5' />
-							Subscription History
-						</h3>
-					</div>
+        {/* Subscription History */}
+        {subscriptions.length > 0 && (
+          <div className='bg-white rounded-lg shadow-md'>
+            <div className='p-6 border-b border-gray-200'>
+              <h3 className='text-xl font-semibold flex items-center gap-2'>
+                <Calendar className='w-5 h-5' />
+                Subscription History
+              </h3>
+            </div>
 
-					<div className='divide-y divide-gray-200'>
-						{subscriptions.map((subscription) => (
-							<div
-								key={subscription.id}
-								className='p-6 hover:bg-gray-50 transition-colors'>
-								<div className='flex items-start justify-between'>
-									<div className='flex-1'>
-										<div className='flex items-center gap-3 mb-2'>
-											<h4 className='font-semibold text-gray-900'>{subscription.plan_name || "Subscription"}</h4>
-											{getStatusBadge(subscription.status)}
-										</div>
+            <div className='divide-y divide-gray-200'>
+              {subscriptions.map((subscription) => (
+                <div
+                  key={subscription.id}
+                  className='p-6 hover:bg-gray-50 transition-colors'>
+                  <div className='flex items-start justify-between'>
+                    <div className='flex-1'>
+                      <div className='flex items-center gap-3 mb-2'>
+                        <h4 className='font-semibold text-gray-900'>{subscription.plan_name || "Subscription"}</h4>
+                        {getStatusBadge(subscription.status)}
+                      </div>
 
-										<div className='grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-600'>
-											<div>
-												<span className='text-gray-500'>Price:</span> ${subscription.plan_price || 0}/
-												{subscription.billing_period || "month"}
-											</div>
-											<div>
-												<span className='text-gray-500'>Started:</span>{" "}
-												{new Date(subscription.started_at).toLocaleDateString()}
-											</div>
-											{subscription.expires_at && (
-												<div>
-													<span className='text-gray-500'>Expires:</span>{" "}
-													{new Date(subscription.expires_at).toLocaleDateString()}
-												</div>
-											)}
-											{subscription.cancelled_at && (
-												<div>
-													<span className='text-gray-500'>Cancelled:</span>{" "}
-													{new Date(subscription.cancelled_at).toLocaleDateString()}
-												</div>
-											)}
-										</div>
-									</div>
-								</div>
-							</div>
-						))}
-					</div>
-				</div>
-			)}
+                      <div className='grid sm:grid-cols-2 gap-x-6 gap-y-2 text-sm text-gray-600'>
+                        <div>
+                          <span className='text-gray-500'>Price:</span> ${subscription.plan_price || 0}/
+                          {subscription.billing_period || "month"}
+                        </div>
+                        <div>
+                          <span className='text-gray-500'>Started:</span>{" "}
+                          {new Date(subscription.started_at).toLocaleDateString()}
+                        </div>
+                        {subscription.expires_at && (
+                          <div>
+                            <span className='text-gray-500'>Expires:</span>{" "}
+                            {new Date(subscription.expires_at).toLocaleDateString()}
+                          </div>
+                        )}
+                        {subscription.cancelled_at && (
+                          <div>
+                            <span className='text-gray-500'>Cancelled:</span>{" "}
+                            {new Date(subscription.cancelled_at).toLocaleDateString()}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-			{/* Help Section */}
-			<div className='bg-blue-50 border border-blue-200 rounded-lg p-6'>
-				<h4 className='font-semibold text-blue-900 mb-2'>Need Help?</h4>
-				<p className='text-sm text-blue-800 mb-4'>
-					Have questions about your subscription? Our support team is here to help.
-				</p>
-				<a
-					href='/contact'
-					className='text-sm text-blue-600 hover:text-blue-700 font-medium'>
-					Contact Support →
-				</a>
-			</div>
-		</div>
-		<ConfirmDialog
-			isOpen={cancelConfirmOpen}
-			onClose={() => { setCancelConfirmOpen(false); setPendingSubId(null); }}
-			onConfirm={handleConfirmCancel}
-			title="Cancel Subscription"
-			message="Are you sure you want to cancel your subscription? You will retain access until the end of your billing period."
-			confirmLabel="Cancel Subscription"
-			variant="danger"
-			isLoading={cancelling}
-		/>
-	);
+        {/* Help Section */}
+        <div className='bg-blue-50 border border-blue-200 rounded-lg p-6'>
+          <h4 className='font-semibold text-blue-900 mb-2'>Need Help?</h4>
+          <p className='text-sm text-blue-800 mb-4'>
+            Have questions about your subscription? Our support team is here to help.
+          </p>
+          <a
+            href='/contact'
+            className='text-sm text-blue-600 hover:text-blue-700 font-medium'>
+            Contact Support →
+          </a>
+        </div>
+      </div>
+      <ConfirmDialog
+        isOpen={cancelConfirmOpen}
+        onClose={() => { setCancelConfirmOpen(false); setPendingSubId(null); }}
+        onConfirm={handleConfirmCancel}
+        title="Cancel Subscription"
+        message="Are you sure you want to cancel your subscription? You will retain access until the end of your billing period."
+        confirmLabel="Cancel Subscription"
+        variant="danger"
+        isLoading={cancelling}
+      />
+    </>
+  );
 }
+
