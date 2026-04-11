@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import axios, { AxiosInstance } from "axios";
+import * as crypto from "crypto";
 
 export interface UserData {
   id: string;
@@ -41,6 +42,12 @@ export class UserClient {
       headers: { "Content-Type": "application/json" },
     });
 
+    // Attach gateway-compatible HMAC auth headers on every request
+    this.httpClient.interceptors.request.use((config) => {
+      Object.assign(config.headers, this.getInternalHeaders());
+      return config;
+    });
+
     if (this.enabled) {
       this.logger.log(
         `UserClient initialized with URL: ${this.userServiceUrl}`,
@@ -54,13 +61,37 @@ export class UserClient {
     return this.enabled;
   }
 
+  /**
+   * Generates gateway-compatible auth headers for service-to-service calls.
+   * Uses a fixed internal service identity with admin role, signed with the
+   * shared GATEWAY_INTERNAL_SECRET so the target service's JwtAuthGuard accepts it.
+   */
+  private getInternalHeaders(): Record<string, string> {
+    const userId = "00000000-0000-0000-0000-000000000001";
+    const email = "internal@service.local";
+    const role = "admin";
+    const headers: Record<string, string> = {
+      "x-user-id": userId,
+      "x-user-email": email,
+      "x-user-role": role,
+    };
+    const secret = process.env.GATEWAY_INTERNAL_SECRET;
+    if (secret) {
+      headers["x-gateway-hmac"] = crypto
+        .createHmac("sha256", secret)
+        .update(`${userId}:${email}:${role}`)
+        .digest("hex");
+    }
+    return headers;
+  }
+
   async getUserById(userId: string): Promise<UserData | null> {
     if (!this.enabled) {
       return null;
     }
 
     try {
-      const response = await this.httpClient.get(`/api/v1/users/${userId}`);
+      const response = await this.httpClient.get(`/users/${userId}`);
       return response.data as UserData;
     } catch (error) {
       this.logger.error(`Failed to fetch user ${userId}: ${error.message}`);
@@ -80,7 +111,7 @@ export class UserClient {
 
     try {
       const response = await this.httpClient.get(
-        `/api/v1/providers/${providerId}`,
+        `/providers/${providerId}`,
       );
       return response.data as ProviderData;
     } catch (error) {
