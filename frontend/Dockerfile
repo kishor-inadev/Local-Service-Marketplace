@@ -33,6 +33,10 @@ ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV production
 ENV DOCKER_BUILD true
 
+# Accept build-time public API URL (baked into client bundle)
+ARG NEXT_PUBLIC_API_URL=http://localhost:3700
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Build the application
 RUN pnpm run build
 

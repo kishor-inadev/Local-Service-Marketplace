@@ -48,10 +48,11 @@ const nextConfig = {
 		];
 	},
 
-	// API rewrites
+	// API rewrites — use INTERNAL_API_URL for server-side (Docker) if set,
+	// otherwise fall back to the public URL (local dev)
 	async rewrites() {
-		const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
-		return [{ source: "/api/v1/:path*", destination: `${apiUrl}/api/v1/:path*` }];
+		const internalUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
+		return [{ source: "/api/v1/:path*", destination: `${internalUrl}/api/v1/:path*` }];
 	},
 
 	// Webpack optimization

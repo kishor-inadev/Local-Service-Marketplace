@@ -7,7 +7,7 @@ import {
   Inject,
   LoggerService,
 } from "@nestjs/common";
-import { Reflector } from "@nestjs/core";
+import { Reflector, ModuleRef } from "@nestjs/core";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { OWNERSHIP_KEY, OwnershipConfig } from "../decorators/ownership.decorator";
 import { RequestService } from "../../modules/request/services/request.service";
@@ -37,10 +37,7 @@ export class OwnershipGuard implements CanActivate {
     private reflector: Reflector,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-    private readonly requestService: RequestService,
-    private readonly proposalService: ProposalService,
-    private readonly jobService: JobService,
-    private readonly reviewService: ReviewService,
+    private readonly moduleRef: ModuleRef,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -111,14 +108,22 @@ export class OwnershipGuard implements CanActivate {
     resourceId: string,
   ): Promise<any> {
     switch (resourceType) {
-      case "request":
-        return this.requestService.getRequestById(resourceId);
-      case "proposal":
-        return this.proposalService.getProposalById(resourceId);
-      case "job":
-        return this.jobService.getJobById(resourceId);
-      case "review":
-        return this.reviewService.getReviewById(resourceId);
+      case "request": {
+        const service = this.moduleRef.get(RequestService, { strict: false });
+        return service.getRequestById(resourceId);
+      }
+      case "proposal": {
+        const service = this.moduleRef.get(ProposalService, { strict: false });
+        return service.getProposalById(resourceId);
+      }
+      case "job": {
+        const service = this.moduleRef.get(JobService, { strict: false });
+        return service.getJobById(resourceId);
+      }
+      case "review": {
+        const service = this.moduleRef.get(ReviewService, { strict: false });
+        return service.getReviewById(resourceId);
+      }
       default:
         throw new ForbiddenException(`Unknown resource type: ${resourceType}`);
     }
