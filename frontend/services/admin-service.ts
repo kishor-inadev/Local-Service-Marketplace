@@ -268,14 +268,12 @@ class AdminService {
 	}
 
 	async verifyProvider(providerId: string): Promise<any> {
-		// Backend: PATCH /providers/:id with verification_status
-		const response = await apiClient.patch<any>(`/providers/${providerId}`, { verification_status: 'verified' });
+		const response = await apiClient.patch<any>(`/providers/${providerId}/verify`, { status: 'verified' });
 		return response.data;
 	}
 
 	async rejectProvider(providerId: string, reason: string): Promise<any> {
-		// Backend: PATCH /providers/:id with verification_status
-		const response = await apiClient.patch<any>(`/providers/${providerId}`, { verification_status: 'rejected', rejection_reason: reason });
+		const response = await apiClient.patch<any>(`/providers/${providerId}/verify`, { status: 'rejected' });
 		return response.data;
 	}
 

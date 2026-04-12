@@ -9,7 +9,7 @@ import { Mail, ArrowLeft, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import { apiClient } from '@/services/api-client';
 
 const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -33,8 +33,7 @@ export default function ForgotPasswordPage() {
   const onSubmit = async (data: ForgotPasswordFormData) => {
     setIsSubmitting(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3700';
-      await axios.post(`${API_URL}/api/v1/user/auth/forgot-password`, {
+      await apiClient.post('/user/auth/forgot-password', {
         email: data.email,
       });
       

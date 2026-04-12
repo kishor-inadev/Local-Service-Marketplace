@@ -8,6 +8,8 @@ import { ReviewRepository } from "./repositories/review.repository";
 import { ProviderReviewAggregateRepository } from "./repositories/provider-review-aggregate.repository";
 import { NotificationModule } from "../../common/notification/notification.module";
 import { UserModule } from "../../common/user/user.module";
+import { DatabaseModule } from "../../common/database/database.module";
+import { KafkaModule } from "../../kafka/kafka.module";
 
 @Module({
   imports: [
@@ -15,6 +17,8 @@ import { UserModule } from "../../common/user/user.module";
       { name: 'marketplace.notification' },
       { name: 'marketplace.rating' },
     ),
+    DatabaseModule,
+    KafkaModule,
     NotificationModule,
     UserModule,
   ],

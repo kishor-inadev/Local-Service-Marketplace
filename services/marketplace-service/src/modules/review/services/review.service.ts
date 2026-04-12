@@ -9,6 +9,7 @@ import { Review } from "../entities/review.entity";
 import { NotFoundException, BadRequestException, ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { NotificationClient } from "../../../common/notification/notification.client";
 import { UserClient } from "../../../common/user/user.client";
+import { KafkaService } from "../../../kafka/kafka.service";
 
 @Injectable()
 export class ReviewService {
@@ -18,6 +19,7 @@ export class ReviewService {
     private readonly logger: LoggerService,
     private readonly notificationClient: NotificationClient,
     private readonly userClient: UserClient,
+    private readonly kafkaService: KafkaService,
     @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
     @InjectQueue('marketplace.rating') private readonly ratingQueue: Queue,
   ) { }
@@ -57,6 +59,29 @@ export class ReviewService {
       `Review created successfully with ID ${review.id}`,
       "ReviewService",
     );
+
+    // Publish review_submitted event to Kafka (non-blocking)
+    if (this.kafkaService.isKafkaEnabled()) {
+      this.kafkaService
+        .publishEvent('review-events', {
+          eventType: 'review_submitted',
+          eventId: review.id,
+          timestamp: new Date().toISOString(),
+          data: {
+            reviewId: review.id,
+            jobId: review.job_id,
+            providerId: review.provider_id,
+            userId: review.user_id,
+            rating: review.rating,
+          },
+        })
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to publish review_submitted event: ${err.message}`,
+            'ReviewService',
+          );
+        });
+    }
 
     // Enqueue provider review notification (non-blocking)
     this.notificationQueue
