@@ -59,6 +59,10 @@ RUN chown -R nestjs:nodejs logs
 
 USER nestjs
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:3000/health || exit 1
+
 # Expose port
 EXPOSE 3000
 

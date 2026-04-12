@@ -6,9 +6,14 @@ import { HttpExceptionFilter } from "./common/filters/http-exception.filter";
 import { ResponseTransformInterceptor } from "./common/interceptors/response-transform.interceptor";
 import { MetricsInterceptor } from "./common/interceptors/metrics.interceptor";
 import helmet from "helmet";
+import { json, urlencoded } from "express";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // Request body size limits
+  app.use(json({ limit: '1mb' }));
+  app.use(urlencoded({ extended: true, limit: '1mb' }));
 
   // Security headers
   app.use(

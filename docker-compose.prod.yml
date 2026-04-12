@@ -90,13 +90,19 @@ services:
     ports: !override []
     environment:
       - NODE_ENV=production
-      - DATABASE_SSL=false
+      - DATABASE_SSL=true
       - CACHE_ENABLED=true
       - DB_POOL_MAX=20
       - DB_POOL_MIN=5
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:
@@ -116,13 +122,19 @@ services:
     ports: !override []
     environment:
       - NODE_ENV=production
-      - DATABASE_SSL=false
+      - DATABASE_SSL=true
       - CACHE_ENABLED=true
       - DB_POOL_MAX=20
       - DB_POOL_MIN=5
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3003/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:
@@ -142,7 +154,7 @@ services:
     ports: !override []
     environment:
       - NODE_ENV=production
-      - DATABASE_SSL=false
+      - DATABASE_SSL=true
       - CACHE_ENABLED=true
       - WORKERS_ENABLED=true
       - DB_POOL_MAX=20
@@ -150,6 +162,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3006/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:
@@ -169,7 +187,7 @@ services:
     ports: !override []
     environment:
       - NODE_ENV=production
-      - DATABASE_SSL=false
+      - DATABASE_SSL=true
       - CACHE_ENABLED=true
       - WORKERS_ENABLED=true
       - IN_APP_NOTIFICATIONS_ENABLED=true
@@ -180,6 +198,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3007/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:
@@ -199,7 +223,7 @@ services:
     ports: !override []
     environment:
       - NODE_ENV=production
-      - DATABASE_SSL=false
+      - DATABASE_SSL=true
       - CACHE_ENABLED=true
       - ANALYTICS_ENABLED=true
       - DB_POOL_MAX=20
@@ -207,6 +231,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3010/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:
@@ -227,7 +257,7 @@ services:
     profiles: []
     environment:
       - NODE_ENV=production
-      - DATABASE_SSL=false
+      - DATABASE_SSL=true
       - CACHE_ENABLED=true
       - BACKGROUND_JOBS_ENABLED=true
       - RATE_LIMITING_ENABLED=true
@@ -237,6 +267,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3012/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:
@@ -250,27 +286,6 @@ services:
       options:
         max-size: "30m"
         max-file: "5"
-
-  # ─── Supporting Services (no port exposure) ───────────────────────────────
-  email-service:
-    restart: always
-    ports: !override []
-    profiles: []
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "3"
-
-  sms-service:
-    restart: always
-    ports: !override []
-    profiles: []
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "3"
 
   # ─── API Gateway (only externally exposed backend) ────────────────────────
   api-gateway:
@@ -287,6 +302,12 @@ services:
     read_only: true
     tmpfs:
       - /tmp
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
     deploy:
       resources:
         limits:

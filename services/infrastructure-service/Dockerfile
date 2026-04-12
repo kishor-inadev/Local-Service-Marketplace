@@ -56,5 +56,9 @@ EXPOSE 3012
 # Set non-root user
 USER node
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+  CMD wget -qO- http://localhost:3012/health || exit 1
+
 # Start the application
 CMD ["node", "dist/main.js"]
