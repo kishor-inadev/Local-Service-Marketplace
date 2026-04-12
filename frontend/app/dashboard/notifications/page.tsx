@@ -7,10 +7,10 @@ import { useAuth } from '@/hooks/useAuth';
 import { isNotificationsEnabled } from '@/config/features';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
-import { SkeletonListItem } from '@/components/ui/Skeleton';
+
 import { ErrorState } from "@/components/ui/ErrorState";
 import { notificationService } from '@/services/notification-service';
 import { useNotificationStore } from '@/store/notificationStore';

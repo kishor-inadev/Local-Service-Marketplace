@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -21,7 +21,7 @@ import toast from "react-hot-toast";
 
 function JobCheckout({ jobId }: { jobId: string }) {
 	const router = useRouter();
-	const { user } = useAuth();
+	useAuth();
 
 	const { data: job, isLoading } = useQuery({
 		queryKey: ["job", jobId],

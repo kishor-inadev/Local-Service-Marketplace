@@ -15,7 +15,7 @@ import { formatDate } from '@/utils/helpers';
 import { AlertTriangle, Plus, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 
-const STATUS_OPTIONS = ['', 'open', 'investigating', 'resolved', 'closed'];
+
 
 export default function MyDisputesPage() {
   const { user } = useAuth();

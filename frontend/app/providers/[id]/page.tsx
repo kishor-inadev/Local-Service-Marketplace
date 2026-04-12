@@ -1,151 +1,154 @@
-'use client';
+"use client";
 
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useParams, useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
-import { Layout } from '@/components/layout/Layout';
-import { Card, CardContent, CardHeader } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Loading } from '@/components/ui/Loading';
-import { ErrorState } from '@/components/ui/ErrorState';
-import { Avatar } from '@/components/ui/Avatar';
-import { Badge } from '@/components/ui/Badge';
-import { AvailabilitySchedule } from '@/components/features/providers/AvailabilitySchedule';
-import { getProviderProfile } from '@/services/user-service';
-import { getProviderReviews, getProviderReviewAggregates, ReviewWithDetails, ReviewAggregate } from '@/services/review-service';
-import { requestService, ServiceCategory } from '@/services/request-service';
-import { favoriteService } from '@/services/favorite-service';
-import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { Layout } from "@/components/layout/Layout";
+import { Card, CardContent, CardHeader } from "@/components/ui/Card";
+import { Button } from "@/components/ui/Button";
+import { Loading } from "@/components/ui/Loading";
+import { ErrorState } from "@/components/ui/ErrorState";
+import { Avatar } from "@/components/ui/Avatar";
+import { Badge } from "@/components/ui/Badge";
+import { AvailabilitySchedule } from "@/components/features/providers/AvailabilitySchedule";
+import { getProviderProfile } from "@/services/user-service";
+import { getProviderReviews, getProviderReviewAggregates } from "@/services/review-service";
+import { requestService, ServiceCategory } from "@/services/request-service";
+import { favoriteService } from "@/services/favorite-service";
+import { useAuth } from "@/hooks/useAuth";
 import { formatDate, parseRating } from "@/utils/helpers";
-import { ArrowLeft, Star, MapPin, Calendar, Briefcase, Heart, MessageSquare } from 'lucide-react';
-import Link from 'next/link';
-import { ROUTES } from '@/config/constants';
-import { toast } from 'react-hot-toast';
+import { ArrowLeft, Star, Calendar, Briefcase, MessageSquare, Heart } from "lucide-react";
+import Link from "next/link";
+import { ROUTES } from "@/config/constants";
+import { toast } from "react-hot-toast";
 
 export default function ProviderDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const providerId = params.id as string;
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [checkingFavorite, setCheckingFavorite] = useState(true);
+	const params = useParams();
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	const { user } = useAuth();
+	const providerId = params.id as string;
+	const [isFavorited, setIsFavorited] = useState(false);
+	const [checkingFavorite, setCheckingFavorite] = useState(true);
 
-  const { data: provider, isLoading, error, refetch } = useQuery({
-    queryKey: ['provider', providerId],
-    queryFn: () => getProviderProfile(providerId),
-    enabled: !!providerId,
-  });
+	const {
+		data: provider,
+		isLoading,
+		error,
+		refetch,
+	} = useQuery({
+		queryKey: ["provider", providerId],
+		queryFn: () => getProviderProfile(providerId),
+		enabled: !!providerId,
+	});
 
-  const providerRating = parseRating(provider?.rating);
+	const providerRating = parseRating(provider?.rating);
 
-  const { data: reviews } = useQuery({
-    queryKey: ['provider-reviews', providerId],
-    queryFn: () => getProviderReviews(providerId),
-    enabled: !!providerId,
-  });
+	const { data: reviews } = useQuery({
+		queryKey: ["provider-reviews", providerId],
+		queryFn: () => getProviderReviews(providerId),
+		enabled: !!providerId,
+	});
 
-  const { data: reviewAggregates } = useQuery({
-    queryKey: ['provider-review-aggregates', providerId],
-    queryFn: () => getProviderReviewAggregates(providerId),
-    enabled: !!providerId,
-  });
+	const { data: reviewAggregates } = useQuery({
+		queryKey: ["provider-review-aggregates", providerId],
+		queryFn: () => getProviderReviewAggregates(providerId),
+		enabled: !!providerId,
+	});
 
-  const { data: categories } = useQuery({
-    queryKey: ['service-categories'],
-    queryFn: () => requestService.getCategories(),
-  });
+	const { data: categories } = useQuery({
+		queryKey: ["service-categories"],
+		queryFn: () => requestService.getCategories(),
+	});
 
-  const categoryMap = (categories || []).reduce<Record<string, ServiceCategory>>((acc, cat) => {
-    acc[cat.id] = cat;
-    return acc;
-  }, {});
+	const categoryMap = (categories || []).reduce<Record<string, ServiceCategory>>((acc, cat) => {
+		acc[cat.id] = cat;
+		return acc;
+	}, {});
 
-  // Check if provider is favorited
-  useEffect(() => {
-    const checkFavorite = async () => {
-      if (user?.id && providerId) {
-        try {
-          const favorited = await favoriteService.isFavorite(providerId);
-          setIsFavorited(favorited);
-        } catch (error) {
-          console.error('Error checking favorite:', error);
-        } finally {
-          setCheckingFavorite(false);
-        }
-      } else {
-        setCheckingFavorite(false);
-      }
-    };
-    checkFavorite();
-  }, [user?.id, providerId]);
+	// Check if provider is favorited
+	useEffect(() => {
+		const checkFavorite = async () => {
+			if (user?.id && providerId) {
+				try {
+					const favorited = await favoriteService.isFavorite(providerId);
+					setIsFavorited(favorited);
+				} catch (error) {
+					console.error("Error checking favorite:", error);
+				} finally {
+					setCheckingFavorite(false);
+				}
+			} else {
+				setCheckingFavorite(false);
+			}
+		};
+		checkFavorite();
+	}, [user?.id, providerId]);
 
-  // Toggle favorite mutation
-  const toggleFavoriteMutation = useMutation({
-    mutationFn: async () => {
-      if (!user?.id) {
-        throw new Error('Please login to save favorites');
-      }
-      if (isFavorited) {
-        await favoriteService.removeFavorite(providerId);
-      } else {
-        await favoriteService.addFavorite(providerId);
-      }
-    },
-    onMutate: async () => {
-      // Optimistically update UI
-      setIsFavorited(!isFavorited);
-    },
-    onSuccess: () => {
-      toast.success(
-        isFavorited ? 'Removed from favorites' : 'Added to favorites'
-      );
-      // Invalidate favorites query if on favorites page
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-    },
-    onError: (error: any) => {
-      // Revert optimistic update on error
-      setIsFavorited(!isFavorited);
-      toast.error(error.message || 'Failed to update favorite');
-    },
-  });
+	// Toggle favorite mutation
+	const toggleFavoriteMutation = useMutation({
+		mutationFn: async () => {
+			if (!user?.id) {
+				throw new Error("Please login to save favorites");
+			}
+			if (isFavorited) {
+				await favoriteService.removeFavorite(providerId);
+			} else {
+				await favoriteService.addFavorite(providerId);
+			}
+		},
+		onMutate: async () => {
+			// Optimistically update UI
+			setIsFavorited(!isFavorited);
+		},
+		onSuccess: () => {
+			toast.success(isFavorited ? "Removed from favorites" : "Added to favorites");
+			// Invalidate favorites query if on favorites page
+			queryClient.invalidateQueries({ queryKey: ["favorites"] });
+		},
+		onError: (error: any) => {
+			// Revert optimistic update on error
+			setIsFavorited(!isFavorited);
+			toast.error(error.message || "Failed to update favorite");
+		},
+	});
 
-  const handleToggleFavorite = () => {
-    if (!user) {
-      toast.error('Please login to save favorites');
-      router.push(ROUTES.LOGIN);
-      return;
-    }
-    toggleFavoriteMutation.mutate();
-  };
+	const handleToggleFavorite = () => {
+		if (!user) {
+			toast.error("Please login to save favorites");
+			router.push(ROUTES.LOGIN);
+			return;
+		}
+		toggleFavoriteMutation.mutate();
+	};
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="container-custom py-8">
-          <Loading />
-        </div>
-      </Layout>
-    );
-  }
+	if (isLoading) {
+		return (
+			<Layout>
+				<div className='container-custom py-8'>
+					<Loading />
+				</div>
+			</Layout>
+		);
+	}
 
-  if (error || !provider) {
-    return (
-      <Layout>
-        <div className="container-custom py-8">
-          <ErrorState
-            title="Provider not found"
-            message="We couldn't find the provider you're looking for."
-            retry={() => refetch()}
-          />
-        </div>
-      </Layout>
-    );
-  }
+	if (error || !provider) {
+		return (
+			<Layout>
+				<div className='container-custom py-8'>
+					<ErrorState
+						title='Provider not found'
+						message="We couldn't find the provider you're looking for."
+						retry={() => refetch()}
+					/>
+				</div>
+			</Layout>
+		);
+	}
 
-  const serviceCount = provider.services?.length || 0;
+	const serviceCount = provider.services?.length || 0;
 
-  return (
+	return (
 		<Layout>
 			<div className='container-custom py-8'>
 				{/* Back Button */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import {
   getProviderDocuments,
@@ -20,17 +20,7 @@ export function DocumentList({ providerId }: { providerId?: string }) {
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const [pendingDocId, setPendingDocId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
-
-  useEffect(() => {
-    if (!providerId) {
-      setLoading(false);
-      return;
-    }
-    loadDocuments();
-    loadVerificationStatus();
-  }, [providerId]);
-
-  const loadDocuments = async () => {
+  const loadDocuments = useCallback(async () => {
     if (!providerId) return;
     try {
       const data = await getProviderDocuments(providerId);
@@ -40,9 +30,9 @@ export function DocumentList({ providerId }: { providerId?: string }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [providerId]);
 
-  const loadVerificationStatus = async () => {
+  const loadVerificationStatus = useCallback(async () => {
     if (!providerId) return;
     try {
       const data = await getDocumentVerificationStatus(providerId);
@@ -50,7 +40,17 @@ export function DocumentList({ providerId }: { providerId?: string }) {
     } catch (error) {
       console.error('Failed to load status:', error);
     }
-  };
+  }, [providerId]);
+  useEffect(() => {
+    if (!providerId) {
+      setLoading(false);
+      return;
+    }
+    loadDocuments();
+    loadVerificationStatus();
+  }, [providerId, loadDocuments, loadVerificationStatus]);
+
+
 
   const handleDeleteClick = (documentId: string) => {
     setPendingDocId(documentId);
@@ -134,8 +134,8 @@ export function DocumentList({ providerId }: { providerId?: string }) {
         {/* Verification Status Card */}
         {status && (
           <div className={`p-6 rounded-lg border-2 ${status.fully_verified
-              ? 'bg-green-50 border-green-200'
-              : 'bg-yellow-50 border-yellow-200'
+            ? 'bg-green-50 border-green-200'
+            : 'bg-yellow-50 border-yellow-200'
             }`}>
             <div className="flex items-start gap-4">
               {status.fully_verified ? (
@@ -216,10 +216,10 @@ export function DocumentList({ providerId }: { providerId?: string }) {
                           <div className="flex items-center gap-2 text-sm">
                             <Calendar className="w-4 h-4" />
                             <span className={`${isExpired(doc.expiry_date)
-                                ? 'text-red-600 font-medium'
-                                : isExpiring(doc.expiry_date)
-                                  ? 'text-orange-600 font-medium'
-                                  : 'text-gray-600'
+                              ? 'text-red-600 font-medium'
+                              : isExpiring(doc.expiry_date)
+                                ? 'text-orange-600 font-medium'
+                                : 'text-gray-600'
                               }`}>
                               {isExpired(doc.expiry_date) && 'Expired: '}
                               {isExpiring(doc.expiry_date) && !isExpired(doc.expiry_date) && 'Expires: '}

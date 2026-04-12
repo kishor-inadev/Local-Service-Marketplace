@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Badge } from '@/components/ui/Badge';
 import { Avatar } from '@/components/ui/Avatar';
-import { Star, MapPin, Clock } from 'lucide-react';
+import { Star, Clock } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/config/constants';
 import { parseRating } from "@/utils/helpers";

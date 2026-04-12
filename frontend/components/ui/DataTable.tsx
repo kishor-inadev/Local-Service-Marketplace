@@ -33,8 +33,8 @@ export interface DataTableColumn<T> {
 	align?: "left" | "center" | "right";
 	className?: string;
 	headerClassName?: string;
-	accessor?: (row: T) => string | number | Date | null | undefined;
-	cell: (row: T) => React.ReactNode;
+	accessor?: (_r: T) => string | number | Date | null | undefined;
+	cell: (_r: T) => React.ReactNode;
 }
 
 export type DataTableProcessingMode = "client" | "server";
@@ -42,7 +42,7 @@ export type DataTableProcessingMode = "client" | "server";
 interface DataTableProps<T> {
 	data: T[];
 	columns: Array<DataTableColumn<T>>;
-	getRowKey: (row: T, index: number) => string;
+	getRowKey: (_r: T, _i: number) => string;
 	processingMode?: DataTableProcessingMode;
 	serverTotalRows?: number;
 	serverPageIndex?: number;
@@ -50,11 +50,11 @@ interface DataTableProps<T> {
 	serverSearchTerm?: string;
 	serverSorting?: SortingState;
 	serverColumnFilters?: ColumnFiltersState;
-	onServerPageIndexChange?: (pageIndex: number) => void;
-	onServerPageSizeChange?: (pageSize: number) => void;
-	onServerSearchChange?: (search: string) => void;
-	onServerSortingChange?: (sorting: SortingState) => void;
-	onServerColumnFiltersChange?: (filters: ColumnFiltersState) => void;
+	onServerPageIndexChange?: (_pIdx: number) => void;
+	onServerPageSizeChange?: (_pSize: number) => void;
+	onServerSearchChange?: (_s: string) => void;
+	onServerSortingChange?: (_sort: SortingState) => void;
+	onServerColumnFiltersChange?: (_f: ColumnFiltersState) => void;
 	initialSortField?: string;
 	initialSortDirection?: DataTableSortDirection;
 	quickSorts?: DataTableQuickSortOption[];
@@ -70,15 +70,15 @@ interface DataTableProps<T> {
 	searchPlaceholder?: string;
 	searchDebounceMs?: number;
 	searchableColumns?: string[];
-	searchAccessor?: (row: T) => Array<string | number | Date | null | undefined>;
+	searchAccessor?: (_r: T) => Array<string | number | Date | null | undefined>;
 	toolbarFields?: React.ReactNode;
 	isLoading?: boolean;
 	loadingText?: string;
-	renderToolbarFields?: (table: Table<T>) => React.ReactNode;
+	renderToolbarFields?: (_t: Table<T>) => React.ReactNode;
 	enableExport?: boolean;
 	exportLabel?: string;
 	exportFileName?: string;
-	onExport?: (rows: T[]) => void;
+	onExport?: (_rs: T[]) => void;
 	exportCurrentPageOnly?: boolean;
 	enableClearFilters?: boolean;
 	clearFiltersLabel?: string;

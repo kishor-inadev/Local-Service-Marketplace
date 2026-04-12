@@ -12,7 +12,7 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { formatDate } from '@/utils/helpers';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 import Link from "next/link";
-import { Loading } from "@/components/ui";
+
 import { SkeletonTable } from '@/components/ui/Skeleton';
 import { useMemo, useState } from "react";
 import type { ColumnFiltersState, SortingState, Table } from "@tanstack/react-table";
@@ -173,6 +173,8 @@ export default function AdminDisputesPage() {
 									serverColumnFilters={serverFilters}
 									onServerPageIndexChange={setServerPageIndex}
 									onServerPageSizeChange={setServerPageSize}
+									onServerSortingChange={setServerSorting}
+									onServerColumnFiltersChange={setServerFilters}
 									initialSortDirection='desc'
 									defaultPaginationMode={paginationMode}
 									onLoadMore={() => setPaginationMode("load-more")}

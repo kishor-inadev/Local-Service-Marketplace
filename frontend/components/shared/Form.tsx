@@ -11,7 +11,7 @@ interface FormProps<T extends FieldValues> {
   onSubmit: SubmitHandler<T>;
   schema?: ZodType<T>;
   defaultValues?: Partial<T>;
-  children: (methods: UseFormReturn<T>) => React.ReactNode;
+  children: (_methods: UseFormReturn<T>) => React.ReactNode;
   className?: string;
   submitLabel?: string;
   cancelLabel?: string;

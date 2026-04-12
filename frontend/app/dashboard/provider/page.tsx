@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from "react";
+
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { ROUTES } from "@/config/constants";
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { apiClient } from '@/services/api-client';
 import { ErrorState } from "@/components/ui/ErrorState";
 import Link from 'next/link';

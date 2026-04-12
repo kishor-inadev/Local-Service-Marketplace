@@ -10,7 +10,7 @@ import { ROUTES } from '@/config/constants';
 
 interface SearchAutocompleteProps {
   placeholder?: string;
-  onSelect?: (result: SearchResult) => void;
+  onSelect?: (_r: SearchResult) => void;
   className?: string;
 }
 

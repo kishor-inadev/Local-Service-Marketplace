@@ -1,8 +1,8 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
@@ -12,7 +12,7 @@ import { createProviderProfile, getProviderProfileByUserId } from '@/services/us
 import { requestService } from '@/services/request-service';
 import { apiClient } from '@/services/api-client';
 import { toast } from 'react-hot-toast';
-import { CheckCircle, User, Briefcase, ArrowRight, ArrowLeft, Clock, Plus, X } from 'lucide-react';
+import { CheckCircle, User, Briefcase, ArrowRight, ArrowLeft, Clock } from 'lucide-react';
 
 const PROVIDER_STEPS = ['welcome', 'profile', 'services', 'availability', 'complete'] as const;
 const CUSTOMER_STEPS = ['welcome', 'complete'] as const;
@@ -33,6 +33,7 @@ export default function OnboardingPage() {
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
+  void phone; // reserved for future contact info submission
 
   // Step: Services
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);

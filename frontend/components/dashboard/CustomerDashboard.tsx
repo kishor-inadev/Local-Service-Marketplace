@@ -37,11 +37,7 @@ export default function CustomerDashboard() {
 		refetch: refetchJobs,
 	} = useQuery({ queryKey: ["my-jobs"], queryFn: () => jobService.getMyJobs(), enabled: isAuthenticated });
 
-	const {
-		data: notifications,
-		isLoading: notificationsLoading,
-		error: notificationsError,
-	} = useQuery({
+	const { data: notifications, isLoading: notificationsLoading } = useQuery({
 		queryKey: ["notifications"],
 		queryFn: () => notificationService.getNotifications({ limit: 5 }),
 		enabled: isAuthenticated && isNotificationsEnabled(),

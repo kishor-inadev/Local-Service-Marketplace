@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import toast from 'react-hot-toast';
 import { Calendar, CreditCard, AlertCircle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { paymentService, type Subscription } from '@/services/payment-service';
@@ -13,12 +13,7 @@ export function SubscriptionManagement({ providerId }: { providerId: string }) {
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [pendingSubId, setPendingSubId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
-
-  useEffect(() => {
-    loadSubscriptions();
-  }, [providerId]);
-
-  const loadSubscriptions = async () => {
+  const loadSubscriptions = useCallback(async () => {
     try {
       const [subs, active] = await Promise.all([
         paymentService.getProviderSubscriptions(providerId),
@@ -32,7 +27,12 @@ export function SubscriptionManagement({ providerId }: { providerId: string }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [providerId]);
+  useEffect(() => {
+    loadSubscriptions();
+  }, [providerId, loadSubscriptions]);
+
+
 
   const handleCancelClick = (subscriptionId: string) => {
     setPendingSubId(subscriptionId);

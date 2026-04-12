@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -100,7 +100,6 @@ function CategoryFormModal({
 }
 
 export default function AdminCategoriesPage() {
-  const queryClient = useQueryClient();
   const [modalCategory, setModalCategory] = useState<any | null | 'new'>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
@@ -151,11 +150,10 @@ export default function AdminCategoriesPage() {
                         {cat.icon && <span className="text-2xl">{cat.icon}</span>}
                         <div>
                           <h3 className="font-semibold text-gray-900 dark:text-white">{cat.name}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            cat.active
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                          }`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat.active
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                            }`}>
                             {cat.active ? 'Active' : 'Inactive'}
                           </span>
                         </div>

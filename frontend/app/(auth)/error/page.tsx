@@ -13,7 +13,6 @@ import {
   Mail,
   RefreshCw,
   XCircle,
-  type LucideIcon,
 } from 'lucide-react';
 
 // Error types with their configurations
@@ -219,7 +218,7 @@ function AuthErrorContent() {
 	};
 
 	// Render action button
-	const renderActionButton = (actionKey: string, index: number) => {
+	const renderActionButton = (actionKey: string) => {
 		const action = ACTION_CONFIGS[actionKey as keyof typeof ACTION_CONFIGS];
 		if (!action) return null;
 
@@ -280,7 +279,7 @@ function AuthErrorContent() {
 					{/* Actions Section */}
 					<div className='px-6 py-6 bg-gray-50'>
 						<div className='flex flex-col sm:flex-row gap-3 justify-center'>
-							{config.actions.map((actionKey, index) => renderActionButton(actionKey, index))}
+							{config.actions.map((actionKey) => renderActionButton(actionKey))}
 						</div>
 						{resendMessage && <p className='mt-3 text-sm text-green-700 text-center'>{resendMessage}</p>}
 						{resendError && <p className='mt-3 text-sm text-red-600 text-center'>{resendError}</p>}

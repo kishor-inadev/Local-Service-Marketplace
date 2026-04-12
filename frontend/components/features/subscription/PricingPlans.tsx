@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { Check, Zap, Star, Crown } from 'lucide-react';
 import { paymentService, type PricingPlan } from '@/services/payment-service';
 
-export function PricingPlans({ onSelectPlan }: { onSelectPlan?: (planId: string) => void }) {
+export function PricingPlans({ onSelectPlan }: { onSelectPlan?: (_pId: string) => void }) {
   const [plans, setPlans] = useState<PricingPlan[]>([]);
   const [loading, setLoading] = useState(true);
   const [billingPeriod, setBillingPeriod] = useState<'monthly' | 'yearly'>('monthly');

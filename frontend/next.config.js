@@ -29,7 +29,7 @@ const nextConfig = {
 						key: "Content-Security-Policy",
 						value:
 							process.env.NODE_ENV === "production" ?
-								"default-src 'self'; script-src 'self' https://maps.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.easydev.in https://*.cloudinary.com https://*.amazonaws.com https://maps.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
+								"default-src 'self'; script-src 'self' 'unsafe-inline' https://maps.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.easydev.in https://*.cloudinary.com https://*.amazonaws.com https://maps.googleapis.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';"
 							:	"default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://maps.googleapis.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://*.easydev.in https://*.cloudinary.com https://*.amazonaws.com https://maps.googleapis.com http://localhost:* ws://localhost:*; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none';",
 					},
 					{ key: "Cross-Origin-Opener-Policy", value: "same-origin" },

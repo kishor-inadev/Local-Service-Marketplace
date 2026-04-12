@@ -14,7 +14,7 @@ import { useState } from 'react';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, isAuthenticated, isLoading, logout } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   // Only fetch notifications when user is authenticated
   const { unreadCount } = useNotifications({ enabled: isAuthenticated });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);

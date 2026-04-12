@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 
 // Declare google as a global variable
 declare const google: any;
@@ -37,53 +37,50 @@ export default function LocationMap({
   const markerRef = useRef<any>(null);
   const infoWindowRef = useRef<any>(null);
 
+  const initMap = useCallback(() => {
+    if (!google?.maps || !mapRef.current) {
+      return;
+    }
+
+    const position = { lat: latitude, lng: longitude };
+
+    // Create map
+    mapInstanceRef.current = new google.maps.Map(mapRef.current!, {
+      center: position,
+      zoom: zoom,
+      disableDefaultUI: false,
+      zoomControl: true,
+      mapTypeControl: false,
+      streetViewControl: false,
+      fullscreenControl: true,
+    });
+
+    // Create marker
+    markerRef.current = new google.maps.Marker({
+      position: position,
+      map: mapInstanceRef.current,
+      title: address || 'Service Location',
+    });
+
+    // Create info window if address provided
+    if (address) {
+      infoWindowRef.current = new google.maps.InfoWindow({
+        content: `<div style="padding: 8px; max-width: 200px;"><strong>Location</strong><br>${address}</div>`,
+      });
+
+      // Show info window on marker click
+      markerRef.current.addListener('click', () => {
+        infoWindowRef.current.open(mapInstanceRef.current, markerRef.current);
+      });
+
+      // Auto-open info window
+      infoWindowRef.current.open(mapInstanceRef.current, markerRef.current);
+    }
+  }, [latitude, longitude, zoom, address]);
+
   useEffect(() => {
     if (!mapRef.current) return;
 
-    // Wait for Google Maps to load
-    const initMap = () => {
-      if (!google?.maps) {
-        console.error('Google Maps not loaded');
-        return;
-      }
-
-      const position = { lat: latitude, lng: longitude };
-
-      // Create map
-      mapInstanceRef.current = new google.maps.Map(mapRef.current!, {
-        center: position,
-        zoom: zoom,
-        disableDefaultUI: false,
-        zoomControl: true,
-        mapTypeControl: false,
-        streetViewControl: false,
-        fullscreenControl: true,
-      });
-
-      // Create marker
-      markerRef.current = new google.maps.Marker({
-        position: position,
-        map: mapInstanceRef.current,
-        title: address || 'Service Location',
-      });
-
-      // Create info window if address provided
-      if (address) {
-        infoWindowRef.current = new google.maps.InfoWindow({
-          content: `<div style="padding: 8px; max-width: 200px;"><strong>Location</strong><br>${address}</div>`,
-        });
-
-        // Show info window on marker click
-        markerRef.current.addListener('click', () => {
-          infoWindowRef.current.open(mapInstanceRef.current, markerRef.current);
-        });
-
-        // Auto-open info window
-        infoWindowRef.current.open(mapInstanceRef.current, markerRef.current);
-      }
-    };
-
-    // Check if Google Maps is already loaded
     if (window.google?.maps) {
       initMap();
     } else {
@@ -121,7 +118,7 @@ export default function LocationMap({
         infoWindowRef.current.close();
       }
     };
-  }, [latitude, longitude, address, zoom]);
+  }, [initMap]);
 
   return (
     <div className="relative">
@@ -142,8 +139,10 @@ export default function LocationMap({
   );
 }
 
+/*
 declare global {
   interface Window {
     google: any;
   }
 }
+*/

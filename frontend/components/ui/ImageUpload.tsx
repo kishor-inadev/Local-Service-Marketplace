@@ -1,18 +1,19 @@
 'use client';
 
 import React, { useCallback } from 'react';
+import Image from 'next/image';
 import { useDropzone } from 'react-dropzone';
 import { X, Upload } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
 
 interface ImageUploadProps {
-  onUpload: (files: File[]) => void;
+  onUpload: (_fs: File[]) => void;
   maxFiles?: number;
   maxSize?: number; // in MB
     acceptedFormats?: string[];
   currentImages?: string[];
-  onRemove?: (index: number) => void;
+  onRemove?: (_i: number) => void;
 }
 
 /**
@@ -121,9 +122,11 @@ export function ImageUpload({
           {/* Current Images */}
           {currentImages.map((url, index) => (
             <div key={`current-${index}`} className="relative group">
-              <img
+              <Image
                 src={url}
                 alt={`Uploaded ${index + 1}`}
+                width={300}
+                height={128}
                 className="w-full h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-700"
               />
               {onRemove && (
@@ -141,10 +144,13 @@ export function ImageUpload({
           {/* New Previews */}
           {previews.map((preview, index) => (
             <div key={`preview-${index}`} className="relative group">
-              <img
+              <Image
                 src={preview}
                 alt={`Preview ${index + 1}`}
+                width={300}
+                height={128}
                 className="w-full h-32 object-cover rounded-lg border border-gray-300 dark:border-gray-700"
+                unoptimized
               />
               <button
                 onClick={() => removePreview(index)}

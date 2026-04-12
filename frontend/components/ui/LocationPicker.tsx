@@ -17,7 +17,7 @@ interface Location {
 
 interface LocationPickerProps {
   value?: Location;
-  onChange: (location: Location) => void;
+  onChange: (_l: Location) => void;
   label?: string;
   error?: string;
   required?: boolean;
@@ -36,7 +36,7 @@ export function LocationPicker({
   className,
 }: LocationPickerProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [_isSearching, setIsSearching] = useState(false);
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [map, setMap] = useState<any>(null);
   const [marker, setMarker] = useState<any>(null);
@@ -45,38 +45,88 @@ export function LocationPicker({
   const geocoderRef = useRef<any>(null);
 
   const [mapUnavailable, setMapUnavailable] = useState(false);
+  const handleMapClickRef = useRef<any>(null);
+  const addMarker = useCallback((position: { lat: number; lng: number }, mapInstance?: any) => {
+    const targetMap = mapInstance || map;
+    if (!targetMap || typeof google === 'undefined') return;
 
-  // Initialize map
-  useEffect(() => {
-    if (!mapRef.current || map) return;
-
-    // Check if Google Maps is loaded
-    if (typeof window !== 'undefined' && window.google) {
-      initializeMap();
-    } else {
-      // Load Google Maps script
-      loadGoogleMaps();
+    // Remove existing marker
+    if (marker) {
+      marker.setMap(null);
     }
-  }, []);
 
-  const loadGoogleMaps = () => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-		if (!apiKey) {
-			setMapUnavailable(true);
-			return;
-		}
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => initializeMap();
-    document.head.appendChild(script);
-  };
+    const newMarker = new google.maps.Marker({
+      position,
+      map: targetMap,
+      draggable: true,
+      animation: google.maps.Animation.DROP,
+    });
 
-  const initializeMap = () => {
+    newMarker.addListener('dragend', () => {
+      const pos = newMarker.getPosition();
+      if (pos && handleMapClickRef.current) {
+        handleMapClickRef.current(pos);
+      }
+    });
+
+    setMarker(newMarker);
+  }, [map, marker]);
+  const handleMapClick = useCallback(async (latLng: any) => {
+    const lat = latLng.lat();
+    const lng = latLng.lng();
+
+    addMarker({ lat, lng });
+
+    // Reverse geocode to get address
+    if (geocoderRef.current) {
+      try {
+        const result = await geocoderRef.current.geocode({ location: latLng });
+        if (result.results[0]) {
+          const addressComponents = result.results[0].address_components;
+          const location: Location = {
+            lat,
+            lng,
+            address: result.results[0].formatted_address,
+          };
+
+          // Parse address components
+          addressComponents.forEach((component: any) => {
+            if (component.types.includes('locality')) {
+              location.city = component.long_name;
+            }
+            if (component.types.includes('administrative_area_level_1')) {
+              location.state = component.short_name;
+            }
+            if (component.types.includes('postal_code')) {
+              location.zipCode = component.long_name;
+            }
+            if (component.types.includes('country')) {
+              location.country = component.short_name;
+            }
+          });
+
+          onChange(location);
+          setSearchQuery(location.address || '');
+        }
+      } catch (error) {
+        console.error('Geocoding error:', error);
+        onChange({ lat, lng });
+      }
+    } else {
+      onChange({ lat, lng });
+    }
+  }, [onChange, addMarker]);
+
+  useEffect(() => {
+    handleMapClickRef.current = handleMapClick;
+  }, [handleMapClick]);
+
+
+
+  const initializeMap = useCallback(() => {
     if (!mapRef.current || typeof google === 'undefined') return;
 
-    const defaultCenter = value 
+    const defaultCenter = value
       ? { lat: value.lat, lng: value.lng }
       : { lat: 37.7749, lng: -122.4194 }; // San Francisco default
 
@@ -121,79 +171,34 @@ export function LocationPicker({
         }
       );
     }
-  };
+  }, [value, handleMapClick, addMarker]);
 
-  const addMarker = (position: { lat: number; lng: number }, mapInstance?: any) => {
-    const targetMap = mapInstance || map;
-    if (!targetMap || typeof google === 'undefined') return;
-
-    // Remove existing marker
-    if (marker) {
-      marker.setMap(null);
+  const loadGoogleMaps = useCallback(() => {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+    if (!apiKey) {
+      setMapUnavailable(true);
+      return;
     }
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => initializeMap();
+    document.head.appendChild(script);
+  }, [initializeMap]);
 
-    const newMarker = new google.maps.Marker({
-      position,
-      map: targetMap,
-      draggable: true,
-      animation: google.maps.Animation.DROP,
-    });
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current || map) return;
 
-    newMarker.addListener('dragend', () => {
-      const pos = newMarker.getPosition();
-      if (pos) {
-        handleMapClick(pos);
-      }
-    });
-
-    setMarker(newMarker);
-  };
-
-  const handleMapClick = async (latLng: any) => {
-    const lat = latLng.lat();
-    const lng = latLng.lng();
-
-    addMarker({ lat, lng });
-
-    // Reverse geocode to get address
-    if (geocoderRef.current) {
-      try {
-        const result = await geocoderRef.current.geocode({ location: latLng });
-        if (result.results[0]) {
-          const addressComponents = result.results[0].address_components;
-          const location: Location = {
-            lat,
-            lng,
-            address: result.results[0].formatted_address,
-          };
-
-          // Parse address components
-          addressComponents.forEach((component: any) => {
-            if (component.types.includes('locality')) {
-              location.city = component.long_name;
-            }
-            if (component.types.includes('administrative_area_level_1')) {
-              location.state = component.short_name;
-            }
-            if (component.types.includes('postal_code')) {
-              location.zipCode = component.long_name;
-            }
-            if (component.types.includes('country')) {
-              location.country = component.short_name;
-            }
-          });
-
-          onChange(location);
-          setSearchQuery(location.address || '');
-        }
-      } catch (error) {
-        console.error('Geocoding error:', error);
-        onChange({ lat, lng });
-      }
+    // Check if Google Maps is loaded
+    if (typeof window !== 'undefined' && window.google) {
+      initializeMap();
     } else {
-      onChange({ lat, lng });
+      // Load Google Maps script
+      loadGoogleMaps();
     }
-  };
+  }, [map, initializeMap, loadGoogleMaps]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -226,10 +231,10 @@ export function LocationPicker({
       if (result.results[0]) {
         const place = result.results[0];
         const latLng = place.geometry.location;
-        
+
         map.setCenter(latLng);
         map.setZoom(15);
-        
+
         handleMapClick(latLng);
         setSuggestions([]);
       }
@@ -297,92 +302,92 @@ export function LocationPicker({
           </div>
         </div>
       ) : (
-      <>
-      <div className="relative mb-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
-            placeholder="Search for address or place..."
-            className="w-full pl-10 pr-24 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-          <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
-            {searchQuery && (
-              <button
-                type="button"
-                onClick={handleClear}
-                className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleCurrentLocation}
-              className="p-1 text-blue-600 hover:text-blue-700 dark:text-blue-400"
-              title="Use current location"
-            >
-              <MapPin className="h-5 w-5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Suggestions */}
-        {suggestions.length > 0 && (
-          <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
-            {suggestions.map((suggestion) => (
-              <button
-                key={suggestion.place_id}
-                type="button"
-                onClick={() => handleSelectSuggestion(suggestion.place_id)}
-                className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
-              >
-                <div className="flex items-start gap-2">
-                  <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
-                  <div>
-                    <div className="font-medium">{suggestion.structured_formatting.main_text}</div>
-                    <div className="text-sm text-gray-500 dark:text-gray-400">
-                      {suggestion.structured_formatting.secondary_text}
-                    </div>
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-        )}
-      </div>
-
-      {/* Map */}
-      <div className="relative">
-        <div
-          ref={mapRef}
-          className="w-full h-80 rounded-lg border-2 border-gray-300 dark:border-gray-600 overflow-hidden"
-        />
-        <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-lg text-sm text-gray-600 dark:text-gray-300">
-          Click on map to set location or drag the marker
-        </div>
-      </div>
-
-      {/* Selected Location Info */}
-      {value && value.lat !== 0 && (
-        <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <div className="flex items-start gap-2">
-            <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-            <div className="flex-1">
-              <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
-                {value.address || 'Selected Location'}
-              </div>
-              <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                Coordinates: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
+        <>
+          <div className="relative mb-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => handleSearch(e.target.value)}
+                placeholder="Search for address or place..."
+                className="w-full pl-10 pr-24 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex gap-2">
+                {searchQuery && (
+                  <button
+                    type="button"
+                    onClick={handleClear}
+                    className="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleCurrentLocation}
+                  className="p-1 text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                  title="Use current location"
+                >
+                  <MapPin className="h-5 w-5" />
+                </button>
               </div>
             </div>
-          </div>
-        </div>
-      )}
 
-      </>
+            {/* Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-auto">
+                {suggestions.map((suggestion) => (
+                  <button
+                    key={suggestion.place_id}
+                    type="button"
+                    onClick={() => handleSelectSuggestion(suggestion.place_id)}
+                    className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-900 dark:text-gray-100"
+                  >
+                    <div className="flex items-start gap-2">
+                      <MapPin className="h-4 w-4 text-gray-400 mt-1 flex-shrink-0" />
+                      <div>
+                        <div className="font-medium">{suggestion.structured_formatting.main_text}</div>
+                        <div className="text-sm text-gray-500 dark:text-gray-400">
+                          {suggestion.structured_formatting.secondary_text}
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Map */}
+          <div className="relative">
+            <div
+              ref={mapRef}
+              className="w-full h-80 rounded-lg border-2 border-gray-300 dark:border-gray-600 overflow-hidden"
+            />
+            <div className="absolute bottom-4 left-4 bg-white dark:bg-gray-800 px-3 py-2 rounded-lg shadow-lg text-sm text-gray-600 dark:text-gray-300">
+              Click on map to set location or drag the marker
+            </div>
+          </div>
+
+          {/* Selected Location Info */}
+          {value && value.lat !== 0 && (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <div className="flex items-start gap-2">
+                <MapPin className="h-5 w-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                <div className="flex-1">
+                  <div className="text-sm font-medium text-blue-900 dark:text-blue-100">
+                    {value.address || 'Selected Location'}
+                  </div>
+                  <div className="text-xs text-blue-700 dark:text-blue-300 mt-1">
+                    Coordinates: {value.lat.toFixed(6)}, {value.lng.toFixed(6)}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </>
       )}
 
       {error && (
@@ -409,26 +414,7 @@ export function LocationMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
 
-  useEffect(() => {
-    if (!mapRef.current || map) return;
-
-    if (typeof window !== 'undefined' && typeof google !== 'undefined') {
-      initMap();
-    } else {
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-			if (!apiKey) {
-				console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Map features will be unavailable.");
-				return;
-			}
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-      script.async = true;
-      script.onload = () => initMap();
-      document.head.appendChild(script);
-    }
-  }, [location]);
-
-  const initMap = () => {
+  const initMap = useCallback(() => {
     if (!mapRef.current || typeof google === 'undefined') return;
 
     const mapInstance = new google.maps.Map(mapRef.current, {
@@ -447,7 +433,26 @@ export function LocationMap({
     }
 
     setMap(mapInstance);
-  };
+  }, [location, showMarker]);
+
+  useEffect(() => {
+    if (!mapRef.current || map) return;
+
+    if (typeof window !== 'undefined' && typeof google !== 'undefined') {
+      initMap();
+    } else {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+      if (!apiKey) {
+        console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Map features will be unavailable.");
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
+      script.async = true;
+      script.onload = () => initMap();
+      document.head.appendChild(script);
+    }
+  }, [initMap, map]);
 
   return (
     <div className={cn('w-full', className)}>

@@ -1,9 +1,9 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { Layout } from '@/components/layout/Layout';
 import { FAQContent } from './_components/FAQContent';
 import { faqs } from './_data/faqs';
 
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+const _SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
 
 export const metadata: Metadata = {
 	title: 'FAQ',

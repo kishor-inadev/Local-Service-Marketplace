@@ -15,6 +15,7 @@ import { formatDate } from "@/utils/helpers";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 import { ArrowLeft, User, Mail, Shield, Calendar, Ban, CheckCircle, Phone, Globe, Clock, Languages, Fingerprint } from "lucide-react";
 import Link from "next/link";
+import Image from "next/image";
 import toast from "react-hot-toast";
 
 export default function AdminUserDetailPage() {
@@ -97,10 +98,12 @@ export default function AdminUserDetailPage() {
 										<div className='flex items-center justify-between'>
 											<div className="flex items-center gap-4">
 												{user.profile_picture_url && (
-													<img 
+													<Image 
 														src={user.profile_picture_url} 
 														alt={user.name || "User"} 
-														className="h-16 w-16 rounded-full object-cover border-2 border-primary-100 shadow-sm"
+														width={64}
+														height={64}
+														className="rounded-full object-cover border-2 border-primary-100 shadow-sm"
 													/>
 												)}
 												<div>

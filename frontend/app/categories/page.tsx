@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardContent } from '@/components/ui/Card';
+
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import { requestService } from '@/services/request-service';

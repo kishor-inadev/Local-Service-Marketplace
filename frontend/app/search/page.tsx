@@ -8,7 +8,6 @@ import { Card, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { StatusBadge } from '@/components/ui/Badge';
-import { ErrorState } from '@/components/ui/ErrorState';
 import { useDebounce } from '@/hooks/useDebounce';
 import { getProviders } from '@/services/user-service';
 import { requestService } from '@/services/request-service';
@@ -77,8 +76,8 @@ export default function SearchPage() {
   });
 
   const providers = providersData?.data || [];
-  const requests = requestsData?.data || [];
-  const categories = categoriesData || [];
+  const requests = useMemo(() => requestsData?.data || [], [requestsData]);
+  const categories = useMemo(() => categoriesData || [], [categoriesData]);
 
   // Filter categories by search query client-side
   const filteredCategories = useMemo(() => {

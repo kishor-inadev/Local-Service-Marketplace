@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/Input';
 import { X, Filter } from 'lucide-react';
 
 interface RequestFiltersProps {
-  onFilterChange: (filters: Record<string, any>) => void;
+  onFilterChange: (_f: Record<string, any>) => void;
   onClear: () => void;
   activeFilters: Record<string, any>;
 }

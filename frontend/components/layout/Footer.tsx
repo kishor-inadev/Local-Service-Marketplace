@@ -34,7 +34,7 @@ export function Footer() {
               Get Started
             </Link>
             <Link href={ROUTES.HOW_IT_WORKS} className="px-4 py-2 text-sm font-medium text-gray-400 hover:text-white border border-gray-700 rounded-lg hover:border-gray-600 transition-colors">
-              Learn More
+              How it's Work
             </Link>
           </div>
         </div>

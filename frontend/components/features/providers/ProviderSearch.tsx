@@ -5,7 +5,7 @@ import { SearchBar } from '@/components/shared/SearchBar';
 
 interface ProviderSearchProps {
   value: string;
-  onChange: (value: string) => void;
+  onChange: (_v: string) => void;
   onClear: () => void;
 }
 

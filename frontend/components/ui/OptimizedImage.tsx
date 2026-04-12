@@ -30,7 +30,6 @@ export function OptimizedImage({
 }: OptimizedImageProps) {
   const imageProps = {
     src,
-    alt,
     quality,
     priority,
     className: cn('transition-opacity duration-300', className),
@@ -41,7 +40,7 @@ export function OptimizedImage({
     ...(sizes && { sizes }),
   };
 
-  return <Image {...imageProps} />;
+  return <Image alt={alt} {...imageProps} />;
 }
 
 // Avatar with next/image

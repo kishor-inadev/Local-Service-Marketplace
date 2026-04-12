@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import toast from "react-hot-toast";
 import Link from 'next/link';
+import Image from 'next/image';
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { authService } from "@/services/auth-service";
 import { formatDistanceToNow } from "date-fns";
@@ -334,10 +335,12 @@ export default function ChangePasswordPage() {
 									Scan this QR code with your authenticator app (Google Authenticator, Authy, etc.):
 								</p>
 								<div className='flex justify-center'>
-									<img
+									<Image
 										src={setup2FAMutation.data.qrCodeUrl}
 										alt='2FA QR Code'
-										className='w-48 h-48 border border-gray-200 dark:border-gray-600 rounded-lg bg-white p-2'
+										width={192}
+										height={192}
+										className='border border-gray-200 dark:border-gray-600 rounded-lg bg-white p-2'
 									/>
 								</div>
 								<div className='bg-gray-100 dark:bg-gray-700 rounded-lg p-3'>

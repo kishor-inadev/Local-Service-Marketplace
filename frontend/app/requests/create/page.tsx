@@ -6,7 +6,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from '@/hooks/useAuth';
-import { ROUTES } from '@/config/constants';
+
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -25,8 +25,9 @@ function CreateRequestContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 	const prefillQuery = searchParams.get("q") || "";
+	void prefillQuery; // reserved for future pre-fill functionality
 	const { user, isAuthenticated } = useAuth();
-	const [attachments, setAttachments] = useState<File[]>([]);
+	const [, setAttachments] = useState<File[]>([]);
 	const [location, setLocation] = useState<any>(null);
 	const [guestInfo, setGuestInfo] = useState({ name: "", email: "", phone: "" });
 

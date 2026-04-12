@@ -13,7 +13,7 @@ interface Tab {
 interface TabsProps {
   tabs: Tab[];
   defaultTab?: string;
-  onChange?: (tabId: string) => void;
+  onChange?: (_t: string) => void;
   className?: string;
 }
 
