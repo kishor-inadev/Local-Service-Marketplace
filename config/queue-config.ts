@@ -594,6 +594,31 @@ export const QUEUE_CONFIGS: Record<string, QueueConfig> = {
     },
   },
 
+  'oversight.notification': {
+    name: 'oversight.notification',
+    defaultJobOptions: {
+      attempts: 3,
+      backoff: {
+        type: 'exponential',
+        delay: 5000,
+      },
+      removeOnComplete: { count: 500 },
+      removeOnFail: { count: 50 },
+      timeout: 10000, // 10 seconds
+      priority: JobPriority.HIGH,
+    },
+    limiter: {
+      max: 200,        // 200 notifications
+      duration: 60000, // per minute
+    },
+    settings: {
+      stalledInterval: 15000,
+      maxStalledCount: 2,
+      lockDuration: 20000,
+      lockRenewTime: 5000,
+    },
+  },
+
   // ============================================
   // INFRASTRUCTURE SERVICE QUEUES
   // ============================================

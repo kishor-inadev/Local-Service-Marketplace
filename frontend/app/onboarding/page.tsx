@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -26,6 +28,7 @@ interface AvailabilitySlot { day: string; start_time: string; end_time: string }
 export default function OnboardingPage() {
   const router = useRouter();
   const { user } = useAuth();
+  const { can } = usePermissions();
   const [step, setStep] = useState<ProviderStep | CustomerStep>('welcome');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -46,7 +49,7 @@ export default function OnboardingPage() {
     { day: 'Friday', start_time: '09:00', end_time: '17:00' },
   ]);
 
-  const isProvider = user?.role === 'provider';
+  const isProvider = can(Permission.PROVIDER_PROFILE_VIEW);
   const steps = isProvider ? PROVIDER_STEPS : CUSTOMER_STEPS;
   const currentIndex = steps.indexOf(step as any);
 

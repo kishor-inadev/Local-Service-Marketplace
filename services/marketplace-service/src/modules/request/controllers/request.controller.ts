@@ -27,9 +27,8 @@ import {
   PaginatedRequestResponseDto,
 } from "../dto/request-response.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { OwnershipGuard } from "@/common/guards/ownership.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
 import { Ownership } from "@/common/decorators/ownership.decorator";
 import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../../common/file-service.client";
@@ -42,25 +41,21 @@ export class RequestController {
     private readonly fileServiceClient: FileServiceClient,
   ) {}
 
-  // Public — authenticated users supply user_id via JWT context; guests supply guest_info
+  @RequirePermissions('requests.create')
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
   async createRequest(
     @Body() createRequestDto: CreateRequestDto,
     @Req() req: any,
   ): Promise<RequestResponseDto> {
-    if (req.user?.role === "provider") {
-      throw new ForbiddenException("Providers cannot create service requests");
-    }
-    if (req.user?.userId) {
-      createRequestDto.user_id = req.user.userId;
-    }
+    createRequestDto.user_id = req.user.userId;
     return this.requestService.createRequest(createRequestDto);
   }
 
   // Admin stats endpoint
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('requests.view_stats')
   @Get("stats")
   @HttpCode(HttpStatus.OK)
   async getRequestStats() {
@@ -167,9 +162,25 @@ export class RequestController {
     );
   }
 
+  // Authenticated — owner can cancel their own open request
+  @UseGuards(JwtAuthGuard, OwnershipGuard)
+  @Ownership({ resourceType: "request", userIdField: "user_id" })
+  @Post(":id/cancel")
+  @HttpCode(HttpStatus.OK)
+  async cancelRequest(
+    @Param("id", StrictUuidPipe) id: string,
+    @Req() req: any,
+  ): Promise<{ success: boolean; message: string }> {
+    await this.requestService.cancelRequest(id, req.user.userId);
+    return {
+      success: true,
+      message: "Service request cancelled successfully",
+    };
+  }
+
   // Admin only — hard delete
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('requests.manage')
   @Delete(":id")
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteRequest(@Param("id", StrictUuidPipe) id: string): Promise<void> {
@@ -189,7 +200,7 @@ export class RequestController {
     page: number;
     limit: number;
   }> {
-    if (req.user.role !== "admin" && req.user.userId !== userId) {
+    if (!req.user.permissions?.includes('requests.manage') && req.user.userId !== userId) {
       throw new ForbiddenException("You can only view service requests belonging to your own account");
     }
     const result = await this.requestService.getRequestsByUser(userId);

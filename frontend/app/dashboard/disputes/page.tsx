@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -34,7 +36,7 @@ export default function MyDisputesPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <ProtectedRoute requiredRoles={['customer', 'provider']}>
+    <ProtectedRoute requiredPermissions={[Permission.DISPUTES_READ]}>
       <Layout>
         <div className="container-custom py-12">
           <div className="flex items-center justify-between mb-8">

@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from '@/components/ui/Button';
@@ -79,7 +81,7 @@ export default function AdminSettingsPage() {
   };
 
   return (
-    <ProtectedRoute requiredRoles={["admin"]}>
+    <ProtectedRoute requiredPermissions={[Permission.SETTINGS_MANAGE]}>
       <Layout>
         <div className='container-custom py-12'>
           <div className='mb-8 flex items-center justify-between'>

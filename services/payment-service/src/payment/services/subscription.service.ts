@@ -26,9 +26,10 @@ export class SubscriptionService {
     planId: string,
     userId: string,
     actorRole?: string,
+    actorPermissions?: string[],
     actorProviderId?: string,
   ): Promise<Subscription> {
-    if (actorRole !== "admin" && actorProviderId !== providerId) {
+    if (!actorPermissions?.includes('subscriptions.manage') && actorProviderId !== providerId) {
       throw new ForbiddenException("You can only create subscriptions for your own provider account");
     }
     const plan = await this.pricingPlanRepository.findById(planId);
@@ -141,6 +142,7 @@ export class SubscriptionService {
     subscriptionId: string,
     userId: string,
     actorRole?: string,
+    actorPermissions?: string[],
     actorProviderId?: string,
   ): Promise<Subscription> {
     const subscription =
@@ -150,7 +152,7 @@ export class SubscriptionService {
       throw new NotFoundException("Subscription not found");
     }
 
-    if (actorRole !== "admin" && actorProviderId !== subscription.provider_id) {
+    if (!actorPermissions?.includes('subscriptions.manage') && actorProviderId !== subscription.provider_id) {
       throw new ForbiddenException("You can only cancel your own provider subscription");
     }
     if (subscription.status === "cancelled") {
@@ -170,9 +172,10 @@ export class SubscriptionService {
     newPlanId: string,
     userId: string,
     actorRole?: string,
+    actorPermissions?: string[],
     actorProviderId?: string,
   ): Promise<Subscription> {
-    if (actorRole !== "admin" && actorProviderId !== providerId) {
+    if (!actorPermissions?.includes('subscriptions.manage') && actorProviderId !== providerId) {
       throw new ForbiddenException("You can only upgrade your own provider subscription");
     }
 

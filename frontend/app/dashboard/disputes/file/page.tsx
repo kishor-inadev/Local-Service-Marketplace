@@ -6,6 +6,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { z } from 'zod';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -161,7 +163,7 @@ function FileDisputeContent() {
 
 export default function FileDisputePage() {
   return (
-    <ProtectedRoute requiredRoles={['customer', 'provider']}>
+    <ProtectedRoute requiredPermissions={[Permission.DISPUTES_FILE]}>
       <Suspense fallback={<div className="container-custom py-12"><div className="animate-pulse h-96 bg-gray-100 rounded-xl" /></div>}>
         <FileDisputeContent />
       </Suspense>

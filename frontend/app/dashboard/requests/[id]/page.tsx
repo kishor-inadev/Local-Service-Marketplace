@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useParams, useRouter } from 'next/navigation';
 import { ROUTES } from '@/config/constants';
+import { Permission } from '@/utils/permissions';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -94,7 +95,7 @@ export default function RequestDetailPage() {
   const isOwner = user?.id === request.user_id;
 
   return (
-		<ProtectedRoute requiredRoles={["customer", "provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.REQUESTS_READ]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					<div className='mb-6'>

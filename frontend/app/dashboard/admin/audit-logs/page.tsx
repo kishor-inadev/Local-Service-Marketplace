@@ -79,7 +79,7 @@ export default function AuditLogsPage() {
     : logs;
 
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredPermissions={[Permission.AUDIT_VIEW]}>
       <Layout>
         <div className="container-custom py-12">
           {/* Header */}

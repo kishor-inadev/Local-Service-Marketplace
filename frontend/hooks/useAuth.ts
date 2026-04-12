@@ -14,6 +14,7 @@ export function useAuth() {
   const isLoading = status === 'loading';
   const isAuthenticated = status === 'authenticated';
   const user = session?.user;
+  const permissions = user?.permissions ?? [];
 
   // Handle token refresh errors
   useEffect(() => {
@@ -223,6 +224,7 @@ export function useAuth() {
     session,
     isLoading,
     isAuthenticated,
+    permissions,
 
     // Email/Password auth
     login,

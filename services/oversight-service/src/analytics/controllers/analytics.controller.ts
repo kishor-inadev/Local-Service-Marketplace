@@ -23,8 +23,7 @@ import { MetricsAggregationService } from "../services/metrics-aggregation.servi
 import { TrackActivityDto } from "../dto/track-activity.dto";
 import { BackfillMetricsDto } from "../dto/backfill-metrics.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { ForbiddenException, BadRequestException } from "@/common/exceptions/http.exceptions";
 import { InternalServiceGuard } from "@/common/guards/internal-service.guard";
 
@@ -41,8 +40,8 @@ export class AnalyticsController {
 	@UseGuards(JwtAuthGuard)
 	@HttpCode(HttpStatus.OK)
 	async trackActivity(@Body() trackActivityDto: TrackActivityDto, @Headers("x-user-id") requestingUserId: string, @Headers("x-user-role") requestingUserRole: string, @Req() req: Request) {
-		// Non-admins can only log their own activity
-		if (requestingUserRole !== "admin") {
+		// Users without analytics permission can only log their own activity
+		if (!(req as any).user?.permissions?.includes('analytics.view')) {
 			trackActivityDto.user_id = requestingUserId;
 		}
 		// Capture IP address from forwarded header or direct connection
@@ -62,7 +61,7 @@ export class AnalyticsController {
 
 	@Get("user-activity")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	async getAllActivity(
 		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
 		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
@@ -82,10 +81,11 @@ export class AnalyticsController {
 		@Headers("x-user-role") requestingUserRole: string,
 		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
 		@Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
+		@Req() req: Request,
 	) {
 		this.logger.log(`GET /analytics/user-activity/${userId} - Retrieve activity for user`, "AnalyticsController");
 
-		if (requestingUserRole !== "admin" && requestingUserId !== userId) {
+		if (!(req as any).user?.permissions?.includes('analytics.view') && requestingUserId !== userId) {
 			throw new ForbiddenException("You can only view your own activity log");
 		}
 
@@ -96,7 +96,7 @@ export class AnalyticsController {
 
 	@Get("user-activity/action/:action")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	async getActivityByAction(
 		@Param("action") action: string,
 		@Query("limit", new DefaultValuePipe(100), ParseIntPipe) limit: number,
@@ -113,7 +113,7 @@ export class AnalyticsController {
 
 	@Get("metrics")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	async getDailyMetrics(
 		@Query("startDate") startDate?: string,
 		@Query("endDate") endDate?: string,
@@ -128,7 +128,7 @@ export class AnalyticsController {
 
 	@Get("metrics/:date")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	async getMetricByDate(@Param("date") date: string) {
 		this.logger.log(`GET /analytics/metrics/${date} - Retrieve metric for specific date`, "AnalyticsController");
 
@@ -140,7 +140,7 @@ export class AnalyticsController {
 	// Worker endpoints for background job processing
 	@Post("workers/aggregate-today")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	@HttpCode(HttpStatus.OK)
 	async aggregateTodayMetrics() {
 		this.logger.log(
@@ -155,7 +155,7 @@ export class AnalyticsController {
 
 	@Post("workers/aggregate-yesterday")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	@HttpCode(HttpStatus.OK)
 	async aggregateYesterdayMetrics() {
 		this.logger.log(
@@ -170,7 +170,7 @@ export class AnalyticsController {
 
 	@Post("workers/aggregate/:date")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	@HttpCode(HttpStatus.OK)
 	async aggregateMetricsForDate(@Param("date") date: string) {
 		this.logger.log(
@@ -185,7 +185,7 @@ export class AnalyticsController {
 
 	@Post("workers/backfill")
 	@UseGuards(JwtAuthGuard, RolesGuard)
-	@Roles("admin")
+	@RequirePermissions('analytics.view')
 	@HttpCode(HttpStatus.OK)
 	async backfillMetrics(@Body() body: BackfillMetricsDto) {
 		const start = new Date(body.startDate);

@@ -11,10 +11,15 @@ import { DisputeRepository } from './repositories/dispute.repository';
 import { AuditLogRepository } from './repositories/audit-log.repository';
 import { SystemSettingRepository } from './repositories/system-setting.repository';
 import { ContactMessageRepository } from './repositories/contact-message.repository';
+import { NotificationClient } from '../common/notification/notification.client';
+import { UserClient } from '../common/user/user.client';
 
 @Module({
 	imports: [
-		BullModule.registerQueue({ name: 'oversight.audit' }),
+		BullModule.registerQueue(
+			{ name: 'oversight.audit' },
+			{ name: 'oversight.notification' },
+		),
 	],
 	controllers: [AdminController, DisputeController],
 	providers: [
@@ -27,6 +32,8 @@ import { ContactMessageRepository } from './repositories/contact-message.reposit
 		AuditLogRepository,
 		SystemSettingRepository,
 		ContactMessageRepository,
+		NotificationClient,
+		UserClient,
 	],
 	exports: [DisputeService, AuditLogService, SystemSettingService, ContactMessageService],
 })

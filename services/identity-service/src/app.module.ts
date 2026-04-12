@@ -2,6 +2,7 @@ import { Module } from "@nestjs/common";
 import { ConfigModule } from "@nestjs/config";
 import { AuthModule } from "./modules/auth/auth.module";
 import { UserModule } from "./modules/user/user.module";
+import { RbacModule } from "./modules/rbac/rbac.module";
 import { DatabaseModule } from "./common/database/database.module";
 import { LoggerModule } from "./common/logger/logger.module";
 import { RedisModule } from "./redis/redis.module";
@@ -22,6 +23,7 @@ const conditionalModules = process.env.WORKERS_ENABLED === "true" ? [WorkersModu
     NotificationModule,
     AuthModule,
     UserModule,
+    RbacModule,
     ...conditionalModules,
   ],
   controllers: [HealthController],

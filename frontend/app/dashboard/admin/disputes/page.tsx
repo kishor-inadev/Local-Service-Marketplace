@@ -2,6 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from '@/components/ui/Button';
@@ -40,6 +42,7 @@ const mapDisputeSortBy = (field?: string): "createdAt" | "status" | "resolvedAt"
 
 export default function AdminDisputesPage() {
   const { user } = useAuth();
+  const { can } = usePermissions();
 	const [serverSorting, setServerSorting] = useState<SortingState>([{ id: "created_at", desc: true }]);
 	const [serverFilters, setServerFilters] = useState<ColumnFiltersState>([]);
 	const [serverPageIndex, setServerPageIndex] = useState(0);
@@ -66,7 +69,7 @@ export default function AdminDisputesPage() {
 				sortBy: mapDisputeSortBy(activeSort?.id),
 				sortOrder: activeSort?.desc ? "desc" : "asc",
 			}),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.DISPUTES_MANAGE),
 		placeholderData: (previousData) => previousData,
 	});
 
@@ -91,12 +94,12 @@ export default function AdminDisputesPage() {
 	const { data: disputeStats } = useQuery({
 		queryKey: ["admin-disputes-stats"],
 		queryFn: () => adminService.getDisputeStats(),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.DISPUTES_MANAGE),
 		staleTime: 60_000,
 	});
 
   return (
-		<ProtectedRoute requiredRoles={["admin"]}>
+		<ProtectedRoute requiredPermissions={[Permission.DISPUTES_MANAGE]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					<div className='mb-8'>

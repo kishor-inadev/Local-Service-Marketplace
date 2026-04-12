@@ -33,7 +33,7 @@ export class UserRepository {
     id = await resolveId(this.pool, "users", id);
     // Excludes password_hash — use findByEmail for auth lookups that need it
     const query = `
-      SELECT id, display_id, email, name, phone, role, status, email_verified, profile_picture_url,
+      SELECT id, display_id, email, name, phone, role, role_id, status, email_verified, profile_picture_url,
              timezone, language, created_at, updated_at, last_login_at, deleted_at
       FROM users WHERE id = $1 AND deleted_at IS NULL
     `;
@@ -150,7 +150,7 @@ export class UserRepository {
       queryDto.sortOrder?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 
     const query = `
-      SELECT id, display_id, email, name, phone, role, status, email_verified, profile_picture_url,
+      SELECT id, display_id, email, name, phone, role, role_id, status, email_verified, profile_picture_url,
              timezone, language, created_at, updated_at, last_login_at, deleted_at
       FROM users
       ${whereClause}
@@ -173,13 +173,14 @@ export class UserRepository {
     passwordHash: string,
   ): Promise<User> {
     const query = `
-      INSERT INTO users (email, name, phone, password_hash, role, email_verified, timezone, language, status)
+      INSERT INTO users (email, name, phone, password_hash, role, role_id, email_verified, timezone, language, status)
       VALUES (
         $1,
         $2,
         NULLIF($3, ''),
         $4,
         $5,
+        (SELECT id FROM roles WHERE name = $5),
         $6,
         COALESCE(NULLIF($7, ''), 'UTC'),
         COALESCE(NULLIF($8, ''), 'en'),

@@ -25,8 +25,7 @@ import { UserService } from "../services/user.service";
 import { UpdateUserDto } from "../dto/update-user.dto";
 import { UserResponseDto } from "../dto/user-response.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
-import { RolesGuard } from "../../../common/guards/roles.guard";
-import { Roles } from "../../../common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { AdminUserListQueryDto } from "../dto/admin-user-list-query.dto";
 import { AdminCreateUserDto } from "../dto/admin-create-user.dto";
 import {
@@ -48,7 +47,7 @@ export class UserController {
    * Admin: list users
    * GET /users
    */
-  @Roles("admin")
+  @RequirePermissions('users.list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get()
   @HttpCode(HttpStatus.OK)
@@ -65,7 +64,7 @@ export class UserController {
    * Admin: user stats
    * GET /users/stats
    */
-  @Roles("admin")
+  @RequirePermissions('users.list')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get("stats")
   @HttpCode(HttpStatus.OK)
@@ -79,7 +78,7 @@ export class UserController {
    * Admin: create user
    * POST /users
    */
-  @Roles("admin")
+  @RequirePermissions('users.create')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -188,7 +187,7 @@ export class UserController {
    * Admin: get user by ID
    * GET /users/:id
    */
-  @Roles("admin")
+  @RequirePermissions('users.read')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(":id")
   @HttpCode(HttpStatus.OK)
@@ -207,7 +206,7 @@ export class UserController {
    * Admin: suspend user
    * PATCH /users/:id/suspend
    */
-  @Roles("admin")
+  @RequirePermissions('users.update')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(":id/suspend")
   @HttpCode(HttpStatus.OK)
@@ -228,7 +227,7 @@ export class UserController {
    * Admin: activate user
    * PATCH /users/:id/activate
    */
-  @Roles("admin")
+  @RequirePermissions('users.update')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(":id/activate")
   @HttpCode(HttpStatus.OK)
@@ -247,7 +246,7 @@ export class UserController {
    * Admin: reset user password
    * PATCH /users/:id/reset-password
    */
-  @Roles("admin")
+  @RequirePermissions('users.update')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(":id/reset-password")
   @HttpCode(HttpStatus.OK)
@@ -267,7 +266,7 @@ export class UserController {
    * Admin: ban user
    * PATCH /users/:id/ban
    */
-  @Roles("admin")
+  @RequirePermissions('users.update')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(":id/ban")
   @HttpCode(HttpStatus.OK)
@@ -288,7 +287,7 @@ export class UserController {
    * Admin: restore deleted user
    * PATCH /users/:id/restore
    */
-  @Roles("admin")
+  @RequirePermissions('users.update')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(":id/restore")
   @HttpCode(HttpStatus.OK)
@@ -307,7 +306,7 @@ export class UserController {
    * Admin: update user by ID
    * PATCH /users/:id
    */
-  @Roles("admin")
+  @RequirePermissions('users.update')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
@@ -327,7 +326,7 @@ export class UserController {
    * Admin: soft-delete user
    * DELETE /users/:id
    */
-  @Roles("admin")
+  @RequirePermissions('users.delete')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(":id")
   @HttpCode(HttpStatus.OK)

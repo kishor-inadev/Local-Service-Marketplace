@@ -4,6 +4,8 @@ import { useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { ROUTES } from "@/config/constants";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
@@ -144,6 +146,7 @@ function JobCheckout({ jobId }: { jobId: string }) {
 function SubscriptionCheckout({ planId }: { planId: string | null }) {
 	const router = useRouter();
 	const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+	const { can } = usePermissions();
 
 	useEffect(() => {
 		if (!authLoading && !isAuthenticated) {
@@ -154,7 +157,7 @@ function SubscriptionCheckout({ planId }: { planId: string | null }) {
 	const { data: provider, isLoading: providerLoading } = useQuery({
 		queryKey: ["provider-profile-by-user", user?.id],
 		queryFn: () => getProviderProfileByUserId(user!.id),
-		enabled: isAuthenticated && user?.role === "provider" && !!user?.id,
+		enabled: isAuthenticated && can(Permission.SUBSCRIPTIONS_MANAGE) && !!user?.id,
 	});
 
 	const { data: plans, isLoading: plansLoading } = useQuery({

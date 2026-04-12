@@ -31,8 +31,7 @@ import { AuditLogQueryDto } from "./dto/audit-log-query.dto";
 import { ContactMessageListQueryDto } from "./dto/contact-message-list-query.dto";
 import { SystemSettingQueryDto } from "./dto/system-setting-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 
 @Controller("admin")
 export class AdminController {
@@ -44,28 +43,28 @@ export class AdminController {
 	) { }
 
 	// ── Dispute Management Endpoints (admin only) ──────────
-	@Roles("admin")
+	@RequirePermissions('disputes.view_stats')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes/stats")
 	async getDisputeStats() {
 		return this.disputeService.getDisputeStats();
 	}
 
-	@Roles("admin")
+	@RequirePermissions('disputes.read')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes")
 	async getDisputes(@Query() queryDto: DisputeListQueryDto) {
 		return this.disputeService.getAllDisputes(queryDto);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('disputes.read')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("disputes/:id")
 	async getDisputeById(@Param("id", FlexibleIdPipe) id: string) {
 		return this.disputeService.getDisputeById(id);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('disputes.manage')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("disputes/:id")
 	async updateDispute(
@@ -77,14 +76,14 @@ export class AdminController {
 	}
 
 	// Audit Log Endpoints
-	@Roles("admin")
+	@RequirePermissions('audit.view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("audit-logs")
 	async getAuditLogs(@Query() queryDto: AuditLogQueryDto) {
 		return this.auditLogService.getAuditLogs(queryDto);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('audit.view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("audit-logs/entity/:entity/:entityId")
 	async getAuditLogsByEntity(@Param("entity") entity: string, @Param("entityId", ParseUUIDPipe) entityId: string) {
@@ -93,21 +92,21 @@ export class AdminController {
 	}
 
 	// System Settings Endpoints
-	@Roles("admin")
+	@RequirePermissions('settings.manage')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("settings")
 	async getSettings(@Query() queryDto: SystemSettingQueryDto) {
 		return this.systemSettingService.getAllSettings(queryDto);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('settings.manage')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("settings/:key")
 	async getSettingByKey(@Param("key") key: string) {
 		return this.systemSettingService.getSettingByKey(key);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('settings.manage')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("settings/:key")
 	async updateSetting(
@@ -133,35 +132,35 @@ export class AdminController {
 		return this.contactMessageService.createContactMessage(createContactMessageDto);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('admin.contact_view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("contact")
 	async getContactMessages(@Query() queryDto: ContactMessageListQueryDto) {
 		return this.contactMessageService.getAllContactMessages(queryDto);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('admin.contact_view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("contact/email/:email")
 	async getContactMessagesByEmail(@Param("email") email: string) {
 		return this.contactMessageService.getContactMessagesByEmail(email);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('admin.contact_view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("contact/user/:userId")
 	async getContactMessagesByUserId(@Param("userId", FlexibleIdPipe) userId: string) {
 		return this.contactMessageService.getContactMessagesByUserId(userId);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('admin.contact_view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Get("contact/:id")
 	async getContactMessageById(@Param("id", ParseUUIDPipe) id: string) {
 		return this.contactMessageService.getContactMessageById(id);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('admin.contact_view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Patch("contact/:id")
 	@HttpCode(HttpStatus.OK)
@@ -173,7 +172,7 @@ export class AdminController {
 		return this.contactMessageService.updateContactMessage(id, updateContactMessageDto, adminId);
 	}
 
-	@Roles("admin")
+	@RequirePermissions('admin.contact_view')
 	@UseGuards(JwtAuthGuard, RolesGuard)
 	@Delete("contact/:id")
 	@HttpCode(HttpStatus.OK)

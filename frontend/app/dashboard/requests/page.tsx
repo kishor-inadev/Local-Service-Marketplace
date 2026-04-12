@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -66,7 +68,7 @@ export default function RequestsPage() {
 	}
 
 	return (
-		<ProtectedRoute requiredRoles={["customer", "provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.REQUESTS_CREATE, Permission.REQUESTS_BROWSE]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					{error ?

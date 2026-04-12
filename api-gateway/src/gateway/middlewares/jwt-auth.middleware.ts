@@ -17,6 +17,7 @@ interface UserInfo {
   userId: string;
   email: string;
   role: string;
+  permissions?: string[];
   name?: string;
   phone?: string;
   providerId?: string;
@@ -213,6 +214,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
         userId: decoded.sub || decoded.userId || decoded.id,
         email: decoded.email,
         role: decoded.role || "user",
+        permissions: Array.isArray(decoded.permissions) ? decoded.permissions : [],
         name: decoded.name,
         phone: decoded.phone,
         providerId: decoded.providerId,
@@ -252,6 +254,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
         userId: data.userId,
         email: data.email,
         role: data.role,
+        permissions: Array.isArray(data.permissions) ? data.permissions : [],
         name: data.name,
         phone: data.phone,
         providerId: data.providerId,

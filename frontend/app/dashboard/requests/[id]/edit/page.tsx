@@ -6,6 +6,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { useAuth } from "@/hooks/useAuth";
 import { ROUTES } from "@/config/constants";
+import { Permission } from "@/utils/permissions";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -98,7 +99,7 @@ export default function EditRequestPage() {
 	}
 
 	return (
-		<ProtectedRoute requiredRoles={["customer"]}>
+		<ProtectedRoute requiredPermissions={[Permission.REQUESTS_UPDATE]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					<div className='max-w-2xl mx-auto'>

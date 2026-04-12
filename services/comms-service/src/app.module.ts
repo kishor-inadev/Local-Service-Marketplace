@@ -25,7 +25,7 @@ const workerModules = process.env.WORKERS_ENABLED === 'true' ? [WorkersModule] :
     DatabaseModule,
     BullMQCoreModule,
     QueueModule,
-    KafkaModule,
+    KafkaModule.register(),
     NotificationModule,
     MessagingModule,
     ...workerModules,

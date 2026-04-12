@@ -17,6 +17,7 @@ export interface ProviderData {
   business_name: string;
   email?: string;
   phone?: string;
+  verification_status?: string;
 }
 
 @Injectable()

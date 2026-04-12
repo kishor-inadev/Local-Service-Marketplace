@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -23,6 +25,7 @@ export default function AdminUserDetailPage() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { user: currentUser } = useAuth();
+	const { can } = usePermissions();
 	const userId = params.id as string;
 	const [suspendReason, setSuspendReason] = useState("");
 	const [showSuspendForm, setShowSuspendForm] = useState(false);
@@ -35,7 +38,7 @@ export default function AdminUserDetailPage() {
 	} = useQuery({
 		queryKey: ["admin-user", userId],
 		queryFn: () => adminService.getUserById(userId),
-		enabled: !!userId && currentUser?.role === "admin",
+		enabled: !!userId && can(Permission.USERS_READ),
 	});
 
 	const suspendMutation = useMutation({
@@ -71,7 +74,7 @@ export default function AdminUserDetailPage() {
 	});
 
 	return (
-		<ProtectedRoute requiredRoles={["admin"]}>
+		<ProtectedRoute requiredPermissions={[Permission.USERS_READ]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					{/* Back */}

@@ -18,8 +18,7 @@ import { RefundRepository } from "../repositories/refund.repository";
 import { PaymentRepository } from "../repositories/payment.repository";
 import { RequestRefundDto } from "../dto/request-refund.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { ForbiddenException, NotFoundException } from "@/common/exceptions/http.exceptions";
 
 @Controller("refunds")
@@ -50,7 +49,7 @@ export class RefundController {
     }
     
     // Only the payment owner or admin can request refunds
-    if (payment.user_id !== req.user.userId && req.user.role !== "admin") {
+    if (payment.user_id !== req.user.userId && !req.user.permissions?.includes('payments.manage')) {
       throw new ForbiddenException(
         "You do not have permission to request a refund for this payment"
       );
@@ -85,7 +84,7 @@ export class RefundController {
     const payment = await this.paymentRepository.getPaymentById(refund.payment_id);
     
     // Only the payment owner or admin can view refund details
-    if (payment.user_id !== req.user.userId && req.user.role !== "admin") {
+    if (payment.user_id !== req.user.userId && !req.user.permissions?.includes('payments.manage')) {
       throw new ForbiddenException(
         "You do not have permission to view this refund"
       );
@@ -116,7 +115,7 @@ export class RefundController {
     }
     
     // Only the payment owner or admin can view refunds for a payment
-    if (payment.user_id !== req.user.userId && req.user.role !== "admin") {
+    if (payment.user_id !== req.user.userId && !req.user.permissions?.includes('payments.manage')) {
       throw new ForbiddenException(
         "You do not have permission to view refunds for this payment"
       );
@@ -137,7 +136,7 @@ export class RefundController {
    */
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('refunds.manage')
   @HttpCode(HttpStatus.OK)
   async getAllRefunds(
     @Query("limit") limit: string = "50",

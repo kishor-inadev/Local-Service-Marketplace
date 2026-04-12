@@ -39,6 +39,7 @@ describe("PaymentService list validation", () => {
       makeKafka(),
       {} as any,
       { getUserById: jest.fn().mockResolvedValue(null) } as any, // userClient
+      { getJobById: jest.fn().mockResolvedValue(null) } as any,  // jobClient
       makeAnalytics(),
       makeGateway(),
     );
@@ -122,6 +123,7 @@ describe("PaymentService.createPayment", () => {
       kafka,
       notificationClient,
       userClient,
+      { getJobById: jest.fn().mockResolvedValue(null) } as any,  // jobClient
       analytics,
       gateway,
     );

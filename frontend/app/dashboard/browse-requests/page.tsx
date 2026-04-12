@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { useRouter } from 'next/navigation';
 
 import { Layout } from '@/components/layout/Layout';
@@ -21,6 +23,7 @@ import { getProviderProfileByUserId } from '@/services/user-service';
 export default function BrowseRequestsPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useAuth();
+	const { can } = usePermissions();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [statusFilter, setStatusFilter] = useState<string>('open');
@@ -29,7 +32,7 @@ export default function BrowseRequestsPage() {
   const { data: provider } = useQuery({
     queryKey: ['provider-profile-by-user', user?.id],
     queryFn: () => getProviderProfileByUserId(user!.id),
-    enabled: isAuthenticated && user?.role === 'provider' && !!user?.id,
+    enabled: isAuthenticated && can(Permission.REQUESTS_BROWSE) && !!user?.id,
   });
 
   // Fetch all open requests (marketplace view for providers)
@@ -47,7 +50,7 @@ export default function BrowseRequestsPage() {
 				search: searchTerm || undefined,
 				limit: 100,
 			}),
-		enabled: isAuthenticated && user?.role === "provider",
+		enabled: isAuthenticated && can(Permission.REQUESTS_BROWSE),
 	});
 
   const { data: categories } = useQuery({
@@ -62,7 +65,7 @@ export default function BrowseRequestsPage() {
   const proposalTargetRequest = filteredRequests.find((r: any) => r.id === proposalTargetId);
 
   return (
-		<ProtectedRoute requiredRoles={["provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.REQUESTS_BROWSE]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					{error ?

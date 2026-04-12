@@ -65,8 +65,8 @@ export class MessageService {
       "MessageService",
     );
 
-    // RBAC: Verify user is participant or admin
-    if (user.role !== "admin") {
+    // RBAC: Verify user is participant or has manage permission
+    if (!user.permissions?.includes('messages.manage')) {
       const conversations = await this.messageRepository.getUserConversations(
         user.userId,
       );

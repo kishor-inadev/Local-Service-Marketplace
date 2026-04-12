@@ -58,8 +58,9 @@ export class OwnershipGuard implements CanActivate {
       throw new ForbiddenException("Authentication required");
     }
 
-    // Admins bypass ownership checks
-    if (user.role === "admin") {
+    // Users with manage permission for the resource bypass ownership checks
+    const managePermission = `${config.resourceType}s.manage`;
+    if (user.permissions?.includes(managePermission) || user.permissions?.includes('admin.access')) {
       return true;
     }
 

@@ -18,8 +18,8 @@ export class UserRepository {
     language?: string,
   ): Promise<User> {
     const query = `
-      INSERT INTO users (email, password_hash, role, phone, name, timezone, language, email_verified, phone_verified, status)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, false, false, 'active')
+      INSERT INTO users (email, password_hash, role, role_id, phone, name, timezone, language, email_verified, phone_verified, status)
+      VALUES ($1, $2, $3, (SELECT id FROM roles WHERE name = $3), $4, $5, $6, $7, false, false, 'active')
       RETURNING *
     `;
     const result = await this.pool.query(query, [
@@ -28,8 +28,8 @@ export class UserRepository {
       role,
       phone || null,
       name || null,
-      timezone || "UTC", // ✅ NEW
-      language || "en", // ✅ NEW
+      timezone || "UTC",
+      language || "en",
     ]);
     return result.rows[0];
   }
@@ -322,10 +322,10 @@ export class UserRepository {
   ): Promise<User> {
     const query = `
       INSERT INTO users (
-        email, password_hash, role, phone, name,
+        email, password_hash, role, role_id, phone, name,
         email_verified, phone_verified, status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, false, $7)
+      VALUES ($1, $2, $3, (SELECT id FROM roles WHERE name = $3), $4, $5, $6, false, $7)
       RETURNING *
     `;
     const result = await this.pool.query(query, [

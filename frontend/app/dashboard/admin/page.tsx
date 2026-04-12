@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { ROUTES } from "@/config/constants";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
@@ -17,6 +19,7 @@ import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 export default function AdminDashboardPage() {
 	const { user } = useAuth();
+	const { can } = usePermissions();
 
 	const {
 		data: users,
@@ -26,7 +29,7 @@ export default function AdminDashboardPage() {
 	} = useQuery({
 		queryKey: ["admin-users-recent"],
 		queryFn: () => adminService.getUsers({ page: 1, limit: 5 }),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.ADMIN_ACCESS),
 	});
 
 	const {
@@ -36,41 +39,41 @@ export default function AdminDashboardPage() {
 	} = useQuery({
 		queryKey: ["admin-disputes-recent"],
 		queryFn: () => adminService.getDisputes({ page: 1, limit: 5 }),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.ADMIN_ACCESS),
 	});
 
 	const { data: userStats } = useQuery({
 		queryKey: ["admin-users-stats"],
 		queryFn: () => adminService.getSystemStats(),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.ADMIN_ACCESS),
 		staleTime: 60_000,
 	});
 
 	const { data: disputeStats } = useQuery({
 		queryKey: ["admin-disputes-stats"],
 		queryFn: () => adminService.getDisputeStats(),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.ADMIN_ACCESS),
 		staleTime: 60_000,
 	});
 
 	const { data: jobStats } = useQuery({
 		queryKey: ["admin-jobs-stats"],
 		queryFn: () => adminService.getJobStats(),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.ADMIN_ACCESS),
 		staleTime: 60_000,
 	});
 
 	const { data: requestStats } = useQuery({
 		queryKey: ["admin-requests-stats"],
 		queryFn: () => adminService.getRequestStats(),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.ADMIN_ACCESS),
 		staleTime: 60_000,
 	});
 
 	const { data: paymentStats } = useQuery({
 		queryKey: ["admin-payments-stats"],
 		queryFn: () => adminService.getPaymentStats(),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.ADMIN_ACCESS),
 		staleTime: 60_000,
 	});
 
@@ -86,7 +89,7 @@ export default function AdminDashboardPage() {
 	const disputeRate = totalJobs > 0 ? Math.round(((jobStats?.byStatus?.disputed ?? 0) / totalJobs) * 100) : 0;
 
 	return (
-		<ProtectedRoute requiredRoles={["admin"]}>
+		<ProtectedRoute requiredPermissions={[Permission.ADMIN_ACCESS]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					{usersError || disputesError ?

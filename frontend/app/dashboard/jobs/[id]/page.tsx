@@ -4,6 +4,8 @@ import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -23,6 +25,7 @@ export default function JobDetailPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { can } = usePermissions();
   const jobId = params.id as string;
 
   useEffect(() => {
@@ -105,8 +108,8 @@ export default function JobDetailPage() {
 		);
   }
 
-  const isProvider = user?.role === 'provider';
-  const isCustomer = user?.role === 'customer';
+  const isProvider = can(Permission.PROVIDER_PROFILE_VIEW);
+  const isCustomer = !isProvider && isAuthenticated;
   const canStartJob = isProvider && job.status === 'scheduled';
   const canCompleteJob = isProvider && job.status === 'in_progress';
   const canPayJob = isCustomer && job.status === "completed";

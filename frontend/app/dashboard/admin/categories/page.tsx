@@ -121,7 +121,7 @@ export default function AdminCategoriesPage() {
   });
 
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredPermissions={[Permission.CATEGORIES_MANAGE]}>
       <Layout>
         <div className="container-custom py-12">
           <div className="flex items-center justify-between mb-8">

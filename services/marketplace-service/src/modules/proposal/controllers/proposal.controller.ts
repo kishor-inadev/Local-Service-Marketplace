@@ -25,8 +25,7 @@ import {
   PaginatedProposalResponseDto,
 } from "../dto/proposal-response.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { OwnershipGuard } from "@/common/guards/ownership.guard";
 import { Ownership } from "@/common/decorators/ownership.decorator";
 
@@ -35,7 +34,7 @@ import { Ownership } from "@/common/decorators/ownership.decorator";
 export class ProposalController {
   constructor(private readonly proposalService: ProposalService) {}
 
-  @Roles("provider", "admin")
+  @RequirePermissions('proposals.create')
   @UseGuards(RolesGuard)
   @Post("proposals")
   @HttpCode(HttpStatus.CREATED)
@@ -80,7 +79,7 @@ export class ProposalController {
     return this.proposalService.getProposalsForRequest(requestId, req.user);
   }
 
-  @Roles("customer", "admin")
+  @RequirePermissions('proposals.accept')
   @UseGuards(RolesGuard)
   @Post("proposals/:id/accept")
   @HttpCode(HttpStatus.OK)
@@ -92,10 +91,11 @@ export class ProposalController {
       id,
       req.user.userId,
       req.user.role,
+      req.user.permissions,
     );
   }
 
-  @Roles("customer", "admin")
+  @RequirePermissions('proposals.accept')
   @UseGuards(RolesGuard)
   @Post("proposals/:id/reject")
   @HttpCode(HttpStatus.OK)
@@ -109,6 +109,7 @@ export class ProposalController {
       req.user.userId,
       req.user.role,
       rejectDto.reason,
+      req.user.permissions,
     );
   }
 

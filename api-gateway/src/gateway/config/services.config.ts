@@ -58,6 +58,8 @@ export const routingConfig = {
   "/provider-documents": "identity-service",
   "/provider-portfolio": "identity-service",
   "/favorites": "identity-service",
+  "/roles": "identity-service",
+  "/permissions": "identity-service",
   // marketplace-service (requests + proposals + jobs + reviews)
   "/requests": "marketplace-service",
   "/categories": "marketplace-service",

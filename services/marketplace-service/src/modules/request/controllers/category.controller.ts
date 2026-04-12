@@ -14,8 +14,7 @@ import {
 } from "@nestjs/common";
 import { CategoryService } from "../services/category.service";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { UpdateCategoryDto } from "../dto/update-category.dto";
 
 @Controller("categories")
@@ -46,7 +45,7 @@ export class CategoryController {
     return this.categoryService.getCategoryById(id);
   }
 
-  @Roles("admin")
+  @RequirePermissions('categories.manage')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -54,7 +53,7 @@ export class CategoryController {
     return this.categoryService.createCategory(name);
   }
 
-  @Roles("admin")
+  @RequirePermissions('categories.manage')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
@@ -70,7 +69,7 @@ export class CategoryController {
     };
   }
 
-  @Roles("admin")
+  @RequirePermissions('categories.manage')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Delete(":id")
   @HttpCode(HttpStatus.OK)

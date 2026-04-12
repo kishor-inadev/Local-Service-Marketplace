@@ -199,6 +199,9 @@ export class GatewayService {
       sanitized["x-user-id"] = user.userId || user.sub || user.id || "";
       sanitized["x-user-email"] = user.email || "";
       sanitized["x-user-role"] = user.role || "user";
+      sanitized["x-user-permissions"] = JSON.stringify(
+        Array.isArray(user.permissions) ? user.permissions : [],
+      );
 
       // Optional: Add other user fields if present
       if (user.name) {
@@ -214,7 +217,8 @@ export class GatewayService {
       // Sign user context headers with HMAC to prevent tampering
       if (this.gatewaySecret) {
         const providerId = sanitized["x-provider-id"] || "none";
-        const hmacPayload = `${sanitized["x-user-id"]}:${sanitized["x-user-email"]}:${sanitized["x-user-role"]}:${providerId}`;
+        const permissionsHash = sanitized["x-user-permissions"];
+        const hmacPayload = `${sanitized["x-user-id"]}:${sanitized["x-user-email"]}:${sanitized["x-user-role"]}:${providerId}:${permissionsHash}`;
         sanitized["x-gateway-hmac"] = crypto
           .createHmac("sha256", this.gatewaySecret)
           .update(hmacPayload)
@@ -230,10 +234,11 @@ export class GatewayService {
       sanitized["x-user-id"] = "anonymous";
       sanitized["x-user-email"] = "anonymous@example.com";
       sanitized["x-user-role"] = "anonymous";
+      sanitized["x-user-permissions"] = "[]";
 
       // Sign anonymous user context headers
       if (this.gatewaySecret) {
-        const hmacPayload = `anonymous:anonymous@example.com:anonymous:none`;
+        const hmacPayload = `anonymous:anonymous@example.com:anonymous:none:[]`;
         sanitized["x-gateway-hmac"] = crypto
           .createHmac("sha256", this.gatewaySecret)
           .update(hmacPayload)

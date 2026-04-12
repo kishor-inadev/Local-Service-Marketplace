@@ -66,7 +66,7 @@ export default function AdminCreateUserPage() {
 	};
 
 	return (
-		<ProtectedRoute requiredRoles={["admin"]}>
+		<ProtectedRoute requiredPermissions={[Permission.USERS_CREATE]}>
 			<Layout>
 				<div className='container-custom py-10'>
 					<div className='mb-8 flex items-start justify-between gap-4'>

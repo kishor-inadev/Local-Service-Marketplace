@@ -26,8 +26,7 @@ import { CreatePaymentDto } from "../dto/create-payment.dto";
 import { RequestRefundDto } from "@/payment/dto/request-refund.dto";
 import { TransactionQueryDto } from "../dto/transaction-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { ForbiddenException } from "@/common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../common/file-service.client";
 import "multer";
@@ -47,7 +46,7 @@ export class PaymentController {
    */
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("customer", "admin")
+  @RequirePermissions('payments.create')
   @HttpCode(HttpStatus.CREATED)
   async createPayment(
     @Body() createPaymentDto: CreatePaymentDto,
@@ -73,7 +72,7 @@ export class PaymentController {
    */
   @Get("stats")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('payments.manage')
   @HttpCode(HttpStatus.OK)
   async getPaymentStats() {
     return this.paymentService.getPaymentStats();
@@ -104,7 +103,7 @@ export class PaymentController {
     const payments = await this.paymentService.getPaymentsByJobId(jobId);
 
     // RBAC: Check if the user is authorized to view payments for this job
-    if (payments.length > 0 && req.user.role !== "admin") {
+    if (payments.length > 0 && !req.user.permissions?.includes('payments.manage')) {
       const isCustomer = payments.some((p) => p.user_id === req.user.userId);
       const isProvider = payments.some((p) => p.provider_id === req.user.userId);
       if (!isCustomer && !isProvider) {
@@ -130,7 +129,7 @@ export class PaymentController {
     @Query("start_date") startDate?: string,
     @Query("end_date") endDate?: string,
   ) {
-    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+    if (!req.user.permissions?.includes('payments.manage') && req.user.providerId !== providerId) {
       throw new ForbiddenException("You can only view your own earnings summary");
     }
     const start = startDate ? new Date(startDate) : undefined;
@@ -150,7 +149,7 @@ export class PaymentController {
     @Request() req: any,
     @Query() queryDto: TransactionQueryDto,
   ) {
-    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+    if (!req.user.permissions?.includes('payments.manage') && req.user.providerId !== providerId) {
       throw new ForbiddenException("You can only view your own transaction history");
     }
     return this.paymentService.getProviderTransactions(providerId, queryDto);
@@ -162,7 +161,7 @@ export class PaymentController {
     @Param("providerId", FlexibleIdPipe) providerId: string,
     @Request() req: any,
   ) {
-    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+    if (!req.user.permissions?.includes('payments.manage') && req.user.providerId !== providerId) {
       throw new ForbiddenException("You can only view your own payout history");
     }
     const payouts = await this.paymentService.getProviderPayouts(providerId);
@@ -182,7 +181,7 @@ export class PaymentController {
   ) {
     const payment = await this.paymentService.getPaymentById(id);
     if (
-      req.user.role !== "admin" &&
+      !req.user.permissions?.includes('payments.manage') &&
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
@@ -207,7 +206,7 @@ export class PaymentController {
   ) {
     const payment = await this.paymentService.getPaymentById(id);
     if (
-      req.user.role !== "admin" &&
+      !req.user.permissions?.includes('payments.manage') &&
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
@@ -238,7 +237,7 @@ export class PaymentController {
     @Request() req: any,
   ) {
     const payment = await this.paymentService.getPaymentById(id);
-    if (req.user.role !== "admin" && payment.user_id !== req.user.userId) {
+    if (!req.user.permissions?.includes('payments.manage') && payment.user_id !== req.user.userId) {
       throw new ForbiddenException(
         "Only the customer who made this payment can request a refund",
       );
@@ -268,7 +267,7 @@ export class PaymentController {
   ) {
     const payment = await this.paymentService.getPaymentById(id);
     if (
-      req.user.role !== "admin" &&
+      !req.user.permissions?.includes('payments.manage') &&
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
@@ -294,7 +293,7 @@ export class PaymentController {
   ) {
     const payment = await this.paymentService.getPaymentById(id);
     if (
-      req.user.role !== "admin" &&
+      !req.user.permissions?.includes('payments.manage') &&
       payment.user_id !== req.user.userId &&
       payment.provider_id !== req.user.userId
     ) {
@@ -342,7 +341,7 @@ export class PaymentController {
     const payment = await this.paymentService.getPaymentById(paymentId);
     const isCustomer = payment.user_id === req.user.userId;
     const isProvider = payment.provider_id === req.user.userId;
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = req.user.permissions?.includes('payments.manage');
 
     if (!isCustomer && !isProvider && !isAdmin) {
       throw new ForbiddenException(

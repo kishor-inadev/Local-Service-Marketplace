@@ -24,7 +24,7 @@ import { FeatureFlagRepository } from './repositories/feature-flag.repository';
 
 // Guards
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
-import { RolesGuard } from '../common/guards/roles.guard';
+import { PermissionsGuard as RolesGuard } from '@/common/rbac';
 
 @Module({
   imports: [

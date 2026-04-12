@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -32,6 +34,7 @@ export default function AdminDisputeDetailPage() {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const { user: currentUser } = useAuth();
+	const { can } = usePermissions();
 	const disputeId = params.id as string;
 
 	const [resolution, setResolution] = useState("");
@@ -45,7 +48,7 @@ export default function AdminDisputeDetailPage() {
 	} = useQuery({
 		queryKey: ["admin-dispute", disputeId],
 		queryFn: () => adminService.getDisputeById(disputeId),
-		enabled: !!disputeId && currentUser?.role === "admin",
+		enabled: !!disputeId && can(Permission.DISPUTES_MANAGE),
 	});
 
 	const updateMutation = useMutation({
@@ -88,7 +91,7 @@ export default function AdminDisputeDetailPage() {
 	});
 
 	return (
-		<ProtectedRoute requiredRoles={["admin"]}>
+		<ProtectedRoute requiredPermissions={[Permission.DISPUTES_MANAGE]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					{/* Back */}

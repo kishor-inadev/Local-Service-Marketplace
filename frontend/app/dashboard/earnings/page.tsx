@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { usePagination } from "@/hooks/usePagination";
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/config/constants';
@@ -23,6 +25,7 @@ type TransactionSortField = "date" | "id" | "customer" | "total_amount" | "platf
 
 export default function EarningsPage() {
 	const { user, isAuthenticated } = useAuth();
+	const { can } = usePermissions();
 	const [dateRange, setDateRange] = useState<string>("all");
 	const [sortField, setSortField] = useState<TransactionSortField>("date");
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
@@ -37,7 +40,7 @@ export default function EarningsPage() {
 	} = useQuery({
 		queryKey: ["provider-profile-by-user", user?.id],
 		queryFn: () => getProviderProfileByUserId(user!.id),
-		enabled: isAuthenticated && user?.role === "provider" && !!user?.id,
+		enabled: isAuthenticated && can(Permission.EARNINGS_VIEW) && !!user?.id,
 	});
 
 	const providerId = provider?.id ?? "";
@@ -69,7 +72,7 @@ export default function EarningsPage() {
 
 			return paymentService.getProviderEarnings(providerId, startDate, endDate);
 		},
-		enabled: isAuthenticated && user?.role === "provider" && !!providerId,
+		enabled: isAuthenticated && can(Permission.EARNINGS_VIEW) && !!providerId,
 	});
 
 	// Fetch transaction history
@@ -81,7 +84,7 @@ export default function EarningsPage() {
 	} = useQuery({
 		queryKey: ["provider-transactions", providerId],
 		queryFn: () => paymentService.getProviderTransactions(providerId, 50),
-		enabled: isAuthenticated && user?.role === "provider" && !!providerId,
+		enabled: isAuthenticated && can(Permission.EARNINGS_VIEW) && !!providerId,
 	});
 
 	const {
@@ -92,7 +95,7 @@ export default function EarningsPage() {
 	} = useQuery({
 		queryKey: ["provider-payouts", providerId],
 		queryFn: () => paymentService.getProviderPayouts(providerId),
-		enabled: isAuthenticated && user?.role === "provider" && !!providerId,
+		enabled: isAuthenticated && can(Permission.EARNINGS_VIEW) && !!providerId,
 	});
 
 	const isLoading = providerLoading || earningsLoading || transactionsLoading || payoutsLoading;
@@ -175,7 +178,7 @@ export default function EarningsPage() {
 	};
 
 	return (
-		<ProtectedRoute requiredRoles={["provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.EARNINGS_VIEW]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					{providerError || earningsError || transactionsError || payoutsError ?

@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
@@ -47,6 +49,7 @@ export default function AvailabilityPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isAuthenticated } = useAuth();
+	const { can } = usePermissions();
   const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
   const [hasChanges, setHasChanges] = useState(false);
 
@@ -71,7 +74,7 @@ export default function AvailabilityPage() {
 				return null;
 			}
 		},
-		enabled: isAuthenticated && user?.role === "provider" && !!user?.id,
+		enabled: isAuthenticated && can(Permission.PROVIDER_AVAILABILITY_MANAGE) && !!user?.id,
 	});
 
   // Load existing availability when provider data is fetched
@@ -154,7 +157,7 @@ export default function AvailabilityPage() {
     setHasChanges(true);
   };
 
-  if (!isAuthenticated || user?.role !== 'provider') {
+  if (!isAuthenticated || !can(Permission.PROVIDER_AVAILABILITY_MANAGE)) {
     router.push(ROUTES.DASHBOARD);
     return null;
   }
@@ -183,7 +186,7 @@ export default function AvailabilityPage() {
   }
 
   return (
-    <ProtectedRoute requiredRoles={["provider"]}>
+    <ProtectedRoute requiredPermissions={[Permission.PROVIDER_AVAILABILITY_MANAGE]}>
       <Layout>
         <div className="container-custom py-12">
           {/* Header */}

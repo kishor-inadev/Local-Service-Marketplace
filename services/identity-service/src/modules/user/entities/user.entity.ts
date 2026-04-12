@@ -6,6 +6,7 @@ export interface User {
   phone?: string;
   password_hash: string;
   role: string; // 'customer' | 'provider' | 'admin'
+  role_id?: string;
   email_verified: boolean;
   phone_verified: boolean;
   profile_picture_url?: string;
