@@ -115,6 +115,9 @@ export default function SignupPage() {
       <div className="max-w-md w-full space-y-8">
         {/* Header */}
         <div>
+          <Link href='/' className='block text-center text-xl font-bold text-primary-600 dark:text-primary-400 mb-6 hover:text-primary-500 dark:hover:text-primary-300 transition-colors'>
+            Local Service Marketplace
+          </Link>
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900 dark:text-gray-100">
             Create your account
           </h2>
@@ -258,10 +261,10 @@ export default function SignupPage() {
                       className={`h-1.5 flex-1 rounded transition-colors ${
                         level <= passwordStrength
                           ? passwordStrength === 4
-                            ? 'bg-green-500'
+                            ? 'bg-green-500 dark:bg-green-400'
                             : passwordStrength === 3
-                            ? 'bg-yellow-500'
-                            : 'bg-orange-500'
+                            ? 'bg-yellow-500 dark:bg-yellow-400'
+                            : 'bg-orange-500 dark:bg-orange-400'
                           : 'bg-gray-300 dark:bg-gray-600'
                       }`}
                       aria-hidden="true"

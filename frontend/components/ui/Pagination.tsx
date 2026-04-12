@@ -106,7 +106,7 @@ export function Pagination({
 								page === "..." ?
 									<span
 										key={`ellipsis-${index}`}
-										className='px-3 py-1 text-gray-500'>
+										className='px-3 py-1 text-gray-500 dark:text-gray-400'>
 										...
 									</span>
 								:	<button

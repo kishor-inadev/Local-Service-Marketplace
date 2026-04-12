@@ -85,7 +85,7 @@ export default function AdminDashboard() {
                   {totalUsers}
                 </p>
               </div>
-              <Users className="h-8 w-8 text-blue-600" />
+              <Users className="h-8 w-8 text-blue-600 dark:text-blue-400" />
             </CardContent>
           </Card>
 
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
                   {activeDisputes}
                 </p>
               </div>
-              <AlertCircle className="h-8 w-8 text-red-600" />
+              <AlertCircle className="h-8 w-8 text-red-600 dark:text-red-400" />
             </CardContent>
           </Card>
 
@@ -113,7 +113,7 @@ export default function AdminDashboard() {
                   {totalDisputes}
                 </p>
               </div>
-              <FileText className="h-8 w-8 text-yellow-600" />
+              <FileText className="h-8 w-8 text-yellow-600 dark:text-yellow-400" />
             </CardContent>
           </Card>
 
@@ -127,7 +127,7 @@ export default function AdminDashboard() {
                   Healthy
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-green-600" />
+              <TrendingUp className="h-8 w-8 text-green-600 dark:text-green-400" />
             </CardContent>
           </Card>
         </div>

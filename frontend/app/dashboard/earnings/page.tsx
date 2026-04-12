@@ -214,7 +214,7 @@ export default function EarningsPage() {
 									<CardContent className='p-6'>
 										<div className='flex items-center justify-between mb-2'>
 											<p className='text-sm font-medium text-gray-600 dark:text-gray-400'>Total Earnings</p>
-											<DollarSign className='h-5 w-5 text-green-600' />
+											<DollarSign className='h-5 w-5 text-green-600 dark:text-green-400' />
 										</div>
 										<p className='text-3xl font-bold text-gray-900 dark:text-white'>
 											{earnings ? formatCurrency(earnings.summary.total_earnings) : formatCurrency(0)}
@@ -229,7 +229,7 @@ export default function EarningsPage() {
 									<CardContent className='p-6'>
 										<div className='flex items-center justify-between mb-2'>
 											<p className='text-sm font-medium text-gray-600 dark:text-gray-400'>Total Paid</p>
-											<TrendingUp className='h-5 w-5 text-blue-600' />
+											<TrendingUp className='h-5 w-5 text-blue-600 dark:text-blue-400' />
 										</div>
 										<p className='text-3xl font-bold text-gray-900 dark:text-white'>
 											{earnings ? formatCurrency(earnings.summary.total_paid) : formatCurrency(0)}
@@ -242,7 +242,7 @@ export default function EarningsPage() {
 									<CardContent className='p-6'>
 										<div className='flex items-center justify-between mb-2'>
 											<p className='text-sm font-medium text-gray-600 dark:text-gray-400'>Average per Job</p>
-											<DollarSign className='h-5 w-5 text-purple-600' />
+											<DollarSign className='h-5 w-5 text-purple-600 dark:text-purple-400' />
 										</div>
 										<p className='text-3xl font-bold text-gray-900 dark:text-white'>
 											{earnings ? formatCurrency(earnings.average_per_job) : formatCurrency(0)}
@@ -255,7 +255,7 @@ export default function EarningsPage() {
 									<CardContent className='p-6'>
 										<div className='flex items-center justify-between mb-2'>
 											<p className='text-sm font-medium text-gray-600 dark:text-gray-400'>Pending Payout</p>
-											<Calendar className='h-5 w-5 text-yellow-600' />
+											<Calendar className='h-5 w-5 text-yellow-600 dark:text-yellow-400' />
 										</div>
 										<p className='text-3xl font-bold text-gray-900 dark:text-white'>
 											{earnings ? formatCurrency(earnings.summary.pending_payout) : formatCurrency(0)}

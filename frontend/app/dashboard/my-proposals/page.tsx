@@ -98,9 +98,9 @@ export default function MyProposalsPage() {
 										<div className='flex items-center justify-between'>
 											<div>
 												<p className='text-sm text-gray-600 dark:text-gray-400'>Pending</p>
-												<p className='text-2xl font-bold text-yellow-600'>{proposalStats.pending}</p>
+												<p className='text-2xl font-bold text-yellow-600 dark:text-yellow-400'>{proposalStats.pending}</p>
 											</div>
-											<Clock className='h-8 w-8 text-yellow-600' />
+											<Clock className='h-8 w-8 text-yellow-600 dark:text-yellow-400' />
 										</div>
 									</CardContent>
 								</Card>
@@ -110,9 +110,9 @@ export default function MyProposalsPage() {
 										<div className='flex items-center justify-between'>
 											<div>
 												<p className='text-sm text-gray-600 dark:text-gray-400'>Accepted</p>
-												<p className='text-2xl font-bold text-green-600'>{proposalStats.accepted}</p>
+												<p className='text-2xl font-bold text-green-600 dark:text-green-400'>{proposalStats.accepted}</p>
 											</div>
-											<CheckCircle className='h-8 w-8 text-green-600' />
+											<CheckCircle className='h-8 w-8 text-green-600 dark:text-green-400' />
 										</div>
 									</CardContent>
 								</Card>
@@ -122,9 +122,9 @@ export default function MyProposalsPage() {
 										<div className='flex items-center justify-between'>
 											<div>
 												<p className='text-sm text-gray-600 dark:text-gray-400'>Rejected</p>
-												<p className='text-2xl font-bold text-red-600'>{proposalStats.rejected}</p>
+												<p className='text-2xl font-bold text-red-600 dark:text-red-400'>{proposalStats.rejected}</p>
 											</div>
-											<XCircle className='h-8 w-8 text-red-600' />
+											<XCircle className='h-8 w-8 text-red-600 dark:text-red-400' />
 										</div>
 									</CardContent>
 								</Card>
@@ -134,9 +134,9 @@ export default function MyProposalsPage() {
 										<div className='flex items-center justify-between'>
 											<div>
 												<p className='text-sm text-gray-600 dark:text-gray-400'>Withdrawn</p>
-												<p className='text-2xl font-bold text-gray-600'>{proposalStats.withdrawn}</p>
+												<p className='text-2xl font-bold text-gray-600 dark:text-gray-400'>{proposalStats.withdrawn}</p>
 											</div>
-											<AlertCircle className='h-8 w-8 text-gray-600' />
+											<AlertCircle className='h-8 w-8 text-gray-600 dark:text-gray-400' />
 										</div>
 									</CardContent>
 								</Card>
