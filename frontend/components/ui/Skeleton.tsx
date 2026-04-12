@@ -54,11 +54,16 @@ export function Skeleton({
 // Predefined skeleton patterns
 export function SkeletonCard() {
   return (
-    <div className="border rounded-lg p-4 space-y-3">
-      <Skeleton variant="text" width="60%" />
-      <Skeleton variant="text" width="40%" />
-      <Skeleton variant="rectangular" height={100} />
-      <div className="flex gap-2">
+    <div className="border border-gray-100 dark:border-gray-800 rounded-2xl p-5 space-y-3 bg-white dark:bg-gray-900">
+      <div className="flex items-center gap-3">
+        <Skeleton variant="circular" width={44} height={44} />
+        <div className="flex-1 space-y-1.5">
+          <Skeleton variant="text" width="55%" height={14} />
+          <Skeleton variant="text" width="35%" height={12} />
+        </div>
+      </div>
+      <Skeleton variant="rectangular" height={90} />
+      <div className="flex gap-2 pt-1">
         <Skeleton variant="rectangular" width={80} height={32} />
         <Skeleton variant="rectangular" width={80} height={32} />
       </div>
@@ -68,29 +73,30 @@ export function SkeletonCard() {
 
 export function SkeletonTable({ rows = 5 }: { rows?: number }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-0 divide-y divide-gray-100 dark:divide-gray-800">
       {Array.from({ length: rows }).map((_, index) => (
-        <div key={index} className="flex gap-4">
-          <Skeleton variant="rectangular" width="20%" />
-          <Skeleton variant="rectangular" width="30%" />
-          <Skeleton variant="rectangular" width="25%" />
-          <Skeleton variant="rectangular" width="25%" />
+        <div key={index} className="flex gap-4 py-3.5 items-center">
+          <Skeleton variant="rectangular" width="20%" height={12} />
+          <Skeleton variant="rectangular" width="30%" height={12} />
+          <Skeleton variant="rectangular" width="25%" height={12} />
+          <Skeleton variant="rectangular" width="15%" height={24} className="rounded-full" />
         </div>
       ))}
     </div>
   );
 }
 
-/** Stat card skeleton — matches the redesigned dashboard stat cards */
+/** Stat card skeleton */
 export function SkeletonStatCard() {
   return (
-    <div className="border border-gray-200 dark:border-gray-700 rounded-xl p-6 bg-white dark:bg-gray-800 animate-pulse">
+    <div className="border border-gray-100 dark:border-gray-800 rounded-2xl p-6 bg-white dark:bg-gray-900">
       <div className="flex items-center justify-between">
         <div className="space-y-2 flex-1">
-          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-1/2" />
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mt-3" />
+          <Skeleton variant="text" width="50%" height={12} />
+          <Skeleton variant="rectangular" width="40%" height={32} className="mt-2" />
+          <Skeleton variant="text" width="60%" height={11} className="mt-1" />
         </div>
-        <div className="h-12 w-12 rounded-2xl bg-gray-200 dark:bg-gray-700 ml-4 flex-shrink-0" />
+        <Skeleton variant="rectangular" width={48} height={48} className="rounded-2xl ml-4 flex-shrink-0" />
       </div>
     </div>
   );

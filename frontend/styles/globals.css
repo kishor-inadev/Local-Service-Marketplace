@@ -8,8 +8,12 @@
   }
 
   body {
-    @apply bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100;
+    @apply bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-100;
     font-feature-settings: "cv11", "ss01";
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-jakarta), var(--font-inter), system-ui, sans-serif;
   }
 }
 
@@ -40,7 +44,7 @@
 
   /* Focus visible utilities */
   .focus-visible-ring {
-    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800;
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500/60 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-900;
   }
 
   /* Frosted glass effect */
@@ -48,21 +52,63 @@
     @apply backdrop-blur-md bg-white/90 dark:bg-gray-900/80 border border-white/20 dark:border-white/5;
   }
 
-  /* Gradient text for headings */
+  /* Gradient text for headings — indigo to violet */
   .gradient-text {
-    @apply bg-gradient-to-r from-primary-500 to-primary-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-r from-primary-500 via-primary-600 to-violet-600 bg-clip-text text-transparent;
   }
 
   /* Shimmer skeleton loading */
   .shimmer {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background: linear-gradient(90deg, #f3f4f6 25%, #e5e7eb 50%, #f3f4f6 75%);
     background-size: 1000px 100%;
     animation: shimmer 2s linear infinite;
   }
 
   .dark .shimmer {
-    background: linear-gradient(90deg, #374151 25%, #4b5563 50%, #374151 75%);
+    background: linear-gradient(90deg, #1f2937 25%, #374151 50%, #1f2937 75%);
     background-size: 1000px 100%;
+    animation: shimmer 2s linear infinite;
+  }
+
+  /* Card hover lift */
+  .card-hover {
+    @apply hover:shadow-elevated hover:-translate-y-0.5 transition-all duration-200 cursor-pointer;
+  }
+
+  /* Hero gradient background */
+  .hero-gradient {
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgb(99 102 241 / 0.12), transparent),
+                radial-gradient(ellipse 50% 40% at 80% 50%, rgb(139 92 246 / 0.06), transparent);
+  }
+
+  .dark .hero-gradient {
+    background: radial-gradient(ellipse 80% 60% at 50% -10%, rgb(99 102 241 / 0.18), transparent),
+                radial-gradient(ellipse 50% 40% at 80% 50%, rgb(139 92 246 / 0.10), transparent);
+  }
+
+  /* Trust tier badges */
+  .badge-verified {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300
+           ring-1 ring-inset ring-primary-600/20 dark:ring-primary-400/20;
+  }
+
+  .badge-gold {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-300
+           ring-1 ring-inset ring-amber-600/20 dark:ring-amber-400/20;
+  }
+
+  .badge-silver {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-slate-100 dark:bg-slate-700/30 text-slate-600 dark:text-slate-300
+           ring-1 ring-inset ring-slate-400/20;
+  }
+
+  .badge-bronze {
+    @apply inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold
+           bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-300
+           ring-1 ring-inset ring-orange-600/20 dark:ring-orange-400/20;
   }
 }
 
@@ -74,5 +120,10 @@
   /* Consistent section padding */
   .section-padding {
     @apply py-20 lg:py-28;
+  }
+
+  /* Nav link active indicator */
+  .nav-active {
+    @apply text-primary-600 dark:text-primary-400 before:absolute before:bottom-0 before:left-0 before:right-0 before:h-0.5 before:bg-gradient-to-r before:from-primary-500 before:to-violet-500 before:rounded-full;
   }
 }

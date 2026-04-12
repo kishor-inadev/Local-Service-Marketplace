@@ -9,7 +9,11 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import { StatusBadge } from '@/components/ui/Badge';
-import LocationMap from '@/components/ui/LocationMap';
+import dynamic from 'next/dynamic';
+const LocationMap = dynamic(() => import('@/components/ui/LocationMap'), {
+	ssr: false,
+	loading: () => <div className='h-48 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800' />,
+});
 import { requestService } from '@/services/request-service';
 import { proposalService } from '@/services/proposal-service';
 import { formatDate, formatCurrency, formatRelativeTime } from '@/utils/helpers';

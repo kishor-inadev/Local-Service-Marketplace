@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { Layout } from '@/components/layout/Layout';
@@ -14,6 +15,12 @@ import {
   Users, Briefcase, ClipboardList, CreditCard, TrendingUp, TrendingDown,
   BarChart2, Activity, Calendar,
 } from 'lucide-react';
+
+// Dynamically import charts to avoid SSR issues with recharts
+const AnalyticsCharts = dynamic(
+  () => import('@/components/features/analytics/AnalyticsCharts').then(m => ({ default: m.AnalyticsCharts })),
+  { ssr: false, loading: () => <div className="h-64 animate-pulse bg-gray-100 dark:bg-gray-800 rounded-2xl mb-6" /> }
+);
 
 function StatCard({
   label, value, sub, icon: Icon, trend,
@@ -98,7 +105,7 @@ export default function AdminAnalyticsPage() {
       <Layout>
         <div className="container-custom py-12">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
+            <h1 className="font-heading text-3xl font-bold tracking-tight text-gray-900 dark:text-white mb-2">
               Analytics & Metrics
             </h1>
             <p className="text-gray-600 dark:text-gray-400">Platform-wide performance metrics</p>
@@ -168,6 +175,13 @@ export default function AdminAnalyticsPage() {
                   trend={(paymentStats?.byStatus?.failed ?? 0) > 0 ? 'down' : 'neutral'}
                 />
               </div>
+
+              {/* Charts */}
+              <AnalyticsCharts
+                dailyMetrics={dailyMetrics ?? []}
+                jobStatusData={jobStats?.byStatus ?? {}}
+                days={days}
+              />
 
               {/* Status breakdowns */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">

@@ -27,7 +27,6 @@ import {
 	Users,
 	AlertTriangle,
 	SlidersHorizontal,
-	ChevronRight,
 	BarChart3,
 	Shield,
 	Tag,
@@ -97,17 +96,17 @@ function NavLink({ item, isActive, isCollapsed }: { item: NavItem; isActive: boo
 		<Link
 			href={item.href}
 			className={cn(
-				"flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200",
+				"group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
 				isActive ?
-					"bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300"
-				:	"text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700",
-				isCollapsed && "justify-center px-2"
+					"bg-gradient-to-r from-primary-50 to-violet-50 dark:from-primary-900/30 dark:to-violet-900/20 text-primary-700 dark:text-primary-300 shadow-sm"
+				:	"text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200",
+				isCollapsed && "justify-center px-2.5"
 			)}>
-			<Icon className='h-5 w-5 flex-shrink-0' />
+			<Icon className={cn('h-4 w-4 flex-shrink-0 transition-colors', isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300')} />
 			{!isCollapsed && (
 				<>
 					<span className='flex-1 min-w-0 truncate'>{item.label}</span>
-					{isActive && <ChevronRight className='h-3 w-3 flex-shrink-0 opacity-60' />}
+					{isActive && <span className='h-1.5 w-1.5 rounded-full bg-primary-500 dark:bg-primary-400 flex-shrink-0' />}
 				</>
 			)}
 		</Link>
@@ -146,14 +145,20 @@ export function DashboardSidebar() {
 	return (
 		<aside
 			className={cn(
-				"flex-shrink-0 hidden lg:flex flex-col bg-white dark:bg-gray-900 border-r border-gray-100 dark:border-gray-800 h-screen sticky top-0 transition-all duration-300 ease-in-out",
-				isCollapsed ? "w-20" : "w-64"
+				"flex-shrink-0 hidden lg:flex flex-col bg-white dark:bg-gray-950 border-r border-gray-100 dark:border-gray-800/80 h-screen sticky top-0 transition-all duration-300 ease-in-out",
+				isCollapsed ? "w-[72px]" : "w-64"
 			)}>
-			<div className='flex items-center justify-between p-4 border-b border-gray-100 dark:border-gray-800'>
+			{/* Header */}
+			<div className='flex items-center justify-between px-4 py-4 border-b border-gray-100 dark:border-gray-800/80'>
 				{!isCollapsed && (
-					<span className='text-sm font-bold text-gray-900 dark:text-white truncate'>
-						Menu
-					</span>
+					<div className='flex items-center gap-2.5'>
+						<div className='h-7 w-7 rounded-lg bg-gradient-to-br from-primary-600 to-violet-600 flex items-center justify-center'>
+							<span className='text-white font-bold text-xs'>LS</span>
+						</div>
+						<span className='text-sm font-bold text-gray-900 dark:text-white'>
+							<span className='text-primary-600 dark:text-primary-400'>Local</span>Service
+						</span>
+					</div>
 				)}
 				<button
 					onClick={toggleSidebar}
@@ -163,12 +168,21 @@ export function DashboardSidebar() {
 					)}
 					title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
 					{isCollapsed ?
-						<PanelLeftOpen className='h-5 w-5' />
-					:	<PanelLeftClose className='h-5 w-5' />}
+						<PanelLeftOpen className='h-4 w-4' />
+					:	<PanelLeftClose className='h-4 w-4' />}
 				</button>
 			</div>
 
-			<div className='flex-1 py-4 px-3 overflow-y-auto'>
+			{/* Role chip */}
+			{!isCollapsed && (
+				<div className='px-4 py-2.5 border-b border-gray-100 dark:border-gray-800/80'>
+					<span className='inline-flex items-center px-2.5 py-1 rounded-lg text-xs font-semibold uppercase tracking-wide bg-primary-50 dark:bg-primary-900/30 text-primary-700 dark:text-primary-300'>
+						{role}
+					</span>
+				</div>
+			)}
+
+			<div className='flex-1 py-3 px-3 overflow-y-auto'>
 				<nav className='space-y-0.5'>
 					{mainLinks.map((item) => (
 						<NavLink
@@ -180,7 +194,10 @@ export function DashboardSidebar() {
 					))}
 				</nav>
 
-				<div className='mt-4 pt-4 border-t border-gray-100 dark:border-gray-800'>
+				<div className='mt-3 pt-3 border-t border-dashed border-gray-100 dark:border-gray-800/80'>
+					{!isCollapsed && (
+						<p className='px-3 mb-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-600 uppercase tracking-widest'>Account</p>
+					)}
 					<nav className='space-y-0.5'>
 						{bottomLinks.map((item) => (
 							<NavLink

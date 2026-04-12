@@ -14,8 +14,12 @@ import { Loading } from '@/components/ui/Loading';
 import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { Select } from '@/components/ui/Select';
+import dynamic from 'next/dynamic';
 import { FileUpload } from '@/components/ui/FileUpload';
-import { LocationPicker } from '@/components/ui/LocationPicker';
+const LocationPicker = dynamic(
+	() => import('@/components/ui/LocationPicker').then((m) => ({ default: m.LocationPicker })),
+	{ ssr: false, loading: () => <div className='h-32 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800' /> },
+);
 import { requestService } from '@/services/request-service';
 import { createRequestSchema, type CreateRequestFormData } from '@/schemas/request.schema';
 import { analytics } from '@/utils/analytics';

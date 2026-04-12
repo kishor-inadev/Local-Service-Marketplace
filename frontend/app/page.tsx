@@ -322,7 +322,7 @@ export default function HomePage() {
 			/>
 			<div className='bg-white dark:bg-gray-950'>
 				{/* Hero Section */}
-				<div className='relative isolate overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-50/70 via-white to-white dark:from-gray-900 dark:via-gray-900 dark:to-gray-950'>
+				<div className='relative isolate overflow-hidden hero-gradient bg-white dark:bg-gray-950'>
 					<div className='absolute inset-0 -z-10 overflow-hidden'>
 						{/* Decorative glow */}
 						<div className='absolute -top-40 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-primary-300/15 dark:bg-primary-500/8 blur-3xl rounded-full pointer-events-none' />
@@ -371,7 +371,7 @@ export default function HomePage() {
 								</div>
 							</div>
 
-							<h1 className='text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-7xl leading-tight'>
+							<h1 className='font-heading text-5xl font-bold tracking-tight text-gray-900 dark:text-gray-100 sm:text-7xl leading-tight'>
 								Your <span className='gradient-text'>Local Service</span><br />
 								Marketplace
 							</h1>
@@ -417,7 +417,7 @@ export default function HomePage() {
 				</div>
 
 				{/* Stats Section */}
-				<div className='bg-gradient-to-r from-primary-600 to-primary-700 py-16 shadow-xl'>
+				<div className='bg-gradient-to-r from-primary-600 via-primary-600 to-violet-700 py-16 shadow-xl'>
 					<div className='mx-auto max-w-7xl px-6 lg:px-8'>
 						<div className='grid grid-cols-2 gap-8 md:grid-cols-4'>
 							{stats.map((stat) => (
@@ -486,7 +486,7 @@ export default function HomePage() {
 				<div className='bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-gray-800 py-24'>
 					<div className='mx-auto max-w-7xl px-6 lg:px-8'>
 						<div className='mx-auto max-w-3xl text-center'>
-							<h2 className='text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100'>How It Works</h2>
+							<h2 className='font-heading text-4xl font-bold tracking-tight text-gray-900 dark:text-gray-100'>How It Works</h2>
 							<p className='mt-4 text-lg text-gray-600 dark:text-gray-400'>
 								Simple, transparent, and secure process for customers and providers
 							</p>
@@ -505,10 +505,10 @@ export default function HomePage() {
 											key={item.step}
 											className='relative'>
 											<div className='flex flex-col items-center text-center'>
-												<div className='flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-700 text-white text-4xl font-bold shadow-xl mb-2'>
+												<div className='flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-500 to-violet-600 text-white text-4xl font-bold shadow-xl mb-2'>
 													{item.image}
 												</div>
-												<div className='absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white text-sm font-bold shadow-lg'>
+												<div className='absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-primary-600 text-white text-sm font-bold shadow-lg'>
 													{item.step}
 												</div>
 												<h3 className='mt-6 text-xl font-semibold text-gray-900 dark:text-gray-100'>{item.title}</h3>
@@ -535,10 +535,10 @@ export default function HomePage() {
 											key={item.step}
 											className='relative'>
 											<div className='flex flex-col items-center text-center'>
-												<div className='flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-700 text-white text-4xl font-bold shadow-xl mb-2'>
+												<div className='flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-500 to-accent-600 text-white text-4xl font-bold shadow-xl mb-2'>
 													{item.image}
 												</div>
-												<div className='absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-green-600 text-white text-sm font-bold shadow-lg'>
+												<div className='absolute -top-2 -right-2 flex h-8 w-8 items-center justify-center rounded-full bg-accent-600 text-white text-sm font-bold shadow-lg'>
 													{item.step}
 												</div>
 												<h3 className='mt-6 text-xl font-semibold text-gray-900 dark:text-gray-100'>{item.title}</h3>
@@ -624,7 +624,7 @@ export default function HomePage() {
 				</div>
 
 				{/* Provider CTA Section */}
-				<div className='bg-gradient-to-br from-gray-900 via-primary-950/30 to-gray-900 relative overflow-hidden'>
+				<div className='bg-gradient-to-br from-gray-950 via-primary-950/40 to-gray-950 relative overflow-hidden'>
 					<div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.04]"></div>
 					<div className='absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-primary-500/5 blur-3xl rounded-full pointer-events-none' />
 					<div className='mx-auto max-w-7xl px-6 py-24 lg:px-8 relative'>
@@ -632,7 +632,7 @@ export default function HomePage() {
 							<div className='inline-flex items-center rounded-full bg-white/10 px-5 py-1.5 mb-6 backdrop-blur-sm ring-1 ring-white/20'>
 								<span className='text-gray-200 text-sm font-medium'>💼 For Service Professionals</span>
 							</div>
-							<h2 className='text-4xl md:text-5xl font-bold text-white'>Grow Your Local Business</h2>
+							<h2 className='font-heading text-4xl md:text-5xl font-bold text-white'>Grow Your Local Business</h2>
 							<p className='mt-6 text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto'>
 								Join 15,000+ trusted professionals earning more with our platform. Get matched with ready-to-hire
 								customers in your area. Set your own rates, choose your jobs, and get paid fast.
@@ -641,7 +641,7 @@ export default function HomePage() {
 								<Link href='/signup'>
 									<Button
 										size='lg'
-										className='bg-white dark:bg-gray-100 text-blue-600 dark:text-blue-700 hover:bg-gray-100 dark:hover:bg-gray-200 font-semibold text-lg px-10 py-6 w-full sm:w-auto shadow-xl'>
+										className='bg-white dark:bg-gray-100 text-primary-700 dark:text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-200 font-semibold text-lg px-10 py-6 w-full sm:w-auto shadow-xl'>
 										Join as Provider →
 									</Button>
 								</Link>
@@ -720,7 +720,7 @@ export default function HomePage() {
 									made it super easy to compare prices. Best platform for home services!"
 								</p>
 								<div className='flex items-center gap-3'>
-									<div className='h-12 w-12 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white font-bold text-lg'>
+									<div className='h-12 w-12 rounded-full bg-gradient-to-br from-primary-400 to-violet-500 flex items-center justify-center text-white font-bold text-lg'>
 										SM
 									</div>
 									<div>
@@ -749,7 +749,7 @@ export default function HomePage() {
 									is reliable, and customers are pre-vetted. Highly recommend to fellow contractors!"
 								</p>
 								<div className='flex items-center gap-3'>
-									<div className='h-12 w-12 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white font-bold text-lg'>
+									<div className='h-12 w-12 rounded-full bg-gradient-to-br from-accent-400 to-accent-600 flex items-center justify-center text-white font-bold text-lg'>
 										JD
 									</div>
 									<div>
@@ -778,7 +778,7 @@ export default function HomePage() {
 									cleaners, painters, and movers - all excellent! This is my go-to now."
 								</p>
 								<div className='flex items-center gap-3'>
-									<div className='h-12 w-12 rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white font-bold text-lg'>
+									<div className='h-12 w-12 rounded-full bg-gradient-to-br from-violet-400 to-violet-600 flex items-center justify-center text-white font-bold text-lg'>
 										ER
 									</div>
 									<div>
@@ -806,7 +806,7 @@ export default function HomePage() {
 						<div className='grid md:grid-cols-3 gap-8 mb-16'>
 							<div className='text-center'>
 								<div className='bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-8 mb-4 dark:border dark:border-blue-800/30'>
-									<div className='text-5xl font-bold text-blue-600 dark:text-blue-400 mb-2'>3.2M+</div>
+									<div className='text-5xl font-bold text-primary-600 dark:text-primary-400 mb-2'>3.2M+</div>
 									<div className='text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide'>
 										Jobs Completed
 									</div>
@@ -816,7 +816,7 @@ export default function HomePage() {
 
 							<div className='text-center'>
 								<div className='bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-2xl p-8 mb-4 dark:border dark:border-green-800/30'>
-									<div className='text-5xl font-bold text-green-600 dark:text-green-400 mb-2'>98.7%</div>
+									<div className='text-5xl font-bold text-accent-600 dark:text-accent-400 mb-2'>98.7%</div>
 									<div className='text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide'>
 										Customer Satisfaction
 									</div>
@@ -826,7 +826,7 @@ export default function HomePage() {
 
 							<div className='text-center'>
 								<div className='bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-8 mb-4 dark:border dark:border-purple-800/30'>
-									<div className='text-5xl font-bold text-purple-600 dark:text-purple-400 mb-2'>$580M+</div>
+									<div className='text-5xl font-bold text-violet-600 dark:text-violet-400 mb-2'>$580M+</div>
 									<div className='text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide'>
 										Paid to Providers
 									</div>
@@ -942,7 +942,7 @@ export default function HomePage() {
 						</div>
 
 						<div className='grid md:grid-cols-2 lg:grid-cols-4 gap-8 max-w-6xl mx-auto'>
-							<Card className='border-2 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg dark:bg-gray-800 dark:border-gray-700'>
+							<Card className='border-2 hover:border-primary-400 dark:hover:border-primary-500 transition-all hover:shadow-elevated dark:bg-gray-900 dark:border-gray-800'>
 								<CardContent className='p-8 text-center'>
 									<div className='w-16 h-16 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center mx-auto mb-6'>
 										<span className='text-3xl'>🛡️</span>
@@ -955,7 +955,7 @@ export default function HomePage() {
 								</CardContent>
 							</Card>
 
-							<Card className='border-2 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg dark:bg-gray-800 dark:border-gray-700'>
+							<Card className='border-2 hover:border-primary-400 dark:hover:border-primary-500 transition-all hover:shadow-elevated dark:bg-gray-900 dark:border-gray-800'>
 								<CardContent className='p-8 text-center'>
 									<div className='w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-6'>
 										<span className='text-3xl'>✓</span>
@@ -967,7 +967,7 @@ export default function HomePage() {
 								</CardContent>
 							</Card>
 
-							<Card className='border-2 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg dark:bg-gray-800 dark:border-gray-700'>
+							<Card className='border-2 hover:border-primary-400 dark:hover:border-primary-500 transition-all hover:shadow-elevated dark:bg-gray-900 dark:border-gray-800'>
 								<CardContent className='p-8 text-center'>
 									<div className='w-16 h-16 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center mx-auto mb-6'>
 										<span className='text-3xl'>🔒</span>
@@ -980,7 +980,7 @@ export default function HomePage() {
 								</CardContent>
 							</Card>
 
-							<Card className='border-2 hover:border-blue-500 dark:hover:border-blue-400 transition-all hover:shadow-lg dark:bg-gray-800 dark:border-gray-700'>
+							<Card className='border-2 hover:border-primary-400 dark:hover:border-primary-500 transition-all hover:shadow-elevated dark:bg-gray-900 dark:border-gray-800'>
 								<CardContent className='p-8 text-center'>
 									<div className='w-16 h-16 bg-yellow-100 dark:bg-yellow-900/50 rounded-full flex items-center justify-center mx-auto mb-6'>
 										<span className='text-3xl'>💯</span>
@@ -997,21 +997,21 @@ export default function HomePage() {
 						<div className='mt-16 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/50 dark:to-blue-900/20 rounded-2xl p-12 max-w-5xl mx-auto dark:border dark:border-gray-700'>
 							<div className='grid md:grid-cols-3 gap-8 text-center'>
 								<div>
-									<div className='text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2'>$1M+</div>
+									<div className='text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2'>$1M+</div>
 									<div className='text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1'>Liability Insurance</div>
 									<div className='text-xs text-gray-600 dark:text-gray-400'>
 										Coverage for every job booked through our platform
 									</div>
 								</div>
 								<div>
-									<div className='text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2'>24/7</div>
+									<div className='text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2'>24/7</div>
 									<div className='text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1'>Support Team</div>
 									<div className='text-xs text-gray-600 dark:text-gray-400'>
 										Real humans ready to help, anytime you need
 									</div>
 								</div>
 								<div>
-									<div className='text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2'>30-Day</div>
+									<div className='text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2'>30-Day</div>
 									<div className='text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1'>Quality Guarantee</div>
 									<div className='text-xs text-gray-600 dark:text-gray-400'>
 										Report issues within 30 days for resolution
@@ -1023,11 +1023,11 @@ export default function HomePage() {
 				</div>
 
 				{/* Final CTA Section */}
-				<div className='bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900 py-24 relative overflow-hidden'>
+				<div className='bg-gradient-to-br from-primary-600 via-primary-700 to-violet-800 py-24 relative overflow-hidden'>
 					<div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
 					<div className='mx-auto max-w-7xl px-6 lg:px-8 relative'>
 						<div className='mx-auto max-w-4xl text-center'>
-							<h2 className='text-4xl md:text-5xl font-bold text-white mb-6'>Ready to Get Started?</h2>
+							<h2 className='font-heading text-4xl md:text-5xl font-bold text-white mb-6'>Ready to Get Started?</h2>
 							<p className='text-xl text-blue-100 leading-relaxed mb-10'>
 								Join 100,000+ satisfied customers and 15,000+ verified professionals. Post your first request for free
 								today and get matched with trusted local experts.
@@ -1036,7 +1036,7 @@ export default function HomePage() {
 								<Link href='/signup'>
 									<Button
 										size='lg'
-										className='bg-white dark:bg-gray-100 text-blue-600 dark:text-blue-700 hover:bg-gray-100 dark:hover:bg-gray-200 font-semibold text-lg px-12 py-6 shadow-2xl w-full sm:w-auto'>
+										className='bg-white dark:bg-gray-100 text-primary-700 dark:text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-200 font-semibold text-lg px-12 py-6 shadow-2xl w-full sm:w-auto'>
 										Create Free Account →
 									</Button>
 								</Link>
@@ -1094,3 +1094,4 @@ export default function HomePage() {
 		</Layout>
 	);
 }
+

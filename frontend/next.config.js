@@ -1,8 +1,15 @@
 /** @type {import('next').NextConfig} */
+const withBundleAnalyzer = require('@next/bundle-analyzer')({
+	enabled: process.env.ANALYZE === 'true',
+	openAnalyzer: false,
+});
+
 const nextConfig = {
 	// Use standalone output only for Docker builds
 	...(process.env.DOCKER_BUILD === "true" ? { output: "standalone" } : {}),
 	reactStrictMode: true,
+	compress: true,
+	poweredByHeader: false,
 
 	// Environment variables
 	env: { NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700" },
@@ -77,4 +84,4 @@ const nextConfig = {
 	},
 };
 
-module.exports = nextConfig;
+module.exports = withBundleAnalyzer(nextConfig);

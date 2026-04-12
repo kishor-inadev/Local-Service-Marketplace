@@ -10,7 +10,11 @@ import { Loading } from "@/components/ui/Loading";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { Avatar } from "@/components/ui/Avatar";
 import { Badge } from "@/components/ui/Badge";
-import { AvailabilitySchedule } from "@/components/features/providers/AvailabilitySchedule";
+import dynamic from 'next/dynamic';
+const AvailabilitySchedule = dynamic(
+	() => import('@/components/features/providers/AvailabilitySchedule').then((m) => ({ default: m.AvailabilitySchedule })),
+	{ ssr: false, loading: () => <div className='h-48 animate-pulse rounded-xl bg-gray-100 dark:bg-gray-800' /> },
+);
 import { getProviderProfile } from "@/services/user-service";
 import { getProviderReviews, getProviderReviewAggregates } from "@/services/review-service";
 import { requestService, ServiceCategory } from "@/services/request-service";

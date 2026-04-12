@@ -10,20 +10,37 @@ module.exports = {
 		extend: {
 			fontFamily: {
 				sans: ["var(--font-inter)", "system-ui", "sans-serif"],
+				heading: ["var(--font-jakarta)", "var(--font-inter)", "system-ui", "sans-serif"],
 			},
 			colors: {
+				// Indigo — premium/trustworthy primary
 				primary: {
-					50: "#f0f9ff",
-					100: "#e0f2fe",
-					200: "#bae6fd",
-					300: "#7dd3fc",
-					400: "#38bdf8",
-					500: "#0ea5e9",
-					600: "#0284c7",
-					700: "#0369a1",
-					800: "#075985",
-					900: "#0c4a6e",
+					50: "#eef2ff",
+					100: "#e0e7ff",
+					200: "#c7d2fe",
+					300: "#a5b4fc",
+					400: "#818cf8",
+					500: "#6366f1",
+					600: "#4f46e5",
+					700: "#4338ca",
+					800: "#3730a3",
+					900: "#312e81",
+					950: "#1e1b4b",
 				},
+				// Emerald — success/verified/accent
+				accent: {
+					50: "#ecfdf5",
+					100: "#d1fae5",
+					200: "#a7f3d0",
+					300: "#6ee7b7",
+					400: "#34d399",
+					500: "#10b981",
+					600: "#059669",
+					700: "#047857",
+					800: "#065f46",
+					900: "#064e3b",
+				},
+				// Warm slate secondary
 				secondary: {
 					50: "#f8fafc",
 					100: "#f1f5f9",
@@ -36,26 +53,17 @@ module.exports = {
 					800: "#1e293b",
 					900: "#0f172a",
 				},
-				accent: {
-					50: "#fffbeb",
-					100: "#fef3c7",
-					200: "#fde68a",
-					300: "#fcd34d",
-					400: "#fbbf24",
-					500: "#f59e0b",
-					600: "#d97706",
-					700: "#b45309",
-					800: "#92400e",
-					900: "#78350f",
-				},
 			},
 			borderRadius: {
 				"4xl": "2rem",
 			},
 			boxShadow: {
-				primary: "0 4px 14px 0 rgb(14 165 233 / 0.25)",
-				"primary-lg": "0 8px 30px 0 rgb(14 165 233 / 0.30)",
+				primary: "0 4px 14px 0 rgb(99 102 241 / 0.25)",
+				"primary-lg": "0 8px 30px 0 rgb(99 102 241 / 0.30)",
 				soft: "0 2px 15px -3px rgb(0 0 0 / 0.07), 0 10px 20px -2px rgb(0 0 0 / 0.04)",
+				card: "0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)",
+				elevated: "0 10px 25px -5px rgb(0 0 0 / 0.08), 0 8px 10px -6px rgb(0 0 0 / 0.05)",
+				accent: "0 4px 14px 0 rgb(16 185 129 / 0.25)",
 			},
 			keyframes: {
 				"fade-in": {
@@ -80,6 +88,10 @@ module.exports = {
 				},
 				shimmer: { "0%": { backgroundPosition: "-1000px 0" }, "100%": { backgroundPosition: "1000px 0" } },
 				progress: { "0%": { width: "0%" }, "100%": { width: "100%" } },
+				"pulse-soft": {
+					"0%, 100%": { opacity: "1" },
+					"50%": { opacity: "0.7" },
+				},
 			},
 			animation: {
 				"fade-in": "fade-in 0.4s ease-out both",
@@ -88,6 +100,7 @@ module.exports = {
 				float: "float 3s ease-in-out infinite",
 				glow: "glow 2s ease-in-out infinite",
 				shimmer: "shimmer 2s linear infinite",
+				"pulse-soft": "pulse-soft 2s ease-in-out infinite",
 			},
 		},
 	},

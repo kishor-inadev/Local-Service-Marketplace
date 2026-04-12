@@ -5,14 +5,16 @@ interface CardProps {
   children: React.ReactNode;
   className?: string;
   hover?: boolean;
+  elevated?: boolean;
 }
 
-export function Card({ children, className, hover = false }: CardProps) {
+export function Card({ children, className, hover = false, elevated = false }: CardProps) {
   return (
     <div
       className={cn(
-        'bg-white dark:bg-gray-800/80 rounded-xl border border-gray-100 dark:border-gray-700/60 shadow-soft ring-1 ring-inset ring-black/[0.04] dark:ring-white/[0.04]',
-        hover && 'hover:shadow-md hover:-translate-y-0.5 transition-all duration-200',
+        'bg-white dark:bg-gray-900 rounded-2xl border border-gray-100 dark:border-gray-800',
+        elevated ? 'shadow-elevated' : 'shadow-card',
+        hover && 'card-hover',
         className,
       )}
     >
@@ -28,7 +30,7 @@ interface CardHeaderProps {
 
 export function CardHeader({ children, className }: CardHeaderProps) {
   return (
-    <div className={cn('px-6 py-4 border-b border-gray-100 dark:border-gray-700/60', className)}>
+    <div className={cn('px-6 py-4 border-b border-gray-100 dark:border-gray-800', className)}>
       {children}
     </div>
   );
@@ -50,7 +52,7 @@ interface CardFooterProps {
 
 export function CardFooter({ children, className }: CardFooterProps) {
   return (
-    <div className={cn('px-6 py-4 border-t border-gray-100 dark:border-gray-700/60', className)}>
+    <div className={cn('px-6 py-4 border-t border-gray-100 dark:border-gray-800', className)}>
       {children}
     </div>
   );
