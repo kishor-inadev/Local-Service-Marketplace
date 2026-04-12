@@ -33,7 +33,7 @@ const ROLE_ROUTES: Array<{ prefix: string; roles: Role[] }> = [
 ];
 
 /** Routes that require ANY authenticated user */
-const AUTH_REQUIRED_PREFIX = "/dashboard";
+const AUTH_REQUIRED_PREFIXES = ["/dashboard", "/checkout", "/onboarding"];
 
 /** Routes that a logged-in user should be bounced away from */
 const AUTH_REDIRECT_ROUTES = ["/login", "/signup", "/phone-login", "/forgot-password", "/reset-password", "/verify-email"];
@@ -68,7 +68,9 @@ export async function middleware(req: NextRequest) {
 		return NextResponse.redirect(new URL(getDashboardHomeByRole(userRole), nextUrl));
 	}
 
-	const isProtected = pathname === AUTH_REQUIRED_PREFIX || pathname.startsWith(AUTH_REQUIRED_PREFIX + "/");
+	const isProtected = AUTH_REQUIRED_PREFIXES.some(
+		(prefix) => pathname === prefix || pathname.startsWith(prefix + "/"),
+	);
 
 	// ── 2. Unauthenticated → /login?callbackUrl=<path> ────────────────────────
 	if (isProtected && !isLoggedIn) {

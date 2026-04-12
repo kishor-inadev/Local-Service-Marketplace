@@ -33,7 +33,6 @@ export default function OnboardingPage() {
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
-  void phone; // reserved for future contact info submission
 
   // Step: Services
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);

@@ -156,8 +156,8 @@ const features: Array<{
 		description:
 			"Pay securely through our escrow system with buyer protection, refund guarantees, and fraud prevention.",
 		Icon: Lock,
-		iconBg: "bg-blue-100 dark:bg-blue-900/40",
-		iconColor: "text-blue-600 dark:text-blue-400",
+		iconBg: "bg-primary-100 dark:bg-primary-900/40",
+		iconColor: "text-primary-600 dark:text-primary-400",
 	},
 	{
 		title: "Real Reviews",
@@ -596,7 +596,7 @@ export default function HomePage() {
 					</div>
 
 					{/* Additional Trust Signals */}
-					<div className='mt-20 bg-gradient-to-r from-blue-50 to-green-50 dark:from-blue-900/20 dark:to-green-900/20 rounded-3xl p-12 dark:border dark:border-gray-700'>
+					<div className='mt-20 bg-gradient-to-r from-primary-50 to-accent-50 dark:from-primary-900/20 dark:to-accent-900/20 rounded-3xl p-12 dark:border dark:border-gray-700'>
 						<div className='grid md:grid-cols-3 gap-8 text-center'>
 							<div>
 								<div className='h-16 w-16 rounded-2xl bg-yellow-100 dark:bg-yellow-900/40 flex items-center justify-center mx-auto mb-4'>
@@ -649,7 +649,7 @@ export default function HomePage() {
 									<Button
 										variant='outline'
 										size='lg'
-										className='border-2 border-white dark:border-gray-200 text-white dark:text-gray-200 hover:bg-blue-700 dark:hover:bg-blue-800/50 font-semibold text-lg px-10 py-6 w-full sm:w-auto'>
+										className='border-2 border-white dark:border-gray-200 text-white dark:text-gray-200 hover:bg-white/10 font-semibold text-lg px-10 py-6 w-full sm:w-auto'>
 										Provider Login
 									</Button>
 								</Link>
@@ -805,7 +805,7 @@ export default function HomePage() {
 
 						<div className='grid md:grid-cols-3 gap-8 mb-16'>
 							<div className='text-center'>
-								<div className='bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-2xl p-8 mb-4 dark:border dark:border-blue-800/30'>
+								<div className='bg-gradient-to-br from-primary-50 to-primary-100 dark:from-primary-900/20 dark:to-primary-800/20 rounded-2xl p-8 mb-4 dark:border dark:border-primary-800/30'>
 									<div className='text-5xl font-bold text-primary-600 dark:text-primary-400 mb-2'>3.2M+</div>
 									<div className='text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide'>
 										Jobs Completed
@@ -957,7 +957,7 @@ export default function HomePage() {
 
 							<Card className='border-2 hover:border-primary-400 dark:hover:border-primary-500 transition-all hover:shadow-elevated dark:bg-gray-900 dark:border-gray-800'>
 								<CardContent className='p-8 text-center'>
-									<div className='w-16 h-16 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center mx-auto mb-6'>
+									<div className='w-16 h-16 bg-primary-100 dark:bg-primary-900/50 rounded-full flex items-center justify-center mx-auto mb-6'>
 										<span className='text-3xl'>✓</span>
 									</div>
 									<h3 className='text-lg font-bold text-gray-900 dark:text-gray-100 mb-3'>Background Checked</h3>

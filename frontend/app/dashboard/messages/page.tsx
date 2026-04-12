@@ -14,14 +14,15 @@ import { Loading } from '@/components/ui/Loading';
 import { SkeletonListItem } from '@/components/ui/Skeleton';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { messageService, Conversation } from "@/services/message-service";
-import { formatDateTime } from '@/utils/helpers';
-import { Send } from 'lucide-react';
+import { formatDateTime, cn } from '@/utils/helpers';
+import { Send, ArrowLeft } from 'lucide-react';
 
 export default function MessagesPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
+  const [showThread, setShowThread] = useState(false);
   const [messageText, setMessageText] = useState('');
 
   // Redirect if not authenticated or messaging is disabled
@@ -84,7 +85,7 @@ export default function MessagesPage() {
 					/>
 				:	<div className='grid grid-cols-1 md:grid-cols-3 gap-6 h-[600px]'>
 						{/* Conversations List */}
-						<Card>
+						<Card className={cn(showThread ? 'hidden md:flex md:flex-col' : '')}>
 							<CardHeader>
 								<h2 className='font-semibold text-gray-900'>Conversations</h2>
 							</CardHeader>
@@ -96,7 +97,7 @@ export default function MessagesPage() {
 										{conversations.map((conv: Conversation) => (
 											<button
 												key={conv.job_id}
-												onClick={() => setSelectedJobId(conv.job_id)}
+												onClick={() => { setSelectedJobId(conv.job_id); setShowThread(true); }}
 												className={`w-full text-left p-3 rounded-md transition-colors ${
 													selectedJobId === conv.job_id ? "bg-primary-50 border-primary-200" : "hover:bg-gray-50"
 												}`}>
@@ -110,10 +111,16 @@ export default function MessagesPage() {
 						</Card>
 
 						{/* Messages */}
-						<div className='md:col-span-2'>
+						<div className={cn('md:col-span-2', !showThread ? 'hidden md:block' : '')}>
 							<Card className='h-full flex flex-col'>
 								<CardHeader>
-									<h2 className='font-semibold text-gray-900'>
+									<button
+										onClick={() => setShowThread(false)}
+										className='md:hidden mb-2 flex items-center gap-1.5 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors'
+									>
+										<ArrowLeft className='h-4 w-4' /> Back to conversations
+									</button>
+									<h2 className='font-semibold text-gray-900 dark:text-white'>
 										{selectedJobId ? `Job #${selectedJobId.slice(0, 8)}` : "Select a conversation"}
 									</h2>
 								</CardHeader>
