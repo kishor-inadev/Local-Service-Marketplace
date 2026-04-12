@@ -37,6 +37,7 @@ import {
 export class AuthService {
   private readonly saltRounds = 12;
   private readonly maxLoginAttempts: number;
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
 
   constructor(
     private readonly userRepo: UserRepository,
@@ -161,21 +162,24 @@ export class AuthService {
     let verificationEmailSent = false;
 
     if (email) {
-      // Enqueue generated password email (non-blocking)
+      // Send generated password email (non-blocking)
       if (passwordWasGenerated) {
-        this.notificationQueue
-          .add('send-generated-password', {
-            to: email,
-            template: 'generatedPassword',
-            variables: {
-              name: displayName,
-              password: rawPassword,
-              loginUrl: `${frontendUrl}/login`,
-            },
-          })
+        const passwordPayload = {
+          to: email,
+          template: 'generatedPassword',
+          variables: {
+            name: displayName,
+            password: rawPassword,
+            loginUrl: `${frontendUrl}/login`,
+          },
+        };
+        const passwordDispatch = this.workersEnabled
+          ? this.notificationQueue.add('send-generated-password', passwordPayload)
+          : this.notificationClient.sendEmail(passwordPayload);
+        passwordDispatch
           .then(() => { emailSent = true; })
           .catch((err: any) => {
-            this.logger.error("Failed to enqueue generated password email", {
+            this.logger.error("Failed to send generated password email", {
               context: "AuthService",
               error: err.message,
               userId: user.id,
@@ -183,19 +187,22 @@ export class AuthService {
           });
       }
 
-      // Enqueue email verification link (non-blocking)
-      this.notificationQueue
-        .add('send-email-verification', {
-          to: email,
-          template: 'emailVerification',
-          variables: {
-            name: displayName,
-            verificationUrl: `${frontendUrl}/verify-email?token=${verificationToken}`,
-          },
-        })
+      // Send email verification link (non-blocking)
+      const verificationPayload = {
+        to: email,
+        template: 'emailVerification',
+        variables: {
+          name: displayName,
+          verificationUrl: `${frontendUrl}/verify-email?token=${verificationToken}`,
+        },
+      };
+      const verificationDispatch = this.workersEnabled
+        ? this.notificationQueue.add('send-email-verification', verificationPayload)
+        : this.notificationClient.sendEmail(verificationPayload);
+      verificationDispatch
         .then(() => { verificationEmailSent = true; })
         .catch((err: any) => {
-          this.logger.error("Failed to enqueue verification email", {
+          this.logger.error("Failed to send verification email", {
             context: "AuthService",
             error: err.message,
             userId: user.id,
@@ -331,13 +338,13 @@ export class AuthService {
 
     // Generate tokens
     const signupProviderId = await this.resolveProviderId(user.id, user.role);
-    const accessToken = this.jwtService.generateAccessToken(
+    const accessToken = await this.jwtService.generateAccessToken(
       user.id,
       user.email,
       user.role,
       signupProviderId,
     );
-    const refreshToken = this.jwtService.generateRefreshToken(
+    const refreshToken = await this.jwtService.generateRefreshToken(
       user.id,
       user.email,
       user.role,
@@ -449,13 +456,13 @@ export class AuthService {
 
     // Generate tokens
     const loginProviderId = await this.resolveProviderId(user.id, user.role);
-    const accessToken = this.jwtService.generateAccessToken(
+    const accessToken = await this.jwtService.generateAccessToken(
       user.id,
       user.email,
       user.role,
       loginProviderId,
     );
-    const refreshToken = this.jwtService.generateRefreshToken(
+    const refreshToken = await this.jwtService.generateRefreshToken(
       user.id,
       user.email,
       user.role,
@@ -525,7 +532,7 @@ export class AuthService {
 
       // Generate new access token
       const refreshProviderId = payload.providerId ?? await this.resolveProviderId(user.id, user.role);
-      const accessToken = this.jwtService.generateAccessToken(
+      const accessToken = await this.jwtService.generateAccessToken(
         user.id,
         user.email,
         user.role,
@@ -567,24 +574,26 @@ export class AuthService {
       userId: user.id,
     });
 
-    // FIXED: enqueue password reset email (was never sent before — critical bug)
+    // Send password reset email — queue if workers enabled, else inline
     const frontendUrl = this.configService.get<string>("FRONTEND_URL", "http://localhost:3000");
-    this.notificationQueue
-      .add('send-password-reset', {
-        to: user.email,
-        template: 'passwordReset',
-        variables: {
-          name: user.name || user.email.split('@')[0],
-          resetUrl: `${frontendUrl}/reset-password?token=${resetToken}`,
-        },
-      })
-      .catch((err: any) =>
-        this.logger.error("Failed to enqueue password reset email", {
-          context: "AuthService",
-          error: err.message,
-          userId: user.id,
-        }),
-      );
+    const resetPayload = {
+      to: user.email,
+      template: 'passwordReset',
+      variables: {
+        name: user.name || user.email.split('@')[0],
+        resetUrl: `${frontendUrl}/reset-password?token=${resetToken}`,
+      },
+    };
+    const resetDispatch = this.workersEnabled
+      ? this.notificationQueue.add('send-password-reset', resetPayload)
+      : this.notificationClient.sendEmail(resetPayload);
+    resetDispatch.catch((err: any) =>
+      this.logger.error("Failed to send password reset email", {
+        context: "AuthService",
+        error: err.message,
+        userId: user.id,
+      }),
+    );
   }
 
   async confirmPasswordReset(
@@ -811,13 +820,13 @@ export class AuthService {
 
     // Generate JWT tokens
     const oauthProviderId = await this.resolveProviderId(user.id, user.role);
-    const jwtAccessToken = this.jwtService.generateAccessToken(
+    const jwtAccessToken = await this.jwtService.generateAccessToken(
       user.id,
       user.email,
       user.role,
       oauthProviderId,
     );
-    const jwtRefreshToken = this.jwtService.generateRefreshToken(
+    const jwtRefreshToken = await this.jwtService.generateRefreshToken(
       user.id,
       user.email,
       user.role,
@@ -939,13 +948,13 @@ export class AuthService {
 
     // Generate tokens
     const phoneLoginProviderId = await this.resolveProviderId(user.id, user.role);
-    const accessToken = this.jwtService.generateAccessToken(
+    const accessToken = await this.jwtService.generateAccessToken(
       user.id,
       user.email,
       user.role,
       phoneLoginProviderId,
     );
-    const refreshToken = this.jwtService.generateRefreshToken(
+    const refreshToken = await this.jwtService.generateRefreshToken(
       user.id,
       user.email,
       user.role,
@@ -1120,13 +1129,13 @@ export class AuthService {
 
       // Generate tokens
       const phoneOtpProviderId = await this.resolveProviderId(user.id, user.role);
-      const accessToken = this.jwtService.generateAccessToken(
+      const accessToken = await this.jwtService.generateAccessToken(
         user.id,
         user.email,
         user.role,
         phoneOtpProviderId,
       );
-      const refreshToken = this.jwtService.generateRefreshToken(
+      const refreshToken = await this.jwtService.generateRefreshToken(
         user.id,
         user.email,
         user.role,
@@ -1292,13 +1301,13 @@ export class AuthService {
     }
 
     const emailOtpProviderId = await this.resolveProviderId(user.id, user.role);
-    const accessToken = this.jwtService.generateAccessToken(
+    const accessToken = await this.jwtService.generateAccessToken(
       user.id,
       user.email,
       user.role,
       emailOtpProviderId,
     );
-    const refreshToken = this.jwtService.generateRefreshToken(
+    const refreshToken = await this.jwtService.generateRefreshToken(
       user.id,
       user.email,
       user.role,
@@ -1998,13 +2007,13 @@ export class AuthService {
 
     // Generate tokens
     const magicLinkProviderId = await this.resolveProviderId(user.id, user.role);
-    const accessToken = this.jwtService.generateAccessToken(
+    const accessToken = await this.jwtService.generateAccessToken(
       user.id,
       user.email,
       user.role,
       magicLinkProviderId,
     );
-    const refreshToken = this.jwtService.generateRefreshToken(
+    const refreshToken = await this.jwtService.generateRefreshToken(
       user.id,
       user.email,
       user.role,
@@ -2110,13 +2119,13 @@ export class AuthService {
 
     // Generate tokens
     const appleProviderId = await this.resolveProviderId(user.id, user.role);
-    const accessToken = this.jwtService.generateAccessToken(
+    const accessToken = await this.jwtService.generateAccessToken(
       user.id,
       user.email,
       user.role,
       appleProviderId,
     );
-    const refreshToken = this.jwtService.generateRefreshToken(
+    const refreshToken = await this.jwtService.generateRefreshToken(
       user.id,
       user.email,
       user.role,

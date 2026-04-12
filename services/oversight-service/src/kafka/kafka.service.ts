@@ -1,11 +1,12 @@
 import { Injectable, Inject, LoggerService, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
-import { Kafka, Consumer } from 'kafkajs';
+import { Kafka, Consumer, Producer } from 'kafkajs';
 
 @Injectable()
 export class KafkaService implements OnModuleInit, OnModuleDestroy {
   private kafka: Kafka;
   private consumer: Consumer;
+  private producer: Producer;
   private isEnabled: boolean;
   private isConnected: boolean = false;
 
@@ -28,12 +29,14 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
       });
 
       this.consumer = this.kafka.consumer({ groupId: "oversight-service-group" });
+      this.producer = this.kafka.producer();
     }
   }
 
   async onModuleInit() {
     if (this.isEnabled) {
       try {
+        await this.producer.connect();
         await this.consumer.connect();
 
         // Subscribe to all event topics
@@ -59,8 +62,9 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
   async onModuleDestroy() {
     if (this.isConnected) {
+      await this.producer.disconnect();
       await this.consumer.disconnect();
-      this.logger.log('Kafka consumer disconnected', 'KafkaService');
+      this.logger.log('Kafka disconnected', 'KafkaService');
     }
   }
 
@@ -92,5 +96,28 @@ export class KafkaService implements OnModuleInit, OnModuleDestroy {
 
   isKafkaEnabled(): boolean {
     return this.isEnabled && this.isConnected;
+  }
+
+  async emit(topic: string, event: any): Promise<void> {
+    if (!this.isEnabled || !this.isConnected) {
+      this.logger.debug(`Kafka disabled - event not emitted: ${topic}`, 'KafkaService');
+      return;
+    }
+
+    try {
+      await this.producer.send({
+        topic,
+        messages: [
+          {
+            key: event.dispute_id || event.id,
+            value: JSON.stringify(event),
+            timestamp: Date.now().toString(),
+          },
+        ],
+      });
+      this.logger.log(`Event emitted to ${topic}: ${event.event}`, 'KafkaService');
+    } catch (error: any) {
+      this.logger.error(`Failed to emit event to ${topic}: ${error.message}`, error.stack, 'KafkaService');
+    }
   }
 }

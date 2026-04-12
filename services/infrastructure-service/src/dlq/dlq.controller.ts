@@ -14,8 +14,7 @@ import { Queue } from "bullmq";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { DeadLetterQueueService } from "../common/dlq/dead-letter-queue.service";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 
 /**
  * DeadLetterQueueController - Admin interface for managing failed jobs
@@ -32,7 +31,7 @@ import { Roles } from "@/common/decorators/roles.decorator";
  */
 @Controller("dlq")
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("admin")
+@RequirePermissions('admin.access')
 export class DeadLetterQueueController {
   constructor(
     private readonly dlqService: DeadLetterQueueService,

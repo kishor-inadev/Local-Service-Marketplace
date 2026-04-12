@@ -2,6 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { ROUTES } from "@/config/constants";
 import { Layout } from '@/components/layout/Layout';
 import { ReviewAggregates } from '@/components/features/review/ReviewAggregates';
@@ -15,6 +17,7 @@ import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 export default function ProviderReviewsPage() {
 	const pathname = usePathname();
 	const { user, isAuthenticated } = useAuth();
+	const { can } = usePermissions();
 
 	const {
 		data: provider,
@@ -29,7 +32,7 @@ export default function ProviderReviewsPage() {
 			}
 			return null;
 		},
-		enabled: isAuthenticated && user?.role === "provider",
+		enabled: isAuthenticated && can(Permission.PROVIDER_PROFILE_VIEW),
 	});
 
 	const tabs = [
@@ -40,7 +43,7 @@ export default function ProviderReviewsPage() {
 	];
 
 	return (
-		<ProtectedRoute requiredRoles={["provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.PROVIDER_PROFILE_VIEW]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					<div className='mb-8'>

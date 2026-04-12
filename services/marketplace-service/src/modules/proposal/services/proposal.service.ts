@@ -32,6 +32,8 @@ import { UserClient } from "../../../common/user/user.client";
 
 @Injectable()
 export class ProposalService {
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
+
   constructor(
     private readonly proposalRepository: ProposalRepository,
     private readonly jobRepository: JobRepository,
@@ -115,20 +117,38 @@ export class ProposalService {
       : null;
 
     if (customerEmail) {
-      this.notificationQueue
-        .add('notify-proposal-submitted', {
-          customerId: fullProposal?.customer_id,
-          providerId: proposal.provider_id,
-          requestId: proposal.request_id,
-          proposalId: proposal.id,
-          price: proposal.price,
-        })
-        .catch((err: any) => {
+      if (this.workersEnabled) {
+        this.notificationQueue
+          .add('notify-proposal-submitted', {
+            customerId: fullProposal?.customer_id,
+            providerId: proposal.provider_id,
+            requestId: proposal.request_id,
+            proposalId: proposal.id,
+            price: proposal.price,
+          })
+          .catch((err: any) => {
+            this.logger.warn(
+              `Failed to enqueue proposal notification: ${err.message}`,
+              ProposalService.name,
+            );
+          });
+      } else {
+        this.notificationClient.sendEmail({
+          to: customerEmail,
+          template: 'newProposal',
+          variables: {
+            providerId: proposal.provider_id,
+            requestId: proposal.request_id,
+            proposalId: proposal.id,
+            price: proposal.price,
+          },
+        }).catch((err: any) => {
           this.logger.warn(
-            `Failed to enqueue proposal notification: ${err.message}`,
+            `Failed to send proposal notification: ${err.message}`,
             ProposalService.name,
           );
         });
+      }
     }
 
     // Publish event to Kafka if enabled
@@ -159,8 +179,8 @@ export class ProposalService {
       ProposalService.name,
     );
 
-    // RBAC: Only the request owner or admin can see the list of proposals for a request
-    if (user && user.role !== "admin") {
+    // RBAC: Only the request owner or user with manage permission can see proposals for a request
+    if (user && !user.permissions?.includes('proposals.manage')) {
       const requestOwner = await this.proposalRepository.getRequestOwner(requestId);
       if (requestOwner !== user.userId) {
         throw new ForbiddenException(
@@ -199,6 +219,7 @@ export class ProposalService {
     id: string,
     userId: string,
     userRole: string,
+    userPermissions?: string[],
   ): Promise<ProposalResponseDto> {
     this.logger.log(`Accepting proposal: ${id}`, ProposalService.name);
 
@@ -208,8 +229,8 @@ export class ProposalService {
       throw new NotFoundException("Proposal not found");
     }
 
-    // Ownership check: only the customer who owns the request or admin can accept a proposal
-    if (userRole !== "admin" && existingProposal.customer_id !== userId) {
+    // Ownership check: only the customer who owns the request or user with manage permission can accept
+    if (!userPermissions?.includes('proposals.manage') && existingProposal.customer_id !== userId) {
       throw new ForbiddenException(
         "Only the request owner can accept a proposal",
       );
@@ -219,6 +240,14 @@ export class ProposalService {
     if (existingProposal.status !== "pending") {
       throw new BadRequestException(
         `Cannot accept proposal with status: ${existingProposal.status}`,
+      );
+    }
+
+    // Verify provider is approved before creating a job
+    const provider = await this.userClient.getProviderById(existingProposal.provider_id);
+    if (provider && provider.verification_status !== 'verified') {
+      throw new BadRequestException(
+        `Cannot accept proposal: provider is not verified (status: ${provider.verification_status})`,
       );
     }
 
@@ -265,18 +294,34 @@ export class ProposalService {
     const customerName = customerUser?.name || "Customer";
 
     if (providerEmail) {
-      this.notificationQueue
-        .add('notify-proposal-accepted', {
-          providerId: proposal.provider_id,
-          requestId: proposal.request_id,
-          proposalId: proposal.id,
-        })
-        .catch((err: any) => {
+      if (this.workersEnabled) {
+        this.notificationQueue
+          .add('notify-proposal-accepted', {
+            providerId: proposal.provider_id,
+            requestId: proposal.request_id,
+            proposalId: proposal.id,
+          })
+          .catch((err: any) => {
+            this.logger.warn(
+              `Failed to enqueue acceptance notification: ${err.message}`,
+              ProposalService.name,
+            );
+          });
+      } else {
+        this.notificationClient.sendEmail({
+          to: providerEmail,
+          template: 'proposalAccepted',
+          variables: {
+            requestId: proposal.request_id,
+            proposalId: proposal.id,
+          },
+        }).catch((err: any) => {
           this.logger.warn(
-            `Failed to enqueue acceptance notification: ${err.message}`,
+            `Failed to send acceptance notification: ${err.message}`,
             ProposalService.name,
           );
         });
+      }
     }
 
     // Publish event to Kafka if enabled
@@ -300,6 +345,7 @@ export class ProposalService {
     userId: string,
     userRole: string,
     reason?: string,
+    userPermissions?: string[],
   ): Promise<ProposalResponseDto> {
     this.logger.log(`Rejecting proposal: ${id}`, ProposalService.name);
 
@@ -309,8 +355,8 @@ export class ProposalService {
       throw new NotFoundException("Proposal not found");
     }
 
-    // Ownership check: only the customer who owns the request or admin can reject a proposal
-    if (userRole !== "admin" && existingProposal.customer_id !== userId) {
+    // Ownership check: only the customer who owns the request or user with manage permission can reject
+    if (!userPermissions?.includes?.('proposals.manage') && existingProposal.customer_id !== userId) {
       throw new ForbiddenException(
         "Only the request owner can reject a proposal",
       );
@@ -358,11 +404,13 @@ export class ProposalService {
       ProposalService.name,
     );
 
-    // RBAC: Enforce ownership filtering
-    if (user && user.role === "customer") {
-      queryDto.customer_id = user.userId;
-    } else if (user && user.role === "provider") {
-      queryDto.provider_id = user.providerId || user.userId;
+    // RBAC: Enforce ownership filtering unless user has manage permission
+    if (user && !user.permissions?.includes('proposals.manage')) {
+      if (user.role === "customer") {
+        queryDto.customer_id = user.userId;
+      } else if (user.role === "provider") {
+        queryDto.provider_id = user.providerId || user.userId;
+      }
     }
 
     validateMinMaxRange(
@@ -454,6 +502,7 @@ export class ProposalService {
     userId: string,
     userRole: string = "provider",
     providerId?: string,
+    userPermissions?: string[],
   ): Promise<ProposalResponseDto> {
     this.logger.log(`Withdrawing proposal: ${id}`, ProposalService.name);
 
@@ -463,7 +512,7 @@ export class ProposalService {
     }
 
     const isOwner = providerId && existingProposal.provider_id === providerId;
-    const isAdmin = userRole === "admin";
+    const isAdmin = userPermissions?.includes('proposals.manage');
 
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException(
@@ -512,6 +561,7 @@ export class ProposalService {
     userRole: string,
     fields: { price?: number; message?: string; estimated_hours?: number },
     providerId?: string,
+    userPermissions?: string[],
   ): Promise<ProposalResponseDto> {
     this.logger.log(`Updating proposal: ${id}`, ProposalService.name);
 
@@ -521,7 +571,7 @@ export class ProposalService {
     }
 
     const isOwner = providerId && existingProposal.provider_id === providerId;
-    const isAdmin = userRole === "admin";
+    const isAdmin = userPermissions?.includes?.('proposals.manage');
 
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException(
@@ -557,6 +607,7 @@ export class ProposalService {
     userId: string,
     userRole: string,
     providerId?: string,
+    userPermissions?: string[],
   ): Promise<void> {
     this.logger.log(`Deleting proposal: ${id}`, ProposalService.name);
 
@@ -566,7 +617,7 @@ export class ProposalService {
     }
 
     const isOwner = providerId && existingProposal.provider_id === providerId;
-    const isAdmin = userRole === "admin";
+    const isAdmin = userPermissions?.includes?.('proposals.manage');
 
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException(

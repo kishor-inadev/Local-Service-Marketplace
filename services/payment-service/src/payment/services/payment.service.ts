@@ -17,6 +17,7 @@ import {
 import { KafkaService } from "../../kafka/kafka.service";
 import { NotificationClient } from "../../common/notification/notification.client";
 import { UserClient } from "../../common/user/user.client";
+import { JobClient } from "../../common/marketplace/job.client";
 import { AnalyticsClient } from "../../common/analytics/analytics.client";
 import { PaymentGatewayService } from "../gateway/payment-gateway.service";
 import {
@@ -28,6 +29,8 @@ import {
 
 @Injectable()
 export class PaymentService {
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
+
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
@@ -38,6 +41,7 @@ export class PaymentService {
     private readonly kafkaService: KafkaService,
     private readonly notificationClient: NotificationClient,
     private readonly userClient: UserClient,
+    private readonly jobClient: JobClient,
     private readonly analyticsClient: AnalyticsClient,
     private readonly paymentGateway: PaymentGatewayService,
   ) { }
@@ -52,6 +56,22 @@ export class PaymentService {
     gateway?: string,
   ): Promise<Payment> {
     this.logger.log(`Creating payment for job ${jobId}`, "PaymentService");
+
+    // Validate job exists and payment amount matches agreed price
+    const job = await this.jobClient.getJobById(jobId);
+    if (job) {
+      if (job.customer_id !== userId) {
+        throw new BadRequestException("You are not the customer for this job");
+      }
+      if (job.provider_id !== providerId) {
+        throw new BadRequestException("Provider ID does not match the job's assigned provider");
+      }
+      if (job.actual_amount && Math.abs(amount - job.actual_amount) > 0.01) {
+        throw new BadRequestException(
+          `Payment amount (${amount}) does not match the job amount (${job.actual_amount})`,
+        );
+      }
+    }
 
     // Idempotency guard: prevent double-charging for the same job
     const existingPayments = await this.paymentRepository.getPaymentsByJobId(jobId);
@@ -123,20 +143,30 @@ export class PaymentService {
       "PaymentService",
     );
 
-    // Enqueue payment confirmation email (non-blocking)
+    // Send payment confirmation email — queue if workers enabled, else inline
     const userEmail = user?.email ?? null;
     if (userEmail) {
-      this.notificationQueue
-        .add('notify-payment-completed', {
-          paymentId: payment.id,
-          userId,
-          amount: finalAmount,
-          currency,
-          transactionId: chargeResult.transactionId,
-        })
-        .catch((err: any) => {
-          this.logger.warn(`Failed to enqueue payment confirmation: ${err.message}`, 'PaymentService');
+      if (this.workersEnabled) {
+        this.notificationQueue
+          .add('notify-payment-completed', {
+            paymentId: payment.id,
+            userId,
+            amount: finalAmount,
+            currency,
+            transactionId: chargeResult.transactionId,
+          })
+          .catch((err: any) => {
+            this.logger.warn(`Failed to enqueue payment confirmation: ${err.message}`, 'PaymentService');
+          });
+      } else {
+        this.notificationClient.sendEmail({
+          to: userEmail,
+          template: 'paymentReceived',
+          variables: { amount: finalAmount, currency, transactionId: chargeResult.transactionId, serviceName: 'Service' },
+        }).catch((err: any) => {
+          this.logger.warn(`Failed to send payment confirmation: ${err.message}`, 'PaymentService');
         });
+      }
     }
 
     // Publish event to Kafka — only publish payment_completed when the gateway

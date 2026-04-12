@@ -17,15 +17,14 @@ import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { JwtAuthGuard } from '@/common/guards/jwt-auth.guard';
-import { RolesGuard } from '@/common/guards/roles.guard';
-import { Roles } from '@/common/decorators/roles.decorator';
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { BackgroundJobService } from "../services/background-job.service";
 import { CreateBackgroundJobDto } from "../dto/create-background-job.dto";
 import { UpdateJobStatusDto } from "../dto/update-job-status.dto";
 import { BackgroundJobQueryDto } from "../dto/background-job-query.dto";
 
 @UseGuards(JwtAuthGuard, RolesGuard)
-@Roles("admin")
+@RequirePermissions('admin.access')
 @Controller("background-jobs")
 export class BackgroundJobController {
 	constructor(

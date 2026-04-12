@@ -54,54 +54,55 @@ const DAY_OPTIONS = [
 
 export default function AdminAnalyticsPage() {
   const { user } = useAuth();
+  const { can } = usePermissions();
   const [days, setDays] = useState(30);
 
   const { data: userStats, isLoading: l1, error: e1, refetch: r1 } = useQuery({
     queryKey: ['admin-user-stats'],
     queryFn: () => adminService.getSystemStats(),
-    enabled: user?.role === 'admin',
+    enabled: can(Permission.ANALYTICS_VIEW),
     staleTime: 60_000,
   });
 
   const { data: jobStats, isLoading: l2 } = useQuery({
     queryKey: ['admin-job-stats'],
     queryFn: () => adminService.getJobStats(),
-    enabled: user?.role === 'admin',
+    enabled: can(Permission.ANALYTICS_VIEW),
     staleTime: 60_000,
   });
 
   const { data: requestStats, isLoading: l3 } = useQuery({
     queryKey: ['admin-request-stats'],
     queryFn: () => adminService.getRequestStats(),
-    enabled: user?.role === 'admin',
+    enabled: can(Permission.ANALYTICS_VIEW),
     staleTime: 60_000,
   });
 
   const { data: paymentStats, isLoading: l4 } = useQuery({
     queryKey: ['admin-payment-stats'],
     queryFn: () => adminService.getPaymentStats(),
-    enabled: user?.role === 'admin',
+    enabled: can(Permission.ANALYTICS_VIEW),
     staleTime: 60_000,
   });
 
   const { data: disputeStats, isLoading: l5 } = useQuery({
     queryKey: ['admin-dispute-stats'],
     queryFn: () => adminService.getDisputeStats(),
-    enabled: user?.role === 'admin',
+    enabled: can(Permission.ANALYTICS_VIEW),
     staleTime: 60_000,
   });
 
   const { data: dailyMetrics, isLoading: l6 } = useQuery({
     queryKey: ['admin-daily-metrics', days],
     queryFn: () => adminService.getDailyMetrics({ days }),
-    enabled: user?.role === 'admin',
+    enabled: can(Permission.ANALYTICS_VIEW),
     staleTime: 60_000,
   });
 
   const isLoading = l1 || l2 || l3 || l4 || l5;
 
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredPermissions={[Permission.ANALYTICS_VIEW]}>
       <Layout>
         <div className="container-custom py-12">
           <div className="mb-8">

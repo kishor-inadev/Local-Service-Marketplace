@@ -182,6 +182,7 @@ class DatabaseSeeder {
 
 			// Identity / Auth
 			await runStep('seedServiceCategories', () => this.seedServiceCategories());
+			await runStep('seedRBAC', () => this.seedRBAC());
 			await runStep('seedUsers', () => this.seedUsers());
 			await runStep('seedEmailVerificationTokens', () => this.seedEmailVerificationTokens());
 			await runStep('seedPasswordResetTokens', () => this.seedPasswordResetTokens());
@@ -350,6 +351,173 @@ class DatabaseSeeder {
 		);
 	}
 
+	async seedRBAC() {
+		console.log("🔐 Seeding RBAC roles & permissions...");
+
+		// --- Roles ---
+		const roles = [
+			{ name: 'admin', display_name: 'Administrator', description: 'Full platform access' },
+			{ name: 'customer', display_name: 'Customer', description: 'Service requester' },
+			{ name: 'provider', display_name: 'Provider', description: 'Service provider' },
+		];
+		for (const role of roles) {
+			await safeInsert(
+				`INSERT INTO roles (id, name, display_name, description) VALUES (uuid_generate_v4(), $1, $2, $3) ON CONFLICT (name) DO NOTHING`,
+				[role.name, role.display_name, role.description],
+			);
+		}
+
+		// --- Permissions ---
+		const permissions = [
+			['dashboard.view', 'View Dashboard', 'Access the dashboard', 'dashboard', 'view'],
+			['users.list', 'List Users', 'View user list', 'users', 'list'],
+			['users.read', 'Read User', 'View user details', 'users', 'read'],
+			['users.create', 'Create User', 'Create new users', 'users', 'create'],
+			['users.update', 'Update User', 'Update user details', 'users', 'update'],
+			['users.delete', 'Delete User', 'Delete users', 'users', 'delete'],
+			['users.manage', 'Manage All Users', 'Full user management access', 'users', 'manage'],
+			['profile.view', 'View Own Profile', 'View own profile', 'profile', 'view'],
+			['profile.update', 'Update Own Profile', 'Update own profile', 'profile', 'update'],
+			['providers.list', 'List Providers', 'View provider list', 'providers', 'list'],
+			['providers.read', 'Read Provider', 'View provider details', 'providers', 'read'],
+			['providers.verify', 'Verify Provider', 'Approve or verify providers', 'providers', 'verify'],
+			['providers.manage', 'Manage Providers', 'Full provider management', 'providers', 'manage'],
+			['provider_profile.view', 'View Provider Profile', 'View own provider profile', 'provider_profile', 'view'],
+			['provider_profile.update', 'Update Provider Profile', 'Update own provider profile', 'provider_profile', 'update'],
+			['provider_services.manage', 'Manage Provider Services', 'Manage own services offered', 'provider_services', 'manage'],
+			['provider_availability.manage', 'Manage Availability', 'Manage own availability schedule', 'provider_availability', 'manage'],
+			['provider_portfolio.manage', 'Manage Portfolio', 'Manage portfolio items', 'provider_portfolio', 'manage'],
+			['provider_documents.manage', 'Manage Documents', 'Manage provider documents', 'provider_documents', 'manage'],
+			['requests.create', 'Create Request', 'Create service requests', 'requests', 'create'],
+			['requests.read', 'Read Requests', 'View service requests', 'requests', 'read'],
+			['requests.update', 'Update Request', 'Update own service requests', 'requests', 'update'],
+			['requests.delete', 'Delete Request', 'Delete own service requests', 'requests', 'delete'],
+			['requests.browse', 'Browse Requests', 'Browse available requests', 'requests', 'browse'],
+			['requests.manage', 'Manage All Requests', 'Manage any service request', 'requests', 'manage'],
+			['requests.view_stats', 'View Request Stats', 'View request statistics', 'requests', 'view_stats'],
+			['categories.read', 'Read Categories', 'View service categories', 'categories', 'read'],
+			['categories.manage', 'Manage Categories', 'Create/update/delete categories', 'categories', 'manage'],
+			['proposals.create', 'Create Proposal', 'Submit proposals', 'proposals', 'create'],
+			['proposals.read', 'Read Proposals', 'View proposals', 'proposals', 'read'],
+			['proposals.update', 'Update Proposal', 'Update own proposals', 'proposals', 'update'],
+			['proposals.accept', 'Accept Proposal', 'Accept proposals on own requests', 'proposals', 'accept'],
+			['proposals.manage', 'Manage All Proposals', 'Manage any proposal', 'proposals', 'manage'],
+			['jobs.create', 'Create Job', 'Create jobs from accepted proposals', 'jobs', 'create'],
+			['jobs.read', 'Read Jobs', 'View job details', 'jobs', 'read'],
+			['jobs.update_status', 'Update Job Status', 'Start/complete jobs', 'jobs', 'update_status'],
+			['jobs.manage', 'Manage All Jobs', 'Manage any job', 'jobs', 'manage'],
+			['jobs.view_stats', 'View Job Stats', 'View job statistics', 'jobs', 'view_stats'],
+			['reviews.create', 'Create Review', 'Submit reviews', 'reviews', 'create'],
+			['reviews.read', 'Read Reviews', 'View reviews', 'reviews', 'read'],
+			['reviews.update', 'Update Review', 'Update own reviews', 'reviews', 'update'],
+			['reviews.delete', 'Delete Review', 'Delete reviews', 'reviews', 'delete'],
+			['reviews.manage', 'Manage All Reviews', 'Manage any review', 'reviews', 'manage'],
+			['favorites.manage', 'Manage Favorites', 'Add/remove favorites', 'favorites', 'manage'],
+			['payments.create', 'Create Payment', 'Make payments', 'payments', 'create'],
+			['payments.read', 'Read Own Payments', 'View own payment history', 'payments', 'read'],
+			['payments.manage', 'Manage All Payments', 'View and manage all payments', 'payments', 'manage'],
+			['payments.view_stats', 'View Payment Stats', 'View payment statistics', 'payments', 'view_stats'],
+			['refunds.create', 'Request Refund', 'Request refunds', 'refunds', 'create'],
+			['refunds.manage', 'Manage Refunds', 'Manage all refunds', 'refunds', 'manage'],
+			['subscriptions.manage', 'Manage Subscriptions', 'Manage own subscriptions', 'subscriptions', 'manage'],
+			['earnings.view', 'View Earnings', 'View own earning reports', 'earnings', 'view'],
+			['earnings.manage', 'Manage All Earnings', 'View and manage all earnings', 'earnings', 'manage'],
+			['coupons.manage', 'Manage Coupons', 'Create/update/delete coupons', 'coupons', 'manage'],
+			['notifications.view', 'View Notifications', 'View own notifications', 'notifications', 'view'],
+			['notifications.manage', 'Manage Notifications', 'Manage all notifications', 'notifications', 'manage'],
+			['messages.send', 'Send Messages', 'Send messages in conversations', 'messages', 'send'],
+			['messages.read', 'Read Messages', 'Read own messages', 'messages', 'read'],
+			['messages.manage', 'Manage All Messages', 'Manage any message', 'messages', 'manage'],
+			['disputes.file', 'File Dispute', 'File a dispute', 'disputes', 'file'],
+			['disputes.read', 'Read Disputes', 'View own disputes', 'disputes', 'read'],
+			['disputes.manage', 'Manage All Disputes', 'Manage and resolve disputes', 'disputes', 'manage'],
+			['disputes.view_stats', 'View Dispute Stats', 'View dispute statistics', 'disputes', 'view_stats'],
+			['analytics.view', 'View Analytics', 'View platform analytics', 'analytics', 'view'],
+			['analytics.manage', 'Manage Analytics', 'Full analytics access and export', 'analytics', 'manage'],
+			['audit.view', 'View Audit Logs', 'View audit logs', 'audit', 'view'],
+			['audit.manage', 'Manage Audit Logs', 'Full audit log management', 'audit', 'manage'],
+			['admin.access', 'Admin Panel Access', 'Access the admin panel', 'admin', 'access'],
+			['admin.contact_view', 'View Contact Submissions', 'View contact form submissions', 'admin', 'contact_view'],
+			['settings.manage', 'Manage System Settings', 'Manage platform settings', 'settings', 'manage'],
+			['roles.read', 'Read Roles', 'View roles and permissions', 'roles', 'read'],
+			['roles.manage', 'Manage Roles', 'Create/update/delete roles and assign permissions', 'roles', 'manage'],
+			['infrastructure.events', 'Manage Events', 'View and manage system events', 'infrastructure', 'events'],
+			['infrastructure.jobs', 'Manage Background Jobs', 'View and manage background jobs', 'infrastructure', 'jobs'],
+			['infrastructure.rate_limits', 'Manage Rate Limits', 'Configure rate limits', 'infrastructure', 'rate_limits'],
+			['infrastructure.feature_flags', 'Manage Feature Flags', 'Toggle feature flags', 'infrastructure', 'feature_flags'],
+		];
+		for (const [name, displayName, description, resource, action] of permissions) {
+			await safeInsert(
+				`INSERT INTO permissions (id, name, display_name, description, resource, action) VALUES (uuid_generate_v4(), $1, $2, $3, $4, $5) ON CONFLICT (name) DO NOTHING`,
+				[name, displayName, description, resource, action],
+			);
+		}
+
+		// --- Role-Permission assignments ---
+		// Admin gets ALL permissions
+		await safeInsert(
+			`INSERT INTO role_permissions (role_id, permission_id, created_at)
+			 SELECT r.id, p.id, now()
+			 FROM roles r CROSS JOIN permissions p
+			 WHERE r.name = 'admin'
+			 ON CONFLICT DO NOTHING`,
+			[],
+		);
+
+		// Customer permissions
+		const customerPerms = [
+			'dashboard.view', 'profile.view', 'profile.update',
+			'providers.list', 'providers.read', 'categories.read',
+			'requests.create', 'requests.read', 'requests.update', 'requests.delete',
+			'proposals.read', 'proposals.accept',
+			'jobs.create', 'jobs.read',
+			'reviews.create', 'reviews.read', 'reviews.update',
+			'favorites.manage',
+			'payments.create', 'payments.read',
+			'refunds.create',
+			'notifications.view',
+			'messages.send', 'messages.read',
+			'disputes.file', 'disputes.read',
+		];
+		await safeInsert(
+			`INSERT INTO role_permissions (role_id, permission_id, created_at)
+			 SELECT r.id, p.id, now()
+			 FROM roles r CROSS JOIN permissions p
+			 WHERE r.name = 'customer' AND p.name = ANY($1::text[])
+			 ON CONFLICT DO NOTHING`,
+			[customerPerms],
+		);
+
+		// Provider permissions
+		const providerPerms = [
+			'dashboard.view', 'profile.view', 'profile.update',
+			'providers.read', 'categories.read',
+			'provider_profile.view', 'provider_profile.update',
+			'provider_services.manage', 'provider_availability.manage',
+			'provider_portfolio.manage', 'provider_documents.manage',
+			'requests.read', 'requests.browse',
+			'proposals.create', 'proposals.read', 'proposals.update',
+			'jobs.read', 'jobs.update_status',
+			'reviews.read',
+			'earnings.view',
+			'subscriptions.manage',
+			'notifications.view',
+			'messages.send', 'messages.read',
+			'disputes.file', 'disputes.read',
+			'payments.read',
+		];
+		await safeInsert(
+			`INSERT INTO role_permissions (role_id, permission_id, created_at)
+			 SELECT r.id, p.id, now()
+			 FROM roles r CROSS JOIN permissions p
+			 WHERE r.name = 'provider' AND p.name = ANY($1::text[])
+			 ON CONFLICT DO NOTHING`,
+			[providerPerms],
+		);
+
+		console.log("   ✓ RBAC roles, permissions, and assignments seeded");
+	}
+
 	async seedUsers() {
 		console.log("👥 Seeding users...");
 		const hashedPassword = await bcrypt.hash(DEFAULT_SEED_PASSWORD, 10);
@@ -359,8 +527,8 @@ class DatabaseSeeder {
 		const adminId = uuid();
 		const adminEmail = "admin@marketplace.com";
 		await safeInsert(
-			`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, email_verified, status) 
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+			`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, status) 
+       VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM roles WHERE name = $7), $8, $9)
        ON CONFLICT (email) DO NOTHING`,
 			[adminId, displayId('USR'), adminEmail, "Admin User", "+12345678900", hashedPassword, "admin", true, "active"],
 		);
@@ -377,8 +545,8 @@ class DatabaseSeeder {
 		const admin2Email = "admin2@marketplace.com";
 		const admin2Id = uuid();
 		await safeInsert(
-			`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, email_verified, phone_verified, timezone, language, status)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+			`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, phone_verified, timezone, language, status)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM roles WHERE name = $7), $8, $9, $10, $11, $12)
        ON CONFLICT (email) DO NOTHING`,
 			[
 				admin2Id,
@@ -411,8 +579,8 @@ class DatabaseSeeder {
 			const email = uniqueEmail(firstName, lastName);
 
 			await safeInsert(
-				`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, email_verified, phone_verified, profile_picture_url, timezone, language, last_login_at, status) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+				`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, phone_verified, profile_picture_url, timezone, language, last_login_at, status) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM roles WHERE name = $7), $8, $9, $10, $11, $12, $13, $14)
          ON CONFLICT (email) DO NOTHING`,
 				[
 					id,
@@ -451,8 +619,8 @@ class DatabaseSeeder {
 			const email = uniqueEmail(firstName, lastName);
 
 			await safeInsert(
-				`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, email_verified, phone_verified, profile_picture_url, timezone, language, last_login_at, status) 
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+				`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, phone_verified, profile_picture_url, timezone, language, last_login_at, status) 
+         VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM roles WHERE name = $7), $8, $9, $10, $11, $12, $13, $14)
          ON CONFLICT (email) DO NOTHING`,
 				[
 					id,
@@ -486,6 +654,13 @@ class DatabaseSeeder {
 		console.log(
 			`   ✓ Created ${created} users (${this.customerIds.length} customers, ${this.providerIds.length} providers, ${this.adminIds.length} admins)`,
 		);
+
+		// Backfill role_id from users.role → roles.name
+		await safeInsert(
+			`UPDATE users u SET role_id = r.id FROM roles r WHERE u.role = r.name AND u.role_id IS NULL`,
+			[],
+		);
+		console.log("   ✓ Backfilled users.role_id from RBAC roles");
 	}
 
 	async seedSessions() {
@@ -966,17 +1141,19 @@ class DatabaseSeeder {
 
 	async seedJobs() {
 		console.log("👷 Seeding jobs...");
-		const statuses = ["scheduled", "in_progress", "completed", "cancelled", "disputed"];
+		const statuses = ["pending", "scheduled", "in_progress", "completed", "cancelled", "disputed"];
 		let count = 0;
 
 		for (const proposal of this.acceptedProposals.slice(0, 200)) {
 			if (this.customerIds.length === 0) break;
 			const id = uuid();
-			const customerId = randomPick(this.customerIds);
+			// Use request's actual customer instead of random
+			const requestDetails = this.requestDetailsMap.get(proposal.requestId);
+			const customerId = requestDetails?.userId || randomPick(this.customerIds);
 			const providerUserId = this.providerUserMap.get(proposal.providerId) || null;
 			const status = randomPick(statuses);
 			const createdAt = randomDate(new Date(2024, 0, 1), new Date());
-			const startedAt = status !== "scheduled" ? randomDate(createdAt, new Date()) : null;
+			const startedAt = (status !== "scheduled" && status !== "pending") ? randomDate(createdAt, new Date()) : null;
 			const completedAt = status === "completed" && startedAt ? randomDate(startedAt, new Date()) : null;
 
 			const success = await safeInsert(
@@ -1030,7 +1207,7 @@ class DatabaseSeeder {
 				// If forced to reuse occupied requests, only use statuses exempt from the unique constraint
 				const status = useAnyRequest ? randomPick(safeStatuses) : randomPick(statuses);
 				const createdAt = randomDate(new Date(2024, 0, 1), new Date());
-				const startedAt = status !== "scheduled" ? randomDate(createdAt, new Date()) : null;
+				const startedAt = (status !== "scheduled" && status !== "pending") ? randomDate(createdAt, new Date()) : null;
 				const completedAt = status === "completed" && startedAt ? randomDate(startedAt, new Date()) : null;
 
 				const success = await safeInsert(
@@ -1490,6 +1667,8 @@ class DatabaseSeeder {
 				[
 					uuid(),
 					displayId('DIS'),
+					job.id,
+					job.customer_id,
 					faker.lorem.paragraph(),
 					status,
 					isResolved ? faker.lorem.sentence() : null,

@@ -9,6 +9,7 @@ declare module "next-auth" {
 		user: {
 			id: string;
 			role: string;
+			permissions: string[];
 			emailVerified: boolean;
 			phoneVerified: boolean;
 			timezone: string | null;
@@ -25,6 +26,7 @@ declare module "next-auth" {
    */
   interface User extends DefaultUser {
     role: string;
+    permissions?: string[];
     emailVerified: boolean | Date | null;
     accessToken?: string;
     refreshToken?: string;
@@ -36,6 +38,7 @@ declare module "next-auth/jwt" {
   interface JWT extends DefaultJWT {
     id?: string;
     role?: string;
+    permissions?: string[];
     emailVerified?: boolean | Date | null;
     phoneVerified?: boolean;
     timezone?: string | null;

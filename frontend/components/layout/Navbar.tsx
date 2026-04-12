@@ -4,6 +4,8 @@ import React, { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { useNotifications } from '@/hooks/useNotifications';
 import { isNotificationsEnabled, isMessagingEnabled } from '@/config/features';
 import { ROUTES } from '@/config/constants';
@@ -16,6 +18,7 @@ import { cn } from '@/utils/helpers';
 export function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
+  const { can } = usePermissions();
   const { unreadCount } = useNotifications({ enabled: isAuthenticated });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -90,32 +93,34 @@ export function Navbar() {
                   )}
                 </Link>
 
-                {user?.role === 'provider' && (
-                  <>
-                    <Link href={ROUTES.DASHBOARD_BROWSE_REQUESTS} className={navLinkClass(pathname === ROUTES.DASHBOARD_BROWSE_REQUESTS)}>
-                      Browse
-                    </Link>
-                    <Link href={ROUTES.DASHBOARD_MY_PROPOSALS} className={navLinkClass(pathname === ROUTES.DASHBOARD_MY_PROPOSALS)}>
-                      Proposals
-                    </Link>
-                    <Link href={ROUTES.DASHBOARD_EARNINGS} className={navLinkClass(pathname === ROUTES.DASHBOARD_EARNINGS)}>
-                      Earnings
-                    </Link>
-                  </>
+                {can(Permission.REQUESTS_BROWSE) && (
+                  <Link href={ROUTES.DASHBOARD_BROWSE_REQUESTS} className={navLinkClass(pathname === ROUTES.DASHBOARD_BROWSE_REQUESTS)}>
+                    Browse
+                  </Link>
+                )}
+                {can(Permission.PROPOSALS_CREATE) && (
+                  <Link href={ROUTES.DASHBOARD_MY_PROPOSALS} className={navLinkClass(pathname === ROUTES.DASHBOARD_MY_PROPOSALS)}>
+                    Proposals
+                  </Link>
+                )}
+                {can(Permission.EARNINGS_VIEW) && (
+                  <Link href={ROUTES.DASHBOARD_EARNINGS} className={navLinkClass(pathname === ROUTES.DASHBOARD_EARNINGS)}>
+                    Earnings
+                  </Link>
                 )}
 
-                {user?.role === 'customer' && (
-                  <>
-                    <Link href={ROUTES.DASHBOARD_REQUESTS} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_REQUESTS))}>
-                      Requests
-                    </Link>
-                    <Link href={ROUTES.DASHBOARD_JOBS} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_JOBS))}>
-                      Jobs
-                    </Link>
-                  </>
+                {can(Permission.REQUESTS_CREATE) && (
+                  <Link href={ROUTES.DASHBOARD_REQUESTS} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_REQUESTS))}>
+                    Requests
+                  </Link>
+                )}
+                {can(Permission.JOBS_READ) && (
+                  <Link href={ROUTES.DASHBOARD_JOBS} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_JOBS))}>
+                    Jobs
+                  </Link>
                 )}
 
-                {user?.role === 'admin' && (
+                {can(Permission.ADMIN_ACCESS) && (
                   <Link href={ROUTES.DASHBOARD_ADMIN} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_ADMIN))}>
                     Admin
                   </Link>
@@ -228,20 +233,22 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <MobileLink href={ROUTES.DASHBOARD} icon={LayoutDashboard} label='Dashboard' />
-                {user?.role === 'provider' && (
-                  <>
-                    <MobileLink href={ROUTES.DASHBOARD_BROWSE_REQUESTS} icon={FileText} label='Browse Requests' />
-                    <MobileLink href={ROUTES.DASHBOARD_MY_PROPOSALS} icon={Briefcase} label='My Proposals' />
-                    <MobileLink href={ROUTES.DASHBOARD_EARNINGS} icon={FileText} label='Earnings' />
-                  </>
+                {can(Permission.REQUESTS_BROWSE) && (
+                  <MobileLink href={ROUTES.DASHBOARD_BROWSE_REQUESTS} icon={FileText} label='Browse Requests' />
                 )}
-                {user?.role === 'customer' && (
-                  <>
-                    <MobileLink href={ROUTES.DASHBOARD_REQUESTS} icon={FileText} label='My Requests' />
-                    <MobileLink href={ROUTES.DASHBOARD_JOBS} icon={Briefcase} label='My Jobs' />
-                  </>
+                {can(Permission.PROPOSALS_CREATE) && (
+                  <MobileLink href={ROUTES.DASHBOARD_MY_PROPOSALS} icon={Briefcase} label='My Proposals' />
                 )}
-                {user?.role === 'admin' && (
+                {can(Permission.EARNINGS_VIEW) && (
+                  <MobileLink href={ROUTES.DASHBOARD_EARNINGS} icon={FileText} label='Earnings' />
+                )}
+                {can(Permission.REQUESTS_CREATE) && (
+                  <MobileLink href={ROUTES.DASHBOARD_REQUESTS} icon={FileText} label='My Requests' />
+                )}
+                {can(Permission.JOBS_READ) && (
+                  <MobileLink href={ROUTES.DASHBOARD_JOBS} icon={Briefcase} label='My Jobs' />
+                )}
+                {can(Permission.ADMIN_ACCESS) && (
                   <MobileLink href={ROUTES.DASHBOARD_ADMIN} icon={LayoutDashboard} label='Admin Panel' />
                 )}
                 {isMessagingEnabled() && (

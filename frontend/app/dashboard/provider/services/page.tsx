@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { Layout } from "@/components/layout/Layout";
 import { Card, CardHeader, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -16,6 +18,7 @@ import toast from "react-hot-toast";
 
 export default function ProviderServicesPage() {
 	const { user, isAuthenticated } = useAuth();
+	const { can } = usePermissions();
 	const queryClient = useQueryClient();
 	const [selectedCategoryId, setSelectedCategoryId] = useState("");
 
@@ -27,7 +30,7 @@ export default function ProviderServicesPage() {
 			const list = response.data?.data ?? response.data ?? [];
 			return (Array.isArray(list) ? list[0] : null) ?? null;
 		},
-		enabled: isAuthenticated && user?.role === "provider",
+		enabled: isAuthenticated && can(Permission.PROVIDER_SERVICES_MANAGE),
 	});
 
 	const providerId: string | undefined = providerData?.id;
@@ -75,7 +78,7 @@ export default function ProviderServicesPage() {
 	const isLoading = servicesLoading || categoriesLoading;
 
 	return (
-		<ProtectedRoute requiredRoles={["provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.PROVIDER_SERVICES_MANAGE]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					<div className='mb-8'>

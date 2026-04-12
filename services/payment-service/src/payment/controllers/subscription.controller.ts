@@ -19,8 +19,7 @@ import { CreateSubscriptionDto } from "../dto/create-subscription.dto";
 import { UpgradeSubscriptionDto } from "../dto/upgrade-subscription.dto";
 import { SubscriptionQueryDto } from "../dto/transaction-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 
 @UseGuards(JwtAuthGuard)
 @Controller("subscriptions")
@@ -28,7 +27,7 @@ export class SubscriptionController {
   constructor(private readonly subscriptionService: SubscriptionService) {}
 
   private assertProviderAccess(req: any, providerId: string) {
-    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+    if (!req.user.permissions?.includes('subscriptions.manage') && req.user.providerId !== providerId) {
       throw new ForbiddenException("You can only manage subscriptions for your own provider account");
     }
   }
@@ -56,7 +55,7 @@ export class SubscriptionController {
     };
   }
 
-  @Roles("provider", "admin")
+  @RequirePermissions('subscriptions.manage')
   @UseGuards(RolesGuard)
   @Post(":subscriptionId/activate")
   @HttpCode(HttpStatus.OK)
@@ -149,7 +148,7 @@ export class SubscriptionController {
     };
   }
 
-  @Roles("admin")
+  @RequirePermissions('subscriptions.manage')
   @UseGuards(RolesGuard)
   @Get("expiring")
   async getExpiringSubscriptions(

@@ -6,6 +6,8 @@ import { Layout } from '@/components/layout/Layout';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { ROUTES } from '@/config/constants';
 import { getUserProfile, getProviderProfile } from '@/services/user-service';
 import { getProviderReviews } from '@/services/review-service';
@@ -29,6 +31,7 @@ import { formatDate, parseRating } from "@/utils/helpers";
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { can } = usePermissions();
 
   const { data: profile, isLoading: profileLoading, error: profileError, refetch } = useQuery({
     queryKey: ['my-profile'],
@@ -36,7 +39,7 @@ export default function ProfilePage() {
     enabled: isAuthenticated,
   });
 
-  const isProvider = profile?.role === 'provider' || user?.role === 'provider';
+  const isProvider = can(Permission.PROVIDER_PROFILE_VIEW);
 
   const { data: providerProfile, isLoading: providerLoading } = useQuery({
     queryKey: ['my-provider-profile', user?.id],

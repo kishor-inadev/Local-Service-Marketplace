@@ -2,6 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 
@@ -50,6 +52,7 @@ const mapUserSortBy = (field?: string): "createdAt" | "email" | "name" | "role" 
 
 export default function AdminUsersPage() {
   const { user } = useAuth();
+  const { can } = usePermissions();
 	const router = useRouter();
 	const [serverSearch, setServerSearch] = useState("");
 	const [serverSorting, setServerSorting] = useState<SortingState>([{ id: "created_at", desc: true }]);
@@ -90,7 +93,7 @@ export default function AdminUsersPage() {
 				sortBy: mapUserSortBy(activeSort?.id),
 				sortOrder: activeSort?.desc ? "desc" : "asc",
 			}),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.USERS_LIST),
 		placeholderData: (previousData) => previousData,
 	});
 
@@ -118,12 +121,12 @@ export default function AdminUsersPage() {
 	const { data: userStats } = useQuery({
 		queryKey: ["admin-users-stats"],
 		queryFn: () => adminService.getSystemStats(),
-		enabled: user?.role === "admin",
+		enabled: can(Permission.USERS_LIST),
 		staleTime: 60_000,
 	});
 
   return (
-		<ProtectedRoute requiredRoles={["admin"]}>
+		<ProtectedRoute requiredPermissions={[Permission.USERS_LIST]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					<div className='mb-8'>
@@ -261,7 +264,7 @@ export default function AdminUsersPage() {
 									emptyMessage='No users found'
 									emptyActionLabel='Create User'
 									onEmptyAction={() => router.push(ROUTES.DASHBOARD_ADMIN_USERS_CREATE)}
-									showEmptyAction={user?.role === "admin"}
+									showEmptyAction={can(Permission.USERS_CREATE)}
 									isLoading={isFetching && !!users}
 									searchDebounceMs={300}
 									columns={[

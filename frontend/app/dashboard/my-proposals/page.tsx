@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { useRouter } from 'next/navigation';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
@@ -21,6 +23,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 export default function MyProposalsPage() {
 	const queryClient = useQueryClient();
 	const { user, isAuthenticated } = useAuth();
+	const { can } = usePermissions();
 	const router = useRouter();
 	const [statusFilter, setStatusFilter] = useState<string>("");
 	const [withdrawConfirmOpen, setWithdrawConfirmOpen] = useState(false);
@@ -35,7 +38,7 @@ export default function MyProposalsPage() {
 	} = useQuery({
 		queryKey: ["my-proposals"],
 		queryFn: () => proposalService.getMyProposals(),
-		enabled: isAuthenticated && user?.role === "provider",
+		enabled: isAuthenticated && can(Permission.PROPOSALS_CREATE),
 	});
 
 	// Withdraw proposal mutation
@@ -75,7 +78,7 @@ export default function MyProposalsPage() {
 	};
 
 	return (
-		<ProtectedRoute requiredRoles={["provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.PROPOSALS_CREATE]}>
 			<Layout>
 				<div className='container-custom py-12'>
 					{error ?

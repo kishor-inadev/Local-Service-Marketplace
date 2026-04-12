@@ -16,6 +16,8 @@ const makeKafka = () =>
 const makeRedis = () =>
   ({ isCacheEnabled: jest.fn().mockReturnValue(false) }) as any;
 const makeAnalytics = () => ({ track: jest.fn() }) as any;
+const makeQueue = () =>
+  ({ add: jest.fn().mockResolvedValue(undefined) }) as any;
 
 describe("JobService list validation", () => {
   const createService = () => {
@@ -32,6 +34,7 @@ describe("JobService list validation", () => {
       {} as any,
       makeAnalytics(),
       makeLogger(),
+      makeQueue(),
     );
 
     return { service };
@@ -89,6 +92,7 @@ describe("JobService.createJob", () => {
       {} as any,
       makeAnalytics(),
       makeLogger(),
+      makeQueue(),
     );
 
     await expect(
@@ -123,6 +127,7 @@ describe("JobService.createJob", () => {
       userClient,
       analytics,
       makeLogger(),
+      makeQueue(),
     );
 
     const dto = {
@@ -167,6 +172,7 @@ describe("JobService.completeJob", () => {
       {} as any,
       makeAnalytics(),
       makeLogger(),
+      makeQueue(),
     );
 
     await expect(
@@ -186,6 +192,7 @@ describe("JobService.completeJob", () => {
       {} as any,
       makeAnalytics(),
       makeLogger(),
+      makeQueue(),
     );
 
     await expect(
@@ -207,6 +214,7 @@ describe("JobService.completeJob", () => {
       {} as any,
       makeAnalytics(),
       makeLogger(),
+      makeQueue(),
     );
 
     await expect(
@@ -230,6 +238,7 @@ describe("JobService.completeJob", () => {
       {} as any,
       analytics,
       makeLogger(),
+      makeQueue(),
     );
 
     await service.completeJob("job-2", "cust-2", "customer");

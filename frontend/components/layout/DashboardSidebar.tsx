@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { usePermissions } from "@/hooks/usePermissions";
+import { Permission } from "@/utils/permissions";
 import { ROUTES } from "@/config/constants";
 import { isMessagingEnabled, isNotificationsEnabled } from "@/config/features";
 import { useSidebarStore } from "@/store/sidebarStore";
@@ -40,42 +42,48 @@ interface NavItem {
 	label: string;
 	href: string;
 	icon: React.ElementType;
+	/** If set, user must have at least one of these permissions to see this item */
+	permissions?: string[];
+	/** Legacy: if set and no user permissions exist, fallback to role check */
+	roles?: string[];
 }
 
-const customerLinks: NavItem[] = [
-	{ label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
-	{ label: "My Requests", href: ROUTES.DASHBOARD_REQUESTS, icon: FileText },
-	{ label: "My Jobs", href: ROUTES.DASHBOARD_JOBS, icon: Briefcase },
-	{ label: "Favorites", href: ROUTES.DASHBOARD_FAVORITES, icon: Heart },
-	{ label: "Payment History", href: ROUTES.DASHBOARD_PAYMENT_HISTORY, icon: CreditCard },
-	{ label: "My Reviews", href: ROUTES.DASHBOARD_REVIEWS, icon: Star },
-	{ label: "My Disputes", href: ROUTES.DASHBOARD_DISPUTES, icon: MessagesSquare },
-];
+/**
+ * All possible nav items. Visibility is controlled by `permissions` (preferred)
+ * or `roles` (fallback for tokens without permissions).
+ * Items without permissions/roles are visible to all authenticated users.
+ */
+const ALL_NAV_ITEMS: NavItem[] = [
+	// ── Customer items ─────────────────────────────────────────────────────
+	{ label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard, permissions: [Permission.DASHBOARD_VIEW] },
+	{ label: "My Requests", href: ROUTES.DASHBOARD_REQUESTS, icon: FileText, permissions: [Permission.REQUESTS_CREATE, Permission.REQUESTS_READ], roles: ["customer"] },
+	{ label: "My Jobs", href: ROUTES.DASHBOARD_JOBS, icon: Briefcase, permissions: [Permission.JOBS_READ], roles: ["customer", "provider"] },
+	{ label: "Favorites", href: ROUTES.DASHBOARD_FAVORITES, icon: Heart, permissions: [Permission.FAVORITES_MANAGE], roles: ["customer"] },
+	{ label: "Payment History", href: ROUTES.DASHBOARD_PAYMENT_HISTORY, icon: CreditCard, permissions: [Permission.PAYMENTS_READ], roles: ["customer"] },
+	{ label: "My Reviews", href: ROUTES.DASHBOARD_REVIEWS, icon: Star, permissions: [Permission.REVIEWS_CREATE, Permission.REVIEWS_READ], roles: ["customer"] },
+	{ label: "My Disputes", href: ROUTES.DASHBOARD_DISPUTES, icon: MessagesSquare, permissions: [Permission.DISPUTES_FILE, Permission.DISPUTES_READ], roles: ["customer", "provider"] },
 
-const providerLinks: NavItem[] = [
-	{ label: "Dashboard", href: ROUTES.DASHBOARD, icon: LayoutDashboard },
-	{ label: "Browse Requests", href: ROUTES.DASHBOARD_BROWSE_REQUESTS, icon: Search },
-	{ label: "My Proposals", href: ROUTES.DASHBOARD_MY_PROPOSALS, icon: ClipboardList },
-	{ label: "My Jobs", href: ROUTES.DASHBOARD_JOBS, icon: Briefcase },
-	{ label: "Earnings", href: ROUTES.DASHBOARD_EARNINGS, icon: DollarSign },
-	{ label: "Availability", href: ROUTES.DASHBOARD_AVAILABILITY, icon: Clock },
-	{ label: "My Profile", href: ROUTES.DASHBOARD_PROVIDER_OVERVIEW, icon: Star },
-	{ label: "Services", href: ROUTES.DASHBOARD_PROVIDER_SERVICES, icon: Tag },
-	{ label: "Portfolio", href: ROUTES.DASHBOARD_PROVIDER_PORTFOLIO, icon: FolderOpen },
-	{ label: "Documents", href: ROUTES.DASHBOARD_PROVIDER_DOCUMENTS, icon: FileText },
-	{ label: "Reviews", href: ROUTES.DASHBOARD_PROVIDER_REVIEWS, icon: Star },
-	{ label: "My Disputes", href: ROUTES.DASHBOARD_DISPUTES, icon: MessagesSquare },
-];
+	// ── Provider items ─────────────────────────────────────────────────────
+	{ label: "Browse Requests", href: ROUTES.DASHBOARD_BROWSE_REQUESTS, icon: Search, permissions: [Permission.REQUESTS_BROWSE], roles: ["provider"] },
+	{ label: "My Proposals", href: ROUTES.DASHBOARD_MY_PROPOSALS, icon: ClipboardList, permissions: [Permission.PROPOSALS_CREATE, Permission.PROPOSALS_READ], roles: ["provider"] },
+	{ label: "Earnings", href: ROUTES.DASHBOARD_EARNINGS, icon: DollarSign, permissions: [Permission.EARNINGS_VIEW], roles: ["provider"] },
+	{ label: "Availability", href: ROUTES.DASHBOARD_AVAILABILITY, icon: Clock, permissions: [Permission.PROVIDER_AVAILABILITY_MANAGE], roles: ["provider"] },
+	{ label: "My Profile", href: ROUTES.DASHBOARD_PROVIDER_OVERVIEW, icon: Star, permissions: [Permission.PROVIDER_PROFILE_VIEW], roles: ["provider"] },
+	{ label: "Services", href: ROUTES.DASHBOARD_PROVIDER_SERVICES, icon: Tag, permissions: [Permission.PROVIDER_SERVICES_MANAGE], roles: ["provider"] },
+	{ label: "Portfolio", href: ROUTES.DASHBOARD_PROVIDER_PORTFOLIO, icon: FolderOpen, permissions: [Permission.PROVIDER_PORTFOLIO_MANAGE], roles: ["provider"] },
+	{ label: "Documents", href: ROUTES.DASHBOARD_PROVIDER_DOCUMENTS, icon: FileText, permissions: [Permission.PROVIDER_DOCUMENTS_MANAGE], roles: ["provider"] },
+	{ label: "Reviews", href: ROUTES.DASHBOARD_PROVIDER_REVIEWS, icon: Star, permissions: [Permission.REVIEWS_READ], roles: ["provider"] },
 
-const adminLinks: NavItem[] = [
-	{ label: "Admin Overview", href: ROUTES.DASHBOARD_ADMIN, icon: LayoutDashboard },
-	{ label: "Users", href: ROUTES.DASHBOARD_ADMIN_USERS, icon: Users },
-	{ label: "Providers", href: ROUTES.DASHBOARD_ADMIN_PROVIDERS, icon: Shield },
-	{ label: "Categories", href: ROUTES.DASHBOARD_ADMIN_CATEGORIES, icon: Tag },
-	{ label: "Disputes", href: ROUTES.DASHBOARD_ADMIN_DISPUTES, icon: AlertTriangle },
-	{ label: "Analytics", href: ROUTES.DASHBOARD_ADMIN_ANALYTICS, icon: BarChart3 },
-	{ label: "Audit Logs", href: ROUTES.DASHBOARD_ADMIN_AUDIT_LOGS, icon: Scroll },
-	{ label: "Settings", href: ROUTES.DASHBOARD_ADMIN_SETTINGS, icon: SlidersHorizontal },
+	// ── Admin items ────────────────────────────────────────────────────────
+	{ label: "Admin Overview", href: ROUTES.DASHBOARD_ADMIN, icon: LayoutDashboard, permissions: [Permission.ADMIN_ACCESS], roles: ["admin"] },
+	{ label: "Users", href: ROUTES.DASHBOARD_ADMIN_USERS, icon: Users, permissions: [Permission.USERS_LIST], roles: ["admin"] },
+	{ label: "Providers", href: ROUTES.DASHBOARD_ADMIN_PROVIDERS, icon: Shield, permissions: [Permission.PROVIDERS_LIST, Permission.PROVIDERS_VERIFY], roles: ["admin"] },
+	{ label: "Categories", href: ROUTES.DASHBOARD_ADMIN_CATEGORIES, icon: Tag, permissions: [Permission.CATEGORIES_MANAGE], roles: ["admin"] },
+	{ label: "Disputes", href: ROUTES.DASHBOARD_ADMIN_DISPUTES, icon: AlertTriangle, permissions: [Permission.DISPUTES_MANAGE], roles: ["admin"] },
+	{ label: "Analytics", href: ROUTES.DASHBOARD_ADMIN_ANALYTICS, icon: BarChart3, permissions: [Permission.ANALYTICS_VIEW], roles: ["admin"] },
+	{ label: "Audit Logs", href: ROUTES.DASHBOARD_ADMIN_AUDIT_LOGS, icon: Scroll, permissions: [Permission.AUDIT_VIEW], roles: ["admin"] },
+	{ label: "Settings", href: ROUTES.DASHBOARD_ADMIN_SETTINGS, icon: SlidersHorizontal, permissions: [Permission.SETTINGS_MANAGE], roles: ["admin"] },
+	{ label: "Roles & Permissions", href: ROUTES.DASHBOARD_ADMIN_ROLES, icon: Shield, permissions: [Permission.ROLES_MANAGE], roles: ["admin"] },
 ];
 
 const sharedBottomLinks = (messaging: boolean, notifications: boolean): NavItem[] => {
@@ -126,14 +134,24 @@ function NavLink({ item, isActive, isCollapsed }: { item: NavItem; isActive: boo
 export function DashboardSidebar() {
 	const pathname = usePathname();
 	const { user } = useAuth();
+	const { canAny } = usePermissions();
 	const { isCollapsed, toggleSidebar } = useSidebarStore();
 
 	const role = user?.role ?? "customer";
+	const userPermissions: string[] = (user as { permissions?: string[] })?.permissions ?? [];
 
-	const mainLinks =
-		role === "admin" ? adminLinks
-		: role === "provider" ? providerLinks
-		: customerLinks;
+	const mainLinks = ALL_NAV_ITEMS.filter((item) => {
+		// Permission-based filtering (preferred)
+		if (userPermissions.length > 0 && item.permissions) {
+			return canAny(item.permissions);
+		}
+		// Fallback: role-based filtering for tokens without permissions
+		if (item.roles) {
+			return item.roles.includes(role);
+		}
+		// Items with no permissions/roles restriction are always visible
+		return !item.permissions;
+	});
 
 	const bottomLinks = sharedBottomLinks(isMessagingEnabled(), isNotificationsEnabled());
 

@@ -22,8 +22,7 @@ import { ProviderDocumentService } from "../services/provider-document.service";
 import { UploadDocumentDto } from "../dto/upload-document.dto";
 import { VerifyDocumentDto } from "../dto/verify-document.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
-import { RolesGuard } from "../../../common/guards/roles.guard";
-import { Roles } from "../../../common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { FileServiceClient } from "../../../common/file-service.client";
 
 @UseGuards(JwtAuthGuard)
@@ -34,7 +33,7 @@ export class ProviderDocumentController {
     private readonly fileServiceClient: FileServiceClient,
   ) {}
 
-  @Roles("provider", "admin")
+  @RequirePermissions('provider_documents.manage')
   @UseGuards(RolesGuard)
   @Post("upload/:providerId")
   @UseInterceptors(FileInterceptor("file"))
@@ -90,7 +89,7 @@ export class ProviderDocumentController {
     };
   }
 
-  @Roles("admin")
+  @RequirePermissions('providers.verify')
   @UseGuards(RolesGuard)
   @Post("verify/:documentId")
   @HttpCode(HttpStatus.OK)
@@ -112,7 +111,7 @@ export class ProviderDocumentController {
     };
   }
 
-  @Roles("admin")
+  @RequirePermissions('providers.verify')
   @UseGuards(RolesGuard)
   @Post("reject/:documentId")
   @HttpCode(HttpStatus.OK)
@@ -129,27 +128,27 @@ export class ProviderDocumentController {
     return { success: true, data: document, message: "Document rejected successfully" };
   }
 
-  @Roles("provider", "admin")
+  @RequirePermissions('provider_documents.manage')
   @UseGuards(RolesGuard)
   @Get("provider/:providerId")
   async getProviderDocuments(
     @Param("providerId", FlexibleIdPipe) providerId: string,
     @Request() req: any,
   ) {
-    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+    if (!req.user.permissions?.includes('providers.manage') && req.user.providerId !== providerId) {
       throw new ForbiddenException("You can only view your own documents");
     }
     return this.documentService.getProviderDocuments(providerId);
   }
 
-  @Roles("admin")
+  @RequirePermissions('providers.verify')
   @UseGuards(RolesGuard)
   @Get("pending")
   async getPendingDocuments() {
     return this.documentService.getPendingDocuments();
   }
 
-  @Roles("admin")
+  @RequirePermissions('providers.verify')
   @UseGuards(RolesGuard)
   @Get("expiring")
   async getExpiringDocuments(@Request() req: any) {
@@ -166,7 +165,7 @@ export class ProviderDocumentController {
     return { success: true, data: status };
   }
 
-  @Roles("provider", "admin")
+  @RequirePermissions('provider_documents.manage')
   @UseGuards(RolesGuard)
   @Delete(":documentId")
   async deleteDocument(

@@ -16,8 +16,7 @@ import { CouponRepository } from "../repositories/coupon.repository";
 import { CreateCouponDto } from "../dto/create-coupon.dto";
 import { ValidateCouponDto } from "../dto/validate-coupon.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 
 @Controller("coupons")
 export class CouponController {
@@ -32,7 +31,7 @@ export class CouponController {
    */
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('coupons.manage')
   @HttpCode(HttpStatus.CREATED)
   async createCoupon(
     @Body() createCouponDto: CreateCouponDto,
@@ -60,7 +59,7 @@ export class CouponController {
    */
   @Get()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('coupons.manage')
   @HttpCode(HttpStatus.OK)
   async getAllCoupons() {
     const coupons = await this.couponRepository.getActiveCoupons();
@@ -119,7 +118,7 @@ export class CouponController {
    */
   @Get(":couponId/stats")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('coupons.manage')
   @HttpCode(HttpStatus.OK)
   async getCouponStats(@Param("couponId", StrictUuidPipe) couponId: string) {
     const stats = await this.couponRepository.getCouponStats(couponId);
@@ -136,7 +135,7 @@ export class CouponController {
    */
   @Delete(":code")
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("admin")
+  @RequirePermissions('coupons.manage')
   @HttpCode(HttpStatus.OK)
   async deleteCoupon(@Param("code") code: string) {
     const coupon = await this.couponService.getCouponByCode(code);

@@ -162,7 +162,7 @@ export default function ProviderVerificationPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <ProtectedRoute requiredRoles={['admin']}>
+    <ProtectedRoute requiredPermissions={[Permission.PROVIDERS_MANAGE]}>
       <Layout>
         <div className="container-custom py-12">
           <div className="mb-8">

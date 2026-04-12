@@ -1,27 +1,77 @@
 import { Injectable, Inject, LoggerService } from '@nestjs/common';
+import { InjectQueue } from '@nestjs/bullmq';
+import { Queue } from 'bullmq';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { DisputeRepository } from '../repositories/dispute.repository';
 import { AdminActionRepository } from '../repositories/admin-action.repository';
 import { AuditLogRepository } from '../repositories/audit-log.repository';
 import { Dispute } from '../entities/dispute.entity';
-import { NotFoundException, ForbiddenException } from '../../common/exceptions/http.exceptions';
+import { NotFoundException, ForbiddenException, BadRequestException } from '../../common/exceptions/http.exceptions';
 import { DisputeListQueryDto } from "../dto/dispute-list-query.dto";
 import { resolvePagination, validateDateRange } from "../../common/pagination/list-query-validation.util";
+import { KafkaService } from '../../kafka/kafka.service';
+import { NotificationClient } from '../../common/notification/notification.client';
+import { UserClient } from '../../common/user/user.client';
+
+// Valid status transitions: current → allowed next statuses
+const VALID_TRANSITIONS: Record<string, string[]> = {
+	open: ['investigating', 'closed'],
+	investigating: ['resolved', 'closed'],
+	resolved: ['closed'],
+	closed: [],
+};
 
 @Injectable()
 export class DisputeService {
+	private readonly workersEnabled: boolean;
+
 	constructor(
 		private readonly disputeRepository: DisputeRepository,
 		private readonly adminActionRepository: AdminActionRepository,
 		private readonly auditLogRepository: AuditLogRepository,
+		private readonly kafkaService: KafkaService,
+		private readonly notificationClient: NotificationClient,
+		private readonly userClient: UserClient,
 		@Inject(WINSTON_MODULE_NEST_PROVIDER)
 		private readonly logger: LoggerService,
-	) {}
+		@InjectQueue('oversight.notification') private readonly notificationQueue: Queue,
+	) {
+		this.workersEnabled = process.env.WORKERS_ENABLED === 'true';
+	}
 
 	async createDispute(jobId: string, openedBy: string, reason: string): Promise<Dispute> {
 		this.logger.log(`Creating dispute for job ${jobId} by user ${openedBy}`, 'DisputeService');
 		const dispute = await this.disputeRepository.createDispute(jobId, openedBy, reason);
 		await this.auditLogRepository.createAuditLog(openedBy, 'create_dispute', 'dispute', dispute.id, { job_id: jobId, reason });
+
+		// Notify dispute opener — queue if workers enabled, else inline
+		if (this.workersEnabled) {
+			this.notificationQueue
+				.add('notify-dispute-created', {
+					disputeId: dispute.id,
+					openedBy,
+					jobId,
+				})
+				.catch((err: any) => {
+					this.logger.warn(`Failed to enqueue dispute creation notification: ${err.message}`, 'DisputeService');
+				});
+		} else {
+			this.userClient.getUserEmail(openedBy).then((email) => {
+				if (!email) return;
+				this.notificationClient.sendEmail({
+					to: email,
+					template: 'disputeCreated',
+					variables: {
+						disputeId: dispute.id,
+						jobId,
+						disputeUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/disputes/${dispute.id}`,
+					},
+				});
+			}).catch((err: any) => {
+				this.logger.warn(`Failed to send dispute creation email: ${err.message}`, 'DisputeService');
+			});
+		}
+
 		return dispute;
 	}
 
@@ -98,6 +148,19 @@ export class DisputeService {
 			throw new NotFoundException("Dispute not found");
 		}
 
+		// Validate status transition
+		const allowed = VALID_TRANSITIONS[existingDispute.status];
+		if (!allowed || !allowed.includes(normalizedStatus)) {
+			throw new BadRequestException(
+				`Invalid status transition: '${existingDispute.status}' → '${normalizedStatus}'. Allowed: ${(allowed || []).join(', ') || 'none'}`,
+			);
+		}
+
+		// Require resolution text when resolving or closing
+		if ((normalizedStatus === 'resolved' || normalizedStatus === 'closed') && !resolution) {
+			throw new BadRequestException('Resolution text is required when resolving or closing a dispute');
+		}
+
 		// Update dispute
 		const updatedDispute = await this.disputeRepository.updateDispute(existingDispute.id, normalizedStatus, resolution, adminId);
 
@@ -114,7 +177,54 @@ export class DisputeService {
 		await this.auditLogRepository.createAuditLog(adminId, "update_dispute", "dispute", id, {
 			status: normalizedStatus,
 			resolution,
+			previous_status: existingDispute.status,
 		});
+
+		// Emit event for cross-service processing (job status sync, refund triggering)
+		try {
+			await this.kafkaService.emit('dispute-events', {
+				event: 'dispute_status_changed',
+				dispute_id: existingDispute.id,
+				job_id: existingDispute.job_id,
+				previous_status: existingDispute.status,
+				new_status: normalizedStatus,
+				resolution,
+				admin_id: adminId,
+				timestamp: new Date().toISOString(),
+			});
+		} catch (err) {
+			this.logger.warn(`Failed to emit dispute event for ${id}: ${err.message}`, 'DisputeService');
+		}
+
+		// Notify dispute opener about status change — queue if workers enabled, else inline
+		if (this.workersEnabled) {
+			this.notificationQueue
+				.add('notify-dispute-status-changed', {
+					disputeId: existingDispute.id,
+					openedBy: existingDispute.opened_by,
+					newStatus: normalizedStatus,
+					resolution,
+				})
+				.catch((err: any) => {
+					this.logger.warn(`Failed to enqueue dispute status notification: ${err.message}`, 'DisputeService');
+				});
+		} else {
+			this.userClient.getUserEmail(existingDispute.opened_by).then((email) => {
+				if (!email) return;
+				this.notificationClient.sendEmail({
+					to: email,
+					template: 'disputeStatusChanged',
+					variables: {
+						disputeId: existingDispute.id,
+						newStatus: normalizedStatus,
+						resolution: resolution || '',
+						disputeUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/disputes/${existingDispute.id}`,
+					},
+				});
+			}).catch((err: any) => {
+				this.logger.warn(`Failed to send dispute status email: ${err.message}`, 'DisputeService');
+			});
+		}
 
 		this.logger.log(`Dispute ${id} updated successfully`, "DisputeService");
 

@@ -13,6 +13,8 @@ import { KafkaService } from "../../../kafka/kafka.service";
 
 @Injectable()
 export class ReviewService {
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
+
   constructor(
     private readonly reviewRepository: ReviewRepository,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
@@ -83,19 +85,35 @@ export class ReviewService {
         });
     }
 
-    // Enqueue provider review notification (non-blocking)
-    this.notificationQueue
-      .add('notify-review-created', {
-        providerId: createReviewDto.provider_id,
-        reviewId: review.id,
-        rating: review.rating,
-      })
-      .catch((err: any) => {
+    // Notify provider about new review — queue if workers enabled, else inline
+    if (this.workersEnabled) {
+      this.notificationQueue
+        .add('notify-review-created', {
+          providerId: createReviewDto.provider_id,
+          reviewId: review.id,
+          rating: review.rating,
+        })
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to enqueue review notification: ${err.message}`,
+            'ReviewService',
+          );
+        });
+    } else {
+      this.userClient.getUserEmail(createReviewDto.provider_id).then((email) => {
+        if (!email) return;
+        this.notificationClient.sendEmail({
+          to: email,
+          template: 'reviewReceived',
+          variables: { reviewId: review.id, rating: review.rating },
+        });
+      }).catch((err: any) => {
         this.logger.warn(
-          `Failed to enqueue review notification: ${err.message}`,
+          `Failed to send review notification: ${err.message}`,
           'ReviewService',
         );
       });
+    }
 
     // Enqueue rating recalculation (non-blocking)
     this.ratingQueue

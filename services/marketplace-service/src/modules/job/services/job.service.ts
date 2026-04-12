@@ -1,4 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { JobRepository } from "../repositories/job.repository";
 import { CreateJobDto } from "../dto/create-job.dto";
@@ -27,6 +29,7 @@ import { AnalyticsClient } from "../../../common/analytics/analytics.client";
 @Injectable()
 export class JobService {
   private readonly JOB_CACHE_TTL = 180; // 3 minutes (jobs change status frequently)
+  private readonly workersEnabled: boolean;
 
   constructor(
     private readonly jobRepository: JobRepository,
@@ -37,7 +40,10 @@ export class JobService {
     private readonly analyticsClient: AnalyticsClient,
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
-  ) { }
+    @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
+  ) {
+    this.workersEnabled = process.env.WORKERS_ENABLED === 'true';
+  }
 
   async createJob(dto: CreateJobDto): Promise<JobResponseDto> {
     this.logger.log(
@@ -57,33 +63,38 @@ export class JobService {
 
     this.logger.log(`Job created successfully: ${job.id}`, JobService.name);
 
-    // Send notification to provider (job assigned)
-    const providerEmail = await this.userClient.getProviderEmail(
-      dto.provider_id,
-    );
-    const customerUser = dto.customer_id
-      ? await this.userClient.getUserById(dto.customer_id)
-      : null;
-    const customerName = customerUser?.name || "Customer";
-
-    if (providerEmail) {
-      this.notificationClient
-        .sendEmail({
-          to: providerEmail,
-          template: "jobAssigned",
-          variables: {
-            customerName,
-            serviceName: "Service Request",
-            jobId: job.id,
-            jobUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/jobs/${job.id}`,
-          },
+    // Notify provider (job assigned) — queue if workers enabled, else inline
+    if (this.workersEnabled) {
+      this.notificationQueue
+        .add('notify-job-assigned', {
+          providerId: job.provider_id,
+          jobId: job.id,
+          requestId: job.request_id,
         })
         .catch((err: any) => {
           this.logger.warn(
-            `Failed to send job creation notification: ${err.message}`,
+            `Failed to enqueue job assigned notification: ${err.message}`,
             JobService.name,
           );
         });
+    } else {
+      this.userClient.getProviderEmail(dto.provider_id).then((providerEmail) => {
+        if (!providerEmail) return;
+        this.notificationClient.sendEmail({
+          to: providerEmail,
+          template: 'jobAssigned',
+          variables: {
+            serviceName: 'Service Request',
+            jobId: job.id,
+            jobUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/jobs/${job.id}`,
+          },
+        });
+      }).catch((err: any) => {
+        this.logger.warn(
+          `Failed to send job assigned email: ${err.message}`,
+          JobService.name,
+        );
+      });
     }
 
     // Publish event to Kafka if enabled
@@ -155,6 +166,7 @@ export class JobService {
     dto: UpdateJobStatusDto,
     userId: string,
     userRole: string,
+    userPermissions?: string[],
   ): Promise<JobResponseDto> {
     this.logger.log(
       `Updating job status: ${id} to ${dto.status}`,
@@ -167,9 +179,9 @@ export class JobService {
       throw new NotFoundException("Job not found");
     }
 
-    // Ownership check: only the customer, provider, or admin can update job status
+    // Ownership check: only the customer, provider, or user with manage permission can update
     if (
-      userRole !== "admin" &&
+      !userPermissions?.includes('jobs.manage') &&
       existingJob.customer_id !== userId &&
       existingJob.provider_id !== userId
     ) {
@@ -189,7 +201,7 @@ export class JobService {
     const isCustomer = existingJob.customer_id === userId;
     const isProvider = existingJob.provider_id === userId;
 
-    if (userRole !== "admin") {
+    if (!userPermissions?.includes('jobs.manage')) {
       const customerAllowed = ["completed", "disputed"];
       const providerAllowed = ["in_progress", "completed"];
 
@@ -249,6 +261,39 @@ export class JobService {
       },
     });
 
+    // Notify other party about status change — queue if workers enabled, else inline
+    const notifyUserId = existingJob.provider_id === userId
+      ? existingJob.customer_id
+      : existingJob.provider_id;
+    if (this.workersEnabled) {
+      this.notificationQueue
+        .add('notify-job-status-changed', {
+          userId: notifyUserId,
+          jobId: job.id,
+          newStatus: dto.status,
+        })
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to enqueue job status notification: ${err.message}`,
+            JobService.name,
+          );
+        });
+    } else {
+      this.userClient.getUserEmail(notifyUserId).then((email) => {
+        if (!email) return;
+        this.notificationClient.sendEmail({
+          to: email,
+          template: 'jobStatusChanged',
+          variables: { jobId: job.id, newStatus: dto.status },
+        });
+      }).catch((err: any) => {
+        this.logger.warn(
+          `Failed to send job status email: ${err.message}`,
+          JobService.name,
+        );
+      });
+    }
+
     // Track analytics (HTTP fallback when Kafka is disabled)
     this.analyticsClient.track({
       userId: userId,
@@ -266,6 +311,7 @@ export class JobService {
     id: string,
     userId: string,
     userRole: string,
+    userPermissions?: string[],
   ): Promise<JobResponseDto> {
     this.logger.log(`Completing job: ${id}`, JobService.name);
 
@@ -275,8 +321,8 @@ export class JobService {
       throw new NotFoundException("Job not found");
     }
 
-    // Ownership check: only the customer or admin can complete a job
-    if (userRole !== "admin" && existingJob.customer_id !== userId) {
+    // Ownership check: only the customer or user with manage permission can complete a job
+    if (!userPermissions?.includes?.('jobs.manage') && existingJob.customer_id !== userId) {
       throw new ForbiddenException(
         "Only the customer or an admin can complete a job",
       );
@@ -316,6 +362,47 @@ export class JobService {
       },
     });
 
+    // Notify both customer and provider — queue if workers enabled, else inline
+    if (this.workersEnabled) {
+      this.notificationQueue
+        .add('notify-job-completed', {
+          customerId: existingJob.customer_id,
+          providerId: existingJob.provider_id,
+          jobId: job.id,
+        })
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to enqueue job completion notification: ${err.message}`,
+            JobService.name,
+          );
+        });
+    } else {
+      Promise.all([
+        this.userClient.getUserEmail(existingJob.customer_id),
+        this.userClient.getUserEmail(existingJob.provider_id),
+      ]).then(([customerEmail, providerEmail]) => {
+        if (customerEmail) {
+          this.notificationClient.sendEmail({
+            to: customerEmail,
+            template: 'jobCompleted',
+            variables: { jobId: job.id },
+          });
+        }
+        if (providerEmail) {
+          this.notificationClient.sendEmail({
+            to: providerEmail,
+            template: 'jobCompletedProvider',
+            variables: { jobId: job.id },
+          });
+        }
+      }).catch((err: any) => {
+        this.logger.warn(
+          `Failed to send job completion email: ${err.message}`,
+          JobService.name,
+        );
+      });
+    }
+
     // Track analytics (HTTP fallback when Kafka is disabled)
     this.analyticsClient.track({
       userId: userId,
@@ -351,22 +438,24 @@ export class JobService {
       JobService.name,
     );
 
-    // RBAC: Restricted view for customers and providers
-    if (user && user.role === "customer") {
-      const jobs = await this.jobRepository.getJobsByCustomer(user.userId);
-      const data = jobs
-        .filter((j) => j.status === status)
-        .map(JobResponseDto.fromEntity);
-      return { data, total: data.length };
-    }
+    // RBAC: Restricted view — users with manage permission see all
+    if (user && !user.permissions?.includes('jobs.manage')) {
+      if (user.role === "customer") {
+        const jobs = await this.jobRepository.getJobsByCustomer(user.userId);
+        const data = jobs
+          .filter((j) => j.status === status)
+          .map(JobResponseDto.fromEntity);
+        return { data, total: data.length };
+      }
 
-    if (user && user.role === "provider") {
-      const providerId = user.providerId || user.userId;
-      const jobs = await this.jobRepository.getJobsByProvider(providerId);
-      const data = jobs
-        .filter((j) => j.status === status)
-        .map(JobResponseDto.fromEntity);
-      return { data, total: data.length };
+      if (user.role === "provider") {
+        const providerId = user.providerId || user.userId;
+        const jobs = await this.jobRepository.getJobsByProvider(providerId);
+        const data = jobs
+          .filter((j) => j.status === status)
+          .map(JobResponseDto.fromEntity);
+        return { data, total: data.length };
+      }
     }
 
     const jobs = await this.jobRepository.getJobsByStatus(status);
@@ -409,11 +498,13 @@ export class JobService {
       JobService.name,
     );
 
-    // RBAC: Enforce owner/participant filtering
-    if (user && user.role === "customer") {
-      queryDto.customer_id = user.userId;
-    } else if (user && user.role === "provider") {
-      queryDto.provider_id = user.providerId || user.userId;
+    // RBAC: Enforce owner/participant filtering unless user has manage permission
+    if (user && !user.permissions?.includes('jobs.manage')) {
+      if (user.role === "customer") {
+        queryDto.customer_id = user.userId;
+      } else if (user.role === "provider") {
+        queryDto.provider_id = user.providerId || user.userId;
+      }
     }
 
     validateDateRange(
@@ -489,6 +580,7 @@ export class JobService {
     userId: string,
     userRole: string,
     reason?: string,
+    userPermissions?: string[],
   ): Promise<void> {
     this.logger.log(`Deleting/cancelling job: ${id}`, JobService.name);
 
@@ -498,10 +590,10 @@ export class JobService {
       throw new NotFoundException("Job not found");
     }
 
-    // Ownership check: customer, provider, or admin can cancel
+    // Ownership check: customer, provider, or user with manage permission can cancel
     const isCustomer = existingJob.customer_id === userId;
     const isProvider = existingJob.provider_id === userId;
-    const isAdmin = userRole === "admin";
+    const isAdmin = userPermissions?.includes?.('jobs.manage');
 
     if (!isCustomer && !isProvider && !isAdmin) {
       throw new ForbiddenException(
@@ -545,6 +637,48 @@ export class JobService {
         cancelledBy: userId,
       },
     });
+
+    // Notify both parties — queue if workers enabled, else inline
+    if (this.workersEnabled) {
+      this.notificationQueue
+        .add('notify-job-cancelled', {
+          customerId: existingJob.customer_id,
+          providerId: existingJob.provider_id,
+          jobId: existingJob.id,
+          cancelledBy: userId,
+        })
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to enqueue job cancellation notification: ${err.message}`,
+            JobService.name,
+          );
+        });
+    } else {
+      Promise.all([
+        this.userClient.getUserEmail(existingJob.customer_id),
+        this.userClient.getUserEmail(existingJob.provider_id),
+      ]).then(([customerEmail, providerEmail]) => {
+        if (customerEmail) {
+          this.notificationClient.sendEmail({
+            to: customerEmail,
+            template: 'jobCancelled',
+            variables: { jobId: existingJob.id, cancelledBy: userId },
+          });
+        }
+        if (providerEmail) {
+          this.notificationClient.sendEmail({
+            to: providerEmail,
+            template: 'jobCancelled',
+            variables: { jobId: existingJob.id, cancelledBy: userId },
+          });
+        }
+      }).catch((err: any) => {
+        this.logger.warn(
+          `Failed to send job cancellation email: ${err.message}`,
+          JobService.name,
+        );
+      });
+    }
 
     // Track analytics
     this.analyticsClient.track({

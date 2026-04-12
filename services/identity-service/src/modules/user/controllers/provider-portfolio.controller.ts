@@ -22,8 +22,7 @@ import { ProviderPortfolioService } from "../services/provider-portfolio.service
 import { CreatePortfolioDto } from "../dto/create-portfolio.dto";
 import { UpdatePortfolioItemDto } from "../dto/update-portfolio-item.dto";
 import { JwtAuthGuard } from "../../../common/guards/jwt-auth.guard";
-import { RolesGuard } from "../../../common/guards/roles.guard";
-import { Roles } from "../../../common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { FileServiceClient } from "../../../common/file-service.client";
 
 @UseGuards(JwtAuthGuard)
@@ -34,7 +33,7 @@ export class ProviderPortfolioController {
     private readonly fileServiceClient: FileServiceClient,
   ) {}
 
-  @Roles("provider", "admin")
+  @RequirePermissions('provider_portfolio.manage')
   @UseGuards(RolesGuard)
   @Post(":providerId")
   @UseInterceptors(FilesInterceptor("images", 10)) // Max 10 images
@@ -116,7 +115,7 @@ export class ProviderPortfolioController {
     return { success: true, data: transformedItem };
   }
 
-  @Roles("provider", "admin")
+  @RequirePermissions('provider_portfolio.manage')
   @UseGuards(RolesGuard)
   @Put(":itemId")
   async updatePortfolioItem(
@@ -137,7 +136,7 @@ export class ProviderPortfolioController {
     };
   }
 
-  @Roles("provider", "admin")
+  @RequirePermissions('provider_portfolio.manage')
   @UseGuards(RolesGuard)
   @Put(":providerId/reorder")
   async reorderPortfolio(
@@ -158,7 +157,7 @@ export class ProviderPortfolioController {
     };
   }
 
-  @Roles("provider", "admin")
+  @RequirePermissions('provider_portfolio.manage')
   @UseGuards(RolesGuard)
   @Delete(":itemId")
   async deletePortfolioItem(

@@ -34,6 +34,7 @@ import { UserClient } from "../../../common/user/user.client";
 @Injectable()
 export class RequestService {
   private readonly CACHE_TTL = 300; // 5 minutes
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
 
   constructor(
     private readonly requestRepository: RequestRepository,
@@ -99,35 +100,74 @@ export class RequestService {
       RequestService.name,
     );
 
-    // Enqueue notification (non-blocking)
+    // Send notification (non-blocking) — queue if workers enabled, else inline
     if (dto.user_id) {
-      this.notificationQueue
-        .add('notify-request-created', {
-          userId: request.user_id,
-          requestId: request.id,
-          description: dto.description,
-          budget: request.budget,
-        })
-        .catch((err: any) => {
+      if (this.workersEnabled) {
+        this.notificationQueue
+          .add('notify-request-created', {
+            userId: request.user_id,
+            requestId: request.id,
+            description: dto.description,
+            budget: request.budget,
+          })
+          .catch((err: any) => {
+            this.logger.warn(
+              `Failed to enqueue request creation notification: ${err.message}`,
+              RequestService.name,
+            );
+          });
+      } else {
+        this.userClient.getUserEmail(request.user_id).then((email) => {
+          if (!email) return;
+          this.notificationClient.sendEmail({
+            to: email,
+            template: 'newRequest',
+            variables: {
+              serviceName: dto.description?.substring(0, 50) || 'Service Request',
+              requestId: request.id,
+              budget: request.budget,
+              requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
+            },
+          });
+        }).catch((err: any) => {
           this.logger.warn(
-            `Failed to enqueue request creation notification: ${err.message}`,
+            `Failed to send request creation notification: ${err.message}`,
             RequestService.name,
           );
         });
+      }
     } else if (dto.guest_info?.email) {
-      this.notificationQueue
-        .add('notify-request-created', {
-          guestEmail: dto.guest_info.email,
-          requestId: request.id,
-          description: dto.description,
-          budget: request.budget,
-        })
-        .catch((err: any) => {
+      if (this.workersEnabled) {
+        this.notificationQueue
+          .add('notify-request-created', {
+            guestEmail: dto.guest_info.email,
+            requestId: request.id,
+            description: dto.description,
+            budget: request.budget,
+          })
+          .catch((err: any) => {
+            this.logger.warn(
+              `Failed to enqueue guest request creation notification: ${err.message}`,
+              RequestService.name,
+            );
+          });
+      } else {
+        this.notificationClient.sendEmail({
+          to: dto.guest_info.email,
+          template: 'newRequest',
+          variables: {
+            serviceName: dto.description?.substring(0, 50) || 'Service Request',
+            requestId: request.id,
+            budget: request.budget,
+            requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
+          },
+        }).catch((err: any) => {
           this.logger.warn(
-            `Failed to enqueue guest request creation notification: ${err.message}`,
+            `Failed to send guest request creation notification: ${err.message}`,
             RequestService.name,
           );
         });
+      }
     }
 
     // Publish event to Kafka if enabled
@@ -157,10 +197,10 @@ export class RequestService {
       RequestService.name,
     );
 
-    // RBAC: Customers can ONLY see their own requests via the root endpoint
+    // RBAC: Users without browse permission can ONLY see their own requests
     const isAuthenticated = user && user.userId && user.userId !== 'anonymous';
-    if (isAuthenticated && user.role === 'customer') {
-      this.logger.log(`Enforcing customer-only filter for user ${user.userId}`, RequestService.name);
+    if (isAuthenticated && !user.permissions?.includes('requests.browse') && !user.permissions?.includes('requests.manage')) {
+      this.logger.log(`Enforcing own-requests-only filter for user ${user.userId}`, RequestService.name);
       queryDto.user_id = user.userId;
     }
 
@@ -339,6 +379,72 @@ export class RequestService {
     });
 
     return RequestResponseDto.fromEntity(updatedRequest);
+  }
+
+  async cancelRequest(id: string, userId: string): Promise<void> {
+    this.logger.log(`Cancelling request: ${id}`, RequestService.name);
+
+    const request = await this.requestRepository.getRequestById(id);
+    if (!request) {
+      throw new NotFoundException("Request not found");
+    }
+
+    if (request.user_id !== userId) {
+      throw new ForbiddenException("You are not allowed to cancel this request");
+    }
+
+    if (request.status !== "open") {
+      throw new BadRequestException(
+        `Cannot cancel request with status '${request.status}'. Only open requests can be cancelled.`,
+      );
+    }
+
+    await this.requestRepository.updateRequest(request.id, { status: "cancelled" } as any);
+
+    this.logger.log(`Request cancelled: ${id}`, RequestService.name);
+
+    // Notify customer of cancellation — queue if workers enabled, else inline
+    if (this.workersEnabled) {
+      this.notificationQueue
+        .add('notify-request-cancelled', {
+          userId: request.user_id,
+          requestId: request.id,
+        })
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to enqueue request cancellation notification: ${err.message}`,
+            RequestService.name,
+          );
+        });
+    } else {
+      this.userClient.getUserEmail(request.user_id).then((email) => {
+        if (!email) return;
+        this.notificationClient.sendEmail({
+          to: email,
+          template: 'requestCancelled',
+          variables: {
+            requestId: request.id,
+            requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
+          },
+        });
+      }).catch((err: any) => {
+        this.logger.warn(
+          `Failed to send request cancellation email: ${err.message}`,
+          RequestService.name,
+        );
+      });
+    }
+
+    await this.kafkaService.publishEvent("request-events", {
+      eventType: "request_cancelled",
+      eventId: `${request.id}-${Date.now()}`,
+      timestamp: new Date().toISOString(),
+      data: {
+        requestId: request.id,
+        userId: request.user_id,
+        status: "cancelled",
+      },
+    });
   }
 
   async deleteRequest(id: string): Promise<void> {

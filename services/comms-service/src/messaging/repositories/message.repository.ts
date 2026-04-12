@@ -120,48 +120,33 @@ export class MessageRepository {
   }
 
   async getUserConversations(userId: string): Promise<any[]> {
-    // Uses CTEs + DISTINCT ON to avoid 3 correlated subqueries per row (O(3N) problem).
-    // conversations CTE scopes all relevant job_ids first, then last_messages uses
-    // DISTINCT ON for an efficient index scan, and unread_counts aggregates once per job.
+    // Uses the conversations table (owned by comms-service) to avoid cross-service joins.
+    // Unread counts are computed from the messages table using the conversation's job_id.
     const query = `
-      WITH conversations AS (
-        SELECT DISTINCT m.job_id
-        FROM messages m
-        JOIN jobs j ON j.id = m.job_id
-        WHERE m.sender_id = $1 OR j.customer_id = $1 OR j.provider_id = $1
-        LIMIT 200
-      ),
-      last_messages AS (
-        SELECT DISTINCT ON (m.job_id)
-          m.job_id,
-          m.message  AS last_message,
-          m.created_at AS last_message_at
-        FROM messages m
-        JOIN conversations c ON c.job_id = m.job_id
-        ORDER BY m.job_id, m.created_at DESC
+      WITH user_convos AS (
+        SELECT c.*
+        FROM conversations c
+        WHERE c.customer_id = $1 OR c.provider_id = $1
+        ORDER BY c.last_message_at DESC NULLS LAST
+        LIMIT 50
       ),
       unread_counts AS (
         SELECT m.job_id, COUNT(*)::int AS unread_count
         FROM messages m
-        JOIN conversations c ON c.job_id = m.job_id
+        JOIN user_convos uc ON uc.job_id = m.job_id
         WHERE m.read = false AND m.sender_id != $1
         GROUP BY m.job_id
       )
       SELECT
-        j.id          AS job_id,
-        j.status      AS job_status,
-        j.request_id,
-        j.provider_id,
-        j.customer_id,
-        lm.last_message,
-        lm.last_message_at,
-        COALESCE(uc.unread_count, 0) AS unread_count
-      FROM conversations conv
-      JOIN jobs j ON j.id = conv.job_id
-      JOIN last_messages lm ON lm.job_id = conv.job_id
-      LEFT JOIN unread_counts uc ON uc.job_id = conv.job_id
-      ORDER BY lm.last_message_at DESC
-      LIMIT 50
+        uc.job_id,
+        uc.customer_id,
+        uc.provider_id,
+        uc.last_message,
+        uc.last_message_at,
+        COALESCE(u.unread_count, 0) AS unread_count
+      FROM user_convos uc
+      LEFT JOIN unread_counts u ON u.job_id = uc.job_id
+      ORDER BY uc.last_message_at DESC NULLS LAST
     `;
     const result = await this.pool.query(query, [userId]);
     return result.rows;

@@ -107,6 +107,7 @@ export const ROUTES = {
 	DASHBOARD_ADMIN_DISPUTES: "/dashboard/admin/disputes",
 	DASHBOARD_ADMIN_AUDIT_LOGS: "/dashboard/admin/audit-logs",
 	DASHBOARD_ADMIN_SETTINGS: "/dashboard/admin/settings",
+	DASHBOARD_ADMIN_ROLES: "/dashboard/admin/roles",
 
 	// Public Requests (only create is public - viewing requires authentication)
 	CREATE_REQUEST: "/requests/create",

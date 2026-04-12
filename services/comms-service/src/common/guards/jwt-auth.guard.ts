@@ -25,6 +25,7 @@ export class JwtAuthGuard implements CanActivate {
     const userId = request.headers["x-user-id"];
     const userEmail = request.headers["x-user-email"];
     const userRole = request.headers["x-user-role"];
+    const permissionsHeader = request.headers["x-user-permissions"];
 
     // If no user context headers, request didn't come through gateway or user not authenticated
     if (!userId || !userEmail) {
@@ -33,12 +34,24 @@ export class JwtAuthGuard implements CanActivate {
       );
     }
 
+    // Parse permissions from header
+    let permissions: string[] = [];
+    if (permissionsHeader) {
+      try {
+        const parsed = JSON.parse(permissionsHeader as string);
+        if (Array.isArray(parsed)) permissions = parsed;
+      } catch {
+        // ignore malformed permissions header
+      }
+    }
+
     // Verify HMAC signature to ensure headers were set by the gateway
     const gatewaySecret = process.env.GATEWAY_INTERNAL_SECRET;
     if (gatewaySecret) {
       const receivedHmac = request.headers["x-gateway-hmac"];
       const providerId = request.headers["x-provider-id"] || "none";
-      const hmacPayload = `${userId}:${userEmail}:${userRole || "user"}:${providerId}`;
+      const permissionsJson = permissionsHeader || "[]";
+      const hmacPayload = `${userId}:${userEmail}:${userRole || "user"}:${providerId}:${permissionsJson}`;
       const expectedHmac = crypto
         .createHmac("sha256", gatewaySecret)
         .update(hmacPayload)
@@ -62,6 +75,7 @@ export class JwtAuthGuard implements CanActivate {
       userId,
       email: userEmail,
       role: userRole || "customer",
+      permissions,
       name: request.headers["x-user-name"],
       phone: request.headers["x-user-phone"],
       providerId: request.headers["x-provider-id"],

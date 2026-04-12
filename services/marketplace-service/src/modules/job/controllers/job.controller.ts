@@ -28,8 +28,7 @@ import {
 } from "../dto/job-response.dto";
 import { JobQueryDto } from "../dto/job-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { FileServiceClient } from "../../../common/file-service.client";
 import "multer";
@@ -42,7 +41,7 @@ export class JobController {
     private readonly fileServiceClient: FileServiceClient,
   ) {}
 
-  @Roles("customer", "admin")
+  @RequirePermissions('jobs.create')
   @UseGuards(RolesGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -55,7 +54,7 @@ export class JobController {
     return this.jobService.createJob(createJobDto);
   }
 
-  @Roles("admin")
+  @RequirePermissions('jobs.view_stats')
   @UseGuards(RolesGuard)
   @Get("stats")
   @HttpCode(HttpStatus.OK)
@@ -99,6 +98,8 @@ export class JobController {
     return this.jobService.getJobById(id);
   }
 
+  @RequirePermissions('jobs.update_status')
+  @UseGuards(RolesGuard)
   @Patch(":id/status")
   @HttpCode(HttpStatus.OK)
   async updateJobStatus(
@@ -111,16 +112,19 @@ export class JobController {
       updateJobStatusDto,
       req.user.userId,
       req.user.role,
+      req.user.permissions,
     );
   }
 
+  @RequirePermissions('jobs.update_status')
+  @UseGuards(RolesGuard)
   @Post(":id/complete")
   @HttpCode(HttpStatus.OK)
   async completeJob(
     @Param("id", StrictUuidPipe) id: string,
     @Request() req: any,
   ): Promise<JobResponseDto> {
-    return this.jobService.completeJob(id, req.user.userId, req.user.role);
+    return this.jobService.completeJob(id, req.user.userId, req.user.role, req.user.permissions);
   }
 
   // Authenticated — provider or customer can upload completion photos for jobs
@@ -147,7 +151,7 @@ export class JobController {
     const job = await this.jobService.getJobById(jobId);
     const isProvider = job.provider_id === req.user.userId;
     const isCustomer = job.customer_id === req.user.userId;
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = req.user.permissions?.includes('jobs.manage');
 
     if (!isProvider && !isCustomer && !isAdmin) {
       throw new ForbiddenException(
@@ -189,7 +193,7 @@ export class JobController {
     limit: number;
   }> {
     // RBAC check: only admin or the provider themselves can list their jobs here
-    if (req.user.role !== "admin" && req.user.providerId !== providerId) {
+    if (!req.user.permissions?.includes('jobs.manage') && req.user.providerId !== providerId) {
       throw new ForbiddenException("You can only view jobs assigned to your own provider account");
     }
     const result = await this.jobService.getJobsByProvider(providerId);
@@ -211,7 +215,7 @@ export class JobController {
     return { ...result, page: 1, limit: result.data.length || 1 };
   }
 
-  @Roles("customer", "admin")
+  @RequirePermissions('jobs.create')
   @UseGuards(RolesGuard)
   @Delete(":id")
   @HttpCode(HttpStatus.OK)
@@ -220,7 +224,7 @@ export class JobController {
     @Request() req: any,
     @Body() body?: CancelJobDto,
   ): Promise<{ success: boolean; message: string }> {
-    await this.jobService.deleteJob(id, req.user.userId, req.user.role, body?.reason);
+    await this.jobService.deleteJob(id, req.user.userId, req.user.role, body?.reason, req.user.permissions);
     return {
       success: true,
       message: "Job cancelled successfully",

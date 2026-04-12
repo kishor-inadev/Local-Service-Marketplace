@@ -19,6 +19,7 @@ CREATE TABLE users (
   phone VARCHAR(20) CHECK (phone IS NULL OR phone ~ '^\+?[0-9]{10,15}$'),
   password_hash TEXT NOT NULL,
   role TEXT NOT NULL CHECK (role IN ('customer', 'provider', 'admin')),
+  role_id UUID,
   email_verified BOOLEAN DEFAULT false,
   phone_verified BOOLEAN DEFAULT false,
   profile_picture_url TEXT,
@@ -38,6 +39,51 @@ CREATE INDEX idx_users_created_at ON users(created_at DESC);
 CREATE INDEX idx_users_deleted_at ON users(deleted_at) WHERE deleted_at IS NULL;
 CREATE INDEX idx_users_last_login ON users(last_login_at DESC);
 CREATE INDEX idx_users_phone ON users(phone) WHERE phone IS NOT NULL;
+
+-- =====================================================
+-- RBAC: ROLES, PERMISSIONS & ROLE_PERMISSIONS
+-- =====================================================
+
+CREATE TABLE roles (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(50) UNIQUE NOT NULL,
+  display_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  is_system BOOLEAN DEFAULT false NOT NULL,
+  is_active BOOLEAN DEFAULT true NOT NULL,
+  created_at TIMESTAMP DEFAULT now() NOT NULL,
+  updated_at TIMESTAMP
+);
+
+CREATE INDEX idx_roles_name ON roles(name);
+CREATE INDEX idx_roles_is_active ON roles(is_active) WHERE is_active = true;
+
+CREATE TABLE permissions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name VARCHAR(100) UNIQUE NOT NULL,
+  display_name VARCHAR(150) NOT NULL,
+  description TEXT,
+  resource VARCHAR(50) NOT NULL,
+  action VARCHAR(50) NOT NULL,
+  created_at TIMESTAMP DEFAULT now() NOT NULL
+);
+
+CREATE INDEX idx_permissions_name ON permissions(name);
+CREATE INDEX idx_permissions_resource ON permissions(resource);
+CREATE UNIQUE INDEX idx_permissions_resource_action ON permissions(resource, action);
+
+CREATE TABLE role_permissions (
+  role_id UUID NOT NULL REFERENCES roles(id) ON DELETE CASCADE,
+  permission_id UUID NOT NULL REFERENCES permissions(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT now() NOT NULL,
+  PRIMARY KEY (role_id, permission_id)
+);
+
+CREATE INDEX idx_role_permissions_role_id ON role_permissions(role_id);
+CREATE INDEX idx_role_permissions_permission_id ON role_permissions(permission_id);
+
+-- FK from users.role_id → roles.id (added after roles table exists)
+ALTER TABLE users ADD CONSTRAINT fk_users_role_id FOREIGN KEY (role_id) REFERENCES roles(id);
 
 CREATE TABLE sessions (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -498,6 +544,25 @@ CREATE INDEX IF NOT EXISTS idx_review_helpful_votes_review ON review_helpful_vot
 CREATE INDEX IF NOT EXISTS idx_review_helpful_votes_user ON review_helpful_votes(user_id);
 
 -- =====================================================
+-- CONVERSATIONS (owned by comms-service)
+-- =====================================================
+
+CREATE TABLE conversations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  job_id UUID NOT NULL UNIQUE,
+  customer_id UUID NOT NULL,
+  provider_id UUID NOT NULL,
+  last_message TEXT,
+  last_message_at TIMESTAMP,
+  created_at TIMESTAMP DEFAULT now() NOT NULL,
+  updated_at TIMESTAMP DEFAULT now() NOT NULL
+);
+
+CREATE INDEX idx_conversations_customer_id ON conversations(customer_id);
+CREATE INDEX idx_conversations_provider_id ON conversations(provider_id);
+CREATE INDEX idx_conversations_last_message_at ON conversations(last_message_at DESC);
+
+-- =====================================================
 -- MESSAGES
 -- =====================================================
 
@@ -520,6 +585,35 @@ CREATE INDEX idx_messages_created_at ON messages(created_at ASC);
 CREATE INDEX idx_messages_brin ON messages USING BRIN(created_at) WITH (pages_per_range = 32);
 CREATE INDEX idx_messages_job_created ON messages(job_id, created_at ASC);
 CREATE INDEX idx_messages_job_read_created ON messages(job_id, read, created_at ASC) WHERE read = false;
+
+-- Auto-upsert conversation when a new message is inserted
+CREATE OR REPLACE FUNCTION upsert_conversation_on_message()
+RETURNS TRIGGER AS $$
+BEGIN
+  UPDATE conversations
+  SET last_message = NEW.message,
+      last_message_at = NEW.created_at,
+      updated_at = now()
+  WHERE job_id = NEW.job_id;
+
+  IF NOT FOUND THEN
+    INSERT INTO conversations (job_id, customer_id, provider_id, last_message, last_message_at)
+    SELECT NEW.job_id, j.customer_id, j.provider_id, NEW.message, NEW.created_at
+    FROM jobs j WHERE j.id = NEW.job_id
+    ON CONFLICT (job_id) DO UPDATE
+    SET last_message = EXCLUDED.last_message,
+        last_message_at = EXCLUDED.last_message_at,
+        updated_at = now();
+  END IF;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_upsert_conversation_on_message
+  AFTER INSERT ON messages
+  FOR EACH ROW
+  EXECUTE FUNCTION upsert_conversation_on_message();
 
 -- =====================================================
 -- NOTIFICATIONS
@@ -1927,7 +2021,243 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 
 CREATE INDEX IF NOT EXISTS idx_schema_migrations_version ON schema_migrations(version);
 
--- Pre-seed all integrated migrations (001-023)
+-- =====================================================
+-- RBAC SEED DATA
+-- =====================================================
+
+-- Seed system roles
+INSERT INTO roles (id, name, display_name, description, is_system, is_active)
+VALUES
+  (uuid_generate_v4(), 'customer', 'Customer', 'End users who request services', true, true),
+  (uuid_generate_v4(), 'provider', 'Provider', 'Service providers who offer services', true, true),
+  (uuid_generate_v4(), 'admin', 'Administrator', 'Platform administrators with full access', true, true)
+ON CONFLICT (name) DO NOTHING;
+
+-- Seed permissions (resource.action naming convention)
+INSERT INTO permissions (id, name, display_name, description, resource, action) VALUES
+  -- Dashboard
+  (uuid_generate_v4(), 'dashboard.view', 'View Dashboard', 'Access the dashboard', 'dashboard', 'view'),
+
+  -- Users
+  (uuid_generate_v4(), 'users.list', 'List Users', 'View user list', 'users', 'list'),
+  (uuid_generate_v4(), 'users.read', 'Read User', 'View user details', 'users', 'read'),
+  (uuid_generate_v4(), 'users.create', 'Create User', 'Create new users', 'users', 'create'),
+  (uuid_generate_v4(), 'users.update', 'Update User', 'Update user details', 'users', 'update'),
+  (uuid_generate_v4(), 'users.delete', 'Delete User', 'Delete users', 'users', 'delete'),
+  (uuid_generate_v4(), 'users.manage', 'Manage All Users', 'Full user management access', 'users', 'manage'),
+
+  -- Profile (own)
+  (uuid_generate_v4(), 'profile.view', 'View Own Profile', 'View own profile', 'profile', 'view'),
+  (uuid_generate_v4(), 'profile.update', 'Update Own Profile', 'Update own profile', 'profile', 'update'),
+
+  -- Providers
+  (uuid_generate_v4(), 'providers.list', 'List Providers', 'View provider list', 'providers', 'list'),
+  (uuid_generate_v4(), 'providers.read', 'Read Provider', 'View provider details', 'providers', 'read'),
+  (uuid_generate_v4(), 'providers.verify', 'Verify Provider', 'Approve or verify providers', 'providers', 'verify'),
+  (uuid_generate_v4(), 'providers.manage', 'Manage Providers', 'Full provider management', 'providers', 'manage'),
+
+  -- Provider Profile (own)
+  (uuid_generate_v4(), 'provider_profile.view', 'View Provider Profile', 'View own provider profile', 'provider_profile', 'view'),
+  (uuid_generate_v4(), 'provider_profile.update', 'Update Provider Profile', 'Update own provider profile', 'provider_profile', 'update'),
+
+  -- Provider Services (own)
+  (uuid_generate_v4(), 'provider_services.manage', 'Manage Provider Services', 'Manage own services offered', 'provider_services', 'manage'),
+
+  -- Provider Availability
+  (uuid_generate_v4(), 'provider_availability.manage', 'Manage Availability', 'Manage own availability schedule', 'provider_availability', 'manage'),
+
+  -- Provider Portfolio
+  (uuid_generate_v4(), 'provider_portfolio.manage', 'Manage Portfolio', 'Manage portfolio items', 'provider_portfolio', 'manage'),
+
+  -- Provider Documents
+  (uuid_generate_v4(), 'provider_documents.manage', 'Manage Documents', 'Manage provider documents', 'provider_documents', 'manage'),
+
+  -- Service Requests
+  (uuid_generate_v4(), 'requests.create', 'Create Request', 'Create service requests', 'requests', 'create'),
+  (uuid_generate_v4(), 'requests.read', 'Read Requests', 'View service requests', 'requests', 'read'),
+  (uuid_generate_v4(), 'requests.update', 'Update Request', 'Update own service requests', 'requests', 'update'),
+  (uuid_generate_v4(), 'requests.delete', 'Delete Request', 'Delete own service requests', 'requests', 'delete'),
+  (uuid_generate_v4(), 'requests.browse', 'Browse Requests', 'Browse available requests', 'requests', 'browse'),
+  (uuid_generate_v4(), 'requests.manage', 'Manage All Requests', 'Manage any service request', 'requests', 'manage'),
+  (uuid_generate_v4(), 'requests.view_stats', 'View Request Stats', 'View request statistics', 'requests', 'view_stats'),
+
+  -- Categories
+  (uuid_generate_v4(), 'categories.read', 'Read Categories', 'View service categories', 'categories', 'read'),
+  (uuid_generate_v4(), 'categories.manage', 'Manage Categories', 'Create/update/delete categories', 'categories', 'manage'),
+
+  -- Proposals
+  (uuid_generate_v4(), 'proposals.create', 'Create Proposal', 'Submit proposals', 'proposals', 'create'),
+  (uuid_generate_v4(), 'proposals.read', 'Read Proposals', 'View proposals', 'proposals', 'read'),
+  (uuid_generate_v4(), 'proposals.update', 'Update Proposal', 'Update own proposals', 'proposals', 'update'),
+  (uuid_generate_v4(), 'proposals.accept', 'Accept Proposal', 'Accept proposals on own requests', 'proposals', 'accept'),
+  (uuid_generate_v4(), 'proposals.manage', 'Manage All Proposals', 'Manage any proposal', 'proposals', 'manage'),
+
+  -- Jobs
+  (uuid_generate_v4(), 'jobs.create', 'Create Job', 'Create jobs from accepted proposals', 'jobs', 'create'),
+  (uuid_generate_v4(), 'jobs.read', 'Read Jobs', 'View job details', 'jobs', 'read'),
+  (uuid_generate_v4(), 'jobs.update_status', 'Update Job Status', 'Start/complete jobs', 'jobs', 'update_status'),
+  (uuid_generate_v4(), 'jobs.manage', 'Manage All Jobs', 'Manage any job', 'jobs', 'manage'),
+  (uuid_generate_v4(), 'jobs.view_stats', 'View Job Stats', 'View job statistics', 'jobs', 'view_stats'),
+
+  -- Reviews
+  (uuid_generate_v4(), 'reviews.create', 'Create Review', 'Submit reviews', 'reviews', 'create'),
+  (uuid_generate_v4(), 'reviews.read', 'Read Reviews', 'View reviews', 'reviews', 'read'),
+  (uuid_generate_v4(), 'reviews.update', 'Update Review', 'Update own reviews', 'reviews', 'update'),
+  (uuid_generate_v4(), 'reviews.delete', 'Delete Review', 'Delete reviews', 'reviews', 'delete'),
+  (uuid_generate_v4(), 'reviews.manage', 'Manage All Reviews', 'Manage any review', 'reviews', 'manage'),
+
+  -- Favorites
+  (uuid_generate_v4(), 'favorites.manage', 'Manage Favorites', 'Add/remove favorites', 'favorites', 'manage'),
+
+  -- Payments
+  (uuid_generate_v4(), 'payments.create', 'Create Payment', 'Make payments', 'payments', 'create'),
+  (uuid_generate_v4(), 'payments.read', 'Read Own Payments', 'View own payment history', 'payments', 'read'),
+  (uuid_generate_v4(), 'payments.manage', 'Manage All Payments', 'View and manage all payments', 'payments', 'manage'),
+  (uuid_generate_v4(), 'payments.view_stats', 'View Payment Stats', 'View payment statistics', 'payments', 'view_stats'),
+
+  -- Refunds
+  (uuid_generate_v4(), 'refunds.create', 'Request Refund', 'Request refunds', 'refunds', 'create'),
+  (uuid_generate_v4(), 'refunds.manage', 'Manage Refunds', 'Manage all refunds', 'refunds', 'manage'),
+
+  -- Subscriptions
+  (uuid_generate_v4(), 'subscriptions.manage', 'Manage Subscriptions', 'Manage own subscriptions', 'subscriptions', 'manage'),
+
+  -- Earnings
+  (uuid_generate_v4(), 'earnings.view', 'View Earnings', 'View own earning reports', 'earnings', 'view'),
+  (uuid_generate_v4(), 'earnings.manage', 'Manage All Earnings', 'View and manage all earnings', 'earnings', 'manage'),
+
+  -- Coupons
+  (uuid_generate_v4(), 'coupons.manage', 'Manage Coupons', 'Create/update/delete coupons', 'coupons', 'manage'),
+
+  -- Notifications
+  (uuid_generate_v4(), 'notifications.view', 'View Notifications', 'View own notifications', 'notifications', 'view'),
+  (uuid_generate_v4(), 'notifications.manage', 'Manage Notifications', 'Manage all notifications', 'notifications', 'manage'),
+
+  -- Messages
+  (uuid_generate_v4(), 'messages.send', 'Send Messages', 'Send messages in conversations', 'messages', 'send'),
+  (uuid_generate_v4(), 'messages.read', 'Read Messages', 'Read own messages', 'messages', 'read'),
+  (uuid_generate_v4(), 'messages.manage', 'Manage All Messages', 'Manage any message', 'messages', 'manage'),
+
+  -- Disputes
+  (uuid_generate_v4(), 'disputes.file', 'File Dispute', 'File a dispute', 'disputes', 'file'),
+  (uuid_generate_v4(), 'disputes.read', 'Read Disputes', 'View own disputes', 'disputes', 'read'),
+  (uuid_generate_v4(), 'disputes.manage', 'Manage All Disputes', 'Manage and resolve disputes', 'disputes', 'manage'),
+  (uuid_generate_v4(), 'disputes.view_stats', 'View Dispute Stats', 'View dispute statistics', 'disputes', 'view_stats'),
+
+  -- Analytics
+  (uuid_generate_v4(), 'analytics.view', 'View Analytics', 'View platform analytics', 'analytics', 'view'),
+  (uuid_generate_v4(), 'analytics.manage', 'Manage Analytics', 'Full analytics access and export', 'analytics', 'manage'),
+
+  -- Audit Logs
+  (uuid_generate_v4(), 'audit.view', 'View Audit Logs', 'View audit logs', 'audit', 'view'),
+  (uuid_generate_v4(), 'audit.manage', 'Manage Audit Logs', 'Full audit log management', 'audit', 'manage'),
+
+  -- Admin (general access)
+  (uuid_generate_v4(), 'admin.access', 'Admin Panel Access', 'Access the admin panel', 'admin', 'access'),
+  (uuid_generate_v4(), 'admin.contact_view', 'View Contact Submissions', 'View contact form submissions', 'admin', 'contact_view'),
+
+  -- Settings
+  (uuid_generate_v4(), 'settings.manage', 'Manage System Settings', 'Manage platform settings', 'settings', 'manage'),
+
+  -- Roles & Permissions (meta)
+  (uuid_generate_v4(), 'roles.read', 'Read Roles', 'View roles and permissions', 'roles', 'read'),
+  (uuid_generate_v4(), 'roles.manage', 'Manage Roles', 'Create/update/delete roles and assign permissions', 'roles', 'manage'),
+
+  -- Infrastructure
+  (uuid_generate_v4(), 'infrastructure.events', 'Manage Events', 'View and manage system events', 'infrastructure', 'events'),
+  (uuid_generate_v4(), 'infrastructure.jobs', 'Manage Background Jobs', 'View and manage background jobs', 'infrastructure', 'jobs'),
+  (uuid_generate_v4(), 'infrastructure.rate_limits', 'Manage Rate Limits', 'Configure rate limits', 'infrastructure', 'rate_limits'),
+  (uuid_generate_v4(), 'infrastructure.feature_flags', 'Manage Feature Flags', 'Toggle feature flags', 'infrastructure', 'feature_flags')
+ON CONFLICT (name) DO NOTHING;
+
+-- Admin gets ALL permissions
+INSERT INTO role_permissions (role_id, permission_id, created_at)
+SELECT r.id, p.id, now()
+FROM roles r
+CROSS JOIN permissions p
+WHERE r.name = 'admin'
+ON CONFLICT DO NOTHING;
+
+-- Customer permissions
+INSERT INTO role_permissions (role_id, permission_id, created_at)
+SELECT r.id, p.id, now()
+FROM roles r
+CROSS JOIN permissions p
+WHERE r.name = 'customer'
+  AND p.name IN (
+    'dashboard.view',
+    'profile.view',
+    'profile.update',
+    'providers.list',
+    'providers.read',
+    'categories.read',
+    'requests.create',
+    'requests.read',
+    'requests.update',
+    'requests.delete',
+    'proposals.read',
+    'proposals.accept',
+    'jobs.create',
+    'jobs.read',
+    'reviews.create',
+    'reviews.read',
+    'reviews.update',
+    'favorites.manage',
+    'payments.create',
+    'payments.read',
+    'refunds.create',
+    'notifications.view',
+    'messages.send',
+    'messages.read',
+    'disputes.file',
+    'disputes.read'
+  )
+ON CONFLICT DO NOTHING;
+
+-- Provider permissions
+INSERT INTO role_permissions (role_id, permission_id, created_at)
+SELECT r.id, p.id, now()
+FROM roles r
+CROSS JOIN permissions p
+WHERE r.name = 'provider'
+  AND p.name IN (
+    'dashboard.view',
+    'profile.view',
+    'profile.update',
+    'providers.read',
+    'categories.read',
+    'provider_profile.view',
+    'provider_profile.update',
+    'provider_services.manage',
+    'provider_availability.manage',
+    'provider_portfolio.manage',
+    'provider_documents.manage',
+    'requests.read',
+    'requests.browse',
+    'proposals.create',
+    'proposals.read',
+    'proposals.update',
+    'jobs.read',
+    'jobs.update_status',
+    'reviews.read',
+    'earnings.view',
+    'subscriptions.manage',
+    'notifications.view',
+    'messages.send',
+    'messages.read',
+    'disputes.file',
+    'disputes.read',
+    'payments.read'
+  )
+ON CONFLICT DO NOTHING;
+
+-- Populate role_id from existing users.role column
+UPDATE users u
+SET role_id = r.id
+FROM roles r
+WHERE u.role = r.name AND u.role_id IS NULL;
+
+-- Pre-seed all integrated migrations (001-024)
 -- Fresh installs use schema.sql which is already the complete state,
 -- so all migrations are marked as applied to prevent re-running.
 INSERT INTO schema_migrations (version, name, checksum, execution_time_ms)
@@ -1954,6 +2284,8 @@ VALUES
   ('020', 'add_edit_capabilities', 'integrated_in_schema', 0),
   ('021', 'schema_sync', 'integrated_in_schema', 0),
   ('022', 'add_review_helpful_votes', 'integrated_in_schema', 0),
-  ('023', 'schema_integrity_fixes', 'integrated_in_schema', 0)
+  ('023', 'schema_integrity_fixes', 'integrated_in_schema', 0),
+  ('024', 'rbac_dynamic_permissions', 'integrated_in_schema', 0),
+  ('025', 'add_conversations_table', 'integrated_in_schema', 0)
 ON CONFLICT (version) DO NOTHING;
 

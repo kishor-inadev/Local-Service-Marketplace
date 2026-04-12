@@ -25,6 +25,8 @@ import { SendSmsDto } from "../dto/send-sms.dto";
 
 @Injectable()
 export class NotificationService {
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
+
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
@@ -219,13 +221,17 @@ export class NotificationService {
           );
         }
 
-        // Enqueue SMS delivery — async, retryable
-        await this.smsQueue.add('deliver-sms', {
-          phone: dto.recipient,
-          message: dto.message,
-        });
-
-        results.sms = { queued: true, phone: dto.recipient };
+        // Send SMS — queue if workers enabled, else send directly
+        if (this.workersEnabled) {
+          await this.smsQueue.add('deliver-sms', {
+            phone: dto.recipient,
+            message: dto.message,
+          });
+          results.sms = { queued: true, phone: dto.recipient };
+        } else {
+          await this.smsClient.sendSms(dto.recipient, dto.message);
+          results.sms = { sent: true, phone: dto.recipient };
+        }
       }
 
       this.logger.log(
@@ -306,13 +312,17 @@ export class NotificationService {
       );
     }
 
-    // Enqueue SMS — never block the HTTP response on external delivery
-    await this.smsQueue.add('deliver-sms', {
-      phone: dto.phone,
-      message: dto.message,
-    });
-
-    return { queued: true, phone: dto.phone };
+    // Send SMS — queue if workers enabled, else send directly
+    if (this.workersEnabled) {
+      await this.smsQueue.add('deliver-sms', {
+        phone: dto.phone,
+        message: dto.message,
+      });
+      return { queued: true, phone: dto.phone };
+    } else {
+      await this.smsClient.sendSms(dto.phone, dto.message);
+      return { sent: true, phone: dto.phone };
+    }
   }
 
   /**
@@ -331,10 +341,14 @@ export class NotificationService {
       );
     }
 
-    // Enqueue OTP SMS — OTP must be delivered with retry support
-    await this.smsQueue.add('deliver-otp', { phone, purpose });
-
-    return { queued: true };
+    // Send OTP — queue if workers enabled, else send directly
+    if (this.workersEnabled) {
+      await this.smsQueue.add('deliver-otp', { phone, purpose });
+      return { queued: true };
+    } else {
+      await this.smsClient.sendOtp(phone, purpose);
+      return { sent: true };
+    }
   }
 
   /**

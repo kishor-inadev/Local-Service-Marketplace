@@ -4,6 +4,17 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { TOKEN_CONFIG } from "@/types/auth-alignment";
 import { serverAuthService } from "@/services/server-auth-service";
 
+function decodeJwtPayload(token: string): any {
+	try {
+		const parts = token.split('.');
+		if (parts.length !== 3) return {};
+		const payload = Buffer.from(parts[1], 'base64url').toString('utf8');
+		return JSON.parse(payload);
+	} catch {
+		return {};
+	}
+}
+
 async function refreshAccessToken(token: any) {
 	try {
 		if (!token?.refreshToken) {
@@ -13,11 +24,21 @@ async function refreshAccessToken(token: any) {
 		const data = await serverAuthService.refreshToken(token.refreshToken);
 		if (!data) throw new Error("Token refresh failed");
 
+		// Extract updated permissions from the new access token
+		let permissions = token.permissions || [];
+		if (data.accessToken) {
+			const jwtPayload = decodeJwtPayload(data.accessToken);
+			if (Array.isArray(jwtPayload.permissions)) {
+				permissions = jwtPayload.permissions;
+			}
+		}
+
 		return {
 			...token,
 			accessToken: data.accessToken,
 			accessTokenExpires: Date.now() + TOKEN_CONFIG.ACCESS_TOKEN_EXPIRATION,
 			refreshToken: data.refreshToken ?? token.refreshToken,
+			permissions,
 		};
 	} catch (error) {
 		console.error('Error refreshing access token:', error);
@@ -198,6 +219,15 @@ export const authOptions = {
 					// If /me fails, fall back to login response data
 				}
 
+				// Extract permissions from the JWT access token payload
+				let permissions: string[] = [];
+				if (user.accessToken) {
+					const jwtPayload = decodeJwtPayload(user.accessToken);
+					if (Array.isArray(jwtPayload.permissions)) {
+						permissions = jwtPayload.permissions;
+					}
+				}
+
 				return {
 					...token,
 					id: profile?.id ?? user.id,
@@ -205,6 +235,7 @@ export const authOptions = {
 					name: profile?.name ?? user.name,
 					image: profile?.profile_picture_url ?? user.image ?? null,
 					role: profile?.role ?? user.role,
+					permissions,
 					emailVerified: profile !== null
 						? Boolean(profile.email_verified)
 						: typeof user.emailVerified === "boolean" ? user.emailVerified : false,
@@ -238,6 +269,7 @@ export const authOptions = {
 				session.user.name = token.name || session.user.name;
 				session.user.image = token.image || session.user.image;
 				session.user.role = token.role || "customer";
+				session.user.permissions = Array.isArray(token.permissions) ? token.permissions : [];
 				session.user.emailVerified = Boolean(token.emailVerified);
 				session.user.phoneVerified = Boolean(token.phoneVerified);
 				session.user.timezone = token.timezone ?? null;

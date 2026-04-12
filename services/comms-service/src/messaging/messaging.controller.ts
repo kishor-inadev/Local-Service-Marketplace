@@ -198,7 +198,7 @@ export class MessagingController {
     const attachment = await this.attachmentService.getAttachmentById(id);
 
     // Verify the requesting user is a participant in the job this attachment belongs to
-    if (req.user.role !== "admin") {
+    if (!req.user.permissions?.includes('messages.manage')) {
       await this.messageService.getMessageById(
         attachment.message_id,
         req.user.userId,
@@ -254,7 +254,7 @@ export class MessagingController {
     const message = await this.messageService.getMessageById(id);
 
     // Only sender can edit
-    if (message.sender_id !== req.user.userId && req.user.role !== "admin") {
+    if (message.sender_id !== req.user.userId && !req.user.permissions?.includes('messages.manage')) {
       throw new ForbiddenException(
         "You can only edit your own messages",
       );
@@ -265,7 +265,7 @@ export class MessagingController {
       (Date.now() - new Date(message.created_at).getTime()) / (1000 * 60),
     );
 
-    if (minutesSinceCreation > 15 && req.user.role !== "admin") {
+    if (minutesSinceCreation > 15 && !req.user.permissions?.includes('messages.manage')) {
       throw new ForbiddenException(
         "Messages can only be edited within 15 minutes of sending",
       );
@@ -302,7 +302,7 @@ export class MessagingController {
     const message = await this.messageService.getMessageById(id);
 
     // Only sender or admin can delete
-    if (message.sender_id !== req.user.userId && req.user.role !== "admin") {
+    if (message.sender_id !== req.user.userId && !req.user.permissions?.includes('messages.manage')) {
       throw new ForbiddenException(
         "You can only delete your own messages",
       );

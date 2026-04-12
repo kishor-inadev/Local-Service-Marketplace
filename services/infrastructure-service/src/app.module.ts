@@ -19,7 +19,7 @@ const conditionalModules = process.env.WORKERS_ENABLED === 'true' ? [WorkersModu
 		DatabaseModule,
 		BullMQCoreModule,
 		RedisModule,
-		KafkaModule,
+		KafkaModule.register(),
 		InfrastructureModule,
 		DlqModule,
 		...conditionalModules,

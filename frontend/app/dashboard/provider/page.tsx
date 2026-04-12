@@ -3,6 +3,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { ROUTES } from "@/config/constants";
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
@@ -16,6 +18,7 @@ import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 export default function ProviderOverviewPage() {
 	const pathname = usePathname();
 	const { user, isAuthenticated } = useAuth();
+	const { can } = usePermissions();
 
 	// Fetch provider profile
 	const {
@@ -31,7 +34,7 @@ export default function ProviderOverviewPage() {
 			}
 			return null;
 		},
-		enabled: isAuthenticated && user?.role === "provider",
+		enabled: isAuthenticated && can(Permission.PROVIDER_PROFILE_VIEW),
 	});
 
 	const tabs = [
@@ -45,7 +48,7 @@ export default function ProviderOverviewPage() {
 	];
 
 	return (
-		<ProtectedRoute requiredRoles={["provider"]}>
+		<ProtectedRoute requiredPermissions={[Permission.PROVIDER_PROFILE_VIEW]}>
 			<Layout>
 				<div className='container-custom py-8'>
 					{/* Header */}

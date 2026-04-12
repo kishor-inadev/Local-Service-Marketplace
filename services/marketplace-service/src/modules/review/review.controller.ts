@@ -22,8 +22,7 @@ import { CreateReviewDto } from "./dto/create-review.dto";
 import { UpdateReviewDto } from "./dto/update-review.dto";
 import { RespondReviewDto } from "./dto/respond-review.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
-import { RolesGuard } from "@/common/guards/roles.guard";
-import { Roles } from "@/common/decorators/roles.decorator";
+import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { OwnershipGuard } from "@/common/guards/ownership.guard";
 import { Ownership } from "@/common/decorators/ownership.decorator";
 import { ForbiddenException, ConflictException } from "@/common/exceptions/http.exceptions";
@@ -35,7 +34,7 @@ export class ReviewController {
     private readonly reviewRepository: ReviewRepository,
   ) {}
 
-  @Roles("customer", "admin")
+  @RequirePermissions('reviews.create')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -72,6 +71,7 @@ export class ReviewController {
     };
   }
 
+  @UseGuards(JwtAuthGuard)
   @Get(":id")
   async getReviewById(@Param("id", FlexibleIdPipe) id: string) {
     const review = await this.reviewService.getReviewById(id);
@@ -99,7 +99,7 @@ export class ReviewController {
     // For provider, we might need providerId or userId depending on how it's stored
     // In this system, provider_id on review usually matches the provider's userId
     const isProvider = review.provider_id === req.user.userId || (req.user.providerId && review.provider_id === req.user.providerId);
-    const isAdmin = req.user.role === "admin";
+    const isAdmin = req.user.permissions?.includes('reviews.manage');
 
     if (!isCustomer && !isProvider && !isAdmin) {
       throw new ForbiddenException(

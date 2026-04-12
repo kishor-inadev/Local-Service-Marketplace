@@ -2,6 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
@@ -16,6 +18,7 @@ import { Users, AlertCircle, Settings, FileText, TrendingUp } from 'lucide-react
 
 export default function AdminDashboard() {
   const { user, isAuthenticated } = useAuth();
+  const { can } = usePermissions();
 
   const {
 		data: users,
@@ -25,7 +28,7 @@ export default function AdminDashboard() {
 	} = useQuery({
 		queryKey: ["admin-users"],
 		queryFn: () => adminService.getUsers(),
-		enabled: isAuthenticated && user?.role === "admin",
+		enabled: isAuthenticated && can(Permission.ADMIN_ACCESS),
 	});
 
   const {
@@ -36,7 +39,7 @@ export default function AdminDashboard() {
 	} = useQuery({
 		queryKey: ["admin-disputes"],
 		queryFn: () => adminService.getDisputes(),
-		enabled: isAuthenticated && user?.role === "admin",
+		enabled: isAuthenticated && can(Permission.ADMIN_ACCESS),
 	});
 
   if (usersError || disputesError) {

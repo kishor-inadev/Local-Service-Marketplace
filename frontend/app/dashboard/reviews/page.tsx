@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -44,7 +46,7 @@ export default function MyReviewsPage() {
   const totalPages = Math.ceil(total / limit);
 
   return (
-    <ProtectedRoute requiredRoles={['customer']}>
+    <ProtectedRoute requiredPermissions={[Permission.REVIEWS_READ]}>
       <Layout>
         <div className="container-custom py-12">
           <div className="mb-8">

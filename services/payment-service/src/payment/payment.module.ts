@@ -25,6 +25,7 @@ import { PricingPlanRepository } from "./repositories/pricing-plan.repository";
 import { SubscriptionRepository } from "./repositories/subscription.repository";
 import { NotificationModule } from "../common/notification/notification.module";
 import { UserModule } from "../common/user/user.module";
+import { MarketplaceModule } from "../common/marketplace/marketplace.module";
 import { AnalyticsModule } from "../common/analytics/analytics.module";
 import { PaymentGatewayModule } from "./gateway/payment-gateway.module";
 import { FileServiceClient } from "../common/file-service.client";
@@ -39,6 +40,7 @@ import { FileServiceClient } from "../common/file-service.client";
     ),
     NotificationModule,
     UserModule,
+    MarketplaceModule,
     AnalyticsModule,
     PaymentGatewayModule,
     HttpModule.register({
