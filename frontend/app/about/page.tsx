@@ -1,8 +1,26 @@
-'use client';
-
-import React from 'react';
+import type { Metadata } from 'next';
 import { Layout } from '@/components/layout/Layout';
 import { Users, Target, Award, Heart } from 'lucide-react';
+
+export const metadata: Metadata = {
+	title: 'About Us',
+	description:
+		'Learn about Local Service Marketplace — our mission, team, and how we connect local service providers with customers.',
+	alternates: { canonical: '/about' },
+	openGraph: {
+		title: 'About Us',
+		description:
+			'Learn about Local Service Marketplace — our mission, team, and how we connect local service providers with customers.',
+		url: '/about',
+		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+	},
+	twitter: {
+		card: 'summary_large_image',
+		title: 'About Us',
+		description:
+			'Learn about Local Service Marketplace — our mission, team, and how we connect local service providers with customers.',
+	},
+};
 
 export default function AboutPage() {
   return (
