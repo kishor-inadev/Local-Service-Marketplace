@@ -22,9 +22,21 @@ description:
 },
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const pricingJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'WebPage',
+	name: 'Pricing Plans — Local Service Marketplace',
+	url: `${SITE_URL}/pricing`,
+	description: 'View pricing plans and fees for Local Service Marketplace — transparent costs for customers and service providers.',
+	isPartOf: { '@type': 'WebSite', name: 'Local Service Marketplace', url: SITE_URL },
+};
+
 export default function PricingPage() {
 return (
 <Layout>
+<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(pricingJsonLd) }} />
 <div className="bg-gray-50 dark:bg-gray-900 py-12">
 <div className="container mx-auto px-4">
 <PricingSection />

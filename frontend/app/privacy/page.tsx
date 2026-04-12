@@ -23,9 +23,21 @@ export const metadata: Metadata = {
 	},
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const privacyJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'WebPage',
+	name: 'Privacy Policy — Local Service Marketplace',
+	url: `${SITE_URL}/privacy`,
+	description: 'Read our privacy policy — how we collect, use, and protect your personal information.',
+	isPartOf: { '@type': 'WebSite', name: 'Local Service Marketplace', url: SITE_URL },
+};
+
 export default function PrivacyPage() {
   return (
     <Layout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(privacyJsonLd) }} />
       <div className="bg-white dark:bg-gray-900">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">

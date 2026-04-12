@@ -22,9 +22,32 @@ export const metadata: Metadata = {
 	},
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const organizationJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'Organization',
+	name: 'Local Service Marketplace',
+	url: SITE_URL,
+	logo: `${SITE_URL}/logo.png`,
+	description: 'Connecting communities with trusted local service providers.',
+	foundingDate: '2023',
+};
+
+const aboutPageJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'AboutPage',
+	name: 'About Local Service Marketplace',
+	url: `${SITE_URL}/about`,
+	description: 'Learn about Local Service Marketplace — our mission, team, and how we connect local service providers with customers.',
+	isPartOf: { '@type': 'WebSite', name: 'Local Service Marketplace', url: SITE_URL },
+};
+
 export default function AboutPage() {
   return (
     <Layout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(organizationJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(aboutPageJsonLd) }} />
       <div className="bg-white dark:bg-gray-900">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">

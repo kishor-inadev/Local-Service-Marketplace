@@ -23,9 +23,21 @@ export const metadata: Metadata = {
 	},
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const cookiesJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'WebPage',
+	name: 'Cookie Policy — Local Service Marketplace',
+	url: `${SITE_URL}/cookies`,
+	description: 'Learn how Local Service Marketplace uses cookies to improve your experience.',
+	isPartOf: { '@type': 'WebSite', name: 'Local Service Marketplace', url: SITE_URL },
+};
+
 export default function CookiesPage() {
   return (
     <Layout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(cookiesJsonLd) }} />
       <div className="bg-white dark:bg-gray-900">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">

@@ -22,9 +22,26 @@ export const metadata: Metadata = {
 	},
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const howToJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'HowTo',
+	name: 'How to Hire a Local Service Provider',
+	description: 'Find and hire trusted local service providers in four simple steps.',
+	url: `${SITE_URL}/how-it-works`,
+	step: [
+		{ '@type': 'HowToStep', position: 1, name: 'Post Your Request', text: 'Describe the service you need and set your budget.' },
+		{ '@type': 'HowToStep', position: 2, name: 'Receive Proposals', text: 'Get quotes from verified service providers in your area.' },
+		{ '@type': 'HowToStep', position: 3, name: 'Compare & Hire', text: 'Review profiles, ratings, and choose the best fit for your needs.' },
+		{ '@type': 'HowToStep', position: 4, name: 'Get It Done', text: 'Work gets completed and you pay securely through our platform.' },
+	],
+};
+
 export default function HowItWorksPage() {
   return (
     <Layout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }} />
       <div className="bg-white dark:bg-gray-900">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">

@@ -23,6 +23,17 @@ export const metadata: Metadata = {
 	},
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const helpJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'WebPage',
+	name: 'Help Center — Local Service Marketplace',
+	url: `${SITE_URL}/help`,
+	description: 'Find answers to common questions about Local Service Marketplace — guides, troubleshooting, and support resources.',
+	isPartOf: { '@type': 'WebSite', name: 'Local Service Marketplace', url: SITE_URL },
+};
+
 export default function HelpPage() {
   const helpTopics = [
     {
@@ -73,6 +84,7 @@ export default function HelpPage() {
 
   return (
 		<Layout>
+			<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(helpJsonLd) }} />
 			<div className='bg-white dark:bg-gray-900'>
 				{/* Hero Section */}
 				<div className='bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16'>

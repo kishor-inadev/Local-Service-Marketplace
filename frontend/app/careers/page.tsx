@@ -22,6 +22,53 @@ export const metadata: Metadata = {
 	},
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const careersJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'ItemList',
+	name: 'Open Positions at Local Service Marketplace',
+	url: `${SITE_URL}/careers`,
+	itemListElement: [
+		{
+			'@type': 'JobPosting',
+			title: 'Senior Full Stack Developer',
+			hiringOrganization: { '@type': 'Organization', name: 'Local Service Marketplace', sameAs: SITE_URL },
+			jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'Remote' } },
+			employmentType: 'FULL_TIME',
+			datePosted: '2024-01-01',
+			description: 'Build and scale our microservices platform using NestJS, Next.js, and PostgreSQL.',
+		},
+		{
+			'@type': 'JobPosting',
+			title: 'Product Manager',
+			hiringOrganization: { '@type': 'Organization', name: 'Local Service Marketplace', sameAs: SITE_URL },
+			jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'New York', addressRegion: 'NY' } },
+			employmentType: 'FULL_TIME',
+			datePosted: '2024-01-01',
+			description: 'Lead product strategy and roadmap for our local services marketplace platform.',
+		},
+		{
+			'@type': 'JobPosting',
+			title: 'Customer Success Manager',
+			hiringOrganization: { '@type': 'Organization', name: 'Local Service Marketplace', sameAs: SITE_URL },
+			jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'Remote' } },
+			employmentType: 'FULL_TIME',
+			datePosted: '2024-01-01',
+			description: 'Help customers and service providers succeed on the Local Service Marketplace platform.',
+		},
+		{
+			'@type': 'JobPosting',
+			title: 'Marketing Specialist',
+			hiringOrganization: { '@type': 'Organization', name: 'Local Service Marketplace', sameAs: SITE_URL },
+			jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressRegion: 'CA' } },
+			employmentType: 'FULL_TIME',
+			datePosted: '2024-01-01',
+			description: 'Drive user acquisition and brand awareness for our marketplace platform.',
+		},
+	],
+};
+
 export default function CareersPage() {
   const jobOpenings = [
     {
@@ -52,6 +99,7 @@ export default function CareersPage() {
 
   return (
     <Layout>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(careersJsonLd) }} />
       <div className="bg-white dark:bg-gray-900">
         {/* Hero Section */}
         <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">

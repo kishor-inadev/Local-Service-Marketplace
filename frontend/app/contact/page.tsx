@@ -23,9 +23,35 @@ description:
 },
 };
 
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+
+const contactPageJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'ContactPage',
+	name: 'Contact Local Service Marketplace',
+	url: `${SITE_URL}/contact`,
+	description: 'Get in touch with the Local Service Marketplace team for support and inquiries.',
+	isPartOf: { '@type': 'WebSite', name: 'Local Service Marketplace', url: SITE_URL },
+};
+
+const contactOrgJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'Organization',
+	name: 'Local Service Marketplace',
+	url: SITE_URL,
+	contactPoint: {
+		'@type': 'ContactPoint',
+		email: 'support@localservicemarketplace.com',
+		contactType: 'customer service',
+		availableLanguage: 'English',
+	},
+};
+
 export default function ContactPage() {
 return (
 <Layout>
+<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }} />
+<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(contactOrgJsonLd) }} />
 <div className="bg-white dark:bg-gray-900">
 {/* Hero Section */}
 <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
