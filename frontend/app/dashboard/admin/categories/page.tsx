@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -151,11 +151,10 @@ export default function AdminCategoriesPage() {
                         {cat.icon && <span className="text-2xl">{cat.icon}</span>}
                         <div>
                           <h3 className="font-semibold text-gray-900 dark:text-white">{cat.name}</h3>
-                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
-                            cat.active
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
-                          }`}>
+                          <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat.active
+                            ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                            : 'bg-gray-100 dark:bg-gray-800 text-gray-500'
+                            }`}>
                             {cat.active ? 'Active' : 'Inactive'}
                           </span>
                         </div>

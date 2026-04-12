@@ -12,143 +12,143 @@ import { Avatar } from '@/components/ui/Avatar';
 import { Badge } from '@/components/ui/Badge';
 import { AvailabilitySchedule } from '@/components/features/providers/AvailabilitySchedule';
 import { getProviderProfile } from '@/services/user-service';
-import { getProviderReviews, getProviderReviewAggregates, ReviewWithDetails, ReviewAggregate } from '@/services/review-service';
+import { getProviderReviews, getProviderReviewAggregates } from '@/services/review-service';
 import { requestService, ServiceCategory } from '@/services/request-service';
 import { favoriteService } from '@/services/favorite-service';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDate, parseRating } from "@/utils/helpers";
-import { ArrowLeft, Star, MapPin, Calendar, Briefcase, Heart, MessageSquare } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, Briefcase, MessageSquare, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/config/constants';
 import { toast } from 'react-hot-toast';
 
 export default function ProviderDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  const providerId = params.id as string;
-  const [isFavorited, setIsFavorited] = useState(false);
-  const [checkingFavorite, setCheckingFavorite] = useState(true);
+	const params = useParams();
+	const router = useRouter();
+	const queryClient = useQueryClient();
+	const { user } = useAuth();
+	const providerId = params.id as string;
+	const [isFavorited, setIsFavorited] = useState(false);
+	const [checkingFavorite, setCheckingFavorite] = useState(true);
 
-  const { data: provider, isLoading, error, refetch } = useQuery({
-    queryKey: ['provider', providerId],
-    queryFn: () => getProviderProfile(providerId),
-    enabled: !!providerId,
-  });
+	const { data: provider, isLoading, error, refetch } = useQuery({
+		queryKey: ['provider', providerId],
+		queryFn: () => getProviderProfile(providerId),
+		enabled: !!providerId,
+	});
 
-  const providerRating = parseRating(provider?.rating);
+	const providerRating = parseRating(provider?.rating);
 
-  const { data: reviews } = useQuery({
-    queryKey: ['provider-reviews', providerId],
-    queryFn: () => getProviderReviews(providerId),
-    enabled: !!providerId,
-  });
+	const { data: reviews } = useQuery({
+		queryKey: ['provider-reviews', providerId],
+		queryFn: () => getProviderReviews(providerId),
+		enabled: !!providerId,
+	});
 
-  const { data: reviewAggregates } = useQuery({
-    queryKey: ['provider-review-aggregates', providerId],
-    queryFn: () => getProviderReviewAggregates(providerId),
-    enabled: !!providerId,
-  });
+	const { data: reviewAggregates } = useQuery({
+		queryKey: ['provider-review-aggregates', providerId],
+		queryFn: () => getProviderReviewAggregates(providerId),
+		enabled: !!providerId,
+	});
 
-  const { data: categories } = useQuery({
-    queryKey: ['service-categories'],
-    queryFn: () => requestService.getCategories(),
-  });
+	const { data: categories } = useQuery({
+		queryKey: ['service-categories'],
+		queryFn: () => requestService.getCategories(),
+	});
 
-  const categoryMap = (categories || []).reduce<Record<string, ServiceCategory>>((acc, cat) => {
-    acc[cat.id] = cat;
-    return acc;
-  }, {});
+	const categoryMap = (categories || []).reduce<Record<string, ServiceCategory>>((acc, cat) => {
+		acc[cat.id] = cat;
+		return acc;
+	}, {});
 
-  // Check if provider is favorited
-  useEffect(() => {
-    const checkFavorite = async () => {
-      if (user?.id && providerId) {
-        try {
-          const favorited = await favoriteService.isFavorite(user.id, providerId);
-          setIsFavorited(favorited);
-        } catch (error) {
-          console.error('Error checking favorite:', error);
-        } finally {
-          setCheckingFavorite(false);
-        }
-      } else {
-        setCheckingFavorite(false);
-      }
-    };
-    checkFavorite();
-  }, [user?.id, providerId]);
+	// Check if provider is favorited
+	useEffect(() => {
+		const checkFavorite = async () => {
+			if (user?.id && providerId) {
+				try {
+					const favorited = await favoriteService.isFavorite(user.id, providerId);
+					setIsFavorited(favorited);
+				} catch (error) {
+					console.error('Error checking favorite:', error);
+				} finally {
+					setCheckingFavorite(false);
+				}
+			} else {
+				setCheckingFavorite(false);
+			}
+		};
+		checkFavorite();
+	}, [user?.id, providerId]);
 
-  // Toggle favorite mutation
-  const toggleFavoriteMutation = useMutation({
-    mutationFn: async () => {
-      if (!user?.id) {
-        throw new Error('Please login to save favorites');
-      }
-      if (isFavorited) {
-        await favoriteService.removeFavorite(user.id, providerId);
-      } else {
-        await favoriteService.addFavorite({
-          user_id: user.id,
-          provider_id: providerId,
-        });
-      }
-    },
-    onMutate: async () => {
-      // Optimistically update UI
-      setIsFavorited(!isFavorited);
-    },
-    onSuccess: () => {
-      toast.success(
-        isFavorited ? 'Removed from favorites' : 'Added to favorites'
-      );
-      // Invalidate favorites query if on favorites page
-      queryClient.invalidateQueries({ queryKey: ['favorites'] });
-    },
-    onError: (error: any) => {
-      // Revert optimistic update on error
-      setIsFavorited(!isFavorited);
-      toast.error(error.message || 'Failed to update favorite');
-    },
-  });
+	// Toggle favorite mutation
+	const toggleFavoriteMutation = useMutation({
+		mutationFn: async () => {
+			if (!user?.id) {
+				throw new Error('Please login to save favorites');
+			}
+			if (isFavorited) {
+				await favoriteService.removeFavorite(user.id, providerId);
+			} else {
+				await favoriteService.addFavorite({
+					user_id: user.id,
+					provider_id: providerId,
+				});
+			}
+		},
+		onMutate: async () => {
+			// Optimistically update UI
+			setIsFavorited(!isFavorited);
+		},
+		onSuccess: () => {
+			toast.success(
+				isFavorited ? 'Removed from favorites' : 'Added to favorites'
+			);
+			// Invalidate favorites query if on favorites page
+			queryClient.invalidateQueries({ queryKey: ['favorites'] });
+		},
+		onError: (error: any) => {
+			// Revert optimistic update on error
+			setIsFavorited(!isFavorited);
+			toast.error(error.message || 'Failed to update favorite');
+		},
+	});
 
-  const handleToggleFavorite = () => {
-    if (!user) {
-      toast.error('Please login to save favorites');
-      router.push(ROUTES.LOGIN);
-      return;
-    }
-    toggleFavoriteMutation.mutate();
-  };
+	const handleToggleFavorite = () => {
+		if (!user) {
+			toast.error('Please login to save favorites');
+			router.push(ROUTES.LOGIN);
+			return;
+		}
+		toggleFavoriteMutation.mutate();
+	};
 
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="container-custom py-8">
-          <Loading />
-        </div>
-      </Layout>
-    );
-  }
+	if (isLoading) {
+		return (
+			<Layout>
+				<div className="container-custom py-8">
+					<Loading />
+				</div>
+			</Layout>
+		);
+	}
 
-  if (error || !provider) {
-    return (
-      <Layout>
-        <div className="container-custom py-8">
-          <ErrorState
-            title="Provider not found"
-            message="We couldn't find the provider you're looking for."
-            retry={() => refetch()}
-          />
-        </div>
-      </Layout>
-    );
-  }
+	if (error || !provider) {
+		return (
+			<Layout>
+				<div className="container-custom py-8">
+					<ErrorState
+						title="Provider not found"
+						message="We couldn't find the provider you're looking for."
+						retry={() => refetch()}
+					/>
+				</div>
+			</Layout>
+		);
+	}
 
-  const serviceCount = provider.services?.length || 0;
+	const serviceCount = provider.services?.length || 0;
 
-  return (
+	return (
 		<Layout>
 			<div className='container-custom py-8'>
 				{/* Back Button */}
@@ -263,7 +263,7 @@ export default function ProviderDetailPage() {
 											const pct =
 												reviewAggregates.total_reviews > 0 ?
 													Math.round((count / reviewAggregates.total_reviews) * 100)
-												:	0;
+													: 0;
 											return (
 												<div
 													key={stars}
@@ -311,7 +311,7 @@ export default function ProviderDetailPage() {
 											</div>
 										))}
 									</div>
-								:	<p className='text-gray-500 text-sm'>No reviews yet.</p>}
+									: <p className='text-gray-500 text-sm'>No reviews yet.</p>}
 							</CardContent>
 						</Card>
 					</div>
@@ -345,9 +345,9 @@ export default function ProviderDetailPage() {
 										<Heart className={`h-4 w-4 ${isFavorited ? "fill-current" : ""}`} />
 										{checkingFavorite ?
 											"Loading..."
-										: isFavorited ?
-											"Remove from Favorites"
-										:	"Save to Favorites"}
+											: isFavorited ?
+												"Remove from Favorites"
+												: "Save to Favorites"}
 									</Button>
 								</div>
 							</CardContent>

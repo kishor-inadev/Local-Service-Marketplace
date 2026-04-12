@@ -1,7 +1,7 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
@@ -15,7 +15,6 @@ import { ShieldCheck, ShieldX, FileText, ExternalLink, ChevronDown, ChevronUp } 
 import toast from 'react-hot-toast';
 
 function ProviderVerificationCard({ provider, onAction }: { provider: any; onAction: () => void }) {
-  const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectInput, setShowRejectInput] = useState(false);

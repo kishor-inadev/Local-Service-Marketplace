@@ -13,7 +13,6 @@ import {
   Mail,
   RefreshCw,
   XCircle,
-  type LucideIcon,
 } from 'lucide-react';
 
 // Error types with their configurations
@@ -219,7 +218,7 @@ function AuthErrorContent() {
 	};
 
 	// Render action button
-	const renderActionButton = (actionKey: string, index: number) => {
+	const renderActionButton = (actionKey: string, _index: number) => {
 		const action = ACTION_CONFIGS[actionKey as keyof typeof ACTION_CONFIGS];
 		if (!action) return null;
 

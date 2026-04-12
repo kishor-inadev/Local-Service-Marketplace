@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { Layout } from './Layout';
 import { ROUTES } from '@/config/constants';
-import { Bell, CreditCard, Crown, Lock, User, Settings as SettingsIcon } from 'lucide-react';
+import { Bell, CreditCard, Crown, Lock, Settings as SettingsIcon } from 'lucide-react';
 import { isNotificationsEnabled } from '@/config/features';
 
 interface SettingsLayoutProps {

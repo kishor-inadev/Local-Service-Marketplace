@@ -16,7 +16,7 @@ import { formatDate, formatCurrency, formatRelativeTime } from '@/utils/helpers'
 import { useAuth } from '@/hooks/useAuth';
 import toast from 'react-hot-toast';
 import { ArrowLeft, Edit, MapPin } from 'lucide-react';
-import Link from 'next/link';
+
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 export default function RequestDetailPage() {

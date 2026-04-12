@@ -1,6 +1,6 @@
-﻿'use client';
+'use client';
 
-import { useState, Suspense } from 'react';
+import { Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,10 +8,9 @@ import { useMutation, useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { z } from 'zod';
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Input } from '@/components/ui/Input';
-import { Textarea } from '@/components/ui/Textarea';
+
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
 import { disputeService } from '@/services/dispute-service';
 import { jobService } from '@/services/job-service';

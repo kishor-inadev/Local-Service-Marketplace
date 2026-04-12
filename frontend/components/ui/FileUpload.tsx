@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, ChangeEvent } from 'react';
 import { Upload, X, FileIcon, ImageIcon } from 'lucide-react';
-import { Button } from '@/components/ui/Button';
+
 import { cn } from '@/utils/helpers';
 
 interface FileUploadProps {

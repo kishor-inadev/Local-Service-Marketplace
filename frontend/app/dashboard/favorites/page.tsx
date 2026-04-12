@@ -5,14 +5,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent, CardHeader } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { Loading } from '@/components/ui/Loading';
+
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { Avatar } from '@/components/ui/Avatar';
-import { Badge } from '@/components/ui/Badge';
-import { favoriteService, type Favorite } from '@/services/favorite-service';
+
+import { favoriteService } from '@/services/favorite-service';
 import { useAuth } from '@/hooks/useAuth';
-import { Heart, Star, MapPin, ArrowRight, Trash2 } from 'lucide-react';
+import { Heart, Star, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { ROUTES } from '@/config/constants';
 import { toast } from 'react-hot-toast';

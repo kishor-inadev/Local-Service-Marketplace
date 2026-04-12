@@ -22,7 +22,7 @@ export default function ProfileEditPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
-  const [profileImage, setProfileImage] = useState<File[]>([]);
+  const [, setProfileImage] = useState<File[]>([]);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {

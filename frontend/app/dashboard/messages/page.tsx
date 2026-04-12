@@ -43,7 +43,7 @@ export default function MessagesPage() {
 		enabled: isMessagingEnabled() && isAuthenticated,
 	});
 
-  const { data: messages, error: messagesError } = useQuery({
+  const { data: messages } = useQuery({
 		queryKey: ["messages", selectedJobId],
 		queryFn: () => messageService.getMessagesByJob(selectedJobId!),
 		enabled: !!selectedJobId && isMessagingEnabled() && isAuthenticated,

@@ -29,6 +29,7 @@ function UnsubscribeContent() {
 	useEffect(() => {
 		const emailParam = searchParams.get("email");
 		const tokenParam = searchParams.get("token");
+		void tokenParam; // reserved for future HMAC verification
 
 		if (!emailParam) {
 			setStatus("error");
@@ -38,6 +39,7 @@ function UnsubscribeContent() {
 
 		setEmail(emailParam);
 		handleUnsubscribe(emailParam);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [searchParams]);
 
 	const handleUnsubscribe = async (emailAddress: string) => {

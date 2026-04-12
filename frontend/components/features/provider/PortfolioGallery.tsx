@@ -21,7 +21,7 @@ interface PortfolioItem {
 interface SortableItemProps {
   item: PortfolioItem;
   onEdit: (item: PortfolioItem) => void;
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
 }
 
 function SortablePortfolioItem({ item, onEdit, onDelete }: SortableItemProps) {
@@ -40,13 +40,13 @@ function SortablePortfolioItem({ item, onEdit, onDelete }: SortableItemProps) {
   };
 
   const nextImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === item.image_urls.length - 1 ? 0 : prev + 1
     );
   };
 
   const prevImage = () => {
-    setCurrentImageIndex((prev) => 
+    setCurrentImageIndex((prev) =>
       prev === 0 ? item.image_urls.length - 1 : prev - 1
     );
   };
@@ -64,7 +64,7 @@ function SortablePortfolioItem({ item, onEdit, onDelete }: SortableItemProps) {
           alt={item.title}
           className="w-full h-full object-cover"
         />
-        
+
         {/* Image Navigation */}
         {item.image_urls.length > 1 && (
           <>
@@ -80,18 +80,17 @@ function SortablePortfolioItem({ item, onEdit, onDelete }: SortableItemProps) {
             >
               <ChevronRight className="w-5 h-5" />
             </button>
-            
+
             {/* Image Indicators */}
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2">
               {item.image_urls.map((_, index) => (
                 <button
                   key={index}
                   onClick={() => setCurrentImageIndex(index)}
-                  className={`w-2 h-2 rounded-full transition-all ${
-                    index === currentImageIndex
+                  className={`w-2 h-2 rounded-full transition-all ${index === currentImageIndex
                       ? 'bg-white w-6'
                       : 'bg-white bg-opacity-50 hover:bg-opacity-75'
-                  }`}
+                    }`}
                 />
               ))}
             </div>
@@ -282,7 +281,7 @@ export function PortfolioGallery({ providerId }: { providerId: string }) {
           <>
             <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
               <p className="text-sm text-blue-800">
-                💡 <strong>Tip:</strong> Drag and drop items to reorder your portfolio. 
+                💡 <strong>Tip:</strong> Drag and drop items to reorder your portfolio.
                 The order you set here is how visitors will see your work.
               </p>
             </div>
@@ -313,16 +312,16 @@ export function PortfolioGallery({ providerId }: { providerId: string }) {
 
         {/* Edit Modal */}
         {editingItem && (
-          <div 
+          <div
             className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
             onClick={() => setEditingItem(null)}
           >
-            <div 
+            <div
               className="bg-white rounded-lg max-w-2xl w-full p-6"
               onClick={(e) => e.stopPropagation()}
             >
               <h3 className="text-xl font-semibold mb-6">Edit Portfolio Item</h3>
-              
+
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">

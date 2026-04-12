@@ -2,17 +2,11 @@
 
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { useThemeStore } from '@/store/themeStore';
-import { Dropdown } from '@/components/ui/Dropdown';
-import type { DropdownOption } from '@/components/ui/Dropdown';
 
 export function ThemeToggle() {
   const { theme, setTheme } = useThemeStore();
 
-  const options: DropdownOption[] = [
-    { label: 'Light', value: 'light' },
-    { label: 'Dark', value: 'dark' },
-    { label: 'System', value: 'system' },
-  ];
+
 
   const icons = {
     light: Sun,

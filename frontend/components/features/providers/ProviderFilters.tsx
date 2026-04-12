@@ -7,11 +7,6 @@ import { Dropdown } from '@/components/ui/Dropdown';
 import type { DropdownOption } from '@/components/ui/Dropdown';
 import { X, Filter } from 'lucide-react';
 
-interface FilterOption {
-  id: string;
-  label: string;
-  options: DropdownOption[];
-}
 
 interface ProviderFiltersProps {
   onFilterChange: (filters: Record<string, string>) => void;

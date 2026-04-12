@@ -29,7 +29,7 @@ type ReviewFormData = z.infer<typeof reviewSchema>;
 function SubmitReviewContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const jobId = searchParams.get('jobId');
   const providerId = searchParams.get('providerId');
   

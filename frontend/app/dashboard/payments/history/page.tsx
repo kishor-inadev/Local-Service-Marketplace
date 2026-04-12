@@ -7,7 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { usePagination } from "@/hooks/usePagination";
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
 import { SkeletonCard } from '@/components/ui/Skeleton';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -24,7 +24,7 @@ type PaymentSortField = "created_at" | "amount" | "status";
 
 export default function PaymentHistoryPage() {
   const router = useRouter();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
 	const [sortField, setSortField] = useState<PaymentSortField>("created_at");
 	const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 	const { page, limit, setLimit, goToPage } = usePagination({ initialLimit: 10 });

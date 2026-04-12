@@ -111,7 +111,7 @@ function LoginContent() {
 	// Backend validation states
 	const [checkingIdentifier, setCheckingIdentifier] = useState(false);
 	const [identifierExists, setIdentifierExists] = useState<boolean | null>(null);
-	const [otpAvailable, setOtpAvailable] = useState<boolean>(false);
+	const [, setOtpAvailable] = useState<boolean>(false);
 	const [availableMethods, setAvailableMethods] = useState<("password" | "otp")[]>([]);
 	const checkTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -253,7 +253,8 @@ function LoginContent() {
 				clearTimeout(checkTimeoutRef.current);
 			}
 		};
-	}, [identifier]);
+	// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [identifier, step]);
 
 	// Auto-focus identifier field on mount
 	useEffect(() => {

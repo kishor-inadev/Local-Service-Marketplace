@@ -46,7 +46,6 @@ export default function EditRequestPage() {
 		register,
 		handleSubmit,
 		formState: { errors },
-		reset,
 	} = useForm<UpdateRequestData>({ values: { description: request?.description ?? "", budget: request?.budget ?? 0 } });
 
 	const updateMutation = useMutation({

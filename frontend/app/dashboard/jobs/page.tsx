@@ -12,7 +12,7 @@ import { SkeletonCard } from '@/components/ui/Skeleton';
 import { StatusBadge } from '@/components/ui/Badge';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { jobService } from '@/services/job-service';
-import { formatDate, formatCurrency } from '@/utils/helpers';
+import { formatDate } from '@/utils/helpers';
 import Link from 'next/link';
 import { Briefcase } from 'lucide-react';
 

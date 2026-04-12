@@ -14,7 +14,6 @@ import {
   User, 
   Mail, 
   Phone, 
-  MapPin, 
   Edit, 
   Star,
   Briefcase,
@@ -25,7 +24,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { formatDate, parseRating } from "@/utils/helpers";
-import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
+
 
 export default function ProfilePage() {
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();

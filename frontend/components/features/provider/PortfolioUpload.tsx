@@ -94,8 +94,8 @@ export function PortfolioUpload({ providerId, onUploadSuccess }: PortfolioUpload
       }
 
       toast.success('Portfolio item created successfully!');
-    } catch (error: any) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+    } catch (error: unknown) {
+      setError(error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setUploading(false);
     }

@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/Input';
 import { Textarea } from '@/components/ui/Textarea';
 import { proposalService } from '@/services/proposal-service';
 import { createProposalSchema, type CreateProposalFormData } from '@/schemas/proposal.schema';
-import { useAuth } from '@/hooks/useAuth';
+
 import toast from 'react-hot-toast';
 
 interface CreateProposalFormProps {
@@ -25,7 +25,7 @@ export function CreateProposalForm({
   onCancel 
 }: CreateProposalFormProps) {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
+
 
   const form = useForm({
     resolver: zodResolver(createProposalSchema),

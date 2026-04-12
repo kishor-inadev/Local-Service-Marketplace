@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
@@ -14,7 +14,7 @@ import toast from "react-hot-toast";
 
 type SettingRow = { key: string; value: string; description?: string };
 
-function SettingItem({ setting, onSave }: { setting: SettingRow; onSave: (key: string, value: string) => void }) {
+function SettingItem({ setting, onSave }: { setting: SettingRow; onSave: (_key: string, _value: string) => void }) {
   const [editing, setEditing] = useState(false);
   const [val, setVal] = useState(setting.value);
 
