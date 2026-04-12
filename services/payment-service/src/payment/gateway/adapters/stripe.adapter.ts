@@ -113,8 +113,15 @@ export class StripeAdapter implements IGatewayAdapter {
       "",
     );
     if (!webhookSecret) {
+      const nodeEnv = this.configService.get<string>("NODE_ENV", "development");
+      if (nodeEnv === "production" || nodeEnv === "staging") {
+        this.logger.error(
+          "STRIPE_WEBHOOK_SECRET not set — rejecting webhook in production",
+        );
+        return false;
+      }
       this.logger.warn(
-        "STRIPE_WEBHOOK_SECRET not set — skipping signature verification",
+        "STRIPE_WEBHOOK_SECRET not set — skipping signature verification in dev",
       );
       return true;
     }

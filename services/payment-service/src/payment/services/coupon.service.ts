@@ -48,17 +48,15 @@ export class CouponService {
   async validateAndUseCoupon(code: string, userId: string): Promise<number> {
     const coupon = await this.validateCoupon(code);
 
-    // Check if user has already used this coupon
-    const alreadyUsed = await this.couponRepository.isCouponUsedByUser(
+    // Record coupon usage atomically — ON CONFLICT (coupon_id, user_id) DO NOTHING
+    // returns null when a concurrent request already inserted the row (race condition guard)
+    const usage = await this.couponRepository.recordCouponUsage(
       coupon.id,
       userId,
     );
-    if (alreadyUsed) {
+    if (!usage) {
       throw new BadRequestException("Coupon has already been used");
     }
-
-    // Record coupon usage
-    await this.couponRepository.recordCouponUsage(coupon.id, userId);
 
     this.logger.log(
       `Coupon ${code} applied for user ${userId}`,

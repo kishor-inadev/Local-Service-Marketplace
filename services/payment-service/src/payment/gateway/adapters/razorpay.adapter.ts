@@ -134,8 +134,15 @@ export class RazorpayAdapter implements IGatewayAdapter {
       "",
     );
     if (!webhookSecret) {
+      const nodeEnv = this.configService.get<string>("NODE_ENV", "development");
+      if (nodeEnv === "production" || nodeEnv === "staging") {
+        this.logger.error(
+          "RAZORPAY_WEBHOOK_SECRET not set — rejecting webhook in production",
+        );
+        return false;
+      }
       this.logger.warn(
-        "RAZORPAY_WEBHOOK_SECRET not set — skipping signature verification",
+        "RAZORPAY_WEBHOOK_SECRET not set — skipping signature verification in dev",
       );
       return true;
     }

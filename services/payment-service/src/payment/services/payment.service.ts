@@ -223,6 +223,20 @@ export class PaymentService {
       throw new BadRequestException("Cannot change status of refunded payment");
     }
 
+    // Enforce legal state transitions to prevent status regression
+    const allowedTransitions: Record<string, string[]> = {
+      pending: ["completed", "failed"],
+      completed: ["refunded"],
+      failed: [],
+      refunded: [],
+    };
+    const allowed = allowedTransitions[payment.status] ?? [];
+    if (status !== payment.status && !allowed.includes(status)) {
+      throw new BadRequestException(
+        `Cannot transition payment from '${payment.status}' to '${status}'`,
+      );
+    }
+
     return this.paymentRepository.updatePaymentStatus(
       payment.id,
       status,

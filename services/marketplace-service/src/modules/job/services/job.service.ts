@@ -211,6 +211,13 @@ export class JobService {
           `Providers can only set job status to: ${providerAllowed.join(", ")}`,
         );
       }
+
+      // Provider must move to in_progress first before completing
+      if (isProvider && dto.status === "completed" && existingJob.status !== "in_progress") {
+        throw new BadRequestException(
+          "Job must be in progress before it can be marked as completed",
+        );
+      }
     }
 
     const job = await this.jobRepository.updateJobStatus(

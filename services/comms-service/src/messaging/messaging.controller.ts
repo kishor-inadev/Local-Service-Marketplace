@@ -169,12 +169,24 @@ export class MessagingController {
   }
 
   @Get("attachments/:id")
-  async getAttachment(@Param("id", ParseUUIDPipe) id: string) {
+  async getAttachment(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Request() req: any,
+  ) {
     this.logger.log(
       `GET /messages/attachments/${id} - Get attachment`,
       "MessagingController",
     );
     const attachment = await this.attachmentService.getAttachmentById(id);
+
+    // Verify the requesting user is a participant in the job this attachment belongs to
+    if (req.user.role !== "admin") {
+      await this.messageService.getMessageById(
+        attachment.message_id,
+        req.user.userId,
+      );
+    }
+
     return {
       success: true,
       data: attachment,

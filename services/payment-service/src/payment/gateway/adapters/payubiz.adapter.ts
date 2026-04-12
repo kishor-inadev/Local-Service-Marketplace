@@ -198,8 +198,15 @@ export class PayUbizAdapter implements IGatewayAdapter {
   ): boolean {
     const salt = this.configService.get<string>("PAYU_SALT", "");
     if (!salt) {
+      const nodeEnv = this.configService.get<string>("NODE_ENV", "development");
+      if (nodeEnv === "production" || nodeEnv === "staging") {
+        this.logger.error(
+          "PAYU_SALT not set — rejecting PayU webhook in production",
+        );
+        return false;
+      }
       this.logger.warn(
-        "PAYU_SALT not set — skipping PayU webhook verification",
+        "PAYU_SALT not set — skipping PayU webhook verification in dev",
       );
       return true;
     }

@@ -4,6 +4,7 @@ import {
   IsOptional,
   MinLength,
   Min,
+  Max,
   IsObject,
   ValidateNested,
   IsArray,
@@ -16,9 +17,13 @@ import { Type } from "class-transformer";
 
 export class LocationDto {
   @IsNumber()
+  @Min(-90)
+  @Max(90)
   latitude: number;
 
   @IsNumber()
+  @Min(-180)
+  @Max(180)
   longitude: number;
 
   @IsOptional()
