@@ -2,7 +2,7 @@ import React from "react";
 import Image from "next/image";
 import { cn } from "@/utils/helpers";
 
-const sizePx = { sm: 32, md: 40, lg: 48, xl: 64 } as const;
+const _sizePx = { sm: 32, md: 40, lg: 48, xl: 64 } as const;
 
 interface AvatarProps {
 	src?: string;
