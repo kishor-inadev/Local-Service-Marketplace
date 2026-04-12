@@ -186,28 +186,47 @@ function LoginContent() {
 
 	// Check if identifier exists in backend (debounced)
 	const checkIdentifierExists = async (identifierValue: string, type: "email" | "phone") => {
+		if (checkingIdentifier) return;
+		
 		setCheckingIdentifier(true);
 		setIdentifierExists(null);
 
 		try {
-			// Remove phone formatting for API call
-			const cleanIdentifier = type === "phone" ? identifierValue.replace(/\D/g, "") : identifierValue;
+			// Normalize identifier: trim and lowercase email, strip phone formatting
+			const normalizedIdentifier = type === "email" 
+				? identifierValue.trim().toLowerCase() 
+				: identifierValue.replace(/\D/g, "");
 
-			const payload = await authService.checkIdentifier(cleanIdentifier, type);
-			setIdentifierExists(payload.exists === true);
+			const payload = await authService.checkIdentifier(normalizedIdentifier, type);
+			const exists = payload.exists === true;
+			const methods = payload.availableMethods || ["password"];
+			
+			setIdentifierExists(exists);
 			setOtpAvailable(payload.otpAvailable === true);
-			setAvailableMethods(payload.availableMethods || ["password"]);
+			setAvailableMethods(methods);
 
-			if (payload.exists) {
-				setStep("method");
+			if (exists) {
+				// AUTO-PROCEED: If only one method is available, go straight to authenticate step
+				if (methods.length === 1) {
+					setLoginMethod(methods[0]);
+					setStep("authenticate");
+					// Focus the password field after a short delay to allow render
+					setTimeout(() => setFocus("password"), 100);
+				} else {
+					setStep("method");
+				}
 			}
 		} catch (error) {
 			console.error("Error checking identifier:", error);
 			// On error, assume identifier exists to not block user (fail open)
 			setIdentifierExists(true);
-			setOtpAvailable(false); // On error, disable OTP for safety
-			setAvailableMethods(["password"]); // Only show password on error
-			setStep("method");
+			setOtpAvailable(false);
+			setAvailableMethods(["password"]);
+			
+			// Auto-proceed to password on error too
+			setLoginMethod("password");
+			setStep("authenticate");
+			setTimeout(() => setFocus("password"), 100);
 		} finally {
 			setCheckingIdentifier(false);
 		}
@@ -301,6 +320,24 @@ function LoginContent() {
 
 	// Unified submit handler - routes to correct backend based on detected type
 	const onSubmit = async (data: LoginFormData) => {
+		// If we are still in Step 1, trigger the check immediately instead of submitting
+		if (step === "identifier") {
+			const type = detectInputType(data.identifier);
+			if (type !== "unknown") {
+				if (checkTimeoutRef.current) clearTimeout(checkTimeoutRef.current);
+				await checkIdentifierExists(data.identifier, type);
+			} else {
+				toast.error("Please enter a valid email address or phone number");
+				setFocus("identifier");
+			}
+			return;
+		}
+
+		// If we are in Step 2 (method selection) but no method chosen, do nothing or prompt
+		if (step === "method" && !loginMethod) {
+			return;
+		}
+
 		const type = detectInputType(data.identifier);
 
 		// Validate input type is detected
@@ -310,15 +347,20 @@ function LoginContent() {
 			return;
 		}
 
+		// Normalize identifier for the actual login call as well
+		const normalizedIdentifier = type === "email" 
+			? data.identifier.trim().toLowerCase() 
+			: data.identifier.replace(/\D/g, "");
+
 		setIsLoading(true);
 
 		try {
 			if (loginMethod === "password") {
 				// Password authentication
 				if (type === "email") {
-					await login(data.identifier, data.password);
+					await login(normalizedIdentifier, data.password);
 				} else {
-					await loginWithPhone(data.identifier, data.password);
+					await loginWithPhone(normalizedIdentifier, data.password);
 				}
 			} else {
 				// OTP authentication
@@ -328,9 +370,9 @@ function LoginContent() {
 				}
 
 				if (type === "email") {
-					await loginWithEmailOTP(data.identifier, data.password);
+					await loginWithEmailOTP(normalizedIdentifier, data.password);
 				} else {
-					await loginWithOTP(data.identifier, data.password);
+					await loginWithOTP(normalizedIdentifier, data.password);
 				}
 			}
 
