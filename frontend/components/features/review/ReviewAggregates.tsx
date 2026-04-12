@@ -8,10 +8,6 @@ export function ReviewAggregates({ providerId }: { providerId: string }) {
   const [aggregate, setAggregate] = useState<ReviewAggregate | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    loadAggregate();
-  }, [providerId, loadAggregate]);
-
   const loadAggregate = useCallback(async () => {
     try {
       const data = await reviewService.getProviderReviewAggregates(providerId);
@@ -22,6 +18,10 @@ export function ReviewAggregates({ providerId }: { providerId: string }) {
       setLoading(false);
     }
   }, [providerId]);
+
+  useEffect(() => {
+    loadAggregate();
+  }, [providerId, loadAggregate]);
 
   const getRatingPercentage = (count: number, total: number) => {
     return total > 0 ? (count / total) * 100 : 0;

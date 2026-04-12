@@ -41,7 +41,7 @@ export function OptimizedImage({
     ...(sizes && { sizes }),
   };
 
-  return <Image alt={alt} {...imageProps} />;
+  return <Image {...imageProps} />;
 }
 
 // Avatar with next/image

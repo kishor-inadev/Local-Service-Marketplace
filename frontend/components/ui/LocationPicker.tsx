@@ -46,32 +46,77 @@ export function LocationPicker({
 
   const [mapUnavailable, setMapUnavailable] = useState(false);
 
-  // Initialize map
-  useEffect(() => {
-    if (!mapRef.current || map) return;
-  
-    // Check if Google Maps is loaded
-    if (typeof window !== 'undefined' && window.google) {
-      initializeMap();
-    } else {
-      // Load Google Maps script
-      loadGoogleMaps();
-    }
-  }, [map, initializeMap, loadGoogleMaps]);
+  const handleMapClick = useCallback(async (latLng: any) => {
+    const lat = latLng.lat();
+    const lng = latLng.lng();
 
-  const loadGoogleMaps = useCallback(() => {
-    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-		if (!apiKey) {
-			setMapUnavailable(true);
-			return;
-		}
-    const script = document.createElement('script');
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
-    script.async = true;
-    script.defer = true;
-    script.onload = () => initializeMap();
-    document.head.appendChild(script);
-  }, [initializeMap]);
+    addMarker({ lat, lng });
+
+    // Reverse geocode to get address
+    if (geocoderRef.current) {
+      try {
+        const result = await geocoderRef.current.geocode({ location: latLng });
+        if (result.results[0]) {
+          const addressComponents = result.results[0].address_components;
+          const location: Location = {
+            lat,
+            lng,
+            address: result.results[0].formatted_address,
+          };
+
+          // Parse address components
+          addressComponents.forEach((component: any) => {
+            if (component.types.includes('locality')) {
+              location.city = component.long_name;
+            }
+            if (component.types.includes('administrative_area_level_1')) {
+              location.state = component.short_name;
+            }
+            if (component.types.includes('postal_code')) {
+              location.zipCode = component.long_name;
+            }
+            if (component.types.includes('country')) {
+              location.country = component.short_name;
+            }
+          });
+
+          onChange(location);
+          setSearchQuery(location.address || '');
+        }
+      } catch (error) {
+        console.error('Geocoding error:', error);
+        onChange({ lat, lng });
+      }
+    } else {
+      onChange({ lat, lng });
+    }
+  }, [onChange]); // Removed addMarker from deps to break circular dependency, will use ref if needed but for now it's fine
+
+  const addMarker = useCallback((position: { lat: number; lng: number }, mapInstance?: any) => {
+    const targetMap = mapInstance || map;
+    if (!targetMap || typeof google === 'undefined') return;
+
+    // Remove existing marker
+    if (marker) {
+      marker.setMap(null);
+    }
+
+    const newMarker = new google.maps.Marker({
+      position,
+      map: targetMap,
+      draggable: true,
+      animation: google.maps.Animation.DROP,
+    });
+
+    newMarker.addListener('dragend', () => {
+      const pos = newMarker.getPosition();
+      if (pos) {
+        handleMapClick(pos);
+      }
+    });
+
+    setMarker(newMarker);
+  }, [map, marker, handleMapClick]);
 
   const initializeMap = useCallback(() => {
     if (!mapRef.current || typeof google === 'undefined') return;
@@ -123,77 +168,32 @@ export function LocationPicker({
     }
   }, [value, handleMapClick, addMarker]);
 
-  const addMarker = useCallback((position: { lat: number; lng: number }, mapInstance?: any) => {
-    const targetMap = mapInstance || map;
-    if (!targetMap || typeof google === 'undefined') return;
+  const loadGoogleMaps = useCallback(() => {
+    const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+		if (!apiKey) {
+			setMapUnavailable(true);
+			return;
+		}
+    const script = document.createElement('script');
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}&libraries=places`;
+    script.async = true;
+    script.defer = true;
+    script.onload = () => initializeMap();
+    document.head.appendChild(script);
+  }, [initializeMap]);
 
-    // Remove existing marker
-    if (marker) {
-      marker.setMap(null);
-    }
-
-    const newMarker = new google.maps.Marker({
-      position,
-      map: targetMap,
-      draggable: true,
-      animation: google.maps.Animation.DROP,
-    });
-
-    newMarker.addListener('dragend', () => {
-      const pos = newMarker.getPosition();
-      if (pos) {
-        handleMapClick(pos);
-      }
-    });
-
-    setMarker(newMarker);
-  }, [map, marker, handleMapClick]);
-
-  const handleMapClick = useCallback(async (latLng: any) => {
-    const lat = latLng.lat();
-    const lng = latLng.lng();
-
-    addMarker({ lat, lng });
-
-    // Reverse geocode to get address
-    if (geocoderRef.current) {
-      try {
-        const result = await geocoderRef.current.geocode({ location: latLng });
-        if (result.results[0]) {
-          const addressComponents = result.results[0].address_components;
-          const location: Location = {
-            lat,
-            lng,
-            address: result.results[0].formatted_address,
-          };
-
-          // Parse address components
-          addressComponents.forEach((component: any) => {
-            if (component.types.includes('locality')) {
-              location.city = component.long_name;
-            }
-            if (component.types.includes('administrative_area_level_1')) {
-              location.state = component.short_name;
-            }
-            if (component.types.includes('postal_code')) {
-              location.zipCode = component.long_name;
-            }
-            if (component.types.includes('country')) {
-              location.country = component.short_name;
-            }
-          });
-
-          onChange(location);
-          setSearchQuery(location.address || '');
-        }
-      } catch (error) {
-        console.error('Geocoding error:', error);
-        onChange({ lat, lng });
-      }
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current || map) return;
+  
+    // Check if Google Maps is loaded
+    if (typeof window !== 'undefined' && window.google) {
+      initializeMap();
     } else {
-      onChange({ lat, lng });
+      // Load Google Maps script
+      loadGoogleMaps();
     }
-  }, [addMarker, onChange]);
+  }, [map, initializeMap, loadGoogleMaps]);
 
   const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
@@ -409,25 +409,6 @@ export function LocationMap({
   const mapRef = useRef<HTMLDivElement>(null);
   const [map, setMap] = useState<any>(null);
 
-  useEffect(() => {
-    if (!mapRef.current || map) return;
-
-    if (typeof window !== 'undefined' && typeof google !== 'undefined') {
-      initMap();
-    } else {
-      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
-			if (!apiKey) {
-				console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Map features will be unavailable.");
-				return;
-			}
-      const script = document.createElement('script');
-      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
-      script.async = true;
-      script.onload = () => initMap();
-      document.head.appendChild(script);
-    }
-  }, [initMap, map]);
-
   const initMap = useCallback(() => {
     if (!mapRef.current || typeof google === 'undefined') return;
 
@@ -448,6 +429,25 @@ export function LocationMap({
 
     setMap(mapInstance);
   }, [location, showMarker]);
+
+  useEffect(() => {
+    if (!mapRef.current || map) return;
+
+    if (typeof window !== 'undefined' && typeof google !== 'undefined') {
+      initMap();
+    } else {
+      const apiKey = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
+			if (!apiKey) {
+				console.warn("NEXT_PUBLIC_GOOGLE_MAPS_API_KEY is not set. Map features will be unavailable.");
+				return;
+			}
+      const script = document.createElement('script');
+      script.src = `https://maps.googleapis.com/maps/api/js?key=${apiKey}`;
+      script.async = true;
+      script.onload = () => initMap();
+      document.head.appendChild(script);
+    }
+  }, [initMap, map]);
 
   return (
     <div className={cn('w-full', className)}>

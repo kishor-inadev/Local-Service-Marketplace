@@ -141,7 +141,7 @@ function SortablePortfolioItem({ item, onEdit, onDelete }: SortableItemProps) {
               <Edit className="w-5 h-5" />
             </button>
             <button
-              onClick={() => onDelete(item.id)}
+              onClick={() => onDelete?.(item.id)}
               className="p-2 text-red-600 hover:bg-red-50 rounded transition-colors"
               title="Delete"
             >
