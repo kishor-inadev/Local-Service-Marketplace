@@ -214,6 +214,7 @@ class DatabaseSeeder {
 
 			// Reviews & Messaging
 			await runStep('seedReviews', () => this.seedReviews());
+			await runStep('seedReviewHelpfulVotes', () => this.seedReviewHelpfulVotes());
 			await runStep('seedMessages', () => this.seedMessages());
 			await runStep('seedAttachments', () => this.seedAttachments());
 
@@ -1213,6 +1214,35 @@ class DatabaseSeeder {
 		}
 
 		console.log(`   ✓ Created ${count} reviews`);
+	}
+
+	async seedReviewHelpfulVotes() {
+		console.log("👍 Seeding review helpful votes...");
+		let count = 0;
+
+		// Fetch reviews that have a non-zero helpful_count so the votes back them up
+		const reviews = await safeQuery(
+			`SELECT id, helpful_count FROM reviews WHERE helpful_count > 0 LIMIT 500`,
+		);
+
+		const allUserIds = [...this.userIds];
+		if (allUserIds.length === 0) return;
+
+		for (const review of reviews.rows) {
+			// Pick min(helpful_count, available users) distinct voters
+			const votesNeeded = Math.min(review.helpful_count, allUserIds.length, 20);
+			const voters = randomPickMultiple(allUserIds, votesNeeded);
+
+			for (const userId of voters) {
+				const ok = await safeInsert(
+					`INSERT INTO review_helpful_votes (review_id, user_id) VALUES ($1, $2) ON CONFLICT DO NOTHING`,
+					[review.id, userId],
+				);
+				if (ok) count++;
+			}
+		}
+
+		console.log(`   ✓ Created ${count} review helpful votes`);
 	}
 
 	async seedMessages() {
