@@ -8,6 +8,7 @@ import { Payment } from "../entities/payment.entity";
 import {
   NotFoundException,
   BadRequestException,
+  ConflictException,
 } from "../../common/exceptions/http.exceptions";
 import {
   validateCursorMode,
@@ -51,6 +52,15 @@ export class PaymentService {
     gateway?: string,
   ): Promise<Payment> {
     this.logger.log(`Creating payment for job ${jobId}`, "PaymentService");
+
+    // Idempotency guard: prevent double-charging for the same job
+    const existingPayments = await this.paymentRepository.getPaymentsByJobId(jobId);
+    const active = existingPayments.find(
+      (p) => p.status === "completed" || p.status === "pending",
+    );
+    if (active) {
+      throw new ConflictException(`A payment already exists for this job (status: ${active.status})`);
+    }
 
     let finalAmount = amount;
 

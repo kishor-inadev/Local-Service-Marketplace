@@ -202,18 +202,6 @@ export class ReviewController {
     @Body() updateReviewDto: UpdateReviewDto,
     @Request() req: any,
   ) {
-    // Check if review is still editable (within 30 days)
-    const review = req.resource; // Injected by OwnershipGuard
-    const daysSinceCreation = Math.floor(
-      (Date.now() - new Date(review.created_at).getTime()) / (1000 * 60 * 60 * 24),
-    );
-    
-    if (daysSinceCreation > 30) {
-      throw new ForbiddenException(
-        "Reviews can only be edited within 30 days of creation",
-      );
-    }
-    
     const updatedReview = await this.reviewService.updateReview(
       id,
       updateReviewDto,

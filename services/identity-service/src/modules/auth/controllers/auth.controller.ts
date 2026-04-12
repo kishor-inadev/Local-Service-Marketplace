@@ -240,11 +240,12 @@ export class AuthController {
     );
 
     // Update access token cookie
+    const accessTokenMaxAge = this.parseJwtExpiry(process.env.JWT_EXPIRES_IN ?? '15m') * 1000;
     res.cookie("access_token", result.accessToken, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: accessTokenMaxAge,
     });
 
     return { message: "Token refreshed successfully", ...result };
@@ -917,21 +918,23 @@ export class AuthController {
   ): void {
     const isProduction = process.env.NODE_ENV === "production";
 
-    // Set access token cookie (15 minutes)
+    // Set access token cookie (JWT_EXPIRES_IN env, default 15m)
+    const accessTokenMaxAge = this.parseJwtExpiry(process.env.JWT_EXPIRES_IN ?? '15m') * 1000;
     res.cookie("access_token", accessToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "strict" : "lax", // 'lax' allows cross-origin in development
-      maxAge: 15 * 60 * 1000, // 15 minutes
+      maxAge: accessTokenMaxAge,
       path: "/",
     });
 
-    // Set refresh token cookie (7 days)
+    // Set refresh token cookie (SESSION_TTL_DAYS env, default 90 days)
+    const sessionTtlDays = parseInt(process.env.SESSION_TTL_DAYS ?? '90', 10);
     res.cookie("refresh_token", refreshToken, {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? "strict" : "lax",
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      maxAge: sessionTtlDays * 24 * 60 * 60 * 1000,
       path: "/",
     });
   }

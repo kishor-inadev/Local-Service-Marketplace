@@ -185,11 +185,12 @@ export function transformBackendUserToFrontend(backendUser: BackendAuthResponse[
  * Token expiration times (must match backend config)
  * Backend: services/auth-service/.env.example
  */
+const _accessTokenMins = parseInt(process.env.NEXT_PUBLIC_ACCESS_TOKEN_EXPIRATION_MINS ?? '15', 10);
 export const TOKEN_CONFIG = {
-  ACCESS_TOKEN_EXPIRATION: 15 * 60 * 1000, // 15 minutes in milliseconds
-  REFRESH_TOKEN_EXPIRATION: 7 * 24 * 60 * 60 * 1000, // 7 days in milliseconds
-  ACCESS_TOKEN_EXPIRATION_STRING: '15m',
-  REFRESH_TOKEN_EXPIRATION_STRING: '7d',
+  ACCESS_TOKEN_EXPIRATION: _accessTokenMins * 60 * 1000, // ACCESS_TOKEN_EXPIRATION_MINS env (default 15) in milliseconds
+  REFRESH_TOKEN_EXPIRATION: 90 * 24 * 60 * 60 * 1000, // 90 days in milliseconds
+  ACCESS_TOKEN_EXPIRATION_STRING: `${_accessTokenMins}m`,
+  REFRESH_TOKEN_EXPIRATION_STRING: '90d',
 } as const;
 
 /**

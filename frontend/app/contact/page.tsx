@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import { apiClient } from '@/services/api-client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 
@@ -35,8 +35,7 @@ export default function ContactPage() {
   const onSubmit = async (data: ContactFormData) => {
     setIsSubmitting(true);
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL;
-      await axios.post(`${API_URL}/api/v1/admin/contact`, data);
+      await apiClient.post('/admin/contact', data);
       toast.success('Message sent successfully! We\'ll get back to you soon.');
       reset();
     } catch (error) {

@@ -6,9 +6,10 @@ import { ReviewRepository } from "../repositories/review.repository";
 import { CreateReviewDto } from "../dto/create-review.dto";
 import { UpdateReviewDto } from "../dto/update-review.dto";
 import { Review } from "../entities/review.entity";
-import { NotFoundException, BadRequestException } from "../../../common/exceptions/http.exceptions";
+import { NotFoundException, BadRequestException, ForbiddenException } from "../../../common/exceptions/http.exceptions";
 import { NotificationClient } from "../../../common/notification/notification.client";
 import { UserClient } from "../../../common/user/user.client";
+import { KafkaService } from "../../../kafka/kafka.service";
 
 @Injectable()
 export class ReviewService {
@@ -18,6 +19,7 @@ export class ReviewService {
     private readonly logger: LoggerService,
     private readonly notificationClient: NotificationClient,
     private readonly userClient: UserClient,
+    private readonly kafkaService: KafkaService,
     @InjectQueue('marketplace.notification') private readonly notificationQueue: Queue,
     @InjectQueue('marketplace.rating') private readonly ratingQueue: Queue,
   ) { }
@@ -39,26 +41,47 @@ export class ReviewService {
       );
     }
 
-    // 2. Derive provider_id from the job — do not trust client-supplied value
-    createReviewDto.provider_id = job.provider_id;
-
-    // 3. Prevent duplicate reviews for the same job/user pair
-    const duplicate = await this.reviewRepository.existsForJobAndUser(
-      createReviewDto.job_id,
-      createReviewDto.user_id,
-    );
-    if (duplicate) {
-      throw new BadRequestException(
-        "You have already submitted a review for this job",
-      );
+    // 2. Verify the reviewer is the customer on this job
+    if (job.customer_id !== createReviewDto.user_id) {
+      throw new ForbiddenException("You are not a participant in this job");
     }
 
+    // 3. Derive provider_id from the job — do not trust client-supplied value
+    createReviewDto.provider_id = job.provider_id;
+
+    // 4. Atomically prevent duplicate reviews via ON CONFLICT in the insert
     const review = await this.reviewRepository.createReview(createReviewDto);
+    if (!review) {
+      throw new BadRequestException("You have already submitted a review for this job");
+    }
 
     this.logger.log(
       `Review created successfully with ID ${review.id}`,
       "ReviewService",
     );
+
+    // Publish review_submitted event to Kafka (non-blocking)
+    if (this.kafkaService.isKafkaEnabled()) {
+      this.kafkaService
+        .publishEvent('review-events', {
+          eventType: 'review_submitted',
+          eventId: review.id,
+          timestamp: new Date().toISOString(),
+          data: {
+            reviewId: review.id,
+            jobId: review.job_id,
+            providerId: review.provider_id,
+            userId: review.user_id,
+            rating: review.rating,
+          },
+        })
+        .catch((err: any) => {
+          this.logger.warn(
+            `Failed to publish review_submitted event: ${err.message}`,
+            'ReviewService',
+          );
+        });
+    }
 
     // Enqueue provider review notification (non-blocking)
     this.notificationQueue
@@ -139,6 +162,20 @@ export class ReviewService {
     updateReviewDto: UpdateReviewDto,
   ): Promise<Review> {
     this.logger.log(`Updating review ${id}`, "ReviewService");
+
+    const existing = await this.reviewRepository.getReviewById(id);
+    if (!existing) {
+      throw new NotFoundException("Review not found");
+    }
+
+    const daysSinceCreation = Math.floor(
+      (Date.now() - new Date(existing.created_at).getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (daysSinceCreation > 30) {
+      throw new BadRequestException(
+        "Reviews can only be edited within 30 days of creation",
+      );
+    }
 
     const review = await this.reviewRepository.updateReview(id, updateReviewDto);
 

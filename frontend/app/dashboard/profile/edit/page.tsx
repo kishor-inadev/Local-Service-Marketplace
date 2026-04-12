@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { Loading } from '@/components/ui/Loading';
-import { getUserProfile, updateUserProfile } from '@/services/user-service';
+import { getUserProfile, updateUserProfile, uploadUserProfilePicture } from '@/services/user-service';
 import { analytics } from '@/utils/analytics';
 import toast from 'react-hot-toast';
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -49,8 +49,12 @@ export default function ProfileEditPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: (data: { email?: string; phone?: string }) => 
-      updateUserProfile(data),
+    mutationFn: async (data: { email?: string; phone?: string }) => {
+      await updateUserProfile(data);
+      if (profileImage.length > 0) {
+        await uploadUserProfilePicture(profileImage[0]);
+      }
+    },
     onSuccess: () => {
       toast.success('Profile updated successfully!');
       analytics.event({

@@ -2,6 +2,7 @@ import { Injectable, Inject, NotFoundException } from "@nestjs/common";
 import { Pool } from "pg";
 import { DATABASE_POOL } from "@/common/database/database.module";
 import { User } from "../entities/user.entity";
+import { AdminCreateUserDto } from "../../user/dto/admin-create-user.dto";
 
 @Injectable()
 export class UserRepository {
@@ -51,13 +52,15 @@ export class UserRepository {
     return result.rows[0] || null;
   }
 
-  async updatePassword(userId: string, passwordHash: string): Promise<void> {
+  async updatePassword(userId: string, passwordHash: string): Promise<User | null> {
     const query = `
       UPDATE users 
       SET password_hash = $1, updated_at = NOW() 
-      WHERE id = $2
+      WHERE id = $2 AND deleted_at IS NULL
+      RETURNING *
     `;
-    await this.pool.query(query, [passwordHash, userId]);
+    const result = await this.pool.query(query, [passwordHash, userId]);
+    return result.rows[0] || null;
   }
 
   async verifyEmail(userId: string): Promise<void> {
@@ -69,13 +72,15 @@ export class UserRepository {
     await this.pool.query(query, [userId]);
   }
 
-  async updateStatus(userId: string, status: string): Promise<void> {
+  async updateStatus(userId: string, status: string): Promise<User | null> {
     const query = `
       UPDATE users 
       SET status = $1, updated_at = NOW() 
-      WHERE id = $2
+      WHERE id = $2 AND deleted_at IS NULL
+      RETURNING *
     `;
-    await this.pool.query(query, [status, userId]);
+    const result = await this.pool.query(query, [status, userId]);
+    return result.rows[0] || null;
   }
 
   async update(
@@ -287,5 +292,51 @@ export class UserRepository {
       `DELETE FROM login_attempts WHERE created_at < $1`,
       [cutoff],
     );
+  }
+
+  async softDelete(userId: string): Promise<User | null> {
+    const query = `
+      UPDATE users
+      SET deleted_at = NOW(), updated_at = NOW()
+      WHERE id = $1 AND deleted_at IS NULL
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [userId]);
+    return result.rows[0] || null;
+  }
+
+  async restore(userId: string): Promise<User | null> {
+    const query = `
+      UPDATE users
+      SET deleted_at = NULL, updated_at = NOW()
+      WHERE id = $1 AND deleted_at IS NOT NULL
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [userId]);
+    return result.rows[0] || null;
+  }
+
+  async createByAdminWithHash(
+    dto: AdminCreateUserDto,
+    passwordHash: string,
+  ): Promise<User> {
+    const query = `
+      INSERT INTO users (
+        email, password_hash, role, phone, name,
+        email_verified, phone_verified, status
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, false, $7)
+      RETURNING *
+    `;
+    const result = await this.pool.query(query, [
+      dto.email.toLowerCase().trim(),
+      passwordHash,
+      dto.role || 'customer',
+      dto.phone || null,
+      dto.name || null,
+      dto.emailVerified ?? false,
+      (dto as any).status || 'active',
+    ]);
+    return result.rows[0];
   }
 }

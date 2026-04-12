@@ -183,9 +183,9 @@ export class MessagingController {
   }
 
   @Get(":id")
-  async getMessage(@Param("id", FlexibleIdPipe) id: string) {
+  async getMessage(@Param("id", FlexibleIdPipe) id: string, @Request() req: any) {
     this.logger.log(`GET /messages/${id} - Get message`, "MessagingController");
-    const item = await this.messageService.getMessageById(id);
+    const item = await this.messageService.getMessageById(id, req.user.userId);
     return {
       success: true,
       data: item,
@@ -195,12 +195,12 @@ export class MessagingController {
 
   @Patch(":id/read")
   @HttpCode(HttpStatus.OK)
-  async markAsRead(@Param("id", StrictUuidPipe) id: string) {
+  async markAsRead(@Param("id", StrictUuidPipe) id: string, @Request() req: any) {
     this.logger.log(
       `PATCH /messages/${id}/read - Mark as read`,
       "MessagingController",
     );
-    const item = await this.messageService.markMessageAsRead(id);
+    const item = await this.messageService.markMessageAsRead(id, req.user.userId);
     return { success: true, data: item, message: "Message marked as read" };
   }
 

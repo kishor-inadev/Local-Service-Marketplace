@@ -43,9 +43,10 @@ async function bootstrap() {
     "https://www.lsp.easydev.in",
     // Staging / preview
     "https://staging.lsp.easydev.in",
-    // Local development
-    "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    // Local development (only in non-production environments)
+    ...(process.env.NODE_ENV !== "production"
+      ? ["http://localhost:3000", "http://127.0.0.1:3000"]
+      : []),
     // Env-based overrides
     process.env.FRONTEND_URL,
     // Support comma-separated list via CORS_ORIGINS
@@ -103,7 +104,8 @@ async function bootstrap() {
 
   // Catch unhandled errors to prevent silent crashes
   process.on("unhandledRejection", (reason) => {
-    logger.error("Unhandled Rejection", { reason });
+    logger.error("Unhandled Rejection — initiating graceful shutdown", { reason });
+    shutdown("unhandledRejection").catch(() => process.exit(1));
   });
   process.on("uncaughtException", (error: any) => {
     logger.error("Uncaught Exception", {

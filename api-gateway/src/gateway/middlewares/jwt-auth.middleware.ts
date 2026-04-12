@@ -19,6 +19,7 @@ interface UserInfo {
   role: string;
   name?: string;
   phone?: string;
+  providerId?: string;
 }
 
 @Injectable()
@@ -214,6 +215,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
         role: decoded.role || "user",
         name: decoded.name,
         phone: decoded.phone,
+        providerId: decoded.providerId,
       };
     } catch (error: any) {
       this.logger.error(
@@ -252,6 +254,7 @@ export class JwtAuthMiddleware implements NestMiddleware {
         role: data.role,
         name: data.name,
         phone: data.phone,
+        providerId: data.providerId,
       };
     } catch (error: any) {
       this.logger.error(

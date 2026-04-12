@@ -13,7 +13,7 @@ RUN pnpm config set network-timeout 600000 && \
     pnpm config set fetch-retry-mintimeout 20000 && \
     pnpm config set fetch-retry-maxtimeout 120000
 
-RUN sh -c "for i in 1 2 3; do pnpm install && exit 0; echo 'pnpm install failed, retrying...'; sleep 5; done; exit 1"
+RUN sh -c "for i in 1 2 3; do pnpm install --frozen-lockfile && exit 0; echo 'pnpm install failed, retrying...'; sleep 5; done; exit 1"
 
 COPY . .
 
@@ -26,10 +26,18 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+RUN for i in 1 2 3 4 5; do npm install -g pnpm@10.33.0 && break || sleep 2; done
+
 COPY package*.json pnpm-lock.yaml* ./
 
+RUN pnpm config set network-timeout 600000 && \
+    pnpm config set fetch-retries 5 && \
+    pnpm config set fetch-retry-mintimeout 20000 && \
+    pnpm config set fetch-retry-maxtimeout 120000
+
+RUN pnpm install --prod --frozen-lockfile
+
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules ./node_modules
 
 RUN mkdir -p logs
 

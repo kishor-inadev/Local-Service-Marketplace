@@ -37,7 +37,8 @@ export class JwtAuthGuard implements CanActivate {
     const gatewaySecret = process.env.GATEWAY_INTERNAL_SECRET;
     if (gatewaySecret) {
       const receivedHmac = request.headers["x-gateway-hmac"];
-      const hmacPayload = `${userId}:${userEmail}:${userRole || "user"}`;
+      const providerId = request.headers["x-provider-id"] || "none";
+      const hmacPayload = `${userId}:${userEmail}:${userRole || "user"}:${providerId}`;
       const expectedHmac = crypto
         .createHmac("sha256", gatewaySecret)
         .update(hmacPayload)

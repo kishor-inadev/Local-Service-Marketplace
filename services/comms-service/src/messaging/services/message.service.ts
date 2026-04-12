@@ -39,11 +39,17 @@ export class MessageService {
     return newMessage;
   }
 
-  async getMessageById(id: string): Promise<Message> {
+  async getMessageById(id: string, requestingUserId?: string): Promise<Message> {
     this.logger.log(`Fetching message ${id}`, "MessageService");
     const message = await this.messageRepository.getMessageById(id);
     if (!message) {
       throw new NotFoundException("Message not found");
+    }
+    if (requestingUserId) {
+      const isParticipant = await this.messageRepository.isJobParticipant(message.job_id, requestingUserId);
+      if (!isParticipant) {
+        throw new ForbiddenException("You are not authorized to view this message");
+      }
     }
     return message;
   }
@@ -84,11 +90,17 @@ export class MessageService {
     return this.messageRepository.getUserConversations(userId);
   }
 
-  async markMessageAsRead(id: string): Promise<Message> {
+  async markMessageAsRead(id: string, userId?: string): Promise<Message> {
     this.logger.log(`Marking message ${id} as read`, "MessageService");
     const message = await this.messageRepository.getMessageById(id);
     if (!message) {
       throw new NotFoundException("Message not found");
+    }
+    if (userId) {
+      const isParticipant = await this.messageRepository.isJobParticipant(message.job_id, userId);
+      if (!isParticipant) {
+        throw new ForbiddenException("You are not authorized to mark this message as read");
+      }
     }
     return this.messageRepository.markAsRead(message.id);
   }

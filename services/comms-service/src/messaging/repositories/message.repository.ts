@@ -57,6 +57,22 @@ export class MessageRepository {
     });
   }
 
+  /** Returns true if the user is a participant in the given job (sender, customer, or provider). */
+  async isJobParticipant(jobId: string, userId: string): Promise<boolean> {
+    const query = `
+      SELECT 1 FROM jobs j
+      WHERE j.id = $1
+        AND (j.customer_id = $2 OR j.provider_id = $2)
+      LIMIT 1
+    `;
+    const result = await this.pool.query(query, [jobId, userId]);
+    if (result.rows.length > 0) return true;
+    // Also check if user has sent messages in this job (covers providers matched by user_id not provider entity UUID)
+    const senderQuery = `SELECT 1 FROM messages WHERE job_id = $1 AND sender_id = $2 LIMIT 1`;
+    const senderResult = await this.pool.query(senderQuery, [jobId, userId]);
+    return senderResult.rows.length > 0;
+  }
+
   async getMessagesForJob(
     jobId: string,
     page: number = 1,

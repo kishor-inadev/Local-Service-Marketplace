@@ -9,11 +9,11 @@ export class ReviewRepository {
   constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
   /** Returns the job row so the service can validate status and resolve provider_id. */
-  async getJobForReview(jobId: string): Promise<{ id: string; provider_id: string; status: string } | null> {
+  async getJobForReview(jobId: string): Promise<{ id: string; provider_id: string; status: string; customer_id: string } | null> {
     const id = await resolveId(this.pool, "jobs", jobId).catch(() => null);
     if (!id) return null;
     const result = await this.pool.query(
-      `SELECT id, provider_id, status FROM jobs WHERE id = $1`,
+      `SELECT id, provider_id, status, customer_id FROM jobs WHERE id = $1`,
       [id],
     );
     return result.rows[0] ?? null;
@@ -28,7 +28,7 @@ export class ReviewRepository {
     return result.rows.length > 0;
   }
 
-  async createReview(createReviewDto: CreateReviewDto): Promise<Review> {
+  async createReview(createReviewDto: CreateReviewDto): Promise<Review | null> {
     const jobId = await resolveId(this.pool, "jobs", createReviewDto.job_id);
     const providerId = await resolveId(
       this.pool,
@@ -38,6 +38,7 @@ export class ReviewRepository {
     const query = `
       INSERT INTO reviews (job_id, user_id, provider_id, rating, comment)
       VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (job_id, user_id) DO NOTHING
       RETURNING id, display_id, job_id, user_id, provider_id, rating, comment, response, response_at, helpful_count, verified_purchase, created_at
     `;
 
@@ -50,7 +51,7 @@ export class ReviewRepository {
     ];
 
     const result = await this.pool.query(query, values);
-    return result.rows[0];
+    return result.rows[0] ?? null;
   }
 
   async getReviewById(id: string): Promise<Review | null> {

@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { ROUTES } from '@/config/constants';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+import { apiClient } from '@/services/api-client';
 
 const resetPasswordSchema = z.object({
   password: z
@@ -70,8 +70,7 @@ function ResetPasswordContent() {
 			}
 
 			try {
-				const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
-				await axios.post(`${API_URL}/api/v1/user/auth/verify-reset-token`, { token });
+				await apiClient.post('/user/auth/verify-reset-token', { token });
 				setTokenValid(true);
 			} catch (error) {
 				setTokenValid(false);
@@ -90,8 +89,7 @@ function ResetPasswordContent() {
 
 		setIsSubmitting(true);
 		try {
-			const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
-			await axios.post(`${API_URL}/api/v1/user/auth/reset-password`, { token, password: data.password });
+			await apiClient.post('/user/auth/reset-password', { token, password: data.password });
 
 			setResetSuccess(true);
 			toast.success("Password reset successfully");

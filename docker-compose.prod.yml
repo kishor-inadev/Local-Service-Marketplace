@@ -84,23 +84,6 @@ services:
         max-size: "20m"
         max-file: "3"
 
-  mongo:
-    restart: always
-    ports: !override []
-    deploy:
-      resources:
-        limits:
-          cpus: '1.0'
-          memory: 512M
-        reservations:
-          cpus: '0.25'
-          memory: 256M
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "20m"
-        max-file: "3"
-
   # ─── Core Microservices (no port exposure) ────────────────────────────────
   identity-service:
     restart: always

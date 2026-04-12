@@ -23,6 +23,7 @@ import { TokenBlacklistService } from "./services/token-blacklist.service";
 import { GoogleStrategy } from "./strategies/google.strategy";
 import { FacebookStrategy } from "./strategies/facebook.strategy";
 import { SmsClient } from "./clients/sms.client";
+import { ProviderRepository } from "../user/repositories/provider.repository";
 import { NotificationModule } from "../../common/notification/notification.module";
 
 // Dynamic providers - only include OAuth strategies if credentials are configured
@@ -90,6 +91,7 @@ const createOAuthProviders = (configService: ConfigService) => {
     MagicLinkTokenRepository,
     LoginHistoryRepository,
     AccountDeletionRequestRepository,
+    ProviderRepository,
     JwtAuthGuard,
     BlacklistGuard,
     SmsClient,

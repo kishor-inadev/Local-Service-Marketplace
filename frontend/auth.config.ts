@@ -184,7 +184,7 @@ export const authOptions = {
 	],
 	session: {
 		strategy: "jwt",
-		maxAge: 7 * 24 * 60 * 60, // 7 days (matches refresh token)
+		maxAge: parseInt(process.env.SESSION_MAX_AGE_DAYS ?? '90', 10) * 24 * 60 * 60, // SESSION_MAX_AGE_DAYS env (default 90 days)
 	},
 	callbacks: {
 		async jwt({ token, user, trigger, session }: any) {

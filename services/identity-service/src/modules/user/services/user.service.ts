@@ -93,6 +93,22 @@ export class UserService {
     return this.mapToDto(updated);
   }
 
+  async banUser(userId: string, reason?: string): Promise<UserResponseDto> {
+    const updated = await this.userRepository.updateStatus(userId, "banned");
+    if (!updated) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+
+    if (reason) {
+      this.logger.info(
+        `User ${userId} banned. Reason: ${reason}`,
+        "UserService",
+      );
+    }
+
+    return this.mapToDto(updated);
+  }
+
   async resetUserPassword(
     userId: string,
     dto: ResetUserPasswordDto,

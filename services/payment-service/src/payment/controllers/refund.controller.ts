@@ -6,6 +6,7 @@ import {
   Param,
   Body,
   Request,
+  Query,
   UseGuards,
   HttpCode,
   HttpStatus,
@@ -13,6 +14,7 @@ import {
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { RefundService } from "../services/refund.service";
+import { RefundRepository } from "../repositories/refund.repository";
 import { PaymentRepository } from "../repositories/payment.repository";
 import { RequestRefundDto } from "../dto/request-refund.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
@@ -24,6 +26,7 @@ import { ForbiddenException, NotFoundException } from "@/common/exceptions/http.
 export class RefundController {
   constructor(
     private readonly refundService: RefundService,
+    private readonly refundRepository: RefundRepository,
     private readonly paymentRepository: PaymentRepository,
   ) {}
 
@@ -136,12 +139,19 @@ export class RefundController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("admin")
   @HttpCode(HttpStatus.OK)
-  async getAllRefunds() {
-    // TODO: Implement pagination and filtering
+  async getAllRefunds(
+    @Query("limit") limit: string = "50",
+    @Query("offset") offset: string = "0",
+  ) {
+    const { refunds, total } = await this.refundRepository.getAllRefunds(
+      parseInt(limit, 10),
+      parseInt(offset, 10),
+    );
     return {
       success: true,
       message: "Refund list retrieved successfully",
-      data: [],
+      data: refunds,
+      total,
     };
   }
 }

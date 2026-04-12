@@ -87,6 +87,18 @@ export const updateUserProfile = async (data: UpdateProfileData): Promise<UserPr
 };
 
 /**
+ * Upload user profile picture
+ */
+export const uploadUserProfilePicture = async (file: File): Promise<UserProfile> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await apiClient.post<any>("/users/me/profile-picture", formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return response.data?.user ?? response.data;
+};
+
+/**
  * Create provider profile
  */
 export const createProviderProfile = async (data: CreateProviderData): Promise<ProviderProfile> => {

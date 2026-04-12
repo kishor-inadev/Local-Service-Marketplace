@@ -16,7 +16,7 @@ RUN pnpm config set network-timeout 600000 && \
     pnpm config set fetch-retry-mintimeout 20000 && \
     pnpm config set fetch-retry-maxtimeout 120000
 
-RUN pnpm install
+RUN pnpm install --frozen-lockfile
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder

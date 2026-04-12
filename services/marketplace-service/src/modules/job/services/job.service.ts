@@ -199,6 +199,13 @@ export class JobService {
         );
       }
 
+      // Customer can only mark completed if the job is already in_progress
+      if (isCustomer && dto.status === "completed" && existingJob.status !== "in_progress") {
+        throw new BadRequestException(
+          "Job must be in progress before it can be marked as completed",
+        );
+      }
+
       if (isProvider && !providerAllowed.includes(dto.status)) {
         throw new ForbiddenException(
           `Providers can only set job status to: ${providerAllowed.join(", ")}`,

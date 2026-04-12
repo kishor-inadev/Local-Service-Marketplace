@@ -21,6 +21,7 @@ import { RefundRepository } from '../payment/repositories/refund.repository';
 import { PaymentGatewayModule } from '../payment/gateway/payment-gateway.module';
 import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
 import { DatabaseModule } from '../common/database/database.module';
+import { KafkaModule } from '../kafka/kafka.module';
 import { getQueueRegistrationOptions } from '../config/queue-config';
 
 /**
@@ -53,6 +54,7 @@ import { getQueueRegistrationOptions } from '../config/queue-config';
     AnalyticsModule,
     PaymentGatewayModule,
     DatabaseModule,
+    KafkaModule,
   ],
   providers: [
     PaymentWorker,
