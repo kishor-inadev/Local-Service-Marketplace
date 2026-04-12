@@ -28,6 +28,7 @@ import { UpdateProviderDto } from "../dto/update-provider.dto";
 import { UpdateProviderServicesDto } from "../dto/update-provider-services.dto";
 import { UpdateProviderAvailabilityDto } from "../dto/update-provider-availability.dto";
 import { AddProviderServiceDto } from "../dto/add-provider-service.dto";
+import { UpdateVerificationStatusDto } from "../dto/update-verification.dto";
 import { ProviderQueryDto } from "../dto/provider-query.dto";
 import { ProviderResponseDto } from "../dto/provider-response.dto";
 import { PaginatedResponseDto } from "../dto/paginated-response.dto";
@@ -163,6 +164,26 @@ export class ProviderController {
       },
       message: "Provider profile picture uploaded successfully",
     };
+  }
+
+  /**
+   * Admin: verify or reject a provider
+   * PATCH /providers/:id/verify
+   */
+  @Roles("admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch(":id/verify")
+  @HttpCode(HttpStatus.OK)
+  async verifyProvider(
+    @Param("id", StrictUuidPipe) id: string,
+    @Body() dto: UpdateVerificationStatusDto,
+  ): Promise<ProviderResponseDto> {
+    this.logger.info("PATCH /providers/:id/verify", {
+      context: "ProviderController",
+      provider_id: id,
+      status: dto.status,
+    });
+    return this.providerService.verifyProvider(id, dto.status);
   }
 
   @Roles("provider", "admin")

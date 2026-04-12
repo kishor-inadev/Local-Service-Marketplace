@@ -3,6 +3,8 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { ProposalRepository } from "../repositories/proposal.repository";
+import { JobRepository } from "../../job/repositories/job.repository";
+import { RequestRepository } from "../../request/repositories/request.repository";
 import { CreateProposalDto } from "../dto/create-proposal.dto";
 import {
   ProposalQueryDto,
@@ -32,6 +34,8 @@ import { UserClient } from "../../../common/user/user.client";
 export class ProposalService {
   constructor(
     private readonly proposalRepository: ProposalRepository,
+    private readonly jobRepository: JobRepository,
+    private readonly requestRepository: RequestRepository,
     private readonly kafkaService: KafkaService,
     private readonly notificationClient: NotificationClient,
     private readonly userClient: UserClient,
@@ -124,6 +128,7 @@ export class ProposalService {
         proposalId: proposal.id,
         requestId: proposal.request_id,
         providerId: proposal.provider_id,
+        customerId: fullProposal?.customer_id,
         price: proposal.price,
         status: proposal.status,
       },
@@ -220,8 +225,21 @@ export class ProposalService {
         );
       });
 
+    // Create job record — this is the central handoff from proposal → job lifecycle
+    const job = await this.jobRepository.createJob({
+      request_id: existingProposal.request_id,
+      provider_id: existingProposal.provider_id,
+      customer_id: existingProposal.customer_id,
+      proposal_id: existingProposal.id,
+    });
+
+    // Transition the service request to 'assigned'
+    await this.requestRepository.updateRequest(existingProposal.request_id, {
+      status: 'assigned',
+    } as any);
+
     this.logger.log(
-      `Proposal accepted successfully: ${id}`,
+      `Job ${job.id} created and request ${existingProposal.request_id} set to assigned`,
       ProposalService.name,
     );
 

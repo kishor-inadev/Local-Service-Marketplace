@@ -98,6 +98,49 @@ export class CategoryService {
     return this.categoryRepository.categoryExists(id);
   }
 
+  async updateCategory(
+    id: string,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<ServiceCategory> {
+    this.logger.log(`Updating category: ${id}`, CategoryService.name);
+
+    const existing = await this.categoryRepository.getCategoryById(id);
+    if (!existing) {
+      throw new NotFoundException("Category not found");
+    }
+
+    const updated = await this.categoryRepository.updateCategory(id, updateCategoryDto);
+
+    // Invalidate cache
+    if (this.redisService.isCacheEnabled()) {
+      await Promise.all([
+        this.redisService.del("categories:all"),
+        this.redisService.del(`category:${id}`),
+      ]);
+    }
+
+    return updated;
+  }
+
+  async deleteCategory(id: string): Promise<void> {
+    this.logger.log(`Deleting (deactivating) category: ${id}`, CategoryService.name);
+
+    const existing = await this.categoryRepository.getCategoryById(id);
+    if (!existing) {
+      throw new NotFoundException("Category not found");
+    }
+
+    await this.categoryRepository.softDeleteCategory(id);
+
+    // Invalidate cache
+    if (this.redisService.isCacheEnabled()) {
+      await Promise.all([
+        this.redisService.del("categories:all"),
+        this.redisService.del(`category:${id}`),
+      ]);
+    }
+  }
+
   async searchCategories(
     searchTerm: string,
     limit: number = 10,

@@ -92,6 +92,7 @@ export class GatewayController {
         headers,
         query,
         (req as any).user, // Pass decoded JWT user info
+        isMultipart,
       );
 
       // Forward response headers from microservice

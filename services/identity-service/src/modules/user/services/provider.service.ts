@@ -449,4 +449,29 @@ export class ProviderService {
       provider_id: providerId,
     });
   }
+
+  async verifyProvider(
+    providerId: string,
+    status: "pending" | "verified" | "rejected",
+  ): Promise<ProviderResponseDto> {
+    this.logger.info("Updating provider verification status", {
+      context: "ProviderService",
+      provider_id: providerId,
+      status,
+    });
+
+    const updated = await this.providerRepo.updateVerificationStatus(
+      providerId,
+      status,
+    );
+    if (!updated) {
+      throw new NotFoundException("Provider not found");
+    }
+
+    if (this.redisService.isCacheEnabled()) {
+      await this.redisService.del(`provider:${providerId}`);
+    }
+
+    return this.getProvider(providerId);
+  }
 }

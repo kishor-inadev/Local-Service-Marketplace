@@ -1,6 +1,9 @@
 import { Processor, WorkerHost, OnWorkerEvent } from '@nestjs/bullmq';
 import { Inject, LoggerService, OnModuleInit } from '@nestjs/common';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
 import { Job } from 'bullmq';
+import { firstValueFrom } from 'rxjs';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { BackgroundJobRepository } from '../infrastructure/repositories/background-job.repository';
 
@@ -12,6 +15,8 @@ export class BackgroundJobWorker extends WorkerHost implements OnModuleInit {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly backgroundJobRepository: BackgroundJobRepository,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
   ) {
     super();
   }
@@ -43,15 +48,38 @@ export class BackgroundJobWorker extends WorkerHost implements OnModuleInit {
 
   private async executeJobByType(jobType: string, data: any): Promise<void> {
     switch (jobType) {
-      case 'send-email':
-        // Delegate to comms-service via HTTP/event
-        this.logger.log(`Delegating send-email job: ${JSON.stringify(data)}`, 'BackgroundJobWorker');
+      case 'send-email': {
+        const commsUrl = this.configService.get<string>(
+          'COMMS_SERVICE_URL',
+          'http://comms-service:3007',
+        );
+        await firstValueFrom(
+          this.httpService.post(`${commsUrl}/notifications/send-direct`, {
+            to: data.to,
+            template: data.template,
+            variables: data.variables,
+          }),
+        );
+        this.logger.log(`send-email job delegated to comms-service for ${data.to}`, 'BackgroundJobWorker');
         break;
-      case 'cleanup-expired-data':
-        this.logger.log('Executing cleanup-expired-data job', 'BackgroundJobWorker');
+      }
+      case 'cleanup-expired-data': {
+        const cutoffDays = parseInt(
+          this.configService.get<string>('CLEANUP_RETENTION_DAYS', '30'),
+          10,
+        );
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - cutoffDays);
+        const deleted = await this.backgroundJobRepository.deleteCompletedBefore(cutoff);
+        this.logger.log(
+          `cleanup-expired-data: removed ${deleted} completed jobs older than ${cutoffDays} days`,
+          'BackgroundJobWorker',
+        );
         break;
+      }
       case 'recalculate-metrics':
-        this.logger.log('Executing recalculate-metrics job', 'BackgroundJobWorker');
+        // Metrics are owned by oversight-service; no action required here
+        this.logger.log('recalculate-metrics: delegated to oversight-service (no-op in infra)', 'BackgroundJobWorker');
         break;
       default:
         this.logger.warn(`Unknown job type: ${jobType} — skipping`, 'BackgroundJobWorker');

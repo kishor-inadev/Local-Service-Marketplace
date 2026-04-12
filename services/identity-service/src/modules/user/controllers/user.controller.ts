@@ -264,6 +264,27 @@ export class UserController {
   }
 
   /**
+   * Admin: ban user
+   * PATCH /users/:id/ban
+   */
+  @Roles("admin")
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Patch(":id/ban")
+  @HttpCode(HttpStatus.OK)
+  async banUser(
+    @Param("id", StrictUuidPipe) id: string,
+    @Body() body: SuspendUserDto,
+  ): Promise<UserResponseDto> {
+    this.logger.info("PATCH /users/:id/ban", {
+      context: "UserController",
+      user_id: id,
+      reason: body.reason,
+    });
+
+    return this.userService.banUser(id, body.reason);
+  }
+
+  /**
    * Admin: restore deleted user
    * PATCH /users/:id/restore
    */

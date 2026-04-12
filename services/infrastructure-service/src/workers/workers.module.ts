@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
+import { HttpModule } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
 import { BackgroundJobWorker } from './background-job.worker';
 import { InfraCleanupWorker } from './cleanup.worker';
 import { BackgroundJobRepository } from '../infrastructure/repositories/background-job.repository';
@@ -21,6 +23,8 @@ import { getQueueRegistrationOptions } from '../config/queue-config';
       getQueueRegistrationOptions('infra.cleanup'),
     ),
     DatabaseModule,
+    HttpModule.register({ timeout: 30000 }),
+    ConfigModule,
   ],
   providers: [
     BackgroundJobWorker,

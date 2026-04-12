@@ -315,6 +315,20 @@ export class AuthService {
         });
       });
 
+    // Auto-create a minimal provider profile so the JWT contains a valid providerId
+    if (role === 'provider') {
+      await this.providerRepo.create(
+        user.id,
+        name || user.email.split('@')[0],
+      ).catch((err: any) => {
+        this.logger.error('Failed to auto-create provider profile during signup', {
+          context: 'AuthService',
+          error: err.message,
+          userId: user.id,
+        });
+      });
+    }
+
     // Generate tokens
     const signupProviderId = await this.resolveProviderId(user.id, user.role);
     const accessToken = this.jwtService.generateAccessToken(

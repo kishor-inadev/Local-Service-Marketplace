@@ -42,6 +42,7 @@ export class GatewayService {
     headers?: any,
     queryParams?: any,
     user?: any,
+    isMultipart?: boolean,
   ): Promise<AxiosResponse> {
     try {
       const serviceName = this.getServiceName(path);
@@ -76,10 +77,12 @@ export class GatewayService {
       const config: AxiosRequestConfig = {
         method: method as any,
         url: targetUrl,
-        headers: this.prepareHeaders(headers, user),
+        headers: this.prepareHeaders(headers, user, isMultipart),
         timeout: this.configService.get<number>("REQUEST_TIMEOUT_MS", 72000), // Configurable timeout, default to 72 seconds
         maxRedirects: 0, // Never follow redirects — pass them through to the browser (needed for OAuth flows)
         validateStatus: () => true, // Never throw on any HTTP status — let the controller handle it
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
       };
 
       if (
@@ -168,7 +171,7 @@ export class GatewayService {
    * Prepare headers before forwarding
    * Remove gateway-specific headers and add user context
    */
-  private prepareHeaders(headers: any, user?: any): any {
+  private prepareHeaders(headers: any, user?: any, isMultipart?: boolean): any {
     if (!headers) {
       headers = {};
     }
@@ -178,7 +181,11 @@ export class GatewayService {
     // Remove headers that should not be forwarded
     delete sanitized.host;
     delete sanitized.connection;
-    delete sanitized["content-length"];
+    // Preserve content-length for multipart uploads so the downstream service
+    // can accurately read the stream; remove it otherwise (may be stale after body parsing)
+    if (!isMultipart) {
+      delete sanitized["content-length"];
+    }
     delete sanitized["accept-encoding"];
 
     // Generate or forward request ID for distributed tracing
