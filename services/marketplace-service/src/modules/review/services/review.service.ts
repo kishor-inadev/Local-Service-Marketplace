@@ -138,6 +138,20 @@ export class ReviewService {
   ): Promise<Review> {
     this.logger.log(`Updating review ${id}`, "ReviewService");
 
+    const existing = await this.reviewRepository.getReviewById(id);
+    if (!existing) {
+      throw new NotFoundException("Review not found");
+    }
+
+    const daysSinceCreation = Math.floor(
+      (Date.now() - new Date(existing.created_at).getTime()) / (1000 * 60 * 60 * 24),
+    );
+    if (daysSinceCreation > 30) {
+      throw new BadRequestException(
+        "Reviews can only be edited within 30 days of creation",
+      );
+    }
+
     const review = await this.reviewRepository.updateReview(id, updateReviewDto);
 
     if (!review) {

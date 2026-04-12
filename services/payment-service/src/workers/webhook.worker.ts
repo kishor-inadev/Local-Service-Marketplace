@@ -6,6 +6,7 @@ import { WebhookRepository } from '../payment/repositories/webhook.repository';
 import { PaymentRepository } from '../payment/repositories/payment.repository';
 import { PaymentGatewayService } from '../payment/gateway/payment-gateway.service';
 import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
+import { KafkaService } from '../kafka/kafka.service';
 
 export interface ProcessWebhookJobData {
   webhookId: string;
@@ -22,6 +23,7 @@ export class WebhookWorker extends WorkerHost implements OnModuleInit {
     private readonly webhookRepository: WebhookRepository,
     private readonly paymentRepository: PaymentRepository,
     private readonly paymentGateway: PaymentGatewayService,
+    private readonly kafkaService: KafkaService,
     @Optional() private readonly dlqService?: DeadLetterQueueService,
   ) {
     super();
@@ -67,6 +69,13 @@ export class WebhookWorker extends WorkerHost implements OnModuleInit {
             throw new Error(`Cannot resolve payment for transactionId=${event.transactionId}`);
           }
           await this.paymentRepository.updatePaymentStatus(paymentId, 'completed', event.transactionId);
+          // Publish event so marketplace-service can update job status
+          await this.kafkaService.publishEvent('payment-events', {
+            eventType: 'payment_completed',
+            eventId: `${paymentId}-${Date.now()}`,
+            timestamp: new Date().toISOString(),
+            data: { paymentId, transactionId: event.transactionId, source: 'webhook' },
+          });
           break;
         }
         case 'payment.failed': {

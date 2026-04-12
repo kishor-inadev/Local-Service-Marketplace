@@ -65,6 +65,25 @@ export class RefundRepository {
     });
   }
 
+  async getAllRefunds(limit: number = 50, offset: number = 0): Promise<{ refunds: Refund[]; total: number }> {
+    const countResult = await this.pool.query('SELECT COUNT(*) FROM refunds');
+    const total = parseInt(countResult.rows[0].count, 10);
+    const query = 'SELECT * FROM refunds ORDER BY created_at DESC LIMIT $1 OFFSET $2';
+    const result = await this.pool.query(query, [limit, offset]);
+    const refunds = result.rows.map(
+      (row) =>
+        new Refund({
+          id: row.id,
+          display_id: row.display_id,
+          payment_id: row.payment_id,
+          amount: parseFloat(row.amount),
+          status: row.status,
+          created_at: row.created_at,
+        }),
+    );
+    return { refunds, total };
+  }
+
   async getRefundsByPaymentId(paymentId: string): Promise<Refund[]> {
     const query =
       "SELECT * FROM refunds WHERE payment_id = $1 ORDER BY created_at DESC";

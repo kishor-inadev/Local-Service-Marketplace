@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { isMessagingEnabled } from '@/config/features';
 import { ROUTES } from '@/config/constants';
@@ -19,6 +19,7 @@ import { Send } from 'lucide-react';
 
 export default function MessagesPage() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const { user, isAuthenticated, isLoading: authLoading } = useAuth();
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [messageText, setMessageText] = useState('');
@@ -56,6 +57,7 @@ export default function MessagesPage() {
     try {
       await messageService.sendMessage({ job_id: selectedJobId, message: messageText });
       setMessageText('');
+      queryClient.invalidateQueries({ queryKey: ['messages', selectedJobId] });
     } catch (error) {
       console.error('Failed to send message');
     }

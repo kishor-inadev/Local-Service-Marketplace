@@ -14,6 +14,12 @@ import { BadRequestException } from "@/common/exceptions/http.exceptions";
 export class ProposalRepository {
   constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
+  async getRequestStatus(requestId: string): Promise<string | null> {
+    const query = `SELECT status FROM service_requests WHERE id = $1 AND deleted_at IS NULL`;
+    const result = await this.pool.query(query, [requestId]);
+    return result.rows[0]?.status ?? null;
+  }
+
   async createProposal(dto: CreateProposalDto): Promise<Proposal> {
     const requestId = await resolveId(
       this.pool,

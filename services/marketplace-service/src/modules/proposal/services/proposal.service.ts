@@ -51,6 +51,17 @@ export class ProposalService {
       throw new BadRequestException("Price must be a positive number");
     }
 
+    // Validate that the request exists and is still open
+    const requestStatus = await this.proposalRepository.getRequestStatus(dto.request_id);
+    if (!requestStatus) {
+      throw new NotFoundException("Service request not found");
+    }
+    if (requestStatus !== "open") {
+      throw new BadRequestException(
+        "Proposals can only be submitted for open service requests",
+      );
+    }
+
     // Check if provider already submitted a proposal for this request
     const hasExisting = await this.proposalRepository.hasExistingProposal(
       dto.request_id,

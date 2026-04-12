@@ -139,13 +139,8 @@ export class CouponController {
   @Roles("admin")
   @HttpCode(HttpStatus.OK)
   async deleteCoupon(@Param("code") code: string) {
-    // Get the coupon first to get its ID
     const coupon = await this.couponService.getCouponByCode(code);
-
-    // Soft delete by marking as inactive (update the database)
-    // Note: We don't have a direct delete method, so we'll need to implement soft delete
-    // For now, this will return a message
-    
+    await this.couponRepository.deactivateCoupon(coupon.id);
     return {
       success: true,
       message: `Coupon ${code} deactivated successfully`,
