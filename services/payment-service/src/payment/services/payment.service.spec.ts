@@ -89,6 +89,7 @@ describe("PaymentService.createPayment", () => {
     const paymentRepository = overrides.paymentRepository ?? {
       createPayment: jest.fn().mockResolvedValue(makePaymentEntity()),
       updatePaymentStatus: jest.fn().mockResolvedValue(undefined),
+      getPaymentsByJobId: jest.fn().mockResolvedValue([]),
     };
     const couponService = overrides.couponService ?? {
       validateAndUseCoupon: jest.fn().mockResolvedValue(10), // 10% discount

@@ -96,7 +96,7 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
 
       toast.success('Document uploaded successfully! It will be reviewed shortly.');
     } catch (error: any) {
-      setError(err instanceof Error ? err.message : 'Upload failed');
+      setError(error instanceof Error ? error.message : 'Upload failed');
     } finally {
       setUploading(false);
     }

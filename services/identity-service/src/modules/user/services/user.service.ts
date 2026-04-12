@@ -94,7 +94,7 @@ export class UserService {
   }
 
   async banUser(userId: string, reason?: string): Promise<UserResponseDto> {
-    const updated = await this.userRepository.updateStatus(userId, "banned");
+    const updated = await this.userRepository.updateStatus(userId, "suspended");
     if (!updated) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }

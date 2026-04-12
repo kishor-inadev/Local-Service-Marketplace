@@ -23,6 +23,7 @@ const mockNotification = {
 const mockNotifService = {
   getNotificationsByUserId: jest.fn(),
   getUnreadCount: jest.fn(),
+  getTotalCount: jest.fn(),
   markAllAsRead: jest.fn(),
   getNotificationById: jest.fn(),
   markAsRead: jest.fn(),

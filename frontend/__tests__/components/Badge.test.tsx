@@ -17,37 +17,37 @@ describe("Badge Component", () => {
 	it("applies blue variant", () => {
 		const { container } = render(<Badge variant='blue'>Blue</Badge>);
 		const badge = container.querySelector("span");
-		expect(badge?.className).toContain("bg-blue-100");
+		expect(badge?.className).toContain("bg-blue-50");
 	});
 
 	it("applies green variant", () => {
 		const { container } = render(<Badge variant='green'>Green</Badge>);
 		const badge = container.querySelector("span");
-		expect(badge?.className).toContain("bg-green-100");
+		expect(badge?.className).toContain("bg-green-50");
 	});
 
 	it("applies red variant", () => {
 		const { container } = render(<Badge variant='red'>Red</Badge>);
 		const badge = container.querySelector("span");
-		expect(badge?.className).toContain("bg-red-100");
+		expect(badge?.className).toContain("bg-red-50");
 	});
 
 	it("applies yellow variant", () => {
 		const { container } = render(<Badge variant='yellow'>Yellow</Badge>);
 		const badge = container.querySelector("span");
-		expect(badge?.className).toContain("bg-yellow-100");
+		expect(badge?.className).toContain("bg-yellow-50");
 	});
 
 	it("applies success variant", () => {
 		const { container } = render(<Badge variant='success'>Success</Badge>);
 		const badge = container.querySelector("span");
-		expect(badge?.className).toContain("bg-green-100");
+		expect(badge?.className).toContain("bg-green-50");
 	});
 
 	it("applies danger variant", () => {
 		const { container } = render(<Badge variant='danger'>Danger</Badge>);
 		const badge = container.querySelector("span");
-		expect(badge?.className).toContain("bg-red-100");
+		expect(badge?.className).toContain("bg-red-50");
 	});
 
 	it("applies sm size", () => {

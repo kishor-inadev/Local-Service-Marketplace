@@ -12,10 +12,12 @@ describe("ProposalService list validation", () => {
 
     const service = new ProposalService(
       proposalRepository,
-      {} as any,
-      {} as any,
-      {} as any,
-      { log: jest.fn(), warn: jest.fn() } as any,
+      {} as any, // jobRepository
+      {} as any, // requestRepository
+      {} as any, // kafkaService
+      {} as any, // notificationClient
+      {} as any, // userClient
+      { log: jest.fn(), warn: jest.fn() } as any, // logger
       { add: jest.fn() } as any, // notificationQueue
     );
 

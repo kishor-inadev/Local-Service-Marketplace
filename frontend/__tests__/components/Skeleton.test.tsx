@@ -5,12 +5,12 @@ import { Skeleton, SkeletonCard } from '@/components/ui/Skeleton';
 describe('Skeleton Component', () => {
   it('renders single skeleton', () => {
     const { container } = render(<Skeleton />);
-    expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
+    expect(container.querySelector('.shimmer')).toBeInTheDocument();
   });
 
   it('renders multiple skeletons based on count', () => {
     const { container } = render(<Skeleton count={3} />);
-    const skeletons = container.querySelectorAll('.animate-pulse');
+    const skeletons = container.querySelectorAll('.shimmer');
     expect(skeletons).toHaveLength(3);
   });
 
@@ -26,7 +26,7 @@ describe('Skeleton Component', () => {
 
   it('applies custom width and height', () => {
     const { container } = render(<Skeleton width={200} height={100} />);
-    const skeleton = container.querySelector('.animate-pulse') as HTMLElement;
+    const skeleton = container.querySelector('.shimmer') as HTMLElement;
     expect(skeleton.style.width).toBe('200px');
     expect(skeleton.style.height).toBe('100px');
   });

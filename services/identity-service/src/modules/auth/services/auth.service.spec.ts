@@ -7,7 +7,7 @@ jest.mock("otplib", () => ({
     verify: jest.fn().mockReturnValue(true),
     generateSecret: jest.fn().mockReturnValue("MOCKSECRET"),
   },
-  verifySync: jest.fn().mockReturnValue(false),
+  verifySync: jest.fn().mockReturnValue({ valid: false }),
 }));
 
 import { AuthService } from "./auth.service";
@@ -78,6 +78,7 @@ const makeService = (
     { create: jest.fn(), findByToken: jest.fn() } as any, // magicLinkTokenRepo
     { create: jest.fn() } as any, // loginHistoryRepo
     { create: jest.fn() } as any, // accountDeletionRequestRepo
+    { findByUserId: jest.fn().mockResolvedValue(null) } as any, // providerRepo
     jwtService,
     {
       createEmailVerificationToken: jest

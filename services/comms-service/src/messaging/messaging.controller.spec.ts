@@ -144,7 +144,7 @@ describe("MessagingController", () => {
   describe("getMessage", () => {
     it("should return single message", async () => {
       mockMessageService.getMessageById.mockResolvedValue(mockMessage);
-      const result = await controller.getMessage("msg-uuid-1");
+      const result = await controller.getMessage("msg-uuid-1", { user: { id: "user-uuid-1" } } as any);
       expect(result.success).toBe(true);
       expect(result.data).toEqual(mockMessage);
     });
@@ -154,7 +154,7 @@ describe("MessagingController", () => {
     it("should mark message as read", async () => {
       const readMsg = { ...mockMessage, read: true };
       mockMessageService.markMessageAsRead.mockResolvedValue(readMsg);
-      const result = await controller.markAsRead("msg-uuid-1");
+      const result = await controller.markAsRead("msg-uuid-1", { user: { id: "user-uuid-1" } } as any);
       expect(result.success).toBe(true);
       expect(result.data.read).toBe(true);
     });

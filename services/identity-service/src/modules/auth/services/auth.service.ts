@@ -3,7 +3,7 @@ import { InjectQueue } from "@nestjs/bullmq";
 import { Queue } from "bullmq";
 import { ConfigService } from "@nestjs/config";
 import * as bcrypt from "bcryptjs";
-import { totp } from "otplib";
+import { verifySync } from "otplib";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { UserRepository } from "../repositories/user.repository";
@@ -2156,7 +2156,7 @@ export class AuthService {
   }
 
   private verifyTOTP(secret: string, code: string): boolean {
-    return totp.verify({ secret, token: code });
+    return verifySync({ secret, token: code }).valid;
   }
 
   private _generateRandomBackupCodes(count: number): string[] {
