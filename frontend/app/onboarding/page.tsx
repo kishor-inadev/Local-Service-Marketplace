@@ -244,7 +244,7 @@ export default function OnboardingPage() {
                       placeholder="Describe your services, experience, and what makes you stand out..."
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 resize-none"
                     />
-                    <p className="text-xs text-gray-500 mt-1">{description.length}/500 characters</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">{description.length}/500 characters</p>
                   </div>
                 </div>
                 <div className="flex gap-3 mt-6">

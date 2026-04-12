@@ -128,7 +128,7 @@ export default function ProvidersPage() {
 									<ChevronLeft className='h-4 w-4 mr-2' />
 									Previous
 								</Button>
-								<span className='text-sm text-gray-600'>
+								<span className='text-sm text-gray-600 dark:text-gray-400'>
 									Page {currentPage} of {totalPages} &middot; Showing {providers.length} providers
 								</span>
 								<Button

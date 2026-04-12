@@ -415,7 +415,7 @@ function LoginContent() {
 						Or{" "}
 						<Link
 							href='/signup'
-							className='font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 focus:outline-none focus:underline'>
+							className='font-medium text-primary-600 dark:text-primary-400 hover:text-primary-500 dark:hover:text-primary-300 focus:outline-none focus:underline'>
 							create a new account
 						</Link>
 					</p>

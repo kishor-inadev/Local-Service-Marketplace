@@ -124,7 +124,7 @@ export default function ProviderOverviewPage() {
 										<Link href={ROUTES.DASHBOARD_BROWSE_REQUESTS}>
 											<Card className='hover:shadow-lg transition-shadow cursor-pointer'>
 												<CardContent className='pt-6 flex items-center gap-4'>
-													<Briefcase className='h-8 w-8 text-primary-600' />
+												<Briefcase className='h-8 w-8 text-primary-600 dark:text-primary-400' />
 													<div>
 														<h3 className='font-semibold text-gray-900 dark:text-white'>Browse Requests</h3>
 														<p className='text-sm text-gray-600 dark:text-gray-400'>Find new job opportunities</p>
@@ -135,7 +135,7 @@ export default function ProviderOverviewPage() {
 										<Link href={ROUTES.DASHBOARD_MY_PROPOSALS}>
 											<Card className='hover:shadow-lg transition-shadow cursor-pointer'>
 												<CardContent className='pt-6 flex items-center gap-4'>
-													<FileText className='h-8 w-8 text-primary-600' />
+												<FileText className='h-8 w-8 text-primary-600 dark:text-primary-400' />
 													<div>
 														<h3 className='font-semibold text-gray-900 dark:text-white'>My Proposals</h3>
 														<p className='text-sm text-gray-600 dark:text-gray-400'>View submitted proposals</p>

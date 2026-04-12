@@ -75,7 +75,7 @@ export default function MessagesPage() {
   return (
 		<Layout>
 			<div className='container-custom py-8'>
-				<h1 className='text-3xl font-bold text-gray-900 mb-8'>Messages</h1>
+				<h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-8'>Messages</h1>
 
 				{conversationsError ?
 					<ErrorState
@@ -87,7 +87,7 @@ export default function MessagesPage() {
 						{/* Conversations List */}
 						<Card className={cn(showThread ? 'hidden md:flex md:flex-col' : '')}>
 							<CardHeader>
-								<h2 className='font-semibold text-gray-900'>Conversations</h2>
+								<h2 className='font-semibold text-gray-900 dark:text-white'>Conversations</h2>
 							</CardHeader>
 							<CardContent>
 								{isLoading ?
@@ -99,10 +99,10 @@ export default function MessagesPage() {
 												key={conv.job_id}
 												onClick={() => { setSelectedJobId(conv.job_id); setShowThread(true); }}
 												className={`w-full text-left p-3 rounded-md transition-colors ${
-													selectedJobId === conv.job_id ? "bg-primary-50 border-primary-200" : "hover:bg-gray-50"
+													selectedJobId === conv.job_id ? "bg-primary-50 dark:bg-primary-900/20 border border-primary-200 dark:border-primary-700" : "hover:bg-gray-50 dark:hover:bg-gray-800"
 												}`}>
-												<p className='font-medium text-gray-900'>Job #{conv.job_id.slice(0, 8)}</p>
-												<p className='text-sm text-gray-600 truncate'>{conv.last_message}</p>
+												<p className='font-medium text-gray-900 dark:text-white'>Job #{conv.job_id.slice(0, 8)}</p>
+												<p className='text-sm text-gray-600 dark:text-gray-400 truncate'>{conv.last_message}</p>
 											</button>
 										))}
 									</div>
@@ -137,12 +137,12 @@ export default function MessagesPage() {
 															className={`max-w-[70%] rounded-lg p-3 ${
 																message.sender_id === user?.id ?
 																	"bg-primary-600 text-white"
-																:	"bg-gray-100 text-gray-900"
+															:	"bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white"
 															}`}>
 															<p className='text-sm'>{message.message}</p>
 															<p
 																className={`text-xs mt-1 ${
-																	message.sender_id === user?.id ? "text-primary-100" : "text-gray-500"
+																message.sender_id === user?.id ? "text-primary-100" : "text-gray-500 dark:text-gray-400"
 																}`}>
 																{formatDateTime(message.created_at)}
 															</p>

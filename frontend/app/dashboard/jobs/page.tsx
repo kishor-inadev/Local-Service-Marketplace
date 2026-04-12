@@ -45,8 +45,8 @@ export default function JobsPage() {
 			<div className='container-custom py-8'>
 				<div className='flex items-center justify-between mb-8'>
 					<div>
-						<h1 className='text-3xl font-bold text-gray-900'>Jobs</h1>
-						<p className='mt-2 text-gray-600'>Manage your active and completed jobs</p>
+						<h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Jobs</h1>
+						<p className='mt-2 text-gray-600 dark:text-gray-400'>Manage your active and completed jobs</p>
 					</div>
 				</div>
 
@@ -70,22 +70,22 @@ export default function JobsPage() {
 											<Link href={ROUTES.DASHBOARD_JOB_DETAIL(job.id)}>
 												<div className='flex items-center gap-3'>
 													<Briefcase className='h-5 w-5 text-gray-400' />
-													<h3 className='text-lg font-semibold text-gray-900 hover:text-primary-600'>
+												<h3 className='text-lg font-semibold text-gray-900 dark:text-white hover:text-primary-600 dark:hover:text-primary-400'>
 													Job #{job.display_id || job.id.slice(0, 8)}
 													</h3>
 												</div>
 											</Link>
 											<div className='mt-3 space-y-2'>
-												<div className='flex items-center gap-4 text-sm text-gray-600'>
-													<span>
-														<span className='font-medium text-gray-700'>Provider:</span> {job.provider?.name || "N/A"}
-													</span>
-													<span>•</span>
-													<span>
-														<span className='font-medium text-gray-700'>Customer:</span> {job.customer?.name || "N/A"}
+											<div className='flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400'>
+												<span>
+													<span className='font-medium text-gray-700 dark:text-gray-300'>Provider:</span> {job.provider?.name || "N/A"}
+												</span>
+												<span>•</span>
+												<span>
+													<span className='font-medium text-gray-700 dark:text-gray-300'>Customer:</span> {job.customer?.name || "N/A"}
 													</span>
 												</div>
-												<div className='flex items-center gap-4 text-sm text-gray-500'>
+											<div className='flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400'>
 													<span>Created {formatDate(job.created_at)}</span>
 													{job.started_at && (
 														<>
@@ -106,8 +106,8 @@ export default function JobsPage() {
 						<CardContent>
 							<div className='text-center py-12'>
 								<Briefcase className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-								<p className='text-gray-500 mb-4'>No jobs yet</p>
-								<p className='text-sm text-gray-400'>Jobs will appear here once proposals are accepted</p>
+									<p className='text-gray-500 dark:text-gray-400 mb-4'>No jobs yet</p>
+									<p className='text-sm text-gray-400 dark:text-gray-500'>Jobs will appear here once proposals are accepted</p>
 							</div>
 						</CardContent>
 					</Card>

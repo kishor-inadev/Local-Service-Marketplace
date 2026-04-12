@@ -92,9 +92,9 @@ export default function FavoritesPage() {
             <div className='mb-8'>
               <div className='flex items-center gap-3 mb-2'>
                 <Heart className='h-8 w-8 text-red-500 fill-current' />
-                <h1 className='text-3xl font-bold text-gray-900'>Saved Providers</h1>
+                <h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Saved Providers</h1>
               </div>
-              <p className='text-gray-600'>
+              <p className='text-gray-600 dark:text-gray-400'>
                 {hasFavorites ?
                   `You have ${favorites.length} saved ${favorites.length === 1 ? "provider" : "providers"}`
                 :	"You haven't saved any providers yet"}
@@ -106,8 +106,8 @@ export default function FavoritesPage() {
               <Card>
                 <CardContent className='text-center py-12'>
                   <Heart className='h-16 w-16 text-gray-300 mx-auto mb-4' />
-                  <h3 className='text-xl font-semibold text-gray-900 mb-2'>No saved providers yet</h3>
-                  <p className='text-gray-600 mb-6'>
+                  <h3 className='text-xl font-semibold text-gray-900 dark:text-white mb-2'>No saved providers yet</h3>
+                  <p className='text-gray-600 dark:text-gray-400 mb-6'>
                     Start saving your favorite service providers to easily find them later
                   </p>
                   <Link href='/providers'>
@@ -129,20 +129,20 @@ export default function FavoritesPage() {
                         <Button
                           variant='ghost'
                           size='sm'
-                          className='text-red-500 hover:text-red-600 hover:bg-red-50'
+                          className='text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 dark:text-red-400 dark:hover:text-red-300'
                           onClick={() => handleRemove(favorite.provider_id)}
                           disabled={removeFavoriteMutation.isPending}>
                           <Trash2 className='h-4 w-4' />
                         </Button>
                       </div>
 
-                      <h3 className='text-lg font-semibold text-gray-900 mb-2'>{favorite.provider_name}</h3>
+                      <h3 className='text-lg font-semibold text-gray-900 dark:text-white mb-2'>{favorite.provider_name}</h3>
 
                       {favorite.provider_rating && (
                         <div className='flex items-center gap-2 mb-3'>
                           <div className='flex items-center gap-1'>
                             <Star className='h-4 w-4 fill-yellow-400 text-yellow-400' />
-                            <span className='font-semibold text-gray-900'>{favorite.provider_rating.toFixed(1)}</span>
+                            <span className='font-semibold text-gray-900 dark:text-white'>{favorite.provider_rating.toFixed(1)}</span>
                           </div>
                           <span className='text-sm text-gray-500'>Rating</span>
                         </div>
@@ -150,7 +150,7 @@ export default function FavoritesPage() {
                     </CardHeader>
 
                     <CardContent>
-                      <p className='text-sm text-gray-600 mb-4 line-clamp-2'>
+                      <p className='text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-2'>
                         {favorite.provider_description || "No description available"}
                       </p>
 

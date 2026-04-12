@@ -207,6 +207,9 @@ importers:
       recharts:
         specifier: ^3.8.1
         version: 3.8.1(@types/react@18.2.47)(react-dom@18.2.0(react@18.2.0))(react-is@18.3.1)(react@18.2.0)(redux@5.0.1)
+      tailwind-merge:
+        specifier: ^3.5.0
+        version: 3.5.0
       typescript:
         specifier: 5.3.3
         version: 5.3.3
@@ -6166,6 +6169,9 @@ packages:
   synckit@0.11.12:
     resolution: {integrity: sha512-Bh7QjT8/SuKUIfObSXNHNSK6WHo6J1tHCqJsuaFDP7gP0fkzSfTxI8y85JrppZ0h8l0maIgc2tfuZQ6/t3GtnQ==}
     engines: {node: ^14.18.0 || >=16.0.0}
+
+  tailwind-merge@3.5.0:
+    resolution: {integrity: sha512-I8K9wewnVDkL1NTGoqWmVEIlUcB9gFriAEkXkfCjX5ib8ezGxtR3xD7iZIxrfArjEsH7F1CHD4RFUtxefdqV/A==}
 
   tailwindcss@3.4.1:
     resolution: {integrity: sha512-qAYmXRfk3ENzuPBakNK0SRrUDipP8NQnEY6772uDhflcQz5EhRdD7JNZxyrFHVQNCwULPBn6FNPp9brpO7ctcA==}
@@ -13062,6 +13068,8 @@ snapshots:
   synckit@0.11.12:
     dependencies:
       '@pkgr/core': 0.2.9
+
+  tailwind-merge@3.5.0: {}
 
   tailwindcss@3.4.1(ts-node@10.9.2(@types/node@20.10.7)(typescript@5.3.3)):
     dependencies:

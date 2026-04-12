@@ -65,7 +65,7 @@ export function Alert({
         {onClose && (
           <button
             onClick={onClose}
-            className="ml-3 flex-shrink-0 focus:outline-none"
+            className="ml-3 flex-shrink-0 rounded-md opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-current focus:ring-offset-2 dark:focus:ring-offset-gray-900"
           >
             <X className="h-5 w-5" />
           </button>

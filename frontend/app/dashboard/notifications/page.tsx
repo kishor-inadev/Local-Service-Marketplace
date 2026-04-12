@@ -82,8 +82,8 @@ export default function NotificationsPage() {
 					:	<>
 							<div className='flex items-center justify-between mb-8'>
 								<div>
-									<h1 className='text-3xl font-bold text-gray-900'>Notifications</h1>
-									<p className='mt-2 text-gray-600'>Stay updated with your latest activities</p>
+								<h1 className='text-3xl font-bold text-gray-900 dark:text-white'>Notifications</h1>
+								<p className='mt-2 text-gray-600 dark:text-gray-400'>Stay updated with your latest activities</p>
 								</div>
 								{notifications && notifications.some((n) => !n.read) && (
 									<Button
@@ -106,19 +106,19 @@ export default function NotificationsPage() {
 											{notifications.map((notification) => (
 												<div
 													key={notification.id}
-													className={`py-4 ${notification.read ? "opacity-60" : "bg-blue-50"}`}>
+												className={`py-4 ${notification.read ? "opacity-60" : "bg-blue-50 dark:bg-blue-900/20"}`}>
 													<div className='flex items-start gap-4'>
 														<div className='flex-shrink-0'>
 															<div
 																className={`w-10 h-10 rounded-full flex items-center justify-center ${
-																	notification.read ? "bg-gray-200" : "bg-primary-100"
-																}`}>
-																<Bell className='h-5 w-5 text-primary-600' />
+																notification.read ? "bg-gray-200 dark:bg-gray-700" : "bg-primary-100 dark:bg-primary-900/30"
+															}`}>
+															<Bell className='h-5 w-5 text-primary-600 dark:text-primary-400' />
 															</div>
 														</div>
 														<div className='flex-1 min-w-0'>
-															<p className='text-sm text-gray-900'>{notification.message}</p>
-															<p className='text-xs text-gray-500 mt-2'>
+														<p className='text-sm text-gray-900 dark:text-white'>{notification.message}</p>
+														<p className='text-xs text-gray-500 dark:text-gray-400 mt-2'>
 																{formatRelativeTime(notification.created_at)}
 															</p>
 														</div>

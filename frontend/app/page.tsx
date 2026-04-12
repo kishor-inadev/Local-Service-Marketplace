@@ -624,16 +624,15 @@ export default function HomePage() {
 				</div>
 
 				{/* Provider CTA Section */}
-				<div className='bg-gradient-to-br from-gray-950 via-primary-950/40 to-gray-950 relative overflow-hidden'>
-					<div className="absolute inset-0 bg-[url('/grid.svg')] opacity-[0.04]"></div>
-					<div className='absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-primary-500/5 blur-3xl rounded-full pointer-events-none' />
+				<div className='bg-gradient-to-br from-primary-900 via-primary-800 to-violet-900 relative overflow-hidden'>
+					<div className='absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(120,119,198,0.15),transparent)]' />
 					<div className='mx-auto max-w-7xl px-6 py-24 lg:px-8 relative'>
 						<div className='mx-auto max-w-4xl text-center'>
-							<div className='inline-flex items-center rounded-full bg-white/10 px-5 py-1.5 mb-6 backdrop-blur-sm ring-1 ring-white/20'>
-								<span className='text-gray-200 text-sm font-medium'>💼 For Service Professionals</span>
+							<div className='inline-flex items-center rounded-full bg-white/10 px-5 py-1.5 mb-6 ring-1 ring-white/20'>
+								<span className='text-white/90 text-sm font-medium'>💼 For Service Professionals</span>
 							</div>
 							<h2 className='font-heading text-4xl md:text-5xl font-bold text-white'>Grow Your Local Business</h2>
-							<p className='mt-6 text-lg text-gray-400 leading-relaxed max-w-2xl mx-auto'>
+							<p className='mt-6 text-lg text-primary-100 leading-relaxed max-w-2xl mx-auto'>
 								Join 15,000+ trusted professionals earning more with our platform. Get matched with ready-to-hire
 								customers in your area. Set your own rates, choose your jobs, and get paid fast.
 							</p>
@@ -641,7 +640,7 @@ export default function HomePage() {
 								<Link href='/signup'>
 									<Button
 										size='lg'
-										className='bg-white dark:bg-gray-100 text-primary-700 dark:text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-200 font-semibold text-lg px-10 py-6 w-full sm:w-auto shadow-xl'>
+										className='bg-white dark:bg-white text-primary-700 dark:text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-100 font-semibold text-lg px-10 py-6 w-full sm:w-auto shadow-xl shadow-black/20'>
 										Join as Provider →
 									</Button>
 								</Link>
@@ -649,7 +648,7 @@ export default function HomePage() {
 									<Button
 										variant='outline'
 										size='lg'
-										className='border-2 border-white dark:border-gray-200 text-white dark:text-gray-200 hover:bg-white/10 font-semibold text-lg px-10 py-6 w-full sm:w-auto'>
+										className='border-2 border-white dark:border-white bg-transparent dark:bg-transparent text-white dark:text-white hover:bg-white/10 dark:hover:bg-white/10 hover:border-white dark:hover:border-white font-semibold text-lg px-10 py-6 w-full sm:w-auto'>
 										Provider Login
 									</Button>
 								</Link>
@@ -657,32 +656,32 @@ export default function HomePage() {
 
 							{/* Provider Benefits */}
 							<div className='mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6'>
-								<div className='bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10'>
+								<div className='bg-white/10 rounded-xl p-6 border border-white/15'>
 									<div className='text-4xl font-bold text-white mb-1'>$0</div>
-									<div className='text-sm font-semibold text-gray-300 mb-1'>To Join</div>
-									<div className='text-xs text-gray-500'>No subscription fees or upfront costs</div>
+									<div className='text-sm font-semibold text-primary-100 mb-1'>To Join</div>
+									<div className='text-xs text-primary-200/70'>No subscription fees or upfront costs</div>
 								</div>
-								<div className='bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10'>
+								<div className='bg-white/10 rounded-xl p-6 border border-white/15'>
 									<div className='text-4xl font-bold text-white mb-1'>95%</div>
-									<div className='text-sm font-semibold text-gray-300 mb-1'>You Keep</div>
-									<div className='text-xs text-gray-500'>Industry-low 5% service fee</div>
+									<div className='text-sm font-semibold text-primary-100 mb-1'>You Keep</div>
+									<div className='text-xs text-primary-200/70'>Industry-low 5% service fee</div>
 								</div>
-								<div className='bg-white/5 backdrop-blur-sm rounded-xl p-6 border border-white/10'>
+								<div className='bg-white/10 rounded-xl p-6 border border-white/15'>
 									<div className='text-4xl font-bold text-white mb-1'>1-2</div>
-									<div className='text-sm font-semibold text-gray-300 mb-1'>Day Payout</div>
-									<div className='text-xs text-gray-500'>Fast, secure payment transfers</div>
+									<div className='text-sm font-semibold text-primary-100 mb-1'>Day Payout</div>
+									<div className='text-xs text-primary-200/70'>Fast, secure payment transfers</div>
 								</div>
 							</div>
 
 							{/* Additional Provider Benefits */}
-							<div className='mt-12 flex flex-wrap justify-center gap-6 text-gray-500'>
+							<div className='mt-12 flex flex-wrap justify-center gap-6'>
 								{["Build Your Brand", "Verified Reviews", "Marketing Tools", "Calendar Management", "Mobile App"].map(
 									(benefit) => (
 										<div
 											key={benefit}
 											className='flex items-center gap-2'>
-											<Check className='h-4 w-4 text-primary-400' />
-											<span className='text-sm'>{benefit}</span>
+											<Check className='h-4 w-4 text-accent-400' />
+											<span className='text-sm text-primary-100'>{benefit}</span>
 										</div>
 									),
 								)}
@@ -836,30 +835,30 @@ export default function HomePage() {
 						</div>
 
 						{/* Competitive Advantages */}
-						<div className='bg-gradient-to-br from-gray-950 to-gray-900 rounded-2xl p-10 ring-1 ring-white/5'>
+						<div className='bg-gradient-to-br from-gray-950 to-gray-900 dark:from-gray-800 dark:to-gray-900 rounded-2xl p-10 ring-1 ring-white/5 dark:ring-gray-700'>
 							<div className='grid md:grid-cols-2 lg:grid-cols-4 gap-8'>
 								<div className='text-center md:text-left'>
 									<div className='text-2xl mb-3'>🏆</div>
 									<div className='font-semibold text-white mb-1 text-sm'>Best-in-Class Platform</div>
-									<div className='text-xs text-gray-500'>Rated #1 by customers 4 years running</div>
+									<div className='text-xs text-gray-400'>Rated #1 by customers 4 years running</div>
 								</div>
 
 								<div className='text-center md:text-left'>
 									<div className='text-2xl mb-3'>⚡</div>
 									<div className='font-semibold text-white mb-1 text-sm'>Fastest Response Times</div>
-									<div className='text-xs text-gray-500'>Average 2.3 hour quote turnaround</div>
+									<div className='text-xs text-gray-400'>Average 2.3 hour quote turnaround</div>
 								</div>
 
 								<div className='text-center md:text-left'>
 									<div className='text-2xl mb-3'>💰</div>
 									<div className='font-semibold text-white mb-1 text-sm'>Lowest Fees</div>
-									<div className='text-xs text-gray-500'>Providers keep 95% vs 70-80% elsewhere</div>
+									<div className='text-xs text-gray-400'>Providers keep 95% vs 70-80% elsewhere</div>
 								</div>
 
 								<div className='text-center md:text-left'>
 									<div className='text-2xl mb-3'>🌟</div>
 									<div className='font-semibold text-white mb-1 text-sm'>Verified Quality</div>
-									<div className='text-xs text-gray-500'>Multi-step vetting &amp; ongoing monitoring</div>
+									<div className='text-xs text-gray-400'>Multi-step vetting &amp; ongoing monitoring</div>
 								</div>
 							</div>
 						</div>
@@ -1024,7 +1023,7 @@ export default function HomePage() {
 
 				{/* Final CTA Section */}
 				<div className='bg-gradient-to-br from-primary-600 via-primary-700 to-violet-800 py-24 relative overflow-hidden'>
-					<div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10"></div>
+					<div className='absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(255,255,255,0.08),transparent)]' />
 					<div className='mx-auto max-w-7xl px-6 lg:px-8 relative'>
 						<div className='mx-auto max-w-4xl text-center'>
 							<h2 className='font-heading text-4xl md:text-5xl font-bold text-white mb-6'>Ready to Get Started?</h2>
@@ -1036,7 +1035,7 @@ export default function HomePage() {
 								<Link href='/signup'>
 									<Button
 										size='lg'
-										className='bg-white dark:bg-gray-100 text-primary-700 dark:text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-200 font-semibold text-lg px-12 py-6 shadow-2xl w-full sm:w-auto'>
+										className='bg-white dark:bg-white text-primary-700 dark:text-primary-700 hover:bg-gray-100 dark:hover:bg-gray-100 font-semibold text-lg px-12 py-6 shadow-2xl shadow-black/20 w-full sm:w-auto'>
 										Create Free Account →
 									</Button>
 								</Link>
@@ -1044,7 +1043,7 @@ export default function HomePage() {
 									<Button
 										variant='outline'
 										size='lg'
-										className='border-2 border-white dark:border-gray-200 text-white dark:text-gray-200 hover:bg-blue-700 dark:hover:bg-blue-800/50 font-semibold text-lg px-12 py-6 w-full sm:w-auto'>
+										className='border-2 border-white dark:border-white bg-transparent dark:bg-transparent text-white dark:text-white hover:bg-white/10 dark:hover:bg-white/10 hover:border-white dark:hover:border-white font-semibold text-lg px-12 py-6 w-full sm:w-auto'>
 										Post a Job Request
 									</Button>
 								</Link>
