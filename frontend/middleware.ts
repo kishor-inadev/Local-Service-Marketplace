@@ -24,6 +24,7 @@ const ROLE_ROUTES: Array<{ prefix: string; roles: Role[] }> = [
 	{ prefix: "/dashboard/availability", roles: ["provider"] },
 	{ prefix: "/dashboard/browse-requests", roles: ["provider"] },
 	{ prefix: "/dashboard/my-proposals", roles: ["provider"] },
+	{ prefix: "/dashboard/settings/subscription", roles: ["provider"] },
 
 	// Customer-only
 	{ prefix: "/dashboard/requests", roles: ["customer", "provider"] },
@@ -35,7 +36,7 @@ const ROLE_ROUTES: Array<{ prefix: string; roles: Role[] }> = [
 const AUTH_REQUIRED_PREFIX = "/dashboard";
 
 /** Routes that a logged-in user should be bounced away from */
-const AUTH_REDIRECT_ROUTES = ["/login", "/signup"];
+const AUTH_REDIRECT_ROUTES = ["/login", "/signup", "/phone-login", "/forgot-password", "/reset-password", "/verify-email"];
 
 function matchRoleRoute(pathname: string) {
 	// Sort by prefix length descending so the most specific match wins

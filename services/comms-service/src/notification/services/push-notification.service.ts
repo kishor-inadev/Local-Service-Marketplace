@@ -1,6 +1,7 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import * as admin from "firebase-admin";
+import { DeviceRepository } from "../repositories/device.repository";
 
 export interface PushNotificationPayload {
   userId: string;
@@ -29,6 +30,7 @@ export class PushNotificationService {
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    private readonly deviceRepository: DeviceRepository,
   ) {
     this.fcmEnabled = process.env.FCM_ENABLED === "true";
     this.initializeFirebase();
@@ -102,14 +104,20 @@ export class PushNotificationService {
     }
 
     try {
-      // TODO: Fetch device token from database if not provided
-      // For now, we require it to be passed or fail gracefully
-      if (!deviceToken) {
-        this.logger.warn(
-          `No device token available for user ${userId}. Push notification skipped.`,
-          "PushNotificationService",
-        );
-        return false;
+      // Fetch device tokens from database if not explicitly provided
+      let resolvedToken = deviceToken;
+      if (!resolvedToken) {
+        const devices = await this.deviceRepository.getUserDevices(userId);
+        if (devices.length === 0) {
+          this.logger.warn(
+            `No registered devices for user ${userId}. Push notification skipped.`,
+            "PushNotificationService",
+          );
+          return false;
+        }
+        // Send to all registered devices via multicast
+        const tokens = devices.map((d) => (d as any).device_token ?? d.device_id).filter(Boolean);
+        return (await this.sendMulticastPushNotification({ userId, title, body, data }, tokens)) > 0;
       }
 
       const message: admin.messaging.Message = {
@@ -118,7 +126,7 @@ export class PushNotificationService {
           body,
         },
         data: data || {},
-        token: deviceToken,
+        token: resolvedToken,
         // Apple Push Notification Service (APNs) config
         apns: {
           payload: {

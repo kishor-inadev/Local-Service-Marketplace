@@ -77,6 +77,18 @@ export class ProposalService {
       );
     }
 
+    // Cap total lifetime submissions per (provider, request) to prevent spam re-proposals
+    const MAX_PROPOSALS_PER_REQUEST = 3;
+    const totalAttempts = await this.proposalRepository.countProposalsByProviderForRequest(
+      dto.request_id,
+      dto.provider_id,
+    );
+    if (totalAttempts >= MAX_PROPOSALS_PER_REQUEST) {
+      throw new ConflictException(
+        `You have reached the maximum number of proposals (${MAX_PROPOSALS_PER_REQUEST}) for this request`,
+      );
+    }
+
     const proposal = await this.proposalRepository.createProposal(dto);
 
     this.logger.log(

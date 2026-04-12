@@ -273,7 +273,7 @@ class AdminService {
 	}
 
 	async rejectProvider(providerId: string, reason: string): Promise<any> {
-		const response = await apiClient.patch<any>(`/providers/${providerId}/verify`, { status: 'rejected' });
+		const response = await apiClient.patch<any>(`/providers/${providerId}/verify`, { status: 'rejected', reason });
 		return response.data;
 	}
 

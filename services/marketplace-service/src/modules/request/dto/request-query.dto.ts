@@ -41,6 +41,10 @@ export class RequestQueryDto {
 
   @IsOptional()
   @IsString()
+  search?: string;
+
+  @IsOptional()
+  @IsString()
   category_id?: string;
 
   @IsOptional()

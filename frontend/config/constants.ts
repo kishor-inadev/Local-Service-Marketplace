@@ -36,7 +36,7 @@ export const ROUTES = {
 	PHONE_LOGIN: "/phone-login",
 	FORGOT_PASSWORD: "/forgot-password",
 	RESET_PASSWORD: "/reset-password",
-	VERIFY_EMAIL: "/auth/verify-email",
+	VERIFY_EMAIL: "/verify-email",
 	CALLBACK: "/auth/callback",
 	ERROR: "/error", // Auth error page
 

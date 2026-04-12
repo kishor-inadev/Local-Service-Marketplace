@@ -21,13 +21,10 @@ export function useFavoriteToggle() {
 
       if (isFavorite) {
         // Remove favorite
-        await favoriteService.removeFavorite(user.id, providerId);
+        await favoriteService.removeFavorite(providerId);
       } else {
         // Add favorite
-        await favoriteService.addFavorite({
-          user_id: user.id,
-          provider_id: providerId,
-        });
+        await favoriteService.addFavorite(providerId);
       }
     },
     updateFn: (oldData: any[], { providerId, isFavorite }) => {

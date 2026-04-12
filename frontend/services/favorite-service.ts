@@ -9,32 +9,25 @@ export interface Favorite {
   created_at: string;
 }
 
-export interface CreateFavoriteData {
-  user_id: string;
-  provider_id: string;
-}
-
 class FavoriteService {
-  async getFavorites(userId: string): Promise<Favorite[]> {
-    const response = await apiClient.get<any>(`/favorites?user_id=${userId}`);
+  async getFavorites(): Promise<Favorite[]> {
+    const response = await apiClient.get<any>(`/favorites`);
     return apiClient.extractList<Favorite>(response.data);
   }
 
-  async addFavorite(data: CreateFavoriteData): Promise<Favorite> {
-    const response = await apiClient.post<Favorite>('/favorites', data);
+  async addFavorite(providerId: string): Promise<Favorite> {
+    const response = await apiClient.post<Favorite>('/favorites', { provider_id: providerId });
     return response.data;
   }
 
-  async removeFavorite(userId: string, providerId: string): Promise<void> {
-    const response = await apiClient.delete<void>(
-      `/favorites/${providerId}?user_id=${userId}`,
-    );
+  async removeFavorite(providerId: string): Promise<void> {
+    const response = await apiClient.delete<void>(`/favorites/${providerId}`);
     return response.data;
   }
 
-  async isFavorite(userId: string, providerId: string): Promise<boolean> {
+  async isFavorite(providerId: string): Promise<boolean> {
     try {
-      const favorites = await this.getFavorites(userId);
+      const favorites = await this.getFavorites();
       return favorites.some((fav) => fav.provider_id === providerId);
     } catch (error) {
       return false;

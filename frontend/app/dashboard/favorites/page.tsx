@@ -27,14 +27,13 @@ export default function FavoritesPage() {
 
   const { data: favorites, isLoading, error, refetch } = useQuery({
     queryKey: ['favorites', user?.id],
-    queryFn: () => favoriteService.getFavorites(user?.id ?? ''),
-    enabled: !!user?.id,
+    queryFn: () => favoriteService.getFavorites(),
   });
 
   const removeFavoriteMutation = useMutation({
     mutationFn: async (providerId: string) => {
       if (!user?.id) throw new Error('Not authenticated');
-      await favoriteService.removeFavorite(user.id, providerId);
+      await favoriteService.removeFavorite(providerId);
     },
     onSuccess: () => {
       toast.success('Removed from favorites');

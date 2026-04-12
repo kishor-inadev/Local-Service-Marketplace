@@ -206,8 +206,15 @@ export class PayPalAdapter implements IGatewayAdapter {
   ): boolean {
     const webhookId = this.configService.get<string>("PAYPAL_WEBHOOK_ID", "");
     if (!webhookId) {
+      const nodeEnv = this.configService.get<string>("NODE_ENV", "development");
+      if (nodeEnv === "production" || nodeEnv === "staging") {
+        this.logger.error(
+          "PAYPAL_WEBHOOK_ID not set — rejecting PayPal webhook in production",
+        );
+        return false;
+      }
       this.logger.warn(
-        "PAYPAL_WEBHOOK_ID not set — skipping signature verification",
+        "PAYPAL_WEBHOOK_ID not set — skipping signature verification in dev",
       );
       return true;
     }

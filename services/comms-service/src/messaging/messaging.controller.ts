@@ -98,7 +98,25 @@ export class MessagingController {
 
   @Post("attachments")
   @HttpCode(HttpStatus.CREATED)
-  @UseInterceptors(FileInterceptor("file"))
+  @UseInterceptors(FileInterceptor("file", {
+    limits: { fileSize: 25 * 1024 * 1024 }, // 25MB max
+    fileFilter: (_req, file, cb) => {
+      const allowedMimeTypes = [
+        "image/jpeg", "image/png", "image/gif", "image/webp",
+        "application/pdf",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "application/vnd.ms-excel",
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        "text/plain",
+        "video/mp4", "video/quicktime",
+      ];
+      if (!allowedMimeTypes.includes(file.mimetype)) {
+        return cb(new BadRequestException(`File type '${file.mimetype}' is not allowed`), false);
+      }
+      cb(null, true);
+    },
+  }))
   async createAttachment(
     @Body() createAttachmentDto: CreateAttachmentDto,
     @UploadedFile() file: Express.Multer.File,
@@ -169,12 +187,24 @@ export class MessagingController {
   }
 
   @Get("attachments/:id")
-  async getAttachment(@Param("id", ParseUUIDPipe) id: string) {
+  async getAttachment(
+    @Param("id", ParseUUIDPipe) id: string,
+    @Request() req: any,
+  ) {
     this.logger.log(
       `GET /messages/attachments/${id} - Get attachment`,
       "MessagingController",
     );
     const attachment = await this.attachmentService.getAttachmentById(id);
+
+    // Verify the requesting user is a participant in the job this attachment belongs to
+    if (req.user.role !== "admin") {
+      await this.messageService.getMessageById(
+        attachment.message_id,
+        req.user.userId,
+      );
+    }
+
     return {
       success: true,
       data: attachment,

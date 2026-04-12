@@ -178,15 +178,23 @@ export class ReviewRepository {
     return result.rows[0];
   }
 
-  async incrementHelpfulCount(reviewId: string): Promise<Review> {
+  async incrementHelpfulCount(reviewId: string, userId: string): Promise<Review | null> {
+    // Atomically insert vote and increment count; DO NOTHING on duplicate
     const query = `
-      UPDATE reviews 
+      WITH vote AS (
+        INSERT INTO review_helpful_votes (review_id, user_id)
+        VALUES ($1, $2)
+        ON CONFLICT (review_id, user_id) DO NOTHING
+        RETURNING review_id
+      )
+      UPDATE reviews
       SET helpful_count = helpful_count + 1
       WHERE id = $1
+        AND EXISTS (SELECT 1 FROM vote)
       RETURNING *
     `;
-    const result = await this.pool.query(query, [reviewId]);
-    return result.rows[0];
+    const result = await this.pool.query(query, [reviewId, userId]);
+    return result.rows[0] ?? null;
   }
 
   async getVerifiedPurchaseReviews(

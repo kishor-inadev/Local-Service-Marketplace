@@ -39,12 +39,13 @@ export default function BrowseRequestsPage() {
 		error,
 		refetch,
 	} = useQuery({
-		queryKey: ["browse-requests", statusFilter, selectedCategory],
+		queryKey: ["browse-requests", statusFilter, selectedCategory, searchTerm],
 		queryFn: () =>
 			requestService.getRequests({
 				status: statusFilter || undefined,
 				category_id: selectedCategory || undefined,
-				limit: 50,
+				search: searchTerm || undefined,
+				limit: 100,
 			}),
 		enabled: isAuthenticated && user?.role === "provider",
 	});
@@ -55,16 +56,8 @@ export default function BrowseRequestsPage() {
 		enabled: isAuthenticated,
 	});
 
-  // Filter requests locally by search term
-  const filteredRequests = requests?.data?.filter((request: any) => {
-    if (!searchTerm) return true;
-    const searchLower = searchTerm.toLowerCase();
-    return (
-      request.description?.toLowerCase().includes(searchLower) ||
-      request.location?.address?.toLowerCase().includes(searchLower) ||
-      request.category?.name?.toLowerCase().includes(searchLower)
-    );
-  }) || [];
+  // All server-side filtering now — no client-side search needed
+  const filteredRequests = requests?.data || [];
 
   const proposalTargetRequest = filteredRequests.find((r: any) => r.id === proposalTargetId);
 

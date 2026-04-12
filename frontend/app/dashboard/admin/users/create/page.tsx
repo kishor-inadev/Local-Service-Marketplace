@@ -30,7 +30,12 @@ export default function AdminCreateUserPage() {
 	const [errorMessage, setErrorMessage] = useState<string>("");
 
 	const isValid = useMemo(() => {
-		return form.email.trim().length > 3 && form.password.length >= 8 && form.name?.trim().length;
+		const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+		return (
+			emailRegex.test(form.email.trim()) &&
+			form.password.length >= 8 &&
+			(form.name ?? '').trim().length > 0
+		);
 	}, [form]);
 
 	const createUserMutation = useMutation({

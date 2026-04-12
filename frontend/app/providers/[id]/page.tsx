@@ -66,7 +66,7 @@ export default function ProviderDetailPage() {
     const checkFavorite = async () => {
       if (user?.id && providerId) {
         try {
-          const favorited = await favoriteService.isFavorite(user.id, providerId);
+          const favorited = await favoriteService.isFavorite(providerId);
           setIsFavorited(favorited);
         } catch (error) {
           console.error('Error checking favorite:', error);
@@ -87,12 +87,9 @@ export default function ProviderDetailPage() {
         throw new Error('Please login to save favorites');
       }
       if (isFavorited) {
-        await favoriteService.removeFavorite(user.id, providerId);
+        await favoriteService.removeFavorite(providerId);
       } else {
-        await favoriteService.addFavorite({
-          user_id: user.id,
-          provider_id: providerId,
-        });
+        await favoriteService.addFavorite(providerId);
       }
     },
     onMutate: async () => {

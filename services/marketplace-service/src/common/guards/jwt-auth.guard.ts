@@ -48,7 +48,12 @@ export class JwtAuthGuard implements CanActivate {
           .createHmac("sha256", gatewaySecret)
           .update(hmacPayload)
           .digest("hex");
-        if (!receivedHmac || receivedHmac !== expectedHmac) {
+        const receivedBuf = Buffer.from(receivedHmac ?? "", "utf8");
+        const expectedBuf = Buffer.from(expectedHmac, "utf8");
+        const isValid =
+          receivedBuf.length === expectedBuf.length &&
+          crypto.timingSafeEqual(receivedBuf, expectedBuf);
+        if (!receivedHmac || !isValid) {
           throw new UnauthorizedException("Invalid gateway signature.");
         }
       } else if (process.env.NODE_ENV === "production") {

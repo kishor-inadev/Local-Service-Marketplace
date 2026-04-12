@@ -89,6 +89,7 @@ export class RequestRepository {
       created_to,
       sortBy = RequestSortBy.CREATED_AT,
       sortOrder = SortOrder.DESC,
+      search,
     } = queryDto;
 
     [user_id, category_id] = await Promise.all([
@@ -128,6 +129,11 @@ export class RequestRepository {
     if (status) {
       query += ` AND r.status = $${paramIndex++}`;
       values.push(status);
+    }
+
+    if (search) {
+      query += ` AND r.description ILIKE $${paramIndex++}`;
+      values.push(`%${search}%`);
     }
 
     const usingOffset = page !== undefined && page > 0;

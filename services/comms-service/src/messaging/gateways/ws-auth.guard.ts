@@ -67,7 +67,12 @@ export class WsAuthGuard implements CanActivate {
         .update(signatureInput)
         .digest("base64url");
 
-      if (expectedSig !== signatureB64) {
+      const expectedBuf = Buffer.from(expectedSig, "utf8");
+      const receivedBuf = Buffer.from(signatureB64 ?? "", "utf8");
+      const sigValid =
+        expectedBuf.length === receivedBuf.length &&
+        crypto.timingSafeEqual(expectedBuf, receivedBuf);
+      if (!sigValid) {
         this.logger.warn("WebSocket JWT signature verification failed");
         return null;
       }

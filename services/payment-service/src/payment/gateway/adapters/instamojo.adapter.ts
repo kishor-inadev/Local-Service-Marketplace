@@ -168,8 +168,15 @@ export class InstamojoAdapter implements IGatewayAdapter {
   ): boolean {
     const salt = this.configService.get<string>("INSTAMOJO_SALT", "");
     if (!salt) {
+      const nodeEnv = this.configService.get<string>("NODE_ENV", "development");
+      if (nodeEnv === "production" || nodeEnv === "staging") {
+        this.logger.error(
+          "INSTAMOJO_SALT not set — rejecting webhook in production",
+        );
+        return false;
+      }
       this.logger.warn(
-        "INSTAMOJO_SALT not set — skipping webhook verification",
+        "INSTAMOJO_SALT not set — skipping webhook verification in dev",
       );
       return true;
     }

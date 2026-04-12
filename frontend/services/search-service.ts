@@ -38,9 +38,9 @@ class SearchService {
       `/providers?search=${encodeURIComponent(query)}&limit=${limit}`,
     );
 
-    // Handle paginated response
+    // Handle plain array or paginated { data: [...] } response
     const data = response.data;
-    return Array.isArray(data) ? data : [];
+    return extractList<ProviderSearchResult>(data);
   }
 
   /**

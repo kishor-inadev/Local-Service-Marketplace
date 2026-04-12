@@ -20,6 +20,22 @@ export class ProposalRepository {
     return result.rows[0]?.status ?? null;
   }
 
+  /** Returns the total number of proposals ever submitted by a provider for a request (all statuses). */
+  async countProposalsByProviderForRequest(
+    requestId: string,
+    providerId: string,
+  ): Promise<number> {
+    const [resolvedRequestId, resolvedProviderId] = await Promise.all([
+      resolveId(this.pool, "service_requests", requestId),
+      resolveId(this.pool, "providers", providerId),
+    ]);
+    const { rows } = await this.pool.query(
+      `SELECT COUNT(*) FROM proposals WHERE request_id = $1 AND provider_id = $2`,
+      [resolvedRequestId, resolvedProviderId],
+    );
+    return parseInt(rows[0].count, 10);
+  }
+
   async createProposal(dto: CreateProposalDto): Promise<Proposal> {
     const requestId = await resolveId(
       this.pool,

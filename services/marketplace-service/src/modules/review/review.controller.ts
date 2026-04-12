@@ -26,7 +26,7 @@ import { RolesGuard } from "@/common/guards/roles.guard";
 import { Roles } from "@/common/decorators/roles.decorator";
 import { OwnershipGuard } from "@/common/guards/ownership.guard";
 import { Ownership } from "@/common/decorators/ownership.decorator";
-import { ForbiddenException } from "@/common/exceptions/http.exceptions";
+import { ForbiddenException, ConflictException } from "@/common/exceptions/http.exceptions";
 
 @Controller("reviews")
 export class ReviewController {
@@ -146,8 +146,10 @@ export class ReviewController {
     @Param("id", StrictUuidPipe) id: string,
     @Request() req: any,
   ) {
-    const review = await this.reviewRepository.incrementHelpfulCount(id);
-
+    const review = await this.reviewRepository.incrementHelpfulCount(id, req.user.userId);
+    if (!review) {
+      throw new ConflictException("You have already marked this review as helpful");
+    }
     return review;
   }
   /**

@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, Min, IsEnum } from "class-validator";
+import { IsString, IsNumber, IsOptional, Min, Max, IsEnum } from "class-validator";
 
 export class CreatePaymentDto {
   @IsString()
@@ -9,6 +9,7 @@ export class CreatePaymentDto {
 
   @IsNumber()
   @Min(0.01)
+  @Max(1_000_000)
   amount: number;
 
   @IsEnum(["USD", "EUR", "GBP", "INR"])

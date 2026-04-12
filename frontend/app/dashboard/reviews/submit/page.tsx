@@ -68,7 +68,7 @@ function SubmitReviewContent() {
 		onSuccess: () => {
 			toast.success("Review submitted successfully!");
 			analytics.event({ action: "review_submitted", category: "engagement", label: "Job Review", value: rating });
-			router.push(`/jobs/${jobId}`);
+			router.push(ROUTES.DASHBOARD_JOB_DETAIL(jobId!));
 		},
 		onError: (error: any) => {
 			const errorMessage = error.response?.data?.message || "Failed to submit review";

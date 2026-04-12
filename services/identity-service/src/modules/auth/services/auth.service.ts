@@ -654,6 +654,14 @@ export class AuthService {
       throw new UnauthorizedException("User ID is required to update profile");
     }
 
+    // If email is being changed, verify the new address is not already taken
+    if (updateUserDto.email) {
+      const existingUser = await this.userRepo.findByEmail(updateUserDto.email);
+      if (existingUser && existingUser.id !== userId) {
+        throw new ConflictException("Email address is already in use by another account");
+      }
+    }
+
     const updatedUser = await this.userRepo.update(
       userId,
       updateUserDto.name,
