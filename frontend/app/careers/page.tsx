@@ -61,7 +61,7 @@ const careersJsonLd = {
 			'@type': 'JobPosting',
 			title: 'Marketing Specialist',
 			hiringOrganization: { '@type': 'Organization', name: 'Local Service Marketplace', sameAs: SITE_URL },
-			jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'San Francisco', addressRegion: 'CA' } },
+			jobLocation: { '@type': 'Place', address: { '@type': 'PostalAddress', addressLocality: 'Mumbai', addressRegion: 'MH', addressCountry: 'IN' } },
 			employmentType: 'FULL_TIME',
 			datePosted: '2024-01-01',
 			description: 'Drive user acquisition and brand awareness for our marketplace platform.',
@@ -80,7 +80,7 @@ export default function CareersPage() {
     {
       title: 'Product Manager',
       department: 'Product',
-      location: 'New York, NY',
+      location: 'Bengaluru, KA',
       type: 'Full-time',
     },
     {
@@ -92,7 +92,7 @@ export default function CareersPage() {
     {
       title: 'Marketing Specialist',
       department: 'Marketing',
-      location: 'San Francisco, CA',
+      location: 'Mumbai, MH',
       type: 'Full-time',
     },
   ];

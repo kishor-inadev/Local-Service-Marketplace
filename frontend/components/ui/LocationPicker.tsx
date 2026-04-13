@@ -128,7 +128,7 @@ export function LocationPicker({
 
     const defaultCenter = value
       ? { lat: value.lat, lng: value.lng }
-      : { lat: 37.7749, lng: -122.4194 }; // San Francisco default
+      : { lat: 19.0760, lng: 72.8777 }; // Mumbai, India default
 
     const mapInstance = new google.maps.Map(mapRef.current, {
       center: defaultCenter,

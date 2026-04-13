@@ -1,4 +1,4 @@
-services:
+﻿services:
   # Database
   postgres:
     image: postgres:17-alpine
@@ -120,6 +120,7 @@ services:
       - "3001:3001"
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Kolkata
       - PORT=3001
       - SERVICE_NAME=identity-service
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
@@ -185,6 +186,7 @@ services:
       - "3003:3003"
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Kolkata
       - PORT=3003
       - SERVICE_NAME=marketplace-service
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
@@ -245,6 +247,7 @@ services:
       - "3006:3006"
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Kolkata
       - PORT=3006
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
       - DATABASE_HOST=postgres
@@ -331,6 +334,7 @@ services:
       - "3007:3007"
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Kolkata
       - PORT=3007
       - SERVICE_NAME=comms-service
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
@@ -391,6 +395,7 @@ services:
       - "3010:3010"
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Kolkata
       - PORT=3010
       - SERVICE_NAME=oversight-service
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
@@ -448,6 +453,7 @@ services:
       - "3012:3012"
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Kolkata
       - PORT=3012
       - DATABASE_URL=postgresql://${DATABASE_USER}:${DATABASE_PASSWORD}@postgres:5432/${DATABASE_NAME}
       - DATABASE_HOST=postgres
@@ -509,6 +515,7 @@ services:
       - docker.env
     environment:
       - NODE_ENV=production
+      - TZ=Asia/Kolkata
       - PORT=3000
       - FRONTEND_URL=${FRONTEND_URL:-http://localhost:3000}
       - CORS_ORIGIN=${CORS_ORIGIN:-http://localhost:3000}

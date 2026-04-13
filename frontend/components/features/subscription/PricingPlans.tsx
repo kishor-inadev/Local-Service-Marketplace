@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Check, Zap, Star, Crown } from 'lucide-react';
 import { paymentService, type PricingPlan } from '@/services/payment-service';
+import { formatCurrency } from '@/utils/helpers';
 
 export function PricingPlans({ onSelectPlan }: { onSelectPlan?: (_pId: string) => void }) {
   const [plans, setPlans] = useState<PricingPlan[]>([]);
@@ -147,7 +148,7 @@ export function PricingPlans({ onSelectPlan }: { onSelectPlan?: (_pId: string) =
                     <span className={`text-4xl font-bold ${
                       isPlanPopular(plan.name) ? 'text-white' : 'text-gray-900'
                     }`}>
-                      ${plan.price}
+                      {formatCurrency(plan.price, (plan as any).currency || 'INR')}
                     </span>
                     <span className={`${
                       isPlanPopular(plan.name) ? 'text-white text-opacity-75' : 'text-gray-600'

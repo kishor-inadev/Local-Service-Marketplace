@@ -14,6 +14,10 @@ export class Payment {
   status: "pending" | "completed" | "failed" | "refunded";
   transaction_id?: string;
   failed_reason?: string;
+  /** GST rate applied on platform fee (default 18.00 for India) */
+  gst_rate: number;
+  /** GST amount = platform_fee * gst_rate / 100 */
+  gst_amount: number;
   created_at: Date;
   paid_at?: Date;
 

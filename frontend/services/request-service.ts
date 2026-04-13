@@ -33,6 +33,7 @@ export interface ServiceRequest {
 		address?: string;
 		city?: string;
 		state?: string;
+		pincode?: string;
 		zip_code?: string;
 		country?: string;
 	};

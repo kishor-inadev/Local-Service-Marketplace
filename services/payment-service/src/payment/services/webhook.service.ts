@@ -138,7 +138,7 @@ export class WebhookService {
               template: "paymentReceived",
               variables: {
                 amount: payment.amount,
-                currency: payment.currency || "USD",
+                currency: payment.currency || "INR",
                 transactionId: event.transactionId,
                 serviceName: "Service",
               },
@@ -170,7 +170,7 @@ export class WebhookService {
               template: "paymentReceived",
               variables: {
                 amount: payment.amount,
-                currency: payment.currency || "USD",
+                currency: payment.currency || "INR",
                 transactionId: payment.transaction_id,
                 serviceName: "Payment Failed",
                 message:

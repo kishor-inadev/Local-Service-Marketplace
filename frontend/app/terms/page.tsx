@@ -322,8 +322,8 @@ export default function TermsPage() {
               </p>
               <ul className="text-gray-600 dark:text-gray-300 space-y-2">
                 <li>Email: legal@localservicemarketplace.com</li>
-                <li>Phone: +1 (234) 567-890</li>
-                <li>Address: 123 Service Street, San Francisco, CA 94102</li>
+                <li>Phone: +91 80456 78900 (Mon–Fri, 10 AM–6 PM IST)</li>
+                <li>Address: Local Service Marketplace Pvt. Ltd., 4th Floor, Tech Park, BKC, Mumbai – 400 051, Maharashtra, India</li>
               </ul>
             </section>
           </div>

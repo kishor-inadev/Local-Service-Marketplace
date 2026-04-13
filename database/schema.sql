@@ -23,7 +23,7 @@ CREATE TABLE users (
   email_verified BOOLEAN DEFAULT false,
   phone_verified BOOLEAN DEFAULT false,
   profile_picture_url TEXT,
-  timezone VARCHAR(100) DEFAULT 'UTC',
+  timezone VARCHAR(100) DEFAULT 'Asia/Kolkata',
   language VARCHAR(10) DEFAULT 'en',
   last_login_at TIMESTAMP,
   status TEXT DEFAULT 'active' CHECK (status IN ('active', 'suspended', 'deleted')),
@@ -259,6 +259,9 @@ CREATE TABLE providers (
   response_time_avg DECIMAL(10, 2),
   verification_status TEXT DEFAULT 'pending' CHECK (verification_status IN ('pending', 'verified', 'rejected')),
   certifications JSONB,
+  gstin VARCHAR(15) CHECK (gstin IS NULL OR gstin ~ '^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z][1-9A-Z]Z[0-9A-Z]$'),
+  pan VARCHAR(10) CHECK (pan IS NULL OR pan ~ '^[A-Z]{5}[0-9]{4}[A-Z]$'),
+  aadhar_verified BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMP DEFAULT now() NOT NULL,
   updated_at TIMESTAMP,
   deleted_at TIMESTAMP
@@ -323,8 +326,11 @@ CREATE TABLE locations (
   address TEXT,
   city TEXT,
   state TEXT,
+  state_code CHAR(2),
   zip_code TEXT,
-  country TEXT DEFAULT 'US',
+  pincode CHAR(6) CHECK (pincode IS NULL OR pincode ~ '^\d{6}$'),
+  district VARCHAR(100),
+  country TEXT DEFAULT 'IN',
   created_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
@@ -453,12 +459,14 @@ CREATE TABLE payments (
   amount BIGINT NOT NULL CHECK (amount > 0),
   platform_fee BIGINT DEFAULT 0,
   provider_amount BIGINT,
-  currency TEXT NOT NULL,
+  currency TEXT NOT NULL DEFAULT 'INR',
   payment_method TEXT,
   gateway TEXT NOT NULL DEFAULT 'mock',
   status TEXT NOT NULL CHECK (status IN ('pending', 'completed', 'failed', 'refunded')),
   transaction_id TEXT,
   failed_reason TEXT,
+  gst_amount NUMERIC(12,2) DEFAULT 0,
+  gst_rate NUMERIC(5,2) DEFAULT 18.00,
   created_at TIMESTAMP DEFAULT now() NOT NULL,
   paid_at TIMESTAMP
 );
@@ -1370,6 +1378,7 @@ CREATE TABLE pricing_plans (
   name VARCHAR(100) NOT NULL,
   description TEXT,
   price BIGINT NOT NULL CHECK (price >= 0),
+  currency VARCHAR(3) DEFAULT 'INR',
   billing_period TEXT NOT NULL CHECK (billing_period IN ('monthly', 'yearly')),
   features JSONB,
   active BOOLEAN DEFAULT true,
@@ -2286,6 +2295,7 @@ VALUES
   ('022', 'add_review_helpful_votes', 'integrated_in_schema', 0),
   ('023', 'schema_integrity_fixes', 'integrated_in_schema', 0),
   ('024', 'rbac_dynamic_permissions', 'integrated_in_schema', 0),
-  ('025', 'add_conversations_table', 'integrated_in_schema', 0)
+  ('025', 'add_conversations_table', 'integrated_in_schema', 0),
+  ('026', 'india_localization', 'integrated_in_schema', 0)
 ON CONFLICT (version) DO NOTHING;
 

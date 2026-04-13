@@ -32,13 +32,17 @@ export class PaymentRepository {
     // Calculate platform fee (10%)
     const platformFee = Math.floor(amount * 0.1);
     const providerAmount = amount - platformFee;
+    // GST at 18% applies on the platform commission (platform_fee)
+    const gstRate = 18.00;
+    const gstAmount = parseFloat((platformFee * gstRate / 100).toFixed(2));
 
     const query = `
       INSERT INTO payments (
         id, job_id, user_id, provider_id, amount, platform_fee,
-        provider_amount, currency, payment_method, gateway, status, transaction_id, created_at
+        provider_amount, currency, payment_method, gateway, status, transaction_id,
+        gst_rate, gst_amount, created_at
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW())
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW())
       RETURNING *
     `;
     const values = [
@@ -54,6 +58,8 @@ export class PaymentRepository {
       gateway ?? "mock",
       "pending",
       transactionId,
+      gstRate,
+      gstAmount,
     ];
     const result = await this.pool.query(query, values);
     return new Payment({
@@ -71,6 +77,8 @@ export class PaymentRepository {
       status: result.rows[0].status,
       transaction_id: result.rows[0].transaction_id,
       failed_reason: result.rows[0].failed_reason,
+      gst_rate: parseFloat(result.rows[0].gst_rate ?? '18'),
+      gst_amount: parseFloat(result.rows[0].gst_amount ?? '0'),
       created_at: result.rows[0].created_at,
     });
   }

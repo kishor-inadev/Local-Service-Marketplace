@@ -38,7 +38,7 @@ function JobCheckout({ jobId }: { jobId: string }) {
 				job_id: job.id,
 				provider_id: job.provider_id || (job as any)?.provider?.id || "",
 				amount: job.actual_amount || 0,
-				currency: "USD",
+				currency: "INR",
 			});
 		},
 		onSuccess: () => {

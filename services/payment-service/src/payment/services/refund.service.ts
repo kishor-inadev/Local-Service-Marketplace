@@ -95,7 +95,7 @@ export class RefundService {
           template: "paymentReceived",
           variables: {
             amount: refundAmount,
-            currency: payment.currency || "USD",
+            currency: payment.currency || "INR",
             transactionId: payment.transaction_id,
             serviceName: "Refund Initiated",
             message:

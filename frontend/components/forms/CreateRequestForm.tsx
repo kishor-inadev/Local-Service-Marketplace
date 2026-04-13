@@ -34,13 +34,13 @@ const createRequestFormSchema = z.object({
   budget: z.coerce
     .number()
     .positive('Budget must be greater than 0')
-    .max(1_000_000, 'Budget cannot exceed $1,000,000'),
+    .max(10_000_000, 'Budget cannot exceed \u20b910,00,000'),
   urgency: z.enum(['low', 'medium', 'high', 'urgent']).default('medium'),
   preferred_date: z.string().optional(),
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  zip_code: z.string().optional(),
+  pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits').optional().or(z.literal('')),
 });
 
 type RequestFormData = z.infer<typeof createRequestFormSchema>;
@@ -106,8 +106,8 @@ export function CreateRequestForm({ initialQuery = '', onSuccess }: Props) {
                 address: data.address,
                 city: data.city,
                 state: data.state,
-                zipCode: data.zip_code,
-                country: 'US',
+                zipCode: data.pincode,
+                country: 'IN',
                 latitude: 0,
                 longitude: 0,
               }
@@ -276,11 +276,11 @@ export function CreateRequestForm({ initialQuery = '', onSuccess }: Props) {
               </div>
 
               <Input
-                label="Your budget (USD)"
+                label="Your budget (\u20b9)"
                 type="number"
                 min={1}
-                step={0.01}
-                placeholder="e.g. 150"
+                step={1}
+                placeholder="e.g. 500"
                 error={errors.budget?.message}
                 required
                 {...register('budget')}
@@ -336,12 +336,12 @@ export function CreateRequestForm({ initialQuery = '', onSuccess }: Props) {
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-0.5">Help providers know if they serve your area</p>
             </CardHeader>
             <CardContent className="p-6 space-y-4">
-              <Input label="Street address" placeholder="123 Main St" {...register('address')} />
+              <Input label="Street address" placeholder="e.g. 45, MG Road" {...register('address')} />
               <div className="grid grid-cols-2 gap-4">
-                <Input label="City" placeholder="New York" {...register('city')} />
-                <Input label="State" placeholder="NY" {...register('state')} />
+                <Input label="City" placeholder="Mumbai" {...register('city')} />
+                <Input label="State" placeholder="Maharashtra" {...register('state')} />
               </div>
-              <Input label="ZIP / Postal code" placeholder="10001" {...register('zip_code')} />
+              <Input label="Pincode" placeholder="400001" {...register('pincode')} />
               <p className="text-xs text-gray-400 dark:text-gray-500 flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5" />
                 Location is only shared with providers you contact. You can skip this step.
@@ -361,7 +361,7 @@ export function CreateRequestForm({ initialQuery = '', onSuccess }: Props) {
               <div className="rounded-xl border border-gray-100 dark:border-gray-800 divide-y divide-gray-100 dark:divide-gray-800">
                 <ReviewRow label="Category" value={selectedCategory?.name ?? '—'} />
                 <ReviewRow label="Description" value={watchedValues.description} multiline />
-                <ReviewRow label="Budget" value={`$${watchedValues.budget ?? 0}`} />
+                <ReviewRow label="Budget" value={`\u20b9${watchedValues.budget ?? 0}`} />
                 <ReviewRow
                   label="Urgency"
                   value={URGENCY_OPTIONS.find((o) => o.value === watchedValues.urgency)?.label ?? '—'}
