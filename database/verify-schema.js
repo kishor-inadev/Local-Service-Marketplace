@@ -65,6 +65,18 @@ const REQUIRED_TABLES = [
 	"notification_preferences",
 	"unsubscribes",
 	"provider_review_aggregates",
+	// RBAC tables (seeded via roles/permissions/role_permissions)
+	"roles",
+	"permissions",
+	"role_permissions",
+	// Populated by trigger on message insert
+	"conversations",
+	// Seeded via review helpful votes
+	"review_helpful_votes",
+	// Dead-letter queue for BullMQ workers
+	"failed_jobs",
+	// Migration tracking infrastructure
+	"schema_migrations",
 ];
 
 async function verifySchema() {

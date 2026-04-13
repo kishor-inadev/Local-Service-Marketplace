@@ -18,9 +18,9 @@ CREATE TABLE IF NOT EXISTS conversations (
   updated_at TIMESTAMP DEFAULT now() NOT NULL
 );
 
-CREATE INDEX idx_conversations_customer_id ON conversations(customer_id);
-CREATE INDEX idx_conversations_provider_id ON conversations(provider_id);
-CREATE INDEX idx_conversations_last_message_at ON conversations(last_message_at DESC);
+CREATE INDEX IF NOT EXISTS idx_conversations_customer_id ON conversations(customer_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_provider_id ON conversations(provider_id);
+CREATE INDEX IF NOT EXISTS idx_conversations_last_message_at ON conversations(last_message_at DESC);
 
 -- Backfill from existing messages + jobs data
 INSERT INTO conversations (job_id, customer_id, provider_id, last_message, last_message_at, created_at)
