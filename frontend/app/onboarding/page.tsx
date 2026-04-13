@@ -36,6 +36,7 @@ export default function OnboardingPage() {
   const [businessName, setBusinessName] = useState('');
   const [description, setDescription] = useState('');
   const [phone, setPhone] = useState('');
+  const [gstin, setGstin] = useState('');
 
   // Step: Services
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
@@ -234,9 +235,21 @@ export default function OnboardingPage() {
                       type="tel"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      placeholder="+1 (555) 000-0000"
+                      placeholder="+91 98765 43210"
                       className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500"
                     />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">GSTIN <span className="text-gray-400 font-normal">(optional)</span></label>
+                    <input
+                      type="text"
+                      value={gstin}
+                      onChange={(e) => setGstin(e.target.value.toUpperCase())}
+                      placeholder="e.g. 27AAPFU0939F1ZV"
+                      maxLength={15}
+                      className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-primary-500 font-mono"
+                    />
+                    <p className="text-xs text-gray-400 mt-1">Your GST Identification Number for tax invoices</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Business Description *</label>

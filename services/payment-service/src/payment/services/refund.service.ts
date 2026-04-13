@@ -92,14 +92,13 @@ export class RefundService {
       this.notificationClient
         .sendEmail({
           to: userEmail,
-          template: "paymentReceived",
+          template: 'PAYMENT_REFUNDED',
           variables: {
-            amount: refundAmount,
-            currency: payment.currency || "USD",
+            username: userEmail.split('@')[0],
+            amount: `₹${refundAmount}`,
             transactionId: payment.transaction_id,
-            serviceName: "Refund Initiated",
-            message:
-              "Your refund is being processed and should appear in your account within 5-10 business days.",
+            refundId: refund.id,
+            refundDate: new Date().toLocaleDateString('en-IN'),
           },
         })
         .catch((err: any) => {

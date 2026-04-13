@@ -104,8 +104,13 @@ export class ReviewService {
         if (!email) return;
         this.notificationClient.sendEmail({
           to: email,
-          template: 'reviewReceived',
-          variables: { reviewId: review.id, rating: review.rating },
+          template: 'REVIEW_REMINDER',
+          variables: {
+            username: email.split('@')[0],
+            productName: `Job review`,
+            orderId: review.id,
+            purchaseDate: new Date().toLocaleDateString('en-IN'),
+          },
         });
       }).catch((err: any) => {
         this.logger.warn(

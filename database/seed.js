@@ -1,4 +1,4 @@
-// =================================================================
+﻿// =================================================================
 // LOCAL SERVICE MARKETPLACE — DATABASE SEEDER
 // Covers all 50 tables, all FK constraints, all CHECK constraints
 // =================================================================
@@ -109,34 +109,39 @@ const safeInsert = async (query, params, retries = 5) => {
 };
 
 const serviceCategories = [
-	{ name: "Plumbing", description: "Plumbing services including repairs, installations, and maintenance", icon: "🔧" },
+	{ name: "Plumbing", description: "Plumbing repairs, installations, and maintenance", icon: "🔧" },
 	{ name: "Electrical", description: "Electrical services and repairs", icon: "⚡" },
 	{ name: "Carpentry", description: "Carpentry and woodwork services", icon: "🔨" },
 	{ name: "Painting", description: "Interior and exterior painting services", icon: "🎨" },
-	{ name: "Cleaning", description: "House and office cleaning services", icon: "🧹" },
-	{ name: "HVAC", description: "Heating, ventilation, and air conditioning services", icon: "❄️" },
-	{ name: "Landscaping", description: "Garden and lawn care services", icon: "🌳" },
-	{ name: "Roofing", description: "Roof repair and installation", icon: "🏠" },
-	{ name: "Moving", description: "Moving and relocation services", icon: "📦" },
-	{ name: "Pest Control", description: "Pest control and extermination", icon: "🐛" },
+	{ name: "Cleaning", description: "Home and office deep cleaning services", icon: "🧹" },
+	{ name: "AC Service & Repair", description: "Air conditioner servicing, installation and repair", icon: "❄️" },
+	{ name: "Pest Control", description: "Pest control and extermination services", icon: "🐛" },
 	{ name: "Appliance Repair", description: "Repair of household appliances", icon: "🔧" },
-	{ name: "Locksmith", description: "Lock installation and repair services", icon: "🔑" },
-	{ name: "Window Cleaning", description: "Professional window cleaning", icon: "🪟" },
-	{ name: "Flooring", description: "Floor installation and repair", icon: "📏" },
-	{ name: "Auto Repair", description: "Vehicle maintenance and repair", icon: "🚗" },
+	{ name: "Home Tutor", description: "Private tutoring for school and competitive exams", icon: "📚" },
+	{ name: "Mobile Repair", description: "Smartphone and tablet repair services", icon: "📱" },
+	{ name: "Cook / Home Chef", description: "Personal cook or tiffin service at home", icon: "👨‍🍳" },
+	{ name: "Computer Repair", description: "Laptop and desktop repair services", icon: "💻" },
+	{ name: "Beauty & Grooming", description: "Salon and grooming services at home", icon: "💇" },
+	{ name: "Packers & Movers", description: "Packing and moving household goods", icon: "📦" },
+	{ name: "Water Purifier Service", description: "RO and water purifier installation and service", icon: "💧" },
+	{ name: "CCTV Installation", description: "Security camera installation and maintenance", icon: "📹" },
+	{ name: "Yoga / Fitness Trainer", description: "Personal yoga and fitness training at home", icon: "🧘" },
+	{ name: "Car Wash & Detailing", description: "Car washing and detailing at doorstep", icon: "🚗" },
+	{ name: "Tailoring & Alterations", description: "Clothing stitching and alteration services", icon: "🧵" },
+	{ name: "Inverter & Battery Service", description: "UPS, inverter and battery service and repair", icon: "🔋" },
 ];
 
 const cities = [
-	{ name: "New York", state: "NY", lat: 40.7128, lng: -74.006 },
-	{ name: "Los Angeles", state: "CA", lat: 34.0522, lng: -118.2437 },
-	{ name: "Chicago", state: "IL", lat: 41.8781, lng: -87.6298 },
-	{ name: "Houston", state: "TX", lat: 29.7604, lng: -95.3698 },
-	{ name: "Phoenix", state: "AZ", lat: 33.4484, lng: -112.074 },
-	{ name: "Philadelphia", state: "PA", lat: 39.9526, lng: -75.1652 },
-	{ name: "San Antonio", state: "TX", lat: 29.4241, lng: -98.4936 },
-	{ name: "San Diego", state: "CA", lat: 32.7157, lng: -117.1611 },
-	{ name: "Dallas", state: "TX", lat: 32.7767, lng: -96.797 },
-	{ name: "San Jose", state: "CA", lat: 37.3382, lng: -121.8863 },
+	{ name: "Mumbai", state: "MH", lat: 19.0760, lng: 72.8777 },
+	{ name: "Delhi", state: "DL", lat: 28.6139, lng: 77.2090 },
+	{ name: "Bengaluru", state: "KA", lat: 12.9716, lng: 77.5946 },
+	{ name: "Chennai", state: "TN", lat: 13.0827, lng: 80.2707 },
+	{ name: "Hyderabad", state: "TS", lat: 17.3850, lng: 78.4867 },
+	{ name: "Pune", state: "MH", lat: 18.5204, lng: 73.8567 },
+	{ name: "Ahmedabad", state: "GJ", lat: 23.0225, lng: 72.5714 },
+	{ name: "Kolkata", state: "WB", lat: 22.5726, lng: 88.3639 },
+	{ name: "Jaipur", state: "RJ", lat: 26.9124, lng: 75.7873 },
+	{ name: "Surat", state: "GJ", lat: 21.1702, lng: 72.8311 },
 ];
 
 class DatabaseSeeder {
@@ -587,13 +592,13 @@ class DatabaseSeeder {
 					displayId('USR'),
 					email,
 					`${firstName} ${lastName}`,
-					`+1${randomInt(2000000000, 9999999999)}`,
+					`+91${randomInt(6000000000, 9999999999)}`,
 					hashedPassword,
 					"customer",
 					randomInt(0, 1) === 1,
 					randomInt(0, 1) === 1,
 					faker.image.avatar(),
-					faker.location.timeZone(),
+					'Asia/Kolkata',
 					"en",
 					randomDate(new Date(2024, 0, 1), new Date()),
 					randomPick(["active", "active", "active", "suspended"]),
@@ -627,13 +632,13 @@ class DatabaseSeeder {
 					displayId('USR'),
 					email,
 					`${firstName} ${lastName}`,
-					`+1${randomInt(2000000000, 9999999999)}`,
+					`+91${randomInt(6000000000, 9999999999)}`,
 					hashedPassword,
 					"provider",
 					true,
 					true,
 					faker.image.avatar(),
-					faker.location.timeZone(),
+					'Asia/Kolkata',
 					"en",
 					randomDate(new Date(2024, 0, 1), new Date()),
 					"active",
@@ -1041,7 +1046,7 @@ class DatabaseSeeder {
 			if (isAnonymous || this.customerIds.length === 0) {
 				guestName = faker.person.fullName();
 				guestEmail = uniqueEmail(faker.person.firstName(), faker.person.lastName());
-				guestPhone = `+1${randomInt(2000000000, 9999999999)}`;
+				guestPhone = `+91${randomInt(6000000000, 9999999999)}`;
 			} else {
 				userId = randomPick(this.customerIds);
 			}
@@ -1243,7 +1248,7 @@ class DatabaseSeeder {
 	async seedPaymentWebhooks() {
 		console.log("🔔 Seeding payment webhooks...");
 		let count = 0;
-		const gateways = ["mock", "stripe", "paypal"];
+		const gateways = ["razorpay", "stripe", "paypal"];
 		const eventTypes = ["payment.completed", "payment.failed", "refund.created", "subscription.cancelled"];
 		for (let i = 0; i < 200; i++) {
 			const externalId = crypto.randomBytes(8).toString("hex").toUpperCase();
@@ -1298,9 +1303,9 @@ class DatabaseSeeder {
 					amount,
 					platformFee,
 					providerAmount,
-					"USD",
-					randomPick(["card", "paypal", "bank_transfer"]),
-					"mock",
+					"INR",
+					randomPick(["card", "upi", "netbanking"]),
+					"razorpay",
 					status,
 					crypto.randomBytes(8).toString("hex").toUpperCase(),
 					randomDate(new Date(2024, 0, 1), new Date()),
@@ -2037,14 +2042,14 @@ class DatabaseSeeder {
 			{
 				name: "Basic",
 				description: "For individual service providers",
-				price: 999,
+				price: 299,
 				billing_period: "monthly",
-				features: JSON.stringify(["Up to 20 proposals/month", "Enhanced profile", "Priority email support"]),
+				features: JSON.stringify(["Up to 10 proposals/month", "Enhanced profile", "Priority email support"]),
 			},
 			{
 				name: "Professional",
 				description: "For established professionals",
-				price: 2999,
+				price: 999,
 				billing_period: "monthly",
 				features: JSON.stringify([
 					"Unlimited proposals",
@@ -2056,7 +2061,7 @@ class DatabaseSeeder {
 			{
 				name: "Business",
 				description: "For service businesses and teams",
-				price: 9999,
+				price: 2499,
 				billing_period: "monthly",
 				features: JSON.stringify([
 					"Everything in Pro",
@@ -2069,7 +2074,7 @@ class DatabaseSeeder {
 			{
 				name: "Professional Annual",
 				description: "Professional plan billed annually (save 20%)",
-				price: 28788,
+				price: 9588,
 				billing_period: "yearly",
 				features: JSON.stringify(["Everything in Professional", "2 months free", "Annual savings"]),
 			},

@@ -34,8 +34,8 @@ export class AdminCreateUserDto {
 
   @IsOptional()
   @IsString()
-  @Matches(/^\+?[0-9]{10,15}$/, {
-    message: "phone must be a valid E.164-like number",
+  @Matches(/^(\+91)?[6-9]\d{9}$/, {
+    message: "Phone must be a valid 10-digit Indian mobile number",
   })
   phone?: string;
 

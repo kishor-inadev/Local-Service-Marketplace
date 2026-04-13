@@ -96,6 +96,11 @@ export class UserClient {
     return user?.email || null;
   }
 
+  async getUserName(userId: string): Promise<string | null> {
+    const user = await this.getUserById(userId);
+    return user?.name || user?.email?.split('@')[0] || null;
+  }
+
   async getUserPhone(userId: string): Promise<string | null> {
     const user = await this.getUserById(userId);
     return user?.phone || null;

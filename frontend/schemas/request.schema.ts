@@ -9,7 +9,9 @@ export const locationSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
-  zip_code: z.string().optional(),
+  state_code: z.string().max(2).optional(),
+  district: z.string().optional(),
+  pincode: z.string().regex(/^\d{6}$/, 'Pincode must be 6 digits').optional().or(z.literal('')),
   country: z.string().optional(),
 });
 
@@ -28,7 +30,7 @@ export const createRequestSchema = z.object({
   budget: z
     .coerce.number()
     .positive('Budget must be greater than 0')
-    .max(1000000, 'Budget must not exceed 1,000,000'),
+    .max(10000000, 'Budget cannot exceed \u20b910,00,000'),
   location: locationSchema.optional(),
 });
 

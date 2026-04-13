@@ -166,11 +166,11 @@ export class AuthService {
       if (passwordWasGenerated) {
         const passwordPayload = {
           to: email,
-          template: 'generatedPassword',
+          template: 'MARKETPLACE_WELCOME',
           variables: {
             name: displayName,
-            password: rawPassword,
-            loginUrl: `${frontendUrl}/login`,
+            email,
+            dashboardUrl: `${frontendUrl}/dashboard`,
           },
         };
         const passwordDispatch = this.workersEnabled
@@ -190,10 +190,10 @@ export class AuthService {
       // Send email verification link (non-blocking)
       const verificationPayload = {
         to: email,
-        template: 'emailVerification',
+        template: 'MARKETPLACE_EMAIL_VERIFICATION',
         variables: {
           name: displayName,
-          verificationUrl: `${frontendUrl}/verify-email?token=${verificationToken}`,
+          verificationLink: `${frontendUrl}/verify-email?token=${verificationToken}`,
         },
       };
       const verificationDispatch = this.workersEnabled
@@ -291,7 +291,7 @@ export class AuthService {
           userId: user.id,
           username: name || user.email.split("@")[0],
           email: user.email,
-          dashboardUrl: `${this.configService.get<string>("FRONTEND_URL", "http://localhost:3000")}/dashboard`,
+          verifyLink: `${this.configService.get<string>("FRONTEND_URL", "http://localhost:3000")}/verify-email?token=${verificationToken}`,
         },
       })
       .catch((err: any) => {
@@ -310,12 +310,10 @@ export class AuthService {
     this.notificationClient
       .sendEmail({
         to: user.email,
-        template: "USER_VERIFICATION",
+        template: 'MARKETPLACE_EMAIL_VERIFICATION',
         variables: {
-          userId: user.id,
-          username: name || user.email.split("@")[0],
-          email: user.email,
-          verifyLink: `${frontendUrl}/verify-email?token=${verificationToken}`,
+          name: name || user.email.split('@')[0],
+          verificationLink: `${frontendUrl}/verify-email?token=${verificationToken}`,
         },
       })
       .catch((err: any) => {
@@ -582,10 +580,10 @@ export class AuthService {
     const frontendUrl = this.configService.get<string>("FRONTEND_URL", "http://localhost:3000");
     const resetPayload = {
       to: user.email,
-      template: 'passwordReset',
+      template: 'MARKETPLACE_PASSWORD_RESET',
       variables: {
         name: user.name || user.email.split('@')[0],
-        resetUrl: `${frontendUrl}/reset-password?token=${resetToken}`,
+        resetLink: `${frontendUrl}/reset-password?token=${resetToken}`,
       },
     };
     const resetDispatch = this.workersEnabled
@@ -1237,8 +1235,14 @@ export class AuthService {
     void this.notificationClient
       .sendEmail({
         to: normalizedEmail,
-        template: "email-otp",
-        variables: { name: user.name, code: otp, expiresInMinutes: 10 },
+        template: 'otpEmailTemplate',
+        variables: {
+          name: user.name || normalizedEmail.split('@')[0],
+          username: user.name || normalizedEmail.split('@')[0],
+          otp,
+          purpose: 'login',
+          expiryMinutes: 10,
+        },
       })
       .then((sent) => {
         if (!sent) {
@@ -1742,10 +1746,10 @@ export class AuthService {
     const sent = await this.notificationClient
       .sendEmail({
         to: email,
-        template: "emailVerification",
+        template: 'MARKETPLACE_EMAIL_VERIFICATION',
         variables: {
-          name: user.name || email.split("@")[0],
-          verificationUrl: `${frontendUrl}/verify-email?token=${token}`,
+          name: user.name || email.split('@')[0],
+          verificationLink: `${frontendUrl}/verify-email?token=${token}`,
         },
       })
       .catch((err: any) => {
@@ -1800,8 +1804,14 @@ export class AuthService {
       this.notificationQueue
         .add('send-account-deactivated', {
           to: user.email,
-          template: 'accountDeactivated',
-          variables: { name: user.name || user.email.split('@')[0], reason: reason ?? '' },
+          template: 'USER_SUSPENDED',
+          variables: {
+            userId: user.id,
+            username: user.name || user.email.split('@')[0],
+            email: user.email,
+            timestamp: new Date().toISOString(),
+            reason: reason ?? 'Account deactivated',
+          },
         })
         .catch(() => null);
     }
@@ -1834,10 +1844,13 @@ export class AuthService {
     this.notificationQueue
       .add('send-account-deletion-requested', {
         to: user.email,
-        template: 'accountDeletionRequested',
+        template: 'USER_DELETED',
         variables: {
-          name: user.name || user.email.split("@")[0],
-          gracePeriodDays: 30,
+          userId: user.id,
+          username: user.name || user.email.split('@')[0],
+          email: user.email,
+          timestamp: new Date().toISOString(),
+          reason: reason ?? 'Account deletion requested',
         },
       })
       .catch((err: any) =>
@@ -1964,8 +1977,12 @@ export class AuthService {
     this.notificationClient
       .sendEmail({
         to: email,
-        template: "magicLink",
-        variables: { name: user?.name || email.split("@")[0], magicLink },
+        template: 'MAGIC_LINK',
+        variables: {
+          username: user?.name || email.split('@')[0],
+          magicUrl: magicLink,
+          expiryMinutes: 60,
+        },
       })
       .catch((err: any) => {
         this.logger.error("Failed to send magic link email", {

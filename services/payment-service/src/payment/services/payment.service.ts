@@ -161,8 +161,14 @@ export class PaymentService {
       } else {
         this.notificationClient.sendEmail({
           to: userEmail,
-          template: 'paymentReceived',
-          variables: { amount: finalAmount, currency, transactionId: chargeResult.transactionId, serviceName: 'Service' },
+          template: 'PAYMENT_SUCCESS',
+          variables: {
+            username: userEmail.split('@')[0],
+            amount: `₹${finalAmount}`,
+            transactionId: chargeResult.transactionId,
+            paymentMethod: 'Online Payment',
+            date: new Date().toLocaleDateString('en-IN'),
+          },
         }).catch((err: any) => {
           this.logger.warn(`Failed to send payment confirmation: ${err.message}`, 'PaymentService');
         });
@@ -358,7 +364,7 @@ export class PaymentService {
         total_paid: parseFloat(summary.total_paid) || 0,
         pending_payout: parseFloat(summary.pending_payout) || 0,
         completed_count: parseInt(summary.completed_count) || 0,
-        currency: summary.currency || "USD",
+        currency: summary.currency || "INR",
       },
       monthly: monthly.map((m) => ({
         month: m.month,
@@ -422,7 +428,7 @@ export class PaymentService {
       status: t.status,
       payment_method: t.payment_method || "card",
       transaction_id: t.transaction_id || "",
-      currency: t.currency || "USD",
+      currency: t.currency || "INR",
       created_at: t.created_at,
       paid_at: t.paid_at || null,
       customer_name: userNameMap[t.user_id] || "Unknown",

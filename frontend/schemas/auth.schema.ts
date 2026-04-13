@@ -19,7 +19,7 @@ export const signupSchema = z.object({
 	userType: z.enum(["customer", "provider"]),
 	phone: z
 		.string()
-		.regex(/^\+?[1-9]\d{1,14}$/, "Invalid phone number format")
+		.regex(/^(\+91)?[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number")
 		.optional()
 		.or(z.literal("")),
 });

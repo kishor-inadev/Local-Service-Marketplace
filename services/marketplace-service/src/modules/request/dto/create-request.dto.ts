@@ -12,6 +12,7 @@ import {
   IsDateString,
   ArrayMaxSize,
   IsUrl,
+  Matches,
 } from "class-validator";
 import { Type } from "class-transformer";
 
@@ -40,7 +41,12 @@ export class LocationDto {
 
   @IsOptional()
   @IsString()
-  zipCode?: string;
+  @Matches(/^\d{6}$/, { message: "Pincode must be a 6-digit number" })
+  pincode?: string;
+
+  @IsOptional()
+  @IsString()
+  district?: string;
 
   @IsOptional()
   @IsString()

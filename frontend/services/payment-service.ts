@@ -34,7 +34,7 @@ export interface CreatePaymentData {
 	job_id: string;
 	provider_id: string;
 	amount: number;
-	currency: "USD" | "EUR" | "GBP" | "INR";
+	currency: "INR" | "USD" | "EUR" | "GBP";
 	payment_method?: string;
 	coupon_code?: string;
 	/** Optional gateway override. Maps to the X-Payment-Gateway request header.

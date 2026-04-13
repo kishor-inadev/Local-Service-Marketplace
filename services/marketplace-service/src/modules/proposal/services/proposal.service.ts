@@ -135,12 +135,16 @@ export class ProposalService {
       } else {
         this.notificationClient.sendEmail({
           to: customerEmail,
-          template: 'newProposal',
+          template: 'MARKETPLACE_PROPOSAL_RECEIVED',
           variables: {
-            providerId: proposal.provider_id,
-            requestId: proposal.request_id,
-            proposalId: proposal.id,
-            price: proposal.price,
+            customerName: customerEmail.split('@')[0],
+            providerName: 'Service Provider',
+            requestTitle: `Request #${proposal.request_id}`,
+            price: proposal.price ? `₹${proposal.price}` : 'To be confirmed',
+            estimatedDuration: 'To be confirmed',
+            proposalDisplayId: proposal.id,
+            requestDisplayId: proposal.request_id,
+            proposalUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${proposal.request_id}/proposals/${proposal.id}`,
           },
         }).catch((err: any) => {
           this.logger.warn(
@@ -310,10 +314,15 @@ export class ProposalService {
       } else {
         this.notificationClient.sendEmail({
           to: providerEmail,
-          template: 'proposalAccepted',
+          template: 'MARKETPLACE_JOB_ASSIGNED',
           variables: {
-            requestId: proposal.request_id,
-            proposalId: proposal.id,
+            providerName: providerEmail.split('@')[0],
+            requestTitle: `Request #${proposal.request_id}`,
+            customerName: customerName,
+            price: existingProposal.price ? `₹${existingProposal.price}` : 'Agreed price',
+            startDate: new Date().toLocaleDateString('en-IN'),
+            jobDisplayId: job.id,
+            jobUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/jobs/${job.id}`,
           },
         }).catch((err: any) => {
           this.logger.warn(

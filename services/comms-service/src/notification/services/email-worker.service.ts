@@ -67,8 +67,13 @@ export class EmailWorkerService {
           await this.emailClient.sendEmail({
             to: userEmail,
             subject: notification.type || "Notification",
-            template: "notification",
-            variables: { type: notification.type, message: notification.message },
+            template: "MESSAGE_RECEIVED",
+            variables: {
+              recipientName: userEmail.split('@')[0],
+              senderName: 'LocalServices',
+              messagePreview: notification.message || notification.type || 'You have a new notification.',
+              replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/notifications`,
+            },
           });
 
           // Mark delivery as sent

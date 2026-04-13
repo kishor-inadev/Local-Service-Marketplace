@@ -85,10 +85,12 @@ export class DigestWorker extends WorkerHost implements OnModuleInit {
         await this.emailClient.sendEmail({
           to: userEmail,
           subject: 'Your Daily Notification Digest',
-          template: 'unread-digest',
+          template: 'NOTIFICATION_DIGEST',
           variables: {
+            username: userEmail.split('@')[0],
             unreadCount: group.count,
             notifications: group.notifications?.slice(0, 5) ?? [],
+            digestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/notifications`,
           },
         });
         sent++;
