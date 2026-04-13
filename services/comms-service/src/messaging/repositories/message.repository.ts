@@ -73,6 +73,23 @@ export class MessageRepository {
     return senderResult.rows.length > 0;
   }
 
+  /** Returns the user_id of the other participant in the job (not the sender). */
+  async getJobRecipientId(jobId: string, senderId: string): Promise<string | null> {
+    const query = `
+      SELECT customer_id, provider_id
+      FROM jobs
+      WHERE id = $1
+      LIMIT 1
+    `;
+    const result = await this.pool.query(query, [jobId]);
+    if (result.rows.length === 0) return null;
+    const { customer_id, provider_id } = result.rows[0];
+    if (customer_id === senderId) return provider_id;
+    if (provider_id === senderId) return customer_id;
+    // sender is not a direct participant (e.g. matched by display_id) — default to customer
+    return customer_id ?? null;
+  }
+
   async getMessagesForJob(
     jobId: string,
     page: number = 1,

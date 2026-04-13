@@ -283,46 +283,50 @@ export class AuthService {
     });
 
     // Send welcome email
-    this.notificationClient
-      .sendEmail({
-        to: user.email,
-        template: "USER_WELCOME",
-        variables: {
-          userId: user.id,
-          username: name || user.email.split("@")[0],
-          email: user.email,
-          verifyLink: `${this.configService.get<string>("FRONTEND_URL", "http://localhost:3000")}/verify-email?token=${verificationToken}`,
-        },
-      })
-      .catch((err: any) => {
-        this.logger.error("Failed to send welcome email", {
-          context: "AuthService",
-          error: err.message,
-          userId: user.id,
-        });
+    const welcomePayload = {
+      to: user.email,
+      template: "USER_WELCOME",
+      variables: {
+        userId: user.id,
+        username: name || user.email.split("@")[0],
+        email: user.email,
+        verifyLink: `${this.configService.get<string>("FRONTEND_URL", "http://localhost:3000")}/verify-email?token=${verificationToken}`,
+      },
+    };
+    const welcomeDispatch = this.workersEnabled
+      ? this.notificationQueue.add('send-welcome', welcomePayload)
+      : this.notificationClient.sendEmail(welcomePayload);
+    welcomeDispatch.catch((err: any) => {
+      this.logger.error("Failed to send welcome email", {
+        context: "AuthService",
+        error: err.message,
+        userId: user.id,
       });
+    });
 
     // Send email verification link
     const frontendUrl = this.configService.get<string>(
       "FRONTEND_URL",
       "http://localhost:3000",
     );
-    this.notificationClient
-      .sendEmail({
-        to: user.email,
-        template: 'MARKETPLACE_EMAIL_VERIFICATION',
-        variables: {
-          name: name || user.email.split('@')[0],
-          verificationLink: `${frontendUrl}/verify-email?token=${verificationToken}`,
-        },
-      })
-      .catch((err: any) => {
-        this.logger.error("Failed to send verification email", {
-          context: "AuthService",
-          error: err.message,
-          userId: user.id,
-        });
+    const verificationPayload = {
+      to: user.email,
+      template: 'MARKETPLACE_EMAIL_VERIFICATION',
+      variables: {
+        name: name || user.email.split('@')[0],
+        verificationLink: `${frontendUrl}/verify-email?token=${verificationToken}`,
+      },
+    };
+    const verificationDispatch = this.workersEnabled
+      ? this.notificationQueue.add('send-email-verification', verificationPayload)
+      : this.notificationClient.sendEmail(verificationPayload);
+    verificationDispatch.catch((err: any) => {
+      this.logger.error("Failed to send verification email", {
+        context: "AuthService",
+        error: err.message,
+        userId: user.id,
       });
+    });
 
     // Auto-create a minimal provider profile so the JWT contains a valid providerId
     if (role === 'provider') {
@@ -712,6 +716,29 @@ export class AuthService {
     }
 
     await this.userRepo.verifyEmail(userId);
+
+    // Send confirmation email
+    const verifiedUser = await this.userRepo.findById(userId).catch(() => null);
+    if (verifiedUser?.email) {
+      const verifiedPayload = {
+        to: verifiedUser.email,
+        template: 'EMAIL_VERIFIED',
+        variables: {
+          username: verifiedUser.name || verifiedUser.email.split('@')[0],
+          verifiedItem: verifiedUser.email,
+        },
+      };
+      const verifiedDispatch = this.workersEnabled
+        ? this.notificationQueue.add('send-email-verified', verifiedPayload)
+        : this.notificationClient.sendEmail(verifiedPayload);
+      verifiedDispatch.catch((err: any) => {
+        this.logger.error('Failed to send email verified confirmation', {
+          context: 'AuthService',
+          error: err.message,
+          userId,
+        });
+      });
+    }
 
     this.logger.info("Email verified successfully", {
       context: "AuthService",
@@ -1715,8 +1742,28 @@ export class AuthService {
     // Invalidate all sessions after password change
     await this.sessionRepo.deleteByUserId(userId);
 
-    this.logger.info("Password changed successfully", {
-      context: "AuthService",
+    // Notify user that their password was changed
+    const passwordChangedPayload = {
+      to: user.email,
+      template: 'PASSWORD_CHANGED',
+      variables: {
+        name: user.name || user.email.split('@')[0],
+        username: user.name || user.email.split('@')[0],
+      },
+    };
+    const passwordChangedDispatch = this.workersEnabled
+      ? this.notificationQueue.add('send-password-changed', passwordChangedPayload)
+      : this.notificationClient.sendEmail(passwordChangedPayload);
+    passwordChangedDispatch.catch((err: any) => {
+      this.logger.error('Failed to send password changed notification', {
+        context: 'AuthService',
+        error: err.message,
+        userId,
+      });
+    });
+
+    this.logger.info('Password changed successfully', {
+      context: 'AuthService',
       userId,
     });
   }
@@ -1743,30 +1790,36 @@ export class AuthService {
       "http://localhost:3000",
     );
 
-    const sent = await this.notificationClient
-      .sendEmail({
-        to: email,
-        template: 'MARKETPLACE_EMAIL_VERIFICATION',
-        variables: {
-          name: user.name || email.split('@')[0],
-          verificationLink: `${frontendUrl}/verify-email?token=${token}`,
-        },
-      })
-      .catch((err: any) => {
-        this.logger.error("Failed to send verification email", {
-          context: "AuthService",
-          error: err.message,
-          userId: user.id,
+    const verificationPayload = {
+      to: email,
+      template: 'MARKETPLACE_EMAIL_VERIFICATION',
+      variables: {
+        name: user.name || email.split('@')[0],
+        verificationLink: `${frontendUrl}/verify-email?token=${token}`,
+      },
+    };
+
+    if (this.workersEnabled) {
+      await this.notificationQueue.add('send-email-verification', verificationPayload);
+    } else {
+      const sent = await this.notificationClient
+        .sendEmail(verificationPayload)
+        .catch((err: any) => {
+          this.logger.error("Failed to send verification email", {
+            context: "AuthService",
+            error: err.message,
+            userId: user.id,
+          });
+          throw new BadRequestException(
+            "Failed to send verification email. Please try again later.",
+          );
         });
+
+      if (!sent) {
         throw new BadRequestException(
           "Failed to send verification email. Please try again later.",
         );
-      });
-
-    if (!sent) {
-      throw new BadRequestException(
-        "Failed to send verification email. Please try again later.",
-      );
+      }
     }
   }
 
@@ -1974,21 +2027,23 @@ export class AuthService {
       this.configService.get<string>("FRONTEND_URL", "http://localhost:3000");
     const magicLink = `${frontendUrl}/auth/magic-link?token=${token}`;
 
-    this.notificationClient
-      .sendEmail({
-        to: email,
-        template: 'MAGIC_LINK',
-        variables: {
-          username: user?.name || email.split('@')[0],
-          magicUrl: magicLink,
-          expiryMinutes: 60,
-        },
-      })
-      .catch((err: any) => {
-        this.logger.error("Failed to send magic link email", {
-          error: err.message,
-        });
+    const magicLinkPayload = {
+      to: email,
+      template: 'MAGIC_LINK',
+      variables: {
+        username: user?.name || email.split('@')[0],
+        magicUrl: magicLink,
+        expiryMinutes: 60,
+      },
+    };
+    const magicDispatch = this.workersEnabled
+      ? this.notificationQueue.add('send-magic-link', magicLinkPayload)
+      : this.notificationClient.sendEmail(magicLinkPayload);
+    magicDispatch.catch((err: any) => {
+      this.logger.error("Failed to send magic link email", {
+        error: err.message,
       });
+    });
 
     return { message: "Magic link sent if email is registered" };
   }

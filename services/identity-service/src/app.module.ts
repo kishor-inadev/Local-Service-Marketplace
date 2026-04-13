@@ -11,7 +11,8 @@ import { HealthController } from "./common/health/health.controller";
 import { BullMQCoreModule } from "./bullmq/bullmq.module";
 import { WorkersModule } from "./workers/workers.module";
 
-const conditionalModules = process.env.WORKERS_ENABLED === "true" ? [WorkersModule] : [];
+const workersEnabled = process.env.WORKERS_ENABLED === "true";
+const conditionalModules = workersEnabled ? [WorkersModule] : [];
 
 @Module({
   imports: [

@@ -1,5 +1,6 @@
 import { Injectable, Inject, LoggerService } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
+import { AppContextDto } from "../dto/app-context.dto";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import axios, { AxiosInstance } from "axios";
 
@@ -42,6 +43,7 @@ export class EmailClient {
     html?: string;
     template?: string;
     variables?: Record<string, any>;
+    appContext?: AppContextDto;
   }): Promise<{ success: boolean; messageId?: string; error?: string }> {
     if (!this.emailEnabled) {
       this.logger.warn(
@@ -59,12 +61,19 @@ export class EmailClient {
         templateId: options.template,
         data: {
           ...options.variables,
+          ...options.appContext, // Merge application context into template variables
           subject: options.subject, // Include subject in data if needed by template
           timestamp: new Date().toISOString(),
         },
         // Fallback for non-template emails
         text: options.text,
         html: options.html,
+      }, {
+        headers: {
+          "x-app": options.appContext?.applicationName || "",
+          "x-app-url": options.appContext?.appUrl || "",
+          "x-path": options.appContext?.ctaPath || "",
+        }
       });
 
       this.logger.log(
@@ -86,6 +95,7 @@ export class EmailClient {
     to: string,
     template: string,
     variables: Record<string, any>,
+    appContext?: AppContextDto,
   ): Promise<{ success: boolean; messageId?: string; error?: string }> {
     if (!this.emailEnabled) {
       this.logger.warn(
@@ -106,8 +116,15 @@ export class EmailClient {
         templateId: template,
         data: {
           ...variables,
+          ...appContext,
           timestamp: new Date().toISOString(),
         },
+      }, {
+        headers: {
+          "x-app": appContext?.applicationName || "",
+          "x-app-url": appContext?.appUrl || "",
+          "x-path": appContext?.ctaPath || "",
+        }
       });
 
       this.logger.log(

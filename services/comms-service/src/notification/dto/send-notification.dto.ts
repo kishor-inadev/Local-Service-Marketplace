@@ -4,7 +4,10 @@ import {
   IsEnum,
   IsOptional,
   IsObject,
+  ValidateNested,
 } from "class-validator";
+import { Type } from "class-transformer";
+import { AppContextDto } from "./app-context.dto";
 
 export enum NotificationChannel {
   EMAIL = "email",
@@ -39,4 +42,9 @@ export class SendNotificationDto {
   @IsString()
   @IsOptional()
   userId?: string; // optional user ID for tracking
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AppContextDto)
+  appContext?: AppContextDto;
 }

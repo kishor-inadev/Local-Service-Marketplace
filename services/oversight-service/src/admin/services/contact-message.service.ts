@@ -8,6 +8,7 @@ import { UpdateContactMessageDto } from '../dto/update-contact-message.dto';
 import { ContactMessageListQueryDto } from "../dto/contact-message-list-query.dto";
 import { NotFoundException } from '../../common/exceptions/http.exceptions';
 import { resolvePagination, validateDateRange } from "../../common/pagination/list-query-validation.util";
+import { NotificationClient } from '../../common/notification/notification.client';
 
 @Injectable()
 export class ContactMessageService {
@@ -16,6 +17,7 @@ export class ContactMessageService {
 		private readonly auditLogRepository: AuditLogRepository,
 		@Inject(WINSTON_MODULE_NEST_PROVIDER)
 		private readonly logger: LoggerService,
+		private readonly notificationClient: NotificationClient,
 	) {}
 
 	async createContactMessage(dto: CreateContactMessageDto): Promise<ContactMessage> {
@@ -31,6 +33,20 @@ export class ContactMessageService {
 			contactMessage.id,
 			{ name: dto.name, email: dto.email },
 		);
+
+		// Send confirmation email to the person who submitted the contact form
+		this.notificationClient.sendEmail({
+			to: dto.email,
+			template: 'CONTACT_CONFIRMATION',
+			variables: {
+				name: dto.name,
+				subject: dto.subject,
+				companyName: 'LocalServices',
+				contactId: contactMessage.id,
+			},
+		}).catch((err: any) => {
+			this.logger.error(`Failed to send contact confirmation email to ${dto.email}: ${err.message}`, 'ContactMessageService');
+		});
 
 		return contactMessage;
 	}

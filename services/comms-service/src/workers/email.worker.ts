@@ -2,6 +2,7 @@ import { Processor, WorkerHost, InjectQueue, OnWorkerEvent } from '@nestjs/bullm
 import { Inject, LoggerService, OnModuleInit, Optional } from '@nestjs/common';
 import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { Job, Queue } from 'bullmq';
+import { AppContextDto } from '../notification/dto/app-context.dto';
 import { NotificationDeliveryRepository } from '../notification/repositories/notification-delivery.repository';
 import { NotificationRepository } from '../notification/repositories/notification.repository';
 import { EmailClient } from '../notification/clients/email.client';
@@ -17,6 +18,7 @@ export interface DeliverEmailJobData {
   to?: string;
   template?: string;
   variables?: Record<string, any>;
+  appContext?: AppContextDto;
 }
 
 /**
@@ -74,7 +76,7 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
   // ─────────────────────────────────────────────────────────────────
 
   private async handleDeliverEmail(job: Job<DeliverEmailJobData>): Promise<void> {
-    const { deliveryId, notificationId, userId, type, message, to, template, variables } = job.data;
+    const { deliveryId, notificationId, userId, type, message, to, template, variables, appContext } = job.data;
 
     this.logger.log(
       `EmailWorker: delivering email for delivery ${deliveryId} (attempt ${job.attemptsMade + 1})`,
@@ -101,10 +103,11 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
         text: message,
         variables: variables || {
           recipientName: recipient.split('@')[0],
-          senderName: 'LocalServices',
+          senderName: appContext?.applicationName || 'LocalServices',
           messagePreview: message || type || 'You have a new notification.',
-          replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/notifications`,
+          replyUrl: (appContext?.appUrl || process.env.FRONTEND_URL || 'http://localhost:3000') + (appContext?.ctaPath || '/notifications'),
         },
+        appContext,
       });
 
       await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'sent');

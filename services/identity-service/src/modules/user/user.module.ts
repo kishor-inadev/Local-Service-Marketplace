@@ -1,5 +1,6 @@
 import { Module } from "@nestjs/common";
 import { HttpModule } from "@nestjs/axios";
+import { BullModule } from "@nestjs/bullmq";
 import { UserController } from "./controllers/user.controller";
 import { ProviderController } from "./controllers/provider.controller";
 import { FavoriteController } from "./controllers/favorite.controller";
@@ -25,6 +26,7 @@ import { FileServiceClient } from "../../common/file-service.client";
 @Module({
   imports: [
     NotificationModule,
+    BullModule.registerQueue({ name: 'identity.notification' }),
     HttpModule.register({
       timeout: Number(process.env.REQUEST_TIMEOUT_MS) || 72000,
       maxRedirects: 5,

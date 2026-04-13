@@ -205,6 +205,7 @@ export class NotificationService {
           text: dto.message,
           template: dto.template,
           variables: dto.variables,
+          appContext: dto.appContext,
         });
 
         results.email = emailResult;
@@ -291,6 +292,7 @@ export class NotificationService {
       text: dto.message,
       template: dto.template,
       variables: dto.variables,
+      appContext: dto.appContext,
     });
 
     return result;

@@ -313,6 +313,9 @@ importers:
       class-validator:
         specifier: ^0.14.0
         version: 0.14.4
+      dotenv:
+        specifier: ^16.6.1
+        version: 16.6.1
       firebase-admin:
         specifier: ^13.8.0
         version: 13.8.0
@@ -470,6 +473,9 @@ importers:
       class-validator:
         specifier: ^0.14.0
         version: 0.14.4
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       form-data:
         specifier: ^4.0.0
         version: 4.0.5
@@ -640,7 +646,7 @@ importers:
         specifier: ^0.14.0
         version: 0.14.4
       dotenv:
-        specifier: ^16.3.1
+        specifier: ^16.6.1
         version: 16.6.1
       helmet:
         specifier: ^8.1.0
@@ -763,6 +769,9 @@ importers:
       class-validator:
         specifier: ^0.14.0
         version: 0.14.4
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       form-data:
         specifier: ^4.0.0
         version: 4.0.5
@@ -896,6 +905,9 @@ importers:
       class-validator:
         specifier: ^0.14.0
         version: 0.14.4
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       helmet:
         specifier: ^8.1.0
         version: 8.1.0
@@ -1023,6 +1035,9 @@ importers:
       class-validator:
         specifier: ^0.14.0
         version: 0.14.4
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       form-data:
         specifier: ^4.0.0
         version: 4.0.5
@@ -3395,6 +3410,10 @@ packages:
 
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
+    engines: {node: '>=12'}
+
+  dotenv@17.4.2:
+    resolution: {integrity: sha512-nI4U3TottKAcAD9LLud4Cb7b2QztQMUEfHbvhTH09bqXTxnSie8WnjPALV/WMCrJZ6UV/qHJ6L03OqO3LcdYZw==}
     engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
@@ -9493,6 +9512,8 @@ snapshots:
 
   dotenv@16.6.1: {}
 
+  dotenv@17.4.2: {}
+
   dunder-proto@1.0.1:
     dependencies:
       call-bind-apply-helpers: 1.0.2
@@ -9712,7 +9733,7 @@ snapshots:
       eslint: 8.56.0
       eslint-import-resolver-node: 0.3.10
       eslint-import-resolver-typescript: 3.10.1(eslint-plugin-import@2.32.0(eslint@8.56.0))(eslint@8.56.0)
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.3.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.3.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.56.0)
       eslint-plugin-jsx-a11y: 6.10.2(eslint@8.56.0)
       eslint-plugin-react: 7.37.5(eslint@8.56.0)
       eslint-plugin-react-hooks: 5.0.0-canary-7118f5dd7-20230705(eslint@8.56.0)
@@ -9746,7 +9767,7 @@ snapshots:
       tinyglobby: 0.2.16
       unrs-resolver: 1.11.1
     optionalDependencies:
-      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.3.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0)
+      eslint-plugin-import: 2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.3.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.56.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -9761,7 +9782,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.3.3))(eslint-import-resolver-typescript@3.10.1(eslint-plugin-import@2.32.0(eslint@8.56.0))(eslint@8.56.0))(eslint@8.56.0):
+  eslint-plugin-import@2.32.0(@typescript-eslint/parser@6.21.0(eslint@8.56.0)(typescript@5.3.3))(eslint-import-resolver-typescript@3.10.1)(eslint@8.56.0):
     dependencies:
       '@rtsao/scc': 1.1.0
       array-includes: 3.1.9

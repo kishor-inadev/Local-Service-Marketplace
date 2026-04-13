@@ -1,4 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { ConfigService } from "@nestjs/config";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
@@ -23,6 +25,7 @@ import { UserRepository } from "../repositories/user.repository";
 export class ProviderService {
   private readonly defaultLimit: number;
   private readonly PROVIDER_CACHE_TTL = 300; // 5 minutes
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
 
   constructor(
     private readonly providerRepo: ProviderRepository,
@@ -33,11 +36,21 @@ export class ProviderService {
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private readonly notificationClient: NotificationClient,
     private readonly userRepo: UserRepository,
+    @InjectQueue('identity.notification') private readonly notificationQueue: Queue,
   ) {
     this.defaultLimit = parseInt(
       this.configService.get<string>("DEFAULT_PAGE_LIMIT", "20"),
       10,
     );
+  }
+
+  private sendEmailNotification(payload: { to: string; template: string; variables: Record<string, any> }): void {
+    const dispatch = this.workersEnabled
+      ? this.notificationQueue.add('send-email', payload)
+      : this.notificationClient.sendEmail(payload);
+    dispatch.catch((err: any) => {
+      this.logger.error(`Failed to send email (${payload.template}) to ${payload.to}: ${err.message}`, 'ProviderService');
+    });
   }
 
   async createProvider(
@@ -99,23 +112,15 @@ export class ProviderService {
     // Send welcome notification to provider
     const providerUser = await this.userRepo.findById(user_id);
     if (providerUser?.email) {
-      this.notificationClient
-        .sendEmail({
-          to: providerUser.email,
-          template: 'MARKETPLACE_WELCOME',
-          variables: {
-            name: business_name,
-            email: providerUser.email,
-            dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/provider/dashboard`,
-          },
-        })
-        .catch((err: any) => {
-          this.logger.error("Failed to send provider welcome notification", {
-            context: "ProviderService",
-            error: err.message,
-            provider_id: provider.id,
-          });
-        });
+      this.sendEmailNotification({
+        to: providerUser.email,
+        template: 'MARKETPLACE_WELCOME',
+        variables: {
+          name: business_name,
+          email: providerUser.email,
+          dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/provider/dashboard`,
+        },
+      });
     } else {
       this.logger.warn(
         "Skipping provider welcome notification: provider email not found",
@@ -470,6 +475,35 @@ export class ProviderService {
 
     if (this.redisService.isCacheEnabled()) {
       await this.redisService.del(`provider:${providerId}`);
+    }
+
+    // Send approval or rejection email to the provider
+    if (status === 'verified' || status === 'rejected') {
+      const providerUser = await this.userRepo.findById(updated.user_id).catch(() => null);
+      if (providerUser?.email) {
+        if (status === 'verified') {
+          this.sendEmailNotification({
+            to: providerUser.email,
+            template: 'MARKETPLACE_PROVIDER_APPROVED',
+            variables: {
+              businessName: updated.business_name,
+              email: providerUser.email,
+              dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/provider/dashboard`,
+            },
+          });
+        } else {
+          this.sendEmailNotification({
+            to: providerUser.email,
+            template: 'MARKETPLACE_PROVIDER_REJECTED',
+            variables: {
+              businessName: updated.business_name || providerUser.name || providerUser.email.split('@')[0],
+              email: providerUser.email,
+              reason: 'Your application did not meet our current provider requirements.',
+              supportUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/contact`,
+            },
+          });
+        }
+      }
     }
 
     return this.getProvider(providerId);

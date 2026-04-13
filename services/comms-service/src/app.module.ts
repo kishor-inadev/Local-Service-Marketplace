@@ -12,7 +12,8 @@ import { HealthController } from "./common/health/health.controller";
 
 // WorkersModule only loaded in worker pods (WORKERS_ENABLED=true)
 import { WorkersModule } from "./workers/workers.module";
-const workerModules = process.env.WORKERS_ENABLED === 'true' ? [WorkersModule] : [];
+const workersEnabled = process.env.WORKERS_ENABLED === 'true';
+const workerModules = workersEnabled ? [WorkersModule] : [];
 
 @Module({
   imports: [

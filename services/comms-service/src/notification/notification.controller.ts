@@ -20,6 +20,7 @@ import {
   UnauthorizedException,
   UseGuards,
 } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { FlexibleIdPipe } from "@/common/pipes/flexible-id.pipe";
 import { StrictUuidPipe } from "@/common/pipes/strict-uuid.pipe";
 import { Throttle } from "@nestjs/throttler";
@@ -48,6 +49,7 @@ export class NotificationController {
     private readonly pushWorker: PushWorkerService,
     private readonly unsubscribeRepo: UnsubscribeRepository,
     private readonly featureFlags: FeatureFlagService,
+    private readonly configService: ConfigService,
   ) {}
 
   @Get()
@@ -221,7 +223,25 @@ export class NotificationController {
   @Post("send")
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
-  async sendNotification(@Body() dto: SendNotificationDto) {
+  async sendNotification(
+    @Body() dto: SendNotificationDto,
+    @Headers("x-app") xApp?: string,
+    @Headers("x-app-url") xAppUrl?: string,
+    @Headers("x-path") xPath?: string,
+  ) {
+    // Inject app context from headers if not provided in body
+    dto.appContext = {
+      applicationName:
+        dto.appContext?.applicationName ||
+        xApp?.trim() ||
+        this.configService.get("APPLICATION_NAME"),
+      appUrl:
+        dto.appContext?.appUrl ||
+        xAppUrl?.trim() ||
+        this.configService.get("APP_URL"),
+      ctaPath: dto.appContext?.ctaPath || xPath?.trim() || null,
+    };
+
     this.logger.log(
       `POST /notifications/send - Sending ${dto.channel} notification to ${dto.recipient}`,
       "NotificationController",
@@ -239,7 +259,25 @@ export class NotificationController {
   @Post("email/send")
   @Throttle({ email: { limit: 10, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
-  async sendEmail(@Body() dto: SendEmailDto) {
+  async sendEmail(
+    @Body() dto: SendEmailDto,
+    @Headers("x-app") xApp?: string,
+    @Headers("x-app-url") xAppUrl?: string,
+    @Headers("x-path") xPath?: string,
+  ) {
+    // Inject app context from headers if not provided in body
+    dto.appContext = {
+      applicationName:
+        dto.appContext?.applicationName ||
+        xApp?.trim() ||
+        this.configService.get("APPLICATION_NAME"),
+      appUrl:
+        dto.appContext?.appUrl ||
+        xAppUrl?.trim() ||
+        this.configService.get("APP_URL"),
+      ctaPath: dto.appContext?.ctaPath || xPath?.trim() || null,
+    };
+
     this.logger.log(
       `POST /notifications/email/send - Sending email to ${dto.to}`,
       "NotificationController",

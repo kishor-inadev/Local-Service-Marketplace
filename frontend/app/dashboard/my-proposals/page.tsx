@@ -16,7 +16,7 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { proposalService } from '@/services/proposal-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
-import { FileText, Calendar, DollarSign, AlertCircle, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { FileText, Calendar, IndianRupee, AlertCircle, CheckCircle, XCircle, Clock } from 'lucide-react';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
@@ -198,7 +198,7 @@ export default function MyProposalsPage() {
 														{/* Details Grid */}
 														<div className='grid grid-cols-1 md:grid-cols-3 gap-3 mb-4'>
 															<div className='flex items-center text-sm text-gray-600 dark:text-gray-400'>
-																<DollarSign className='h-4 w-4 mr-2' />
+																<IndianRupee className='h-4 w-4 mr-2' />
 																<span>Bid: {formatCurrency(proposal.price)}</span>
 															</div>
 															{proposal.estimated_hours && (

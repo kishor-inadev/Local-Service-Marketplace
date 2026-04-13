@@ -4,7 +4,10 @@ import {
   IsOptional,
   IsObject,
   IsEmail,
+  ValidateNested,
 } from "class-validator";
+import { Type } from "class-transformer";
+import { AppContextDto } from "./app-context.dto";
 
 export class SendEmailDto {
   @IsEmail()
@@ -26,4 +29,9 @@ export class SendEmailDto {
   @IsObject()
   @IsOptional()
   variables?: Record<string, any>; // template variables
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => AppContextDto)
+  appContext?: AppContextDto;
 }
