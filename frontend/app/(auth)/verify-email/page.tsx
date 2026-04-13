@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, Suspense } from "react";
+import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
@@ -15,12 +15,15 @@ function VerifyEmailContent() {
 
 	const [status, setStatus] = useState<"verifying" | "success" | "error" | "no-token">("verifying");
 	const [errorMessage, setErrorMessage] = useState("");
+	const hasVerified = useRef(false);
 
 	useEffect(() => {
-		if (!token) {
-			setStatus("no-token");
+		if (!token || hasVerified.current) {
+			if (!token) setStatus("no-token");
 			return;
 		}
+
+		hasVerified.current = true;
 
 		authService
 			.verifyEmail(token)
