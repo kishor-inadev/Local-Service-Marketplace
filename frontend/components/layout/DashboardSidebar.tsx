@@ -141,6 +141,10 @@ export function DashboardSidebar() {
 	const userPermissions: string[] = (user as { permissions?: string[] })?.permissions ?? [];
 
 	const mainLinks = ALL_NAV_ITEMS.filter((item) => {
+		// Role gate: if item specifies target roles, the user's role must match
+		if (item.roles && !item.roles.includes(role)) {
+			return false;
+		}
 		// Permission-based filtering (preferred)
 		if (userPermissions.length > 0 && item.permissions) {
 			return canAny(item.permissions);

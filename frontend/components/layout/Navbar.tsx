@@ -19,6 +19,7 @@ export function Navbar() {
   const pathname = usePathname();
   const { user, isAuthenticated, logout } = useAuth();
   const { can } = usePermissions();
+  const role = user?.role ?? 'customer';
   const { unreadCount } = useNotifications({ enabled: isAuthenticated });
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -93,34 +94,34 @@ export function Navbar() {
                   )}
                 </Link>
 
-                {can(Permission.REQUESTS_BROWSE) && (
+                {role === 'provider' && can(Permission.REQUESTS_BROWSE) && (
                   <Link href={ROUTES.DASHBOARD_BROWSE_REQUESTS} className={navLinkClass(pathname === ROUTES.DASHBOARD_BROWSE_REQUESTS)}>
                     Browse
                   </Link>
                 )}
-                {can(Permission.PROPOSALS_CREATE) && (
+                {role === 'provider' && can(Permission.PROPOSALS_CREATE) && (
                   <Link href={ROUTES.DASHBOARD_MY_PROPOSALS} className={navLinkClass(pathname === ROUTES.DASHBOARD_MY_PROPOSALS)}>
                     Proposals
                   </Link>
                 )}
-                {can(Permission.EARNINGS_VIEW) && (
+                {role === 'provider' && can(Permission.EARNINGS_VIEW) && (
                   <Link href={ROUTES.DASHBOARD_EARNINGS} className={navLinkClass(pathname === ROUTES.DASHBOARD_EARNINGS)}>
                     Earnings
                   </Link>
                 )}
 
-                {can(Permission.REQUESTS_CREATE) && (
+                {role === 'customer' && can(Permission.REQUESTS_CREATE) && (
                   <Link href={ROUTES.DASHBOARD_REQUESTS} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_REQUESTS))}>
                     Requests
                   </Link>
                 )}
-                {can(Permission.JOBS_READ) && (
+                {(role === 'customer' || role === 'provider') && can(Permission.JOBS_READ) && (
                   <Link href={ROUTES.DASHBOARD_JOBS} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_JOBS))}>
                     Jobs
                   </Link>
                 )}
 
-                {can(Permission.ADMIN_ACCESS) && (
+                {role === 'admin' && can(Permission.ADMIN_ACCESS) && (
                   <Link href={ROUTES.DASHBOARD_ADMIN} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_ADMIN))}>
                     Admin
                   </Link>
@@ -233,22 +234,22 @@ export function Navbar() {
             {isAuthenticated ? (
               <>
                 <MobileLink href={ROUTES.DASHBOARD} icon={LayoutDashboard} label='Dashboard' />
-                {can(Permission.REQUESTS_BROWSE) && (
+                {role === 'provider' && can(Permission.REQUESTS_BROWSE) && (
                   <MobileLink href={ROUTES.DASHBOARD_BROWSE_REQUESTS} icon={FileText} label='Browse Requests' />
                 )}
-                {can(Permission.PROPOSALS_CREATE) && (
+                {role === 'provider' && can(Permission.PROPOSALS_CREATE) && (
                   <MobileLink href={ROUTES.DASHBOARD_MY_PROPOSALS} icon={Briefcase} label='My Proposals' />
                 )}
-                {can(Permission.EARNINGS_VIEW) && (
+                {role === 'provider' && can(Permission.EARNINGS_VIEW) && (
                   <MobileLink href={ROUTES.DASHBOARD_EARNINGS} icon={FileText} label='Earnings' />
                 )}
-                {can(Permission.REQUESTS_CREATE) && (
+                {role === 'customer' && can(Permission.REQUESTS_CREATE) && (
                   <MobileLink href={ROUTES.DASHBOARD_REQUESTS} icon={FileText} label='My Requests' />
                 )}
-                {can(Permission.JOBS_READ) && (
+                {(role === 'customer' || role === 'provider') && can(Permission.JOBS_READ) && (
                   <MobileLink href={ROUTES.DASHBOARD_JOBS} icon={Briefcase} label='My Jobs' />
                 )}
-                {can(Permission.ADMIN_ACCESS) && (
+                {role === 'admin' && can(Permission.ADMIN_ACCESS) && (
                   <MobileLink href={ROUTES.DASHBOARD_ADMIN} icon={LayoutDashboard} label='Admin Panel' />
                 )}
                 {isMessagingEnabled() && (
