@@ -1,302 +1,333 @@
 'use client';
 
-import { useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/hooks/useAuth';
-import { usePermissions } from '@/hooks/usePermissions';
-import { Permission } from '@/utils/permissions';
-import { ROUTES } from '@/config/constants';
-import { Layout } from '@/components/layout/Layout';
-import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
-import { Loading } from '@/components/ui/Loading';
-import { StatusBadge } from '@/components/ui/Badge';
-import { ErrorState } from '@/components/ui/ErrorState';
-import { jobService } from '@/services/job-service';
-import { formatDate, formatCurrency } from '@/utils/helpers';
+import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { ArrowLeft, Calendar, DollarSign, User, FileText } from "lucide-react";
-import Link from 'next/link';
-import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { Bell, Mail, MessageSquare, Star, IndianRupee, Briefcase, AlertTriangle } from 'lucide-react';
+import { notificationService, type NotificationPreferences as NotificationPreferencesType } from '@/services/notification-service';
+import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
-export default function JobDetailPage() {
-  const params = useParams();
-  const router = useRouter();
-  const queryClient = useQueryClient();
-  const { user: _user, isAuthenticated, isLoading: authLoading } = useAuth();
-  const { can } = usePermissions();
-  const jobId = params.id as string;
+interface PreferenceSetting {
+  key: keyof Omit<NotificationPreferencesType, 'id' | 'user_id' | 'created_at' | 'updated_at'>;
+  label: string;
+  description: string;
+  icon: React.ReactNode;
+  category: 'channels' | 'activities';
+}
+
+const PREFERENCE_SETTINGS: PreferenceSetting[] = [
+  // Communication Channels
+  {
+    key: 'email_notifications',
+    label: 'Email Notifications',
+    description: 'Receive notifications via email',
+    icon: <Mail className="w-5 h-5" />,
+    category: 'channels'
+  },
+  {
+    key: 'sms_notifications',
+    label: 'SMS Notifications',
+    description: 'Receive notifications via text message',
+    icon: <MessageSquare className="w-5 h-5" />,
+    category: 'channels'
+  },
+  {
+    key: 'push_notifications',
+    label: 'Push Notifications',
+    description: 'Receive browser and mobile push notifications',
+    icon: <Bell className="w-5 h-5" />,
+    category: 'channels'
+  },
+  {
+    key: 'marketing_emails',
+    label: 'Marketing Emails',
+    description: 'Receive newsletters, tips, and promotional content',
+    icon: <Mail className="w-5 h-5" />,
+    category: 'channels'
+  },
+  // Activity Alerts
+  {
+    key: 'new_request_alerts',
+    label: 'New Service Requests',
+    description: 'Get notified when new service requests match your services',
+    icon: <Briefcase className="w-5 h-5" />,
+    category: 'activities'
+  },
+  {
+    key: 'proposal_alerts',
+    label: 'Proposal Updates',
+    description: 'Get notified about proposal submissions and responses',
+    icon: <AlertTriangle className="w-5 h-5" />,
+    category: 'activities'
+  },
+  {
+    key: 'job_updates',
+    label: 'Job Updates',
+    description: 'Get notified about job status changes and updates',
+    icon: <Briefcase className="w-5 h-5" />,
+    category: 'activities'
+  },
+  {
+    key: 'payment_alerts',
+    label: 'Payment Notifications',
+    description: 'Get notified about payments, refunds, and transactions',
+    icon: <IndianRupee className="w-5 h-5" />,
+    category: 'activities'
+  },
+  {
+    key: 'review_alerts',
+    label: 'Review Notifications',
+    description: 'Get notified when you receive new reviews',
+    icon: <Star className="w-5 h-5" />,
+    category: 'activities'
+  },
+  {
+    key: 'message_alerts',
+    label: 'Message Notifications',
+    description: 'Get notified about new messages',
+    icon: <MessageSquare className="w-5 h-5" />,
+    category: 'activities'
+  }
+];
+
+export function NotificationPreferences() {
+  const [preferences, setPreferences] = useState<NotificationPreferencesType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [localPreferences, setLocalPreferences] = useState<Partial<NotificationPreferencesType>>({});
+  const [disableConfirmOpen, setDisableConfirmOpen] = useState(false);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push(ROUTES.LOGIN);
+    loadPreferences();
+  }, []);
+
+  const loadPreferences = async () => {
+    try {
+      const data = await notificationService.getNotificationPreferences();
+      setPreferences(data);
+      setLocalPreferences(data);
+    } catch (error) {
+      console.error('Failed to load preferences:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [isAuthenticated, authLoading, router]);
+  };
 
-  const { data: job, isLoading, error } = useQuery({
-    queryKey: ['job', jobId],
-    queryFn: () => jobService.getJobById(jobId),
-    enabled: isAuthenticated && !!jobId,
-  });
+  const updatePreference = (key: keyof NotificationPreferencesType, value: boolean) => {
+    setLocalPreferences((prev: Partial<NotificationPreferencesType>) => ({
+      ...prev,
+      [key]: value
+    }));
+  };
 
-  const startJobMutation = useMutation({
-		mutationFn: () => {
-			if (!job?.id) {
-				throw new Error('Job UUID is not available');
-			}
-			return jobService.startJob(job.id);
-		},
-    onSuccess: () => {
-      toast.success('Job started successfully!');
-      queryClient.invalidateQueries({ queryKey: ['job', jobId] });
-    },
-    onError: () => {
-      toast.error('Failed to start job');
-    },
-  });
+  const savePreferences = async () => {
+    setSaving(true);
 
-  const completeJobMutation = useMutation({
-		mutationFn: () => {
-			if (!job?.id) {
-				throw new Error('Job UUID is not available');
-			}
-			return jobService.completeJob(job.id);
-		},
-    onSuccess: () => {
-      toast.success('Job marked as complete!');
-      queryClient.invalidateQueries({ queryKey: ['job', jobId] });
-    },
-    onError: () => {
-      toast.error('Failed to complete job');
-    },
-  });
+    try {
+      const data = await notificationService.updateNotificationPreferences(localPreferences);
+      setPreferences(data);
+      toast.success('Notification preferences saved successfully!');
+    } catch (error) {
+      console.error('Failed to save preferences:', error);
+      toast.error('Failed to save preferences. Please try again.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-  if (authLoading) {
+  const enableAll = async () => {
+    setSaving(true);
+
+    try {
+      const data = await notificationService.enableAllNotifications();
+      setPreferences(data);
+      setLocalPreferences(data);
+      toast.success('All notifications enabled!');
+    } catch (error) {
+      console.error('Failed to enable all:', error);
+      toast.error('Failed to enable all notifications');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const handleDisableAllClick = () => {
+    setDisableConfirmOpen(true);
+  };
+
+  const disableAll = async () => {
+    setSaving(true);
+    setDisableConfirmOpen(false);
+
+    try {
+      const data = await notificationService.disableAllNotifications();
+      setPreferences(data);
+      setLocalPreferences(data);
+      toast.success('All notifications disabled');
+    } catch (error) {
+      console.error('Failed to disable all:', error);
+      toast.error('Failed to disable all notifications');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const hasChanges = () => {
+    if (!preferences) return false;
+    return PREFERENCE_SETTINGS.some(setting => 
+      localPreferences[setting.key] !== preferences[setting.key]
+    );
+  };
+
+  if (loading) {
     return (
-      <Layout>
-        <Loading />
-      </Layout>
+      <div className="flex justify-center items-center py-12">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+      </div>
     );
   }
 
-  if (!isAuthenticated) {
-    return null;
-  }
-
-  if (isLoading) {
-    return (
-      <Layout>
-        <div className="container-custom py-8">
-          <Loading />
-        </div>
-      </Layout>
-    );
-  }
-
-  if (error || !job) {
-    return (
-			<Layout>
-				<div className='container-custom py-8'>
-					<ErrorState
-						title='Job not found'
-						message="We couldn't find the job you're looking for."
-						retry={() => router.push(ROUTES.DASHBOARD_JOBS)}
-					/>
-				</div>
-			</Layout>
-		);
-  }
-
-  const isProvider = can(Permission.PROVIDER_PROFILE_VIEW);
-  const isCustomer = !isProvider && isAuthenticated;
-  const canStartJob = isProvider && job.status === 'scheduled';
-  const canCompleteJob = isProvider && job.status === 'in_progress';
-  const canPayJob = isCustomer && job.status === "completed";
+  const channelSettings = PREFERENCE_SETTINGS.filter(s => s.category === 'channels');
+  const activitySettings = PREFERENCE_SETTINGS.filter(s => s.category === 'activities');
 
   return (
-		<ProtectedRoute>
-			<Layout>
-				<div className='container-custom py-8'>
-					{/* Back Button */}
-					<Link
-						href={ROUTES.DASHBOARD_JOBS}
-						className='inline-flex items-center text-primary-600 hover:text-primary-700 mb-6'>
-						<ArrowLeft className='h-4 w-4 mr-2' />
-						Back to Jobs
-					</Link>
+    <>
+    <div className="max-w-4xl mx-auto">
+      <div className="bg-white rounded-lg shadow-md">
+        {/* Header */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-2">
+                <Bell className="w-6 h-6" />
+                Notification Preferences
+              </h2>
+              <p className="text-gray-600 text-sm">
+                Choose how and when you want to receive notifications
+              </p>
+            </div>
+            
+            <div className="flex gap-2">
+              <button
+                onClick={enableAll}
+                disabled={saving}
+                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 dark:text-gray-300"
+              >
+                Enable All
+              </button>
+              <button
+                onClick={handleDisableAllClick}
+                disabled={saving}
+                className="px-4 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 dark:text-gray-300"
+              >
+                Disable All
+              </button>
+            </div>
+          </div>
+        </div>
 
-					{/* Header */}
-					<div className='flex items-start justify-between mb-8'>
-						<div>
-							<h1 className='text-3xl font-bold text-gray-900 dark:text-white mb-2'>Job #{job.display_id || job.id.slice(0, 8)}</h1>
-							<p className='text-gray-600 dark:text-gray-400'>Created {formatDate(job.created_at)}</p>
-						</div>
-						<StatusBadge status={job.status} />
-					</div>
+        {/* Communication Channels Section */}
+        <div className="p-6 border-b border-gray-200">
+          <h3 className="text-lg font-semibold mb-4">Communication Channels</h3>
+          <div className="space-y-4">
+            {channelSettings.map((setting) => (
+              <div key={setting.key} className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex-shrink-0 mt-1 text-gray-600">
+                  {setting.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <label htmlFor={setting.key} className="font-medium text-gray-900 cursor-pointer">
+                    {setting.label}
+                  </label>
+                  <p className="text-sm text-gray-600 mt-0.5">{setting.description}</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input
+                    id={setting.key}
+                    type="checkbox"
+                    checked={localPreferences[setting.key] ?? false}
+                    onChange={(e) => updatePreference(setting.key, e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
 
-					<div className='grid grid-cols-1 lg:grid-cols-3 gap-8'>
-						{/* Main Content */}
-						<div className='lg:col-span-2 space-y-6'>
-							{/* Job Details */}
-							<Card>
-								<CardHeader>
-									<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Job Details</h2>
-								</CardHeader>
-								<CardContent>
-									<div className='space-y-4'>
-										<div className='flex items-start gap-3'>
-											<FileText className='h-5 w-5 text-gray-400 mt-0.5' />
-											<div>
-												<p className='text-sm font-medium text-gray-700 dark:text-gray-300'>Job Description</p>
-												<p className='text-gray-900 dark:text-white mt-1'>
-													{job.request?.description || job.proposal?.message || "No description available"}
-												</p>
-											</div>
-										</div>
+        {/* Activity Alerts Section */}
+        <div className="p-6">
+          <h3 className="text-lg font-semibold mb-4">Activity Alerts</h3>
+          <div className="space-y-4">
+            {activitySettings.map((setting) => (
+              <div key={setting.key} className="flex items-start gap-4 p-4 rounded-lg hover:bg-gray-50 transition-colors">
+                <div className="flex-shrink-0 mt-1 text-gray-600">
+                  {setting.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <label htmlFor={setting.key} className="font-medium text-gray-900 cursor-pointer">
+                    {setting.label}
+                  </label>
+                  <p className="text-sm text-gray-600 mt-0.5">{setting.description}</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer flex-shrink-0">
+                  <input
+                    id={setting.key}
+                    type="checkbox"
+                    checked={localPreferences[setting.key] ?? false}
+                    onChange={(e) => updatePreference(setting.key, e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
 
-										<div className='flex items-center gap-3'>
-											<DollarSign className='h-5 w-5 text-gray-400' />
-											<div>
-												<p className='text-sm font-medium text-gray-700 dark:text-gray-300'>Payment Amount</p>
-												<p className='text-lg font-semibold text-green-600 dark:text-green-400'>
-													{formatCurrency(job.actual_amount || 0)}
-												</p>
-											</div>
-										</div>
+        {/* Save Button */}
+        {hasChanges() && (
+          <div className="p-6 border-t border-gray-200 bg-gray-50">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">
+                You have unsaved changes
+              </p>
+              <button
+                onClick={savePreferences}
+                disabled={saving}
+                className="px-6 py-2 bg-blue-600 dark:bg-blue-500 text-white font-medium rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 disabled:bg-gray-400 dark:disabled:bg-gray-600 transition-colors flex items-center gap-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  'Save Preferences'
+                )}
+              </button>
+            </div>
+          </div>
+        )}
 
-										{job.started_at && (
-											<div className='flex items-center gap-3'>
-												<Calendar className='h-5 w-5 text-gray-400' />
-												<div>
-													<p className='text-sm font-medium text-gray-700 dark:text-gray-300'>Started Date</p>
-													<p className='text-gray-900 dark:text-white'>{formatDate(job.started_at)}</p>
-												</div>
-											</div>
-										)}
-
-										{job.completed_at && (
-											<div className='flex items-center gap-3'>
-												<Calendar className='h-5 w-5 text-gray-400' />
-												<div>
-													<p className='text-sm font-medium text-gray-700 dark:text-gray-300'>Completed Date</p>
-													<p className='text-gray-900 dark:text-white'>{formatDate(job.completed_at)}</p>
-												</div>
-											</div>
-										)}
-									</div>
-								</CardContent>
-							</Card>
-
-							{/* Actions */}
-							{(canStartJob || canCompleteJob || canPayJob) && (
-								<Card>
-									<CardHeader>
-										<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Actions</h2>
-									</CardHeader>
-									<CardContent>
-										<div className='flex gap-4'>
-											{canStartJob && (
-												<Button
-													onClick={() => startJobMutation.mutate()}
-													disabled={startJobMutation.isPending}>
-													{startJobMutation.isPending ? "Starting..." : "Start Job"}
-												</Button>
-											)}
-											{canCompleteJob && (
-												<Button
-													onClick={() => completeJobMutation.mutate()}
-													disabled={completeJobMutation.isPending}>
-													{completeJobMutation.isPending ? "Completing..." : "Mark as Complete"}
-												</Button>
-											)}
-											{canPayJob && <Button onClick={() => router.push(`/checkout?jobId=${job.id}`)}>Pay Now</Button>}
-										</div>
-									</CardContent>
-								</Card>
-							)}
-						</div>
-
-						{/* Sidebar */}
-						<div className='space-y-6'>
-							{/* Customer Info */}
-							{job.customer && (
-								<Card>
-									<CardHeader>
-										<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Customer</h2>
-									</CardHeader>
-									<CardContent>
-										<div className='flex items-center gap-3'>
-											<div className='h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center'>
-												<User className='h-5 w-5 text-primary-600 dark:text-primary-400' />
-											</div>
-											<div>
-												<p className='font-medium text-gray-900 dark:text-white'>
-													{job.customer.name || job.customer.email}
-												</p>
-												<p className='text-sm text-gray-600 dark:text-gray-400'>{job.customer.email}</p>
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							)}
-
-							{/* Provider Info */}
-							{job.provider && (
-								<Card>
-									<CardHeader>
-										<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Provider</h2>
-									</CardHeader>
-									<CardContent>
-										<div className='flex items-center gap-3'>
-											<div className='h-10 w-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center'>
-												<User className='h-5 w-5 text-primary-600 dark:text-primary-400' />
-											</div>
-											<div>
-												<p className='font-medium text-gray-900 dark:text-white'>
-													{job.provider.business_name || job.provider.user?.name}
-												</p>
-												{job.provider.rating && (
-													<p className='text-sm text-gray-600 dark:text-gray-400'>
-														⭐ {job.provider.rating.toFixed(1)}
-													</p>
-												)}
-											</div>
-										</div>
-									</CardContent>
-								</Card>
-							)}
-
-							{/* Timeline */}
-							<Card>
-								<CardHeader>
-									<h2 className='text-lg font-semibold text-gray-900 dark:text-white'>Timeline</h2>
-								</CardHeader>
-								<CardContent>
-									<div className='space-y-3 text-sm'>
-										<div>
-											<p className='font-medium text-gray-900 dark:text-white'>Created</p>
-											<p className='text-gray-600 dark:text-gray-400'>{formatDate(job.created_at)}</p>
-										</div>
-										{job.started_at && (
-											<div>
-												<p className='font-medium text-gray-900 dark:text-white'>Started</p>
-												<p className='text-gray-600 dark:text-gray-400'>{formatDate(job.started_at)}</p>
-											</div>
-										)}
-										{job.completed_at && (
-											<div>
-												<p className='font-medium text-gray-900 dark:text-white'>Completed</p>
-												<p className='text-gray-600 dark:text-gray-400'>{formatDate(job.completed_at)}</p>
-											</div>
-										)}
-									</div>
-								</CardContent>
-							</Card>
-						</div>
-					</div>
-				</div>
-			</Layout>
-		</ProtectedRoute>
-	);
+        {/* Info Box */}
+        <div className="p-6 bg-blue-50 border-t border-blue-200">
+          <p className="text-sm text-blue-800">
+            <strong>Note:</strong> We recommend keeping payment and job updates enabled 
+            to stay informed about important activities on your account.
+          </p>
+        </div>
+      </div>
+    </div>
+    <ConfirmDialog
+      isOpen={disableConfirmOpen}
+      onClose={() => setDisableConfirmOpen(false)}
+      onConfirm={disableAll}
+      title="Disable All Notifications"
+      message="Are you sure you want to disable all notifications? You may miss important updates."
+      confirmLabel="Disable All"
+      variant="warning"
+    />
+    </>
+  );
 }

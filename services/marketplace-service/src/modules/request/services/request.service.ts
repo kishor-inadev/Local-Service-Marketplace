@@ -348,23 +348,36 @@ export class RequestService {
       updatedRequest.user_id,
     );
     if (userEmail && dto.status) {
-      this.notificationClient
-        .sendEmail({
-          to: userEmail,
-          template: 'MESSAGE_RECEIVED',
-          variables: {
-            recipientName: userEmail.split('@')[0],
-            senderName: 'LocalServices',
-            messagePreview: `Your service request has been updated. Status: ${dto.status}`,
-            replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${id}`,
-          },
-        })
-        .catch((err: any) => {
-          this.logger.warn(
-            `Failed to send request update notification: ${err.message}`,
-            RequestService.name,
-          );
-        });
+      const updatePayload = {
+        to: userEmail,
+        template: 'MESSAGE_RECEIVED',
+        variables: {
+          recipientName: userEmail.split('@')[0],
+          senderName: 'LocalServices',
+          messagePreview: `Your service request has been updated. Status: ${dto.status}`,
+          receivedAt: new Date().toISOString(),
+          replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${id}`,
+        },
+      };
+      if (this.workersEnabled) {
+        this.notificationQueue
+          .add('notify-request-updated', updatePayload)
+          .catch((err: any) => {
+            this.logger.warn(
+              `Failed to enqueue request update notification: ${err.message}`,
+              RequestService.name,
+            );
+          });
+      } else {
+        this.notificationClient
+          .sendEmail(updatePayload)
+          .catch((err: any) => {
+            this.logger.warn(
+              `Failed to send request update notification: ${err.message}`,
+              RequestService.name,
+            );
+          });
+      }
     }
 
     // Invalidate cache

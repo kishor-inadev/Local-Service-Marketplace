@@ -40,9 +40,13 @@ describe("UserService", () => {
       sendBoth: jest.fn().mockResolvedValue({ emailSent: true, smsSent: true }),
     } as any;
 
-    const service = new UserService(userRepository, logger, notificationClient);
+    const notificationQueue = {
+      add: jest.fn().mockResolvedValue({}),
+    } as any;
 
-    return { service, userRepository, logger, notificationClient };
+    const service = new UserService(userRepository, logger, notificationClient, notificationQueue);
+
+    return { service, userRepository, logger, notificationClient, notificationQueue };
   };
 
   describe("getUsersForAdmin", () => {

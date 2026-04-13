@@ -14,10 +14,13 @@ import { UserClient } from "../../common/user/user.client";
 
 @Injectable()
 export class RefundService {
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
+
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     @InjectQueue("payment.refund") private readonly refundQueue: Queue,
+    @InjectQueue("payment.notification") private readonly notificationQueue: Queue,
     private readonly refundRepository: RefundRepository,
     private readonly paymentRepository: PaymentRepository,
     private readonly notificationClient: NotificationClient,
@@ -89,24 +92,26 @@ export class RefundService {
     // Send refund notification to user
     const userEmail = await this.userClient.getUserEmail(payment.user_id);
     if (userEmail) {
-      this.notificationClient
-        .sendEmail({
-          to: userEmail,
-          template: 'PAYMENT_REFUNDED',
-          variables: {
-            username: userEmail.split('@')[0],
-            amount: `₹${refundAmount}`,
-            transactionId: payment.transaction_id,
-            refundId: refund.id,
-            refundDate: new Date().toLocaleDateString('en-IN'),
-          },
-        })
-        .catch((err: any) => {
-          this.logger.warn(
-            `Failed to send refund notification: ${err.message}`,
-            "RefundService",
-          );
-        });
+      const refundPayload = {
+        to: userEmail,
+        template: 'PAYMENT_REFUNDED',
+        variables: {
+          username: userEmail.split('@')[0],
+          amount: `₹${refundAmount}`,
+          transactionId: payment.transaction_id,
+          refundId: refund.id,
+          refundDate: new Date().toLocaleDateString('en-IN'),
+        },
+      };
+      const refundDispatch = this.workersEnabled
+        ? this.notificationQueue.add('send-refund-notification', refundPayload)
+        : this.notificationClient.sendEmail(refundPayload);
+      refundDispatch.catch((err: any) => {
+        this.logger.warn(
+          `Failed to send refund notification: ${err.message}`,
+          'RefundService',
+        );
+      });
     }
 
     return refund;

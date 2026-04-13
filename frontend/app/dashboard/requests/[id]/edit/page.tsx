@@ -132,14 +132,14 @@ export default function EditRequestPage() {
 									</div>
 
 									<div>
-										<label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Budget ($)</label>
+										<label className='block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>Budget (₹)</label>
 										<Input
 											type='number'
 											min={0}
 											step={0.01}
 											{...register("budget", {
 												required: "Budget is required",
-												min: { value: 1, message: "Budget must be at least $1" },
+												min: { value: 1, message: "Budget must be at least ₹1" },
 												valueAsNumber: true,
 											})}
 										/>

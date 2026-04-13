@@ -9,6 +9,8 @@ import {
   NotFoundException,
   ForbiddenException,
 } from "../../common/exceptions/http.exceptions";
+import { EmailClient } from "../../notification/clients/email.client";
+import { UserClient } from "../../common/user/user.client";
 
 @Injectable()
 export class MessageService {
@@ -16,6 +18,8 @@ export class MessageService {
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     private readonly messageRepository: MessageRepository,
+    private readonly emailClient: EmailClient,
+    private readonly userClient: UserClient,
   ) {}
 
   async createMessage(
@@ -36,6 +40,32 @@ export class MessageService {
       `Message created successfully: ${newMessage.id}`,
       "MessageService",
     );
+
+    // Notify the other participant via email (non-blocking)
+    this.messageRepository.getJobRecipientId(newMessage.job_id, senderId)
+      .then(async (recipientId) => {
+        if (!recipientId) return;
+        const recipientEmail = await this.userClient.getUserEmail(recipientId);
+        if (!recipientEmail) return;
+        return this.emailClient.sendEmail({
+          to: recipientEmail,
+          template: 'MESSAGE_RECEIVED',
+          variables: {
+            recipientName: recipientEmail.split('@')[0],
+            senderName: 'A job participant',
+            messagePreview: message.length > 100 ? `${message.substring(0, 97)}...` : message,
+            receivedAt: new Date().toISOString(),
+            replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/jobs/${newMessage.job_id}/messages`,
+          },
+        });
+      })
+      .catch((err: any) => {
+        this.logger.warn(
+          `Failed to send new message email notification: ${err.message}`,
+          'MessageService',
+        );
+      });
+
     return newMessage;
   }
 

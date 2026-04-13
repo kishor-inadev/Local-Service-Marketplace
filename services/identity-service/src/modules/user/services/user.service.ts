@@ -1,4 +1,6 @@
 import { Injectable, Inject } from "@nestjs/common";
+import { InjectQueue } from "@nestjs/bullmq";
+import { Queue } from "bullmq";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import * as bcrypt from "bcryptjs";
@@ -18,12 +20,23 @@ import { NotificationClient } from "../../../common/notification/notification.cl
 @Injectable()
 export class UserService {
   private readonly saltRounds = 12;
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
 
   constructor(
     private readonly userRepository: UserRepository,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
     private readonly notificationClient: NotificationClient,
+    @InjectQueue('identity.notification') private readonly notificationQueue: Queue,
   ) { }
+
+  private sendEmailNotification(payload: { to: string; template: string; variables: Record<string, any> }): void {
+    const dispatch = this.workersEnabled
+      ? this.notificationQueue.add('send-email', payload)
+      : this.notificationClient.sendEmail(payload);
+    dispatch.catch((err: any) => {
+      this.logger.error(`Failed to send email (${payload.template}) to ${payload.to}: ${err.message}`, 'UserService');
+    });
+  }
 
   async getUsersForAdmin(queryDto: AdminUserListQueryDto): Promise<{
     data: UserResponseDto[];
@@ -84,7 +97,7 @@ export class UserService {
     }
 
     // Send suspension email notification
-    this.notificationClient.sendEmail({
+    this.sendEmailNotification({
       to: updated.email,
       template: 'USER_SUSPENDED',
       variables: {
@@ -92,9 +105,8 @@ export class UserService {
         username: updated.name || updated.email.split('@')[0],
         email: updated.email,
         reason: reason || 'Violation of terms and conditions',
+        timestamp: new Date().toISOString(),
       },
-    }).catch(err => {
-      this.logger.error(`Failed to send suspension email to ${updated.email}: ${err.message}`, "UserService");
     });
 
     return this.mapToDto(updated);
@@ -105,6 +117,18 @@ export class UserService {
     if (!updated) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
+
+    // Send account reactivation email
+    this.sendEmailNotification({
+      to: updated.email,
+      template: 'USER_REINSTATED',
+      variables: {
+        userId: updated.id,
+        username: updated.name || updated.email.split('@')[0],
+        email: updated.email,
+        timestamp: new Date().toISOString(),
+      },
+    });
 
     return this.mapToDto(updated);
   }
@@ -122,8 +146,8 @@ export class UserService {
       );
     }
 
-    // Send banning email notification (using same messaging as suspension for now)
-    this.notificationClient.sendEmail({
+    // Send banning email notification
+    this.sendEmailNotification({
       to: updated.email,
       template: 'USER_BANNED',
       variables: {
@@ -131,9 +155,8 @@ export class UserService {
         username: updated.name || updated.email.split('@')[0],
         email: updated.email,
         reason: reason || 'Serious violation of community guidelines',
+        timestamp: new Date().toISOString(),
       },
-    }).catch(err => {
-      this.logger.error(`Failed to send ban email to ${updated.email}: ${err.message}`, "UserService");
     });
 
     return this.mapToDto(updated);
@@ -153,6 +176,16 @@ export class UserService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
 
+    // Notify user that their password was reset by an admin
+    this.sendEmailNotification({
+      to: updated.email,
+      template: 'MARKETPLACE_PASSWORD_RESET',
+      variables: {
+        name: updated.name || updated.email.split('@')[0],
+        resetLink: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/login`,
+      },
+    });
+
     return { success: true };
   }
 
@@ -161,6 +194,19 @@ export class UserService {
     if (!deleted) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
+
+    // Notify user that their account was removed
+    this.sendEmailNotification({
+      to: deleted.email,
+      template: 'USER_DELETED',
+      variables: {
+        userId: deleted.id,
+        username: deleted.name || deleted.email.split('@')[0],
+        email: deleted.email,
+        timestamp: new Date().toISOString(),
+        reason: 'removed by administrator',
+      },
+    });
 
     return this.mapToDto(deleted);
   }

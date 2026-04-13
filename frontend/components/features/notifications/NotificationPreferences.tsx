@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import toast from 'react-hot-toast';
-import { Bell, Mail, MessageSquare, Star, DollarSign, Briefcase, AlertTriangle } from 'lucide-react';
+import { Bell, Mail, MessageSquare, Star, IndianRupee, Briefcase, AlertTriangle } from 'lucide-react';
 import { notificationService, type NotificationPreferences as NotificationPreferencesType } from '@/services/notification-service';
 import { ConfirmDialog } from '@/components/shared/ConfirmDialog';
 
@@ -70,7 +70,7 @@ const PREFERENCE_SETTINGS: PreferenceSetting[] = [
     key: 'payment_alerts',
     label: 'Payment Notifications',
     description: 'Get notified about payments, refunds, and transactions',
-    icon: <DollarSign className="w-5 h-5" />,
+    icon: <IndianRupee className="w-5 h-5" />,
     category: 'activities'
   },
   {

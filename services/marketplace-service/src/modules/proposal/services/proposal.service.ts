@@ -388,6 +388,31 @@ export class ProposalService {
       ProposalService.name,
     );
 
+    // Notify provider that their proposal was rejected
+    const providerEmail = await this.userClient.getProviderEmail(proposal.provider_id).catch(() => null);
+    if (providerEmail) {
+      const rejectPayload = {
+        to: providerEmail,
+        template: 'MESSAGE_RECEIVED',
+        variables: {
+          recipientName: providerEmail.split('@')[0],
+          senderName: 'LocalServices',
+          messagePreview: `Your proposal for Request #${proposal.request_id} has been declined by the customer.${reason ? ` Reason: ${reason}` : ''}`,
+          receivedAt: new Date().toISOString(),
+          replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/proposals/${proposal.id}`,
+        },
+      };
+      if (this.workersEnabled) {
+        this.notificationQueue.add('notify-proposal-rejected', rejectPayload).catch((err: any) => {
+          this.logger.warn(`Failed to enqueue rejection notification: ${err.message}`, ProposalService.name);
+        });
+      } else {
+        this.notificationClient.sendEmail(rejectPayload).catch((err: any) => {
+          this.logger.warn(`Failed to send rejection notification: ${err.message}`, ProposalService.name);
+        });
+      }
+    }
+
     // Publish event to Kafka if enabled
     await this.kafkaService.publishEvent("proposal-events", {
       eventType: "proposal_rejected",
@@ -548,6 +573,33 @@ export class ProposalService {
       ProposalService.name,
     );
 
+    // Notify customer that the provider withdrew the proposal
+    const customerEmail = existingProposal.customer_id
+      ? await this.userClient.getUserEmail(existingProposal.customer_id).catch(() => null)
+      : null;
+    if (customerEmail) {
+      const withdrawPayload = {
+        to: customerEmail,
+        template: 'MESSAGE_RECEIVED',
+        variables: {
+          recipientName: customerEmail.split('@')[0],
+          senderName: 'LocalServices',
+          messagePreview: `A service provider has withdrawn their proposal for your Request #${existingProposal.request_id}. You may receive other proposals.`,
+          receivedAt: new Date().toISOString(),
+          replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${existingProposal.request_id}`,
+        },
+      };
+      if (this.workersEnabled) {
+        this.notificationQueue.add('notify-proposal-withdrawn', withdrawPayload).catch((err: any) => {
+          this.logger.warn(`Failed to enqueue withdrawal notification: ${err.message}`, ProposalService.name);
+        });
+      } else {
+        this.notificationClient.sendEmail(withdrawPayload).catch((err: any) => {
+          this.logger.warn(`Failed to send withdrawal notification: ${err.message}`, ProposalService.name);
+        });
+      }
+    }
+
     // Publish withdrawal event to Kafka
     await this.kafkaService.publishEvent("proposal-events", {
       eventType: "proposal_withdrawn",
@@ -607,6 +659,36 @@ export class ProposalService {
       `Proposal updated successfully: ${id}`,
       ProposalService.name,
     );
+
+    // Notify customer about updated proposal terms
+    const customerEmail = existingProposal.customer_id
+      ? await this.userClient.getUserEmail(existingProposal.customer_id).catch(() => null)
+      : null;
+    if (customerEmail) {
+      const updatePayload = {
+        to: customerEmail,
+        template: 'MARKETPLACE_PROPOSAL_RECEIVED',
+        variables: {
+          customerName: customerEmail.split('@')[0],
+          providerName: 'Service Provider',
+          requestTitle: `Request #${proposal.request_id}`,
+          price: proposal.price ? `₹${proposal.price}` : 'To be confirmed',
+          estimatedDuration: 'To be confirmed',
+          proposalDisplayId: proposal.id,
+          requestDisplayId: proposal.request_id,
+          proposalUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${proposal.request_id}/proposals/${proposal.id}`,
+        },
+      };
+      if (this.workersEnabled) {
+        this.notificationQueue.add('notify-proposal-updated', updatePayload).catch((err: any) => {
+          this.logger.warn(`Failed to enqueue proposal update notification: ${err.message}`, ProposalService.name);
+        });
+      } else {
+        this.notificationClient.sendEmail(updatePayload).catch((err: any) => {
+          this.logger.warn(`Failed to send proposal update notification: ${err.message}`, ProposalService.name);
+        });
+      }
+    }
 
     return ProposalResponseDto.fromEntity(proposal);
   }

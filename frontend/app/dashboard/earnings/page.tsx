@@ -18,7 +18,7 @@ import { paymentService } from '@/services/payment-service';
 import { getProviderProfileByUserId } from "@/services/user-service";
 import { formatDate, formatCurrency } from '@/utils/helpers';
 import { ErrorState } from "@/components/ui/ErrorState";
-import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, DollarSign, Download, TrendingUp } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, Calendar, IndianRupee, Download, TrendingUp } from "lucide-react";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 type TransactionSortField = "date" | "id" | "customer" | "total_amount" | "platform_fee" | "provider_amount" | "status";
@@ -195,7 +195,7 @@ export default function EarningsPage() {
 					: !providerId ?
 						<Card>
 							<CardContent className='p-10 text-center'>
-								<DollarSign className='h-12 w-12 text-gray-400 mx-auto mb-4' />
+								<IndianRupee className='h-12 w-12 text-gray-400 mx-auto mb-4' />
 								<h2 className='text-xl font-semibold text-gray-900 dark:text-white mb-2'>Provider profile required</h2>
 								<p className='text-gray-600 dark:text-gray-400'>
 									Create or restore your provider profile to access earnings.
@@ -217,7 +217,7 @@ export default function EarningsPage() {
 									<CardContent className='p-6'>
 										<div className='flex items-center justify-between mb-2'>
 											<p className='text-sm font-medium text-gray-600 dark:text-gray-400'>Total Earnings</p>
-											<DollarSign className='h-5 w-5 text-green-600 dark:text-green-400' />
+											<IndianRupee className='h-5 w-5 text-green-600 dark:text-green-400' />
 										</div>
 										<p className='text-3xl font-bold text-gray-900 dark:text-white'>
 											{earnings ? formatCurrency(earnings.summary.total_earnings) : formatCurrency(0)}
@@ -245,7 +245,7 @@ export default function EarningsPage() {
 									<CardContent className='p-6'>
 										<div className='flex items-center justify-between mb-2'>
 											<p className='text-sm font-medium text-gray-600 dark:text-gray-400'>Average per Job</p>
-											<DollarSign className='h-5 w-5 text-purple-600 dark:text-purple-400' />
+											<IndianRupee className='h-5 w-5 text-purple-600 dark:text-purple-400' />
 										</div>
 										<p className='text-3xl font-bold text-gray-900 dark:text-white'>
 											{earnings ? formatCurrency(earnings.average_per_job) : formatCurrency(0)}
@@ -556,7 +556,7 @@ export default function EarningsPage() {
 											</div>
 										</div>
 									:	<div className='text-center py-12'>
-											<DollarSign className='h-12 w-12 text-gray-400 mx-auto mb-4' />
+											<IndianRupee className='h-12 w-12 text-gray-400 mx-auto mb-4' />
 											<h3 className='text-lg font-medium text-gray-900 dark:text-white mb-2'>No earnings yet</h3>
 											<p className='text-gray-600 dark:text-gray-400 mb-4'>Complete jobs to start earning</p>
 											<Button onClick={() => router.push(ROUTES.DASHBOARD_BROWSE_REQUESTS)}>Browse Requests</Button>

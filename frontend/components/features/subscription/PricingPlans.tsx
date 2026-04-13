@@ -160,7 +160,7 @@ export function PricingPlans({ onSelectPlan }: { onSelectPlan?: (_pId: string) =
                     <p className={`text-sm mt-1 ${
                       isPlanPopular(plan.name) ? 'text-white text-opacity-75' : 'text-gray-500'
                     }`}>
-                      ${(plan.price / 12).toFixed(2)}/month billed annually
+                      ₹{Math.round(plan.price / 12)}/month billed annually
                     </p>
                   )}
                 </div>

@@ -12,10 +12,13 @@ import { PaymentGatewayService } from "../gateway/payment-gateway.service";
 
 @Injectable()
 export class WebhookService {
+  private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
+
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
     @InjectQueue("payment.webhook") private readonly webhookQueue: Queue,
+    @InjectQueue("payment.notification") private readonly notificationQueue: Queue,
     private readonly webhookRepository: WebhookRepository,
     private readonly paymentRepository: PaymentRepository,
     private readonly notificationClient: NotificationClient,
@@ -132,24 +135,26 @@ export class WebhookService {
         // Send confirmation email
         const userEmail = await this.userClient.getUserEmail(payment.user_id);
         if (userEmail) {
-          this.notificationClient
-            .sendEmail({
-              to: userEmail,
-              template: 'PAYMENT_SUCCESS',
-              variables: {
-                username: userEmail.split('@')[0],
-                amount: `₹${payment.amount}`,
-                transactionId: event.transactionId,
-                paymentMethod: 'Online Payment',
-                date: new Date().toLocaleDateString('en-IN'),
-              },
-            })
-            .catch((err: any) => {
-              this.logger.warn(
-                `Failed to send payment confirmation email: ${err.message}`,
-                "WebhookService",
-              );
-            });
+          const successPayload = {
+            to: userEmail,
+            template: 'PAYMENT_SUCCESS',
+            variables: {
+              username: userEmail.split('@')[0],
+              amount: `₹${payment.amount}`,
+              transactionId: event.transactionId,
+              paymentMethod: 'Online Payment',
+              date: new Date().toLocaleDateString('en-IN'),
+            },
+          };
+          const successDispatch = this.workersEnabled
+            ? this.notificationQueue.add('send-payment-success', successPayload)
+            : this.notificationClient.sendEmail(successPayload);
+          successDispatch.catch((err: any) => {
+            this.logger.warn(
+              `Failed to send payment confirmation email: ${err.message}`,
+              'WebhookService',
+            );
+          });
         }
       } else if (event.eventType === "payment.failed") {
         await this.paymentRepository.updatePaymentStatus(
@@ -163,26 +168,28 @@ export class WebhookService {
         );
 
         // Send failure notification email
-        const userEmail = await this.userClient.getUserEmail(payment.user_id);
-        if (userEmail) {
-          this.notificationClient
-            .sendEmail({
-              to: userEmail,
-              template: 'PAYMENT_FAILED',
-              variables: {
-                username: userEmail.split('@')[0],
-                amount: `₹${payment.amount}`,
-                transactionId: payment.transaction_id,
-                failureReason: 'Your payment could not be processed. Please check your payment method and try again.',
-                date: new Date().toLocaleDateString('en-IN'),
-              },
-            })
-            .catch((err: any) => {
-              this.logger.warn(
-                `Failed to send payment failure notification: ${err.message}`,
-                "WebhookService",
-              );
-            });
+        const failUserEmail = await this.userClient.getUserEmail(payment.user_id);
+        if (failUserEmail) {
+          const failurePayload = {
+            to: failUserEmail,
+            template: 'PAYMENT_FAILED',
+            variables: {
+              username: failUserEmail.split('@')[0],
+              amount: `₹${payment.amount}`,
+              transactionId: payment.transaction_id,
+              failureReason: 'Your payment could not be processed. Please check your payment method and try again.',
+              date: new Date().toLocaleDateString('en-IN'),
+            },
+          };
+          const failureDispatch = this.workersEnabled
+            ? this.notificationQueue.add('send-payment-failed', failurePayload)
+            : this.notificationClient.sendEmail(failurePayload);
+          failureDispatch.catch((err: any) => {
+            this.logger.warn(
+              `Failed to send payment failure notification: ${err.message}`,
+              'WebhookService',
+            );
+          });
         }
       } else if (event.eventType === "refund.created") {
         await this.paymentRepository.updatePaymentStatus(

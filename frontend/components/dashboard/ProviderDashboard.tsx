@@ -16,7 +16,7 @@ import { proposalService } from '@/services/proposal-service';
 import { jobService } from '@/services/job-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
 import Link from 'next/link';
-import { Briefcase, FileText, DollarSign, Search, Calendar, TrendingUp, User, Star, ImageIcon } from "lucide-react";
+import { Briefcase, FileText, IndianRupee, Search, Calendar, TrendingUp, User, Star, ImageIcon } from "lucide-react";
 
 export default function ProviderDashboard() {
 	const router = useRouter();
@@ -137,7 +137,7 @@ export default function ProviderDashboard() {
 									</p>
 								</div>
 								<div className='h-12 w-12 rounded-2xl bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center flex-shrink-0'>
-									<DollarSign className='h-6 w-6 text-primary-600 dark:text-primary-400' />
+									<IndianRupee className='h-6 w-6 text-primary-600 dark:text-primary-400' />
 								</div>
 							</CardContent>
 						</Card>
