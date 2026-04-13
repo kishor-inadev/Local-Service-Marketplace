@@ -1,5 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext } from "@nestjs/common";
+import { Reflector } from "@nestjs/core";
 import { UnauthorizedException } from "../exceptions/http.exceptions";
+import { IS_PUBLIC_KEY } from "../decorators/skip-auth.decorator";
 import * as crypto from "crypto";
 
 /**
@@ -15,10 +17,22 @@ import * as crypto from "crypto";
  * - x-user-name: User's name (optional)
  * - x-user-phone: User's phone (optional)
  * - x-provider-id: Provider ID if user is a provider (optional)
+ *
+ * Endpoints decorated with @SkipAuth() bypass this guard entirely.
+ * Those endpoints must use InternalServiceGuard instead.
  */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
   async canActivate(context: ExecutionContext): Promise<boolean> {
+    // Allow endpoints decorated with @SkipAuth() to bypass JWT validation
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
+
     const request = context.switchToHttp().getRequest();
 
     // Extract user context from headers (injected by API Gateway)
