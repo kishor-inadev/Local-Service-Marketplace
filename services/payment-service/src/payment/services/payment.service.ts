@@ -161,8 +161,14 @@ export class PaymentService {
       } else {
         this.notificationClient.sendEmail({
           to: userEmail,
-          template: 'paymentReceived',
-          variables: { amount: finalAmount, currency, transactionId: chargeResult.transactionId, serviceName: 'Service' },
+          template: 'PAYMENT_SUCCESS',
+          variables: {
+            username: userEmail.split('@')[0],
+            amount: `₹${finalAmount}`,
+            transactionId: chargeResult.transactionId,
+            paymentMethod: 'Online Payment',
+            date: new Date().toLocaleDateString('en-IN'),
+          },
         }).catch((err: any) => {
           this.logger.warn(`Failed to send payment confirmation: ${err.message}`, 'PaymentService');
         });

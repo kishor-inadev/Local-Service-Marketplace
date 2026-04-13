@@ -19,6 +19,7 @@ export interface NotifyRefundProcessedJobData {
   userId: string;
   amount: number;
   currency: string;
+  transactionId?: string;
 }
 
 export interface NotifyPaymentFailedJobData {
@@ -85,24 +86,38 @@ export class PaymentNotificationWorker extends WorkerHost implements OnModuleIni
     const { userId, amount, currency, transactionId } = job.data;
     const userEmail = await this.userClient.getUserEmail(userId);
     if (!userEmail) return;
+    const username = await this.userClient.getUserName(userId).catch(() => null);
 
     await this.notificationClient.sendEmail({
       to: userEmail,
-      template: 'paymentReceived',
-      variables: { amount, currency, transactionId, serviceName: 'Service' },
+      template: 'PAYMENT_SUCCESS',
+      variables: {
+        username: username || userEmail.split('@')[0],
+        amount: `₹${amount}`,
+        transactionId,
+        paymentMethod: 'Online Payment',
+        date: new Date().toLocaleDateString('en-IN'),
+      },
     });
     this.logger.log(`Payment confirmation sent to user ${userId}`, 'PaymentNotificationWorker');
   }
 
   private async handleRefundProcessed(job: Job<NotifyRefundProcessedJobData>): Promise<void> {
-    const { userId, amount, currency, paymentId } = job.data;
+    const { userId, amount, currency, paymentId, refundId } = job.data;
     const userEmail = await this.userClient.getUserEmail(userId);
     if (!userEmail) return;
+    const username = await this.userClient.getUserName(userId).catch(() => null);
 
     await this.notificationClient.sendEmail({
       to: userEmail,
-      template: 'refundProcessed',
-      variables: { amount, currency, paymentId },
+      template: 'PAYMENT_REFUNDED',
+      variables: {
+        username: username || userEmail.split('@')[0],
+        amount: `₹${amount}`,
+        transactionId: paymentId,
+        refundId: refundId || paymentId,
+        refundDate: new Date().toLocaleDateString('en-IN'),
+      },
     });
     this.logger.log(`Refund notification sent to user ${userId}`, 'PaymentNotificationWorker');
   }
@@ -111,11 +126,18 @@ export class PaymentNotificationWorker extends WorkerHost implements OnModuleIni
     const { userId, amount, currency, reason } = job.data;
     const userEmail = await this.userClient.getUserEmail(userId);
     if (!userEmail) return;
+    const username = await this.userClient.getUserName(userId).catch(() => null);
 
     await this.notificationClient.sendEmail({
       to: userEmail,
-      template: 'paymentFailed',
-      variables: { amount, currency, reason: reason ?? 'Unknown error' },
+      template: 'PAYMENT_FAILED',
+      variables: {
+        username: username || userEmail.split('@')[0],
+        amount: `₹${amount}`,
+        transactionId: `TXN-${Date.now()}`,
+        failureReason: reason ?? 'Unknown error',
+        date: new Date().toLocaleDateString('en-IN'),
+      },
     });
     this.logger.log(`Payment failure notification sent to user ${userId}`, 'PaymentNotificationWorker');
   }
@@ -124,11 +146,16 @@ export class PaymentNotificationWorker extends WorkerHost implements OnModuleIni
     const { userId, cardBrand, lastFour } = job.data;
     const userEmail = await this.userClient.getUserEmail(userId);
     if (!userEmail) return;
+    const username = await this.userClient.getUserName(userId).catch(() => null);
 
     await this.notificationClient.sendEmail({
       to: userEmail,
-      template: 'cardSaved',
-      variables: { cardBrand, lastFour },
+      template: 'BILLING_INFO_UPDATED',
+      variables: {
+        username: username || userEmail.split('@')[0],
+        updatedFields: [`Payment method added: ${cardBrand} ending ${lastFour}`],
+        updatedAt: new Date().toISOString(),
+      },
     });
     this.logger.log(`Card-saved notification sent to user ${userId}`, 'PaymentNotificationWorker');
   }
@@ -137,11 +164,16 @@ export class PaymentNotificationWorker extends WorkerHost implements OnModuleIni
     const { userId, cardBrand, lastFour } = job.data;
     const userEmail = await this.userClient.getUserEmail(userId);
     if (!userEmail) return;
+    const username = await this.userClient.getUserName(userId).catch(() => null);
 
     await this.notificationClient.sendEmail({
       to: userEmail,
-      template: 'cardDeleted',
-      variables: { cardBrand, lastFour },
+      template: 'BILLING_INFO_UPDATED',
+      variables: {
+        username: username || userEmail.split('@')[0],
+        updatedFields: [`Payment method removed: ${cardBrand} ending ${lastFour}`],
+        updatedAt: new Date().toISOString(),
+      },
     });
     this.logger.log(`Card-deleted notification sent to user ${userId}`, 'PaymentNotificationWorker');
   }

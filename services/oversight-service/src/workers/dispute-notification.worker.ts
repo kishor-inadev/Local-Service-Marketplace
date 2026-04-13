@@ -46,11 +46,12 @@ export class DisputeNotificationWorker extends WorkerHost {
     if (!emailTo) return;
     await this.notificationClient.sendEmail({
       to: emailTo,
-      template: 'disputeCreated',
+      template: 'MESSAGE_RECEIVED',
       variables: {
-        disputeId,
-        jobId,
-        disputeUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/disputes/${disputeId}`,
+        recipientName: emailTo.split('@')[0],
+        senderName: 'LocalServices Support',
+        messagePreview: `A dispute #${disputeId} has been opened for job #${jobId}. Our team will review it shortly.`,
+        replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/disputes/${disputeId}`,
       },
     });
   }
@@ -61,12 +62,12 @@ export class DisputeNotificationWorker extends WorkerHost {
     if (!emailTo) return;
     await this.notificationClient.sendEmail({
       to: emailTo,
-      template: 'disputeStatusChanged',
+      template: 'MESSAGE_RECEIVED',
       variables: {
-        disputeId,
-        newStatus,
-        resolution: resolution || '',
-        disputeUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/disputes/${disputeId}`,
+        recipientName: emailTo.split('@')[0],
+        senderName: 'LocalServices Support',
+        messagePreview: `Your dispute #${disputeId} status has been updated to: ${newStatus}. ${resolution ? 'Resolution: ' + resolution : ''}`,
+        replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/disputes/${disputeId}`,
       },
     });
   }

@@ -82,10 +82,14 @@ export class JobService {
         if (!providerEmail) return;
         this.notificationClient.sendEmail({
           to: providerEmail,
-          template: 'jobAssigned',
+          template: 'MARKETPLACE_JOB_ASSIGNED',
           variables: {
-            serviceName: 'Service Request',
-            jobId: job.id,
+            providerName: providerEmail.split('@')[0],
+            requestTitle: 'Service Request',
+            customerName: 'Customer',
+            price: 'Agreed price',
+            startDate: new Date().toLocaleDateString('en-IN'),
+            jobDisplayId: job.id,
             jobUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/jobs/${job.id}`,
           },
         });
@@ -283,8 +287,13 @@ export class JobService {
         if (!email) return;
         this.notificationClient.sendEmail({
           to: email,
-          template: 'jobStatusChanged',
-          variables: { jobId: job.id, newStatus: dto.status },
+          template: 'MESSAGE_RECEIVED',
+          variables: {
+            recipientName: email.split('@')[0],
+            senderName: 'LocalServices',
+            messagePreview: `Your job #${job.id} status has been updated to: ${dto.status}`,
+            replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/jobs/${job.id}`,
+          },
         });
       }).catch((err: any) => {
         this.logger.warn(
@@ -384,15 +393,27 @@ export class JobService {
         if (customerEmail) {
           this.notificationClient.sendEmail({
             to: customerEmail,
-            template: 'jobCompleted',
-            variables: { jobId: job.id },
+            template: 'ORDER_DELIVERED',
+            variables: {
+              username: customerEmail.split('@')[0],
+              orderId: job.id,
+              deliveryDate: new Date().toLocaleDateString('en-IN'),
+              deliveryAddress: 'At your service location',
+            },
           });
         }
         if (providerEmail) {
           this.notificationClient.sendEmail({
             to: providerEmail,
-            template: 'jobCompletedProvider',
-            variables: { jobId: job.id },
+            template: 'MARKETPLACE_PAYMENT_RECEIVED',
+            variables: {
+              providerName: providerEmail.split('@')[0],
+              amount: 'Agreed amount',
+              jobTitle: `Job #${job.id}`,
+              customerName: 'Customer',
+              paymentDisplayId: job.id,
+              dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/provider/dashboard`,
+            },
           });
         }
       }).catch((err: any) => {
@@ -661,15 +682,25 @@ export class JobService {
         if (customerEmail) {
           this.notificationClient.sendEmail({
             to: customerEmail,
-            template: 'jobCancelled',
-            variables: { jobId: existingJob.id, cancelledBy: userId },
+            template: 'ORDER_CANCELLED',
+            variables: {
+              username: customerEmail.split('@')[0],
+              orderId: existingJob.id,
+              cancelledBy: userId,
+              reason: 'Job cancelled',
+            },
           });
         }
         if (providerEmail) {
           this.notificationClient.sendEmail({
             to: providerEmail,
-            template: 'jobCancelled',
-            variables: { jobId: existingJob.id, cancelledBy: userId },
+            template: 'ORDER_CANCELLED',
+            variables: {
+              username: providerEmail.split('@')[0],
+              orderId: existingJob.id,
+              cancelledBy: userId,
+              reason: 'Job cancelled',
+            },
           });
         }
       }).catch((err: any) => {

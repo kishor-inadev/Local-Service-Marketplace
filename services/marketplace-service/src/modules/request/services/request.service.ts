@@ -121,11 +121,14 @@ export class RequestService {
           if (!email) return;
           this.notificationClient.sendEmail({
             to: email,
-            template: 'newRequest',
+            template: 'MARKETPLACE_NEW_REQUEST',
             variables: {
-              serviceName: dto.description?.substring(0, 50) || 'Service Request',
-              requestId: request.id,
-              budget: request.budget,
+              providerName: email.split('@')[0],
+              requestTitle: dto.description?.substring(0, 80) || 'Service Request',
+              category: 'General',
+              budget: request.budget ? `₹${request.budget}` : 'Not specified',
+              customerName: email.split('@')[0],
+              requestDisplayId: request.id,
               requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
             },
           });
@@ -154,11 +157,14 @@ export class RequestService {
       } else {
         this.notificationClient.sendEmail({
           to: dto.guest_info.email,
-          template: 'newRequest',
+          template: 'MARKETPLACE_NEW_REQUEST',
           variables: {
-            serviceName: dto.description?.substring(0, 50) || 'Service Request',
-            requestId: request.id,
-            budget: request.budget,
+            providerName: dto.guest_info.email.split('@')[0],
+            requestTitle: dto.description?.substring(0, 80) || 'Service Request',
+            category: 'General',
+            budget: request.budget ? `₹${request.budget}` : 'Not specified',
+            customerName: dto.guest_info.email.split('@')[0],
+            requestDisplayId: request.id,
             requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
           },
         }).catch((err: any) => {
@@ -345,11 +351,12 @@ export class RequestService {
       this.notificationClient
         .sendEmail({
           to: userEmail,
-          template: "newRequest",
+          template: 'MESSAGE_RECEIVED',
           variables: {
-            serviceName: "Request Update",
-            message: `Your request has been updated. Status: ${dto.status}`,
-            requestUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/requests/${id}`,
+            recipientName: userEmail.split('@')[0],
+            senderName: 'LocalServices',
+            messagePreview: `Your service request has been updated. Status: ${dto.status}`,
+            replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${id}`,
           },
         })
         .catch((err: any) => {
@@ -421,10 +428,12 @@ export class RequestService {
         if (!email) return;
         this.notificationClient.sendEmail({
           to: email,
-          template: 'requestCancelled',
+          template: 'ORDER_CANCELLED',
           variables: {
-            requestId: request.id,
-            requestUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/requests/${request.id}`,
+            username: email.split('@')[0],
+            orderId: request.id,
+            cancelledBy: 'user',
+            reason: 'Request cancelled',
           },
         });
       }).catch((err: any) => {
