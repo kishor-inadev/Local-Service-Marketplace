@@ -13,6 +13,7 @@ import {
   ConflictException,
   NotFoundException,
 } from "@/common/exceptions/http.exceptions";
+import { NotificationClient } from "../../../common/notification/notification.client";
 
 @Injectable()
 export class UserService {
@@ -21,7 +22,8 @@ export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: Logger,
-  ) {}
+    private readonly notificationClient: NotificationClient,
+  ) { }
 
   async getUsersForAdmin(queryDto: AdminUserListQueryDto): Promise<{
     data: UserResponseDto[];
@@ -81,6 +83,20 @@ export class UserService {
       );
     }
 
+    // Send suspension email notification
+    this.notificationClient.sendEmail({
+      to: updated.email,
+      template: 'USER_SUSPENDED',
+      variables: {
+        userId: updated.id,
+        username: updated.name || updated.email.split('@')[0],
+        email: updated.email,
+        reason: reason || 'Violation of terms and conditions',
+      },
+    }).catch(err => {
+      this.logger.error(`Failed to send suspension email to ${updated.email}: ${err.message}`, "UserService");
+    });
+
     return this.mapToDto(updated);
   }
 
@@ -105,6 +121,20 @@ export class UserService {
         "UserService",
       );
     }
+
+    // Send banning email notification (using same messaging as suspension for now)
+    this.notificationClient.sendEmail({
+      to: updated.email,
+      template: 'USER_BANNED',
+      variables: {
+        userId: updated.id,
+        username: updated.name || updated.email.split('@')[0],
+        email: updated.email,
+        reason: reason || 'Serious violation of community guidelines',
+      },
+    }).catch(err => {
+      this.logger.error(`Failed to send ban email to ${updated.email}: ${err.message}`, "UserService");
+    });
 
     return this.mapToDto(updated);
   }
