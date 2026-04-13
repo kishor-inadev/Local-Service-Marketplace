@@ -372,7 +372,7 @@ export function CreateRequestForm({ initialQuery = '', onSuccess }: Props) {
                 {(watchedValues.city || watchedValues.address) && (
                   <ReviewRow
                     label="Location"
-                    value={[watchedValues.address, watchedValues.city, watchedValues.state, watchedValues.zip_code]
+                    value={[watchedValues.address, watchedValues.city, watchedValues.state, watchedValues.pincode]
                       .filter(Boolean)
                       .join(', ')}
                   />
