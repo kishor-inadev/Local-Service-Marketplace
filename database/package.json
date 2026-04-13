@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Database seeding script for Local Service Marketplace",
   "scripts": {
-    "seed": "node seed.js",
-    "seed:dev": "cross-env NODE_ENV=development node seed.js",
+    "seed": "node verify-schema.js && node seed.js && node verify-seed.js",
+    "seed:dev": "cross-env NODE_ENV=development node verify-schema.js && cross-env NODE_ENV=development node seed.js && cross-env NODE_ENV=development node verify-seed.js",
     "seed:ts": "npx ts-node seed.ts",
     "seed:ts:dev": "cross-env NODE_ENV=development npx ts-node seed.ts",
     "verify": "node verify-seed.js",

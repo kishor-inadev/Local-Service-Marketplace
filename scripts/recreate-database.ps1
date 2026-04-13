@@ -165,7 +165,7 @@ Write-Info "=================================================="
 Write-Host ""
 
 Write-Info "Waiting for PostgreSQL to be ready..."
-$maxAttempts = 30
+$maxAttempts = 60
 $attempt = 0
 $env:PGPASSWORD = $dbPassword
 
@@ -173,7 +173,9 @@ while ($attempt -lt $maxAttempts) {
     $attempt++
     Write-Host "   Attempt $attempt/$maxAttempts..." -NoNewline
     
-    $result = docker exec $containerName pg_isready -U $dbUser 2>$null
+    # Connect directly to the target database — this ensures both postgres is up
+    # AND the database has been fully initialized (avoids race with pg_isready)
+    $result = docker exec -e PGPASSWORD=$dbPassword $containerName psql -U $dbUser -d $dbName -c "SELECT 1" 2>$null
     
     if ($LASTEXITCODE -eq 0) {
         Write-Host " Ready!" -ForegroundColor Green
@@ -189,7 +191,7 @@ if ($attempt -eq $maxAttempts) {
     exit 1
 }
 
-Write-Success "   Database is ready!"
+Write-Success "   Database '$dbName' is ready!"
 
 Write-Host ""
 Write-Info "=================================================="

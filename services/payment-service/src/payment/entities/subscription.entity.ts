@@ -1,5 +1,6 @@
 export class Subscription {
   id: string;
+  display_id: string;
   provider_id: string;
   plan_id: string;
   status: "active" | "cancelled" | "expired" | "pending";
