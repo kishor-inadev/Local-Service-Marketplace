@@ -22,7 +22,7 @@ import {
 	Settings,
 	Search,
 	ClipboardList,
-	DollarSign,
+	IndianRupee,
 	Clock,
 	Star,
 	FolderOpen,
@@ -66,7 +66,7 @@ const ALL_NAV_ITEMS: NavItem[] = [
 	// ── Provider items ─────────────────────────────────────────────────────
 	{ label: "Browse Requests", href: ROUTES.DASHBOARD_BROWSE_REQUESTS, icon: Search, permissions: [Permission.REQUESTS_BROWSE], roles: ["provider"] },
 	{ label: "My Proposals", href: ROUTES.DASHBOARD_MY_PROPOSALS, icon: ClipboardList, permissions: [Permission.PROPOSALS_CREATE, Permission.PROPOSALS_READ], roles: ["provider"] },
-	{ label: "Earnings", href: ROUTES.DASHBOARD_EARNINGS, icon: DollarSign, permissions: [Permission.EARNINGS_VIEW], roles: ["provider"] },
+	{ label: "Earnings", href: ROUTES.DASHBOARD_EARNINGS, icon: IndianRupee, permissions: [Permission.EARNINGS_VIEW], roles: ["provider"] },
 	{ label: "Availability", href: ROUTES.DASHBOARD_AVAILABILITY, icon: Clock, permissions: [Permission.PROVIDER_AVAILABILITY_MANAGE], roles: ["provider"] },
 	{ label: "My Profile", href: ROUTES.DASHBOARD_PROVIDER_OVERVIEW, icon: Star, permissions: [Permission.PROVIDER_PROFILE_VIEW], roles: ["provider"] },
 	{ label: "Services", href: ROUTES.DASHBOARD_PROVIDER_SERVICES, icon: Tag, permissions: [Permission.PROVIDER_SERVICES_MANAGE], roles: ["provider"] },

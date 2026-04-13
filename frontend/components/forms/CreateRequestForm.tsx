@@ -14,7 +14,7 @@ import { requestService } from '@/services/request-service';
 import { cn } from '@/utils/helpers';
 import {
   ClipboardList,
-  DollarSign,
+  IndianRupee,
   MapPin,
   Calendar,
   AlertTriangle,
@@ -47,7 +47,7 @@ type RequestFormData = z.infer<typeof createRequestFormSchema>;
 
 const STEPS = [
   { id: 1, label: 'Service', icon: ClipboardList },
-  { id: 2, label: 'Details', icon: DollarSign },
+  { id: 2, label: 'Details', icon: IndianRupee },
   { id: 3, label: 'Location', icon: MapPin },
   { id: 4, label: 'Review', icon: Check },
 ];

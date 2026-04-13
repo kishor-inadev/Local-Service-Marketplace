@@ -657,7 +657,7 @@ export default function HomePage() {
 							{/* Provider Benefits */}
 							<div className='mt-16 grid grid-cols-1 sm:grid-cols-3 gap-6'>
 								<div className='bg-white/10 rounded-xl p-6 border border-white/15'>
-									<div className='text-4xl font-bold text-white mb-1'>$0</div>
+									<div className='text-4xl font-bold text-white mb-1'>₹0</div>
 									<div className='text-sm font-semibold text-primary-100 mb-1'>To Join</div>
 									<div className='text-xs text-primary-200/70'>No subscription fees or upfront costs</div>
 								</div>
@@ -825,7 +825,7 @@ export default function HomePage() {
 
 							<div className='text-center'>
 								<div className='bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-2xl p-8 mb-4 dark:border dark:border-purple-800/30'>
-									<div className='text-5xl font-bold text-violet-600 dark:text-violet-400 mb-2'>$580M+</div>
+									<div className='text-5xl font-bold text-violet-600 dark:text-violet-400 mb-2'>₹4,800Cr+</div>
 									<div className='text-sm font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wide'>
 										Paid to Providers
 									</div>
@@ -996,7 +996,7 @@ export default function HomePage() {
 						<div className='mt-16 bg-gradient-to-r from-gray-50 to-blue-50 dark:from-gray-800/50 dark:to-blue-900/20 rounded-2xl p-12 max-w-5xl mx-auto dark:border dark:border-gray-700'>
 							<div className='grid md:grid-cols-3 gap-8 text-center'>
 								<div>
-									<div className='text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2'>$1M+</div>
+									<div className='text-3xl font-bold text-primary-600 dark:text-primary-400 mb-2'>₹8Cr+</div>
 									<div className='text-sm font-semibold text-gray-900 dark:text-gray-100 mb-1'>Liability Insurance</div>
 									<div className='text-xs text-gray-600 dark:text-gray-400'>
 										Coverage for every job booked through our platform
@@ -1075,7 +1075,7 @@ export default function HomePage() {
 								<div className='text-sm text-blue-200'>Service Requests</div>
 							</div>
 							<div className='text-center'>
-								<div className='text-3xl font-bold text-white mb-1'>$500M+</div>
+								<div className='text-3xl font-bold text-white mb-1'>₹4,100Cr+</div>
 								<div className='text-sm text-blue-200'>Paid to Providers</div>
 							</div>
 							<div className='text-center'>

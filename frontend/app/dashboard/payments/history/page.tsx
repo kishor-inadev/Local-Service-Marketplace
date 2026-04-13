@@ -18,7 +18,7 @@ import { formatDate, formatCurrency } from '@/utils/helpers';
 import { analytics } from '@/utils/analytics';
 import toast from 'react-hot-toast';
 import { ErrorState } from "@/components/ui/ErrorState";
-import { ArrowDown, ArrowUp, ArrowUpDown, DollarSign, Download } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, IndianRupee, Download } from "lucide-react";
 
 type PaymentSortField = "created_at" | "amount" | "status";
 
@@ -171,7 +171,7 @@ export default function PaymentHistoryPage() {
 									<div className='flex items-center justify-between'>
 										<div className='flex items-start gap-4 flex-1'>
 											<div className='p-3 bg-primary-100 dark:bg-primary-900/20 rounded-lg'>
-												<DollarSign className='h-6 w-6 text-primary-600 dark:text-primary-400' />
+												<IndianRupee className='h-6 w-6 text-primary-600 dark:text-primary-400' />
 											</div>
 
 											<div className='flex-1'>
