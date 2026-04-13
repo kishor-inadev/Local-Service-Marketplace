@@ -105,6 +105,11 @@ export class UserClient {
     return user?.email || null;
   }
 
+  async getUserName(userId: string): Promise<string | null> {
+    const user = await this.getUserById(userId);
+    return user?.name || user?.email?.split('@')[0] || null;
+  }
+
   async getProviderById(providerId: string): Promise<ProviderData | null> {
     if (!this.enabled) {
       return null;

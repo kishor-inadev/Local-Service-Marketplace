@@ -34,9 +34,15 @@ describe("UserService", () => {
       log: jest.fn(),
     } as any;
 
-    const service = new UserService(userRepository, logger);
+    const notificationClient = {
+      sendEmail: jest.fn().mockResolvedValue(true),
+      sendSms: jest.fn().mockResolvedValue(true),
+      sendBoth: jest.fn().mockResolvedValue({ emailSent: true, smsSent: true }),
+    } as any;
 
-    return { service, userRepository, logger };
+    const service = new UserService(userRepository, logger, notificationClient);
+
+    return { service, userRepository, logger, notificationClient };
   };
 
   describe("getUsersForAdmin", () => {
@@ -117,7 +123,7 @@ describe("UserService", () => {
 
   describe("suspendUser", () => {
     it("suspends an active user", async () => {
-      const { service, userRepository } = createService();
+      const { service, userRepository, notificationClient } = createService();
       userRepository.updateStatus.mockResolvedValue({
         id: "user-1",
         status: "suspended",
@@ -133,6 +139,15 @@ describe("UserService", () => {
         "user-1",
         "suspended",
       );
+      expect(notificationClient.sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+        template: 'USER_SUSPENDED',
+        variables: expect.objectContaining({
+          userId: 'user-1',
+          username: 'Test',
+          email: 'test@test.com',
+          reason: 'Violation',
+        }),
+      }));
       expect(result).toBeDefined();
     });
 
@@ -141,6 +156,37 @@ describe("UserService", () => {
       userRepository.updateStatus.mockResolvedValue(null);
 
       await expect(service.suspendUser("nonexistent")).rejects.toThrow();
+    });
+  });
+
+  describe("banUser", () => {
+    it("bans an active user", async () => {
+      const { service, userRepository, notificationClient } = createService();
+      userRepository.updateStatus.mockResolvedValue({
+        id: "user-1",
+        status: "suspended",
+        email: "test@test.com",
+        name: "Test",
+        role: "customer",
+        created_at: new Date(),
+      });
+
+      const result = await service.banUser("user-1", "Spamming");
+
+      expect(userRepository.updateStatus).toHaveBeenCalledWith(
+        "user-1",
+        "suspended",
+      );
+      expect(notificationClient.sendEmail).toHaveBeenCalledWith(expect.objectContaining({
+        template: 'USER_BANNED',
+        variables: expect.objectContaining({
+          userId: 'user-1',
+          username: 'Test',
+          email: 'test@test.com',
+          reason: 'Spamming',
+        }),
+      }));
+      expect(result).toBeDefined();
     });
   });
 

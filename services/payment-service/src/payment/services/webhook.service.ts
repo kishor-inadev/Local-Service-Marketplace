@@ -135,12 +135,13 @@ export class WebhookService {
           this.notificationClient
             .sendEmail({
               to: userEmail,
-              template: "paymentReceived",
+              template: 'PAYMENT_SUCCESS',
               variables: {
-                amount: payment.amount,
-                currency: payment.currency || "USD",
+                username: userEmail.split('@')[0],
+                amount: `₹${payment.amount}`,
                 transactionId: event.transactionId,
-                serviceName: "Service",
+                paymentMethod: 'Online Payment',
+                date: new Date().toLocaleDateString('en-IN'),
               },
             })
             .catch((err: any) => {
@@ -167,14 +168,13 @@ export class WebhookService {
           this.notificationClient
             .sendEmail({
               to: userEmail,
-              template: "paymentReceived",
+              template: 'PAYMENT_FAILED',
               variables: {
-                amount: payment.amount,
-                currency: payment.currency || "USD",
+                username: userEmail.split('@')[0],
+                amount: `₹${payment.amount}`,
                 transactionId: payment.transaction_id,
-                serviceName: "Payment Failed",
-                message:
-                  "Your payment could not be processed. Please check your payment method and try again.",
+                failureReason: 'Your payment could not be processed. Please check your payment method and try again.',
+                date: new Date().toLocaleDateString('en-IN'),
               },
             })
             .catch((err: any) => {

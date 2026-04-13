@@ -79,12 +79,11 @@ export class MethodExpiryWorker extends WorkerHost implements OnModuleInit {
 
       await this.notificationClient.sendEmail({
         to: destinationEmail,
-        template: 'paymentMethodExpiryReminder',
+        template: 'BILLING_INFO_UPDATED',
         variables: {
-          cardSummary: maskedMethods.join(', '),
-          expiryMonth: String(earliest.expiry_month || ''),
-          expiryYear: String(earliest.expiry_year || ''),
-          cardCount: String(methods.length),
+          username: destinationEmail.split('@')[0],
+          updatedFields: maskedMethods.map((m) => `${m} expires ${earliest.expiry_month}/${earliest.expiry_year} — please update`),
+          updatedAt: new Date().toISOString(),
         },
       });
       notifiedUsers++;

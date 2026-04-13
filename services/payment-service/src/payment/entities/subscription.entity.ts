@@ -8,4 +8,8 @@ export class Subscription {
   expires_at?: Date;
   cancelled_at?: Date;
   created_at: Date;
+  // Joined from subscription_plans (present when queried with plan join)
+  price?: number;
+  billing_period?: string;
+  plan_name?: string;
 }

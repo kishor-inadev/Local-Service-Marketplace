@@ -94,12 +94,12 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
 
       await this.notificationClient.sendEmail({
         to: email,
-        template: 'subscriptionExpiring',
+        template: 'AUTO_RENEWAL_REMINDER',
         variables: {
-          daysUntilExpiry: daysUntilExpiry.toString(),
-          subscription_id: subscription.id,
-          plan_id: subscription.plan_id,
-          expires_at: subscription.expires_at,
+          username: email.split('@')[0],
+          subscriptionName: `Plan ${subscription.plan_id}`,
+          renewalDate: new Date(subscription.expires_at).toLocaleDateString('en-IN'),
+          amount: subscription.price ? `₹${subscription.price}` : 'As per plan',
         },
       });
     }
@@ -159,8 +159,13 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
         if (email) {
           await this.notificationClient.sendEmail({
             to: email,
-            template: 'subscriptionRenewed',
-            variables: { subscription_id: subscription.id, expires_at: newExpiresAt.toISOString() },
+            template: 'SUBSCRIPTION_RENEWED',
+            variables: {
+              username: email.split('@')[0],
+              subscriptionName: `Plan ${subscription.plan_id}`,
+              renewalDate: newExpiresAt.toLocaleDateString('en-IN'),
+              amount: amount ? `₹${amount}` : 'As per plan',
+            },
           }).catch(() => {/* non-critical: log already done by notificationClient */});
         }
       } catch (error: any) {
@@ -179,8 +184,13 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
     }
     await this.notificationClient.sendEmail({
       to: email,
-      template: 'subscriptionExpiring',
-      variables: { daysUntilExpiry: String(daysLeft), subscription_id: subscriptionId },
+      template: 'AUTO_RENEWAL_REMINDER',
+      variables: {
+        username: email.split('@')[0],
+        subscriptionName: `Subscription #${subscriptionId}`,
+        renewalDate: `In ${daysLeft} day(s)`,
+        amount: 'As per plan',
+      },
     });
   }
 
@@ -193,8 +203,12 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
     }
     await this.notificationClient.sendEmail({
       to: email,
-      template: 'subscriptionCancelled',
-      variables: { subscription_id: subscriptionId },
+      template: 'SUBSCRIPTION_CANCELLED',
+      variables: {
+        username: email.split('@')[0],
+        subscriptionName: `Subscription #${subscriptionId}`,
+        cancelledAt: new Date().toLocaleDateString('en-IN'),
+      },
     });
   }
 
@@ -207,8 +221,12 @@ export class SubscriptionWorker extends WorkerHost implements OnModuleInit {
     }
     await this.notificationClient.sendEmail({
       to: email,
-      template: 'subscriptionActivated',
-      variables: { subscription_id: subscriptionId },
+      template: 'SUBSCRIPTION_STARTED',
+      variables: {
+        username: email.split('@')[0],
+        subscriptionName: `Subscription #${subscriptionId}`,
+        startDate: new Date().toLocaleDateString('en-IN'),
+      },
     });
   }
 

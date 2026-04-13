@@ -102,11 +102,11 @@ export class ProviderService {
       this.notificationClient
         .sendEmail({
           to: providerUser.email,
-          template: "welcome",
+          template: 'MARKETPLACE_WELCOME',
           variables: {
             name: business_name,
-            message: "Your provider profile has been created successfully!",
-            dashboardUrl: `${process.env.FRONTEND_URL || "http://localhost:3000"}/provider/dashboard`,
+            email: providerUser.email,
+            dashboardUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/provider/dashboard`,
           },
         })
         .catch((err: any) => {

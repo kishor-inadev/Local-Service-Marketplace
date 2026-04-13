@@ -31,9 +31,14 @@ const MIGRATIONS_DIR = path.join(__dirname, 'migrations');
 // ─── Database Connection ──────────────────────────────────────────────────────
 
 function createPool() {
+  const sslEnabled = process.env.DATABASE_SSL === 'true';
+  // Allow overriding cert check only when explicitly set to false (e.g. Neon pooler)
+  const rejectUnauthorized = process.env.DATABASE_SSL_REJECT_UNAUTHORIZED !== 'false';
+  const sslConfig = sslEnabled ? { rejectUnauthorized } : false;
+
   const connectionString = process.env.DATABASE_URL;
   if (connectionString) {
-    return new Pool({ connectionString, ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false });
+    return new Pool({ connectionString, ssl: sslConfig });
   }
   return new Pool({
     host: process.env.DATABASE_HOST || 'localhost',
@@ -41,7 +46,7 @@ function createPool() {
     user: process.env.DATABASE_USER || 'postgres',
     password: process.env.DATABASE_PASSWORD || process.env.POSTGRES_PASSWORD || 'postgres_dev_only',
     database: process.env.DATABASE_NAME || 'marketplace',
-    ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
+    ssl: sslConfig,
   });
 }
 

@@ -97,9 +97,14 @@ export class EmailWorker extends WorkerHost implements OnModuleInit {
       await this.emailClient.sendEmail({
         to: recipient,
         subject,
-        template: template || 'notification',
+        template: template || 'MESSAGE_RECEIVED',
         text: message,
-        variables: variables || { type, message },
+        variables: variables || {
+          recipientName: recipient.split('@')[0],
+          senderName: 'LocalServices',
+          messagePreview: message || type || 'You have a new notification.',
+          replyUrl: `${process.env.FRONTEND_URL || 'http://localhost:3000'}/notifications`,
+        },
       });
 
       await this.deliveryRepository.updateDeliveryStatus(deliveryId, 'sent');

@@ -124,6 +124,7 @@ export const ROUTES = {
 	PRIVACY: "/privacy",
 	TERMS: "/terms",
 	COOKIES: "/cookies",
+	GRIEVANCE_OFFICER: "/grievance",
 } as const;
 
 export const API_ENDPOINTS = {

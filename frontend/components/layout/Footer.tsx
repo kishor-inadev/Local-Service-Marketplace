@@ -108,6 +108,7 @@ export function Footer() {
                 { label: 'Privacy Policy', href: ROUTES.PRIVACY },
                 { label: 'Terms of Service', href: ROUTES.TERMS },
                 { label: 'Cookie Policy', href: ROUTES.COOKIES },
+                { label: 'Grievance Officer', href: ROUTES.GRIEVANCE_OFFICER },
               ].map(l => (
                 <li key={l.href}>
                   <Link href={l.href} className="text-sm text-gray-500 hover:text-white transition-colors">{l.label}</Link>
@@ -149,6 +150,8 @@ export function Footer() {
             <Link href={ROUTES.TERMS} className="text-gray-600 hover:text-white transition-colors">Terms</Link>
             <span className="text-gray-800">·</span>
             <Link href={ROUTES.COOKIES} className="text-gray-600 hover:text-white transition-colors">Cookies</Link>
+            <span className="text-gray-800">·</span>
+            <Link href={ROUTES.GRIEVANCE_OFFICER} className="text-gray-600 hover:text-white transition-colors">Grievance</Link>
           </div>
         </div>
       </div>
