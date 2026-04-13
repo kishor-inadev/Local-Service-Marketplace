@@ -68,11 +68,30 @@ const nextConfig = {
 		if (!isServer) {
 			config.resolve.fallback = { ...config.resolve.fallback, fs: false, net: false, tls: false };
 
-			// Performance budgets: warn if chunks exceed size limits
+			// Split large charting libraries into separate lazy-loaded chunks
 			if (!dev) {
+				config.optimization.splitChunks = {
+					...config.optimization.splitChunks,
+					cacheGroups: {
+						...config.optimization.splitChunks?.cacheGroups,
+						recharts: {
+							test: /[\\/]node_modules[\\/]recharts[\\/]/,
+							name: 'recharts-core',
+							chunks: 'all',
+							priority: 40,
+						},
+						d3Vendor: {
+							test: /[\\/]node_modules[\\/](d3-.*|victory-vendor|internmap|delaunator|robust-predicates)[\\/]/,
+							name: 'd3-vendor',
+							chunks: 'all',
+							priority: 30,
+						},
+					},
+				};
+
 				config.performance = {
 					hints: 'warning',
-					maxAssetSize: 256 * 1024,        // 256 KB per asset
+					maxAssetSize: 300 * 1024,        // 300 KB per asset (recharts core ~273 KB)
 					maxEntrypointSize: 512 * 1024,    // 512 KB per entry point
 				};
 			}

@@ -13,6 +13,7 @@ import { adminService } from '@/services/admin-service';
 import { formatDate } from '@/utils/helpers';
 import { ShieldCheck, ShieldX, FileText, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Permission } from '@/utils/permissions';
 
 function ProviderVerificationCard({ provider, onAction }: { provider: any; onAction: () => void }) {
   const [expanded, setExpanded] = useState(false);

@@ -51,7 +51,7 @@ const mapUserSortBy = (field?: string): "createdAt" | "email" | "name" | "role" 
 };
 
 export default function AdminUsersPage() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const { can } = usePermissions();
 	const router = useRouter();
 	const [serverSearch, setServerSearch] = useState("");

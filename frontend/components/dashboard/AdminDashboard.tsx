@@ -17,7 +17,7 @@ import Link from 'next/link';
 import { Users, AlertCircle, Settings, FileText, TrendingUp } from 'lucide-react';
 
 export default function AdminDashboard() {
-  const { user, isAuthenticated } = useAuth();
+  const { user: _user, isAuthenticated } = useAuth();
   const { can } = usePermissions();
 
   const {

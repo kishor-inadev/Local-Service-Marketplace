@@ -24,7 +24,7 @@ export default function JobDetailPage() {
   const params = useParams();
   const router = useRouter();
   const queryClient = useQueryClient();
-  const { user, isAuthenticated, isLoading: authLoading } = useAuth();
+  const { user: _user, isAuthenticated, isLoading: authLoading } = useAuth();
   const { can } = usePermissions();
   const jobId = params.id as string;
 

@@ -169,7 +169,7 @@ export default function EditRolePage() {
           </div>
 
           {roleError ? (
-            <ErrorState message="Failed to load role" onRetry={() => router.push(ROUTES.DASHBOARD_ADMIN_ROLES)} />
+            <ErrorState message="Failed to load role" retry={() => router.push(ROUTES.DASHBOARD_ADMIN_ROLES)} />
           ) : isLoading ? (
             <Card>
               <CardContent className="p-8 text-center text-gray-400">Loading permissions grid...</CardContent>

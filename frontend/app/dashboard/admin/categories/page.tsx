@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/Button';
 import { Loading } from '@/components/ui/Loading';
 import { ErrorState } from '@/components/ui/ErrorState';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
+import { Permission } from '@/utils/permissions';
 import { adminService } from '@/services/admin-service';
 import { requestService } from '@/services/request-service';
 import { Plus, Pencil, Trash2, ToggleRight, ToggleLeft, X, Check } from 'lucide-react';

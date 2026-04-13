@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
-import { usePermissions } from '@/hooks/usePermissions';
 import { Permission } from '@/utils/permissions';
 import { ROUTES } from '@/config/constants';
 import { Layout } from '@/components/layout/Layout';

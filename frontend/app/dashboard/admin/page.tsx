@@ -18,7 +18,7 @@ import { Loading } from "@/components/ui/Loading";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 
 export default function AdminDashboardPage() {
-	const { user } = useAuth();
+	const { user: _user } = useAuth();
 	const { can } = usePermissions();
 
 	const {

@@ -61,7 +61,7 @@ const URGENCY_OPTIONS = [
 
 interface Props {
   initialQuery?: string;
-  onSuccess?: (requestId: string) => void;
+  onSuccess?: (_requestId: string) => void;
 }
 
 export function CreateRequestForm({ initialQuery = '', onSuccess }: Props) {
@@ -81,7 +81,7 @@ export function CreateRequestForm({ initialQuery = '', onSuccess }: Props) {
     register,
     handleSubmit,
     watch,
-    setValue,
+    setValue: _setValue,
     trigger,
     formState: { errors },
   } = useForm<RequestFormData>({

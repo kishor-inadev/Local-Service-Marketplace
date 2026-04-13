@@ -24,7 +24,7 @@ export default function AdminUserDetailPage() {
 	const params = useParams();
 	const router = useRouter();
 	const queryClient = useQueryClient();
-	const { user: currentUser } = useAuth();
+	const { user: _currentUser } = useAuth();
 	const { can } = usePermissions();
 	const userId = params.id as string;
 	const [suspendReason, setSuspendReason] = useState("");

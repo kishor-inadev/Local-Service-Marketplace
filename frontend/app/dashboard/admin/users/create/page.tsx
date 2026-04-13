@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { ROUTES } from "@/config/constants";
 import { adminService, AdminCreateUserPayload } from "@/services/admin-service";
+import { Permission } from "@/utils/permissions";
 import toast from "react-hot-toast";
 
 export default function AdminCreateUserPage() {

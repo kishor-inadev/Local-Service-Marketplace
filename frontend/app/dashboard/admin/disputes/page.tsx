@@ -41,7 +41,7 @@ const mapDisputeSortBy = (field?: string): "createdAt" | "status" | "resolvedAt"
 
 
 export default function AdminDisputesPage() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const { can } = usePermissions();
 	const [serverSorting, setServerSorting] = useState<SortingState>([{ id: "created_at", desc: true }]);
 	const [serverFilters, setServerFilters] = useState<ColumnFiltersState>([]);

@@ -12,7 +12,6 @@ import { Avatar } from '@/components/ui/Avatar';
 
 import { favoriteService } from '@/services/favorite-service';
 import { useAuth } from '@/hooks/useAuth';
-import { usePermissions } from '@/hooks/usePermissions';
 import { Permission } from '@/utils/permissions';
 import { Heart, Star, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';

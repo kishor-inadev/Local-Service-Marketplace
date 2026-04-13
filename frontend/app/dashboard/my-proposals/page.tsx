@@ -22,7 +22,7 @@ import { ConfirmDialog } from "@/components/shared/ConfirmDialog";
 
 export default function MyProposalsPage() {
 	const queryClient = useQueryClient();
-	const { user, isAuthenticated } = useAuth();
+	const { user: _user, isAuthenticated } = useAuth();
 	const { can } = usePermissions();
 	const router = useRouter();
 	const [statusFilter, setStatusFilter] = useState<string>("");

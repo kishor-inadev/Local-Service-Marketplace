@@ -136,9 +136,9 @@ export default function AdminRolesPage() {
           <Card>
             <CardContent className="p-0">
               {isLoading ? (
-                <div className="p-6"><SkeletonTable rows={4} columns={5} /></div>
+                <div className="p-6"><SkeletonTable rows={4} /></div>
               ) : error ? (
-                <div className="p-6"><ErrorState message="Failed to load roles" onRetry={refetch} /></div>
+                <div className="p-6"><ErrorState message="Failed to load roles" retry={refetch} /></div>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -169,7 +169,7 @@ export default function AdminRolesPage() {
                             <StatusBadge status={role.is_active ? 'active' : 'inactive'} />
                           </td>
                           <td className="px-4 py-3 text-center">
-                            {role.is_system && <Lock className="h-4 w-4 text-amber-500 inline" title="System role — cannot be deleted" />}
+                            {role.is_system && <span title="System role — cannot be deleted"><Lock className="h-4 w-4 text-amber-500 inline" /></span>}
                           </td>
                           <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{formatDate(role.created_at)}</td>
                           <td className="px-4 py-3 text-right">

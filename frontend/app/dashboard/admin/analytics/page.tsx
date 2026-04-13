@@ -4,6 +4,8 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
+import { usePermissions } from '@/hooks/usePermissions';
+import { Permission } from '@/utils/permissions';
 import { Layout } from '@/components/layout/Layout';
 import { Card, CardContent } from '@/components/ui/Card';
 import { Loading } from '@/components/ui/Loading';
@@ -53,7 +55,7 @@ const DAY_OPTIONS = [
 ];
 
 export default function AdminAnalyticsPage() {
-  const { user } = useAuth();
+  const { user: _user } = useAuth();
   const { can } = usePermissions();
   const [days, setDays] = useState(30);
 

@@ -33,7 +33,7 @@ export default function AdminDisputeDetailPage() {
 	const params = useParams();
 	const router = useRouter();
 	const queryClient = useQueryClient();
-	const { user: currentUser } = useAuth();
+	const { user: _currentUser } = useAuth();
 	const { can } = usePermissions();
 	const disputeId = params.id as string;
 
