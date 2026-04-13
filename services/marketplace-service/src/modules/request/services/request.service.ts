@@ -84,7 +84,7 @@ export class RequestService {
         address: dto.location.address,
         city: dto.location.city,
         state: dto.location.state,
-        zip_code: dto.location.zipCode,
+        zip_code: dto.location.pincode,
         country: dto.location.country,
       });
       location_id = location.id;

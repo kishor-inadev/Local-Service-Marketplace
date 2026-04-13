@@ -37,7 +37,7 @@ export class RequestRepository {
         dto.location.address,
         dto.location.city,
         dto.location.state,
-        dto.location.zipCode,
+        dto.location.pincode,
         dto.location.country,
       ]);
       locationId = locationResult.rows[0].id;
