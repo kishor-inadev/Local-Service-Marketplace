@@ -6,6 +6,7 @@ import { SessionProvider } from 'next-auth/react';
 import { useState } from 'react';
 import { APP_CONFIG } from '@/config/constants';
 import { ErrorBoundary } from '@/components/shared/ErrorBoundary';
+import { ToasterProvider } from '@/components/providers/ToasterProvider';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -36,6 +37,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
+        <ToasterProvider />
         {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </SessionProvider>
