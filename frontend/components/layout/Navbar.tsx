@@ -58,7 +58,7 @@ export function Navbar() {
     <nav
       aria-label='Main navigation'
       className='sticky top-0 z-50 bg-white/95 dark:bg-gray-950/95 backdrop-blur-md border-b border-gray-200/60 dark:border-gray-800/80 shadow-sm'>
-      <div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
+      <div className=' mx-auto px-4 sm:px-6 lg:px-8'>
         <div className='flex justify-between h-16 items-center'>
 
           {/* Logo */}
@@ -78,7 +78,7 @@ export function Navbar() {
 
           {/* Search (authenticated desktop) */}
           {isAuthenticated && (
-            <div className='hidden md:flex items-center flex-1 max-w-sm mx-8'>
+            <div className='hidden md:flex items-center flex-0 max-w-sm mx-8'>
               <SearchAutocomplete placeholder='Search providers, services...' />
             </div>
           )}
@@ -121,11 +121,7 @@ export function Navbar() {
                   </Link>
                 )}
 
-                {role === 'admin' && can(Permission.ADMIN_ACCESS) && (
-                  <Link href={ROUTES.DASHBOARD_ADMIN} className={navLinkClass(!!pathname?.startsWith(ROUTES.DASHBOARD_ADMIN))}>
-                    Admin
-                  </Link>
-                )}
+
 
                 <div className='flex items-center gap-1 ml-2 pl-2 border-l border-gray-100 dark:border-gray-800'>
                   {isNotificationsEnabled() && (

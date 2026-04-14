@@ -75,7 +75,6 @@ const ALL_NAV_ITEMS: NavItem[] = [
 	{ label: "Reviews", href: ROUTES.DASHBOARD_PROVIDER_REVIEWS, icon: Star, permissions: [Permission.REVIEWS_READ], roles: ["provider"] },
 
 	// ── Admin items ────────────────────────────────────────────────────────
-	{ label: "Admin Overview", href: ROUTES.DASHBOARD_ADMIN, icon: LayoutDashboard, permissions: [Permission.ADMIN_ACCESS], roles: ["admin"] },
 	{ label: "Users", href: ROUTES.DASHBOARD_ADMIN_USERS, icon: Users, permissions: [Permission.USERS_LIST], roles: ["admin"] },
 	{ label: "Providers", href: ROUTES.DASHBOARD_ADMIN_PROVIDERS, icon: Shield, permissions: [Permission.PROVIDERS_LIST, Permission.PROVIDERS_VERIFY], roles: ["admin"] },
 	{ label: "Categories", href: ROUTES.DASHBOARD_ADMIN_CATEGORIES, icon: Tag, permissions: [Permission.CATEGORIES_MANAGE], roles: ["admin"] },
@@ -107,7 +106,7 @@ function NavLink({ item, isActive, isCollapsed }: { item: NavItem; isActive: boo
 				"group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150",
 				isActive ?
 					"bg-gradient-to-r from-primary-50 to-violet-50 dark:from-primary-900/30 dark:to-violet-900/20 text-primary-700 dark:text-primary-300 shadow-sm"
-				:	"text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200",
+					: "text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 hover:text-gray-900 dark:hover:text-gray-200",
 				isCollapsed && "justify-center px-2.5"
 			)}>
 			<Icon className={cn('h-4 w-4 flex-shrink-0 transition-colors', isActive ? 'text-primary-600 dark:text-primary-400' : 'text-gray-400 group-hover:text-gray-600 dark:group-hover:text-gray-300')} />
@@ -191,7 +190,7 @@ export function DashboardSidebar() {
 					title={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}>
 					{isCollapsed ?
 						<PanelLeftOpen className='h-4 w-4' />
-					:	<PanelLeftClose className='h-4 w-4' />}
+						: <PanelLeftClose className='h-4 w-4' />}
 				</button>
 			</div>
 
