@@ -50,7 +50,7 @@ function ProviderVerificationCard({ provider, onAction }: { provider: any; onAct
               <StatusBadge status={provider.verification_status ?? 'pending'} />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Provider ID: {provider.display_id || provider.id.substring(0, 8)} Â· Joined {formatDate(provider.created_at)}
+              Provider ID: {provider.display_id || provider.id.substring(0, 8)} &middot; Joined {formatDate(provider.created_at)}
             </p>
             {provider.description && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{provider.description}</p>

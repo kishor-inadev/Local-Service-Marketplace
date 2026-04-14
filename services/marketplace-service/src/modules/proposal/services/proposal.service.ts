@@ -91,6 +91,24 @@ export class ProposalService {
       );
     }
 
+    // Verify provider is verified and their email is confirmed before allowing proposal submission
+    if (this.userClient.isEnabled()) {
+      const providerForGate = await this.userClient.getProviderById(dto.provider_id);
+      if (providerForGate && providerForGate.verification_status !== 'verified') {
+        throw new BadRequestException(
+          `Cannot submit proposal: your provider account is not yet verified (status: ${providerForGate.verification_status}). Please wait for admin approval.`,
+        );
+      }
+      if (providerForGate?.user_id) {
+        const providerUser = await this.userClient.getUserById(providerForGate.user_id);
+        if (providerUser && providerUser.email_verified === false) {
+          throw new BadRequestException(
+            'Cannot submit proposal: your email address is not verified. Please verify your email first.',
+          );
+        }
+      }
+    }
+
     const proposal = await this.proposalRepository.createProposal(dto);
 
     this.logger.log(
@@ -244,6 +262,14 @@ export class ProposalService {
     if (existingProposal.status !== "pending") {
       throw new BadRequestException(
         `Cannot accept proposal with status: ${existingProposal.status}`,
+      );
+    }
+
+    // Validate that the parent request is still open (not cancelled/closed by another path)
+    const currentRequestStatus = await this.proposalRepository.getRequestStatus(existingProposal.request_id);
+    if (currentRequestStatus !== 'open') {
+      throw new BadRequestException(
+        `Cannot accept proposal: the service request is no longer open (status: ${currentRequestStatus})`,
       );
     }
 

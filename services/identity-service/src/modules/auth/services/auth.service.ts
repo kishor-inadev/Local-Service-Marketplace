@@ -219,7 +219,7 @@ export class AuthService {
 
     return {
       message:
-        "Registration successful. Please verify your email before logging in.",
+        "Registration successful. Please check your email to verify your account.",
       email: user.email,
       emailSent,
       verificationEmailSent,
@@ -439,15 +439,7 @@ export class AuthService {
       throw new UnauthorizedException("Account is not active");
     }
 
-    // Check email verification
-    if (!user.email_verified) {
-      this.logger.warn("Login failed: Email not verified", {
-        context: "AuthService",
-        email,
-      });
-      throw new UnauthorizedException("Please verify your email before logging in");
-    }
-
+    // Email verification is not required to log in — a banner is shown post-login
     // Record successful login
     await this.loginAttemptRepo.create(email, true, ipAddress);
 
@@ -957,15 +949,7 @@ export class AuthService {
       throw new UnauthorizedException("Account is not active");
     }
 
-    // Check email verification
-    if (!user.email_verified) {
-      this.logger.warn("Phone login failed: Email not verified", {
-        context: "AuthService",
-        phone,
-      });
-      throw new UnauthorizedException("Please verify your email before logging in");
-    }
-
+    // Email verification is not required to log in — a banner is shown post-login
     // Record successful login
     await this.loginAttemptRepo.create(phone, true, ipAddress);
 
