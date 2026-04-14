@@ -3,8 +3,14 @@ import { MessageService } from "./message.service";
 import { MessageRepository } from "../repositories/message.repository";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { NotFoundException } from "../../common/exceptions/http.exceptions";
+import { EmailClient } from "../../notification/clients/email.client";
+import { UserClient } from "../../common/user/user.client";
+
 
 const mockLogger = { log: jest.fn(), error: jest.fn(), warn: jest.fn() };
+const mockEmailClient = { sendEmail: jest.fn().mockResolvedValue({ success: true }) };
+const mockUserClient = { getUserEmail: jest.fn().mockResolvedValue("user@example.com") };
+
 
 const mockMessage = {
   id: "msg-uuid-1",
@@ -22,6 +28,9 @@ const mockMessageRepo = {
   getUserConversations: jest.fn(),
   markAsRead: jest.fn(),
   deleteMessage: jest.fn(),
+  getJobRecipientId: jest.fn().mockResolvedValue("user-uuid-2"),
+  isJobParticipant: jest.fn().mockResolvedValue(true),
+  editMessage: jest.fn(),
 };
 
 describe("MessageService", () => {
@@ -34,6 +43,8 @@ describe("MessageService", () => {
         MessageService,
         { provide: WINSTON_MODULE_NEST_PROVIDER, useValue: mockLogger },
         { provide: MessageRepository, useValue: mockMessageRepo },
+        { provide: EmailClient, useValue: mockEmailClient },
+        { provide: UserClient, useValue: mockUserClient },
       ],
     }).compile();
 

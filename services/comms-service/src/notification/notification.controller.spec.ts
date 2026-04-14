@@ -8,8 +8,19 @@ import { UnsubscribeRepository } from "./repositories/unsubscribe.repository";
 import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { ForbiddenException, BadRequestException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+
 
 const mockLogger = { log: jest.fn(), error: jest.fn(), warn: jest.fn() };
+
+const mockConfig = {
+  get: jest.fn((key: string) => {
+    if (key === "APPLICATION_NAME") return "Local Service Marketplace";
+    if (key === "APP_URL") return "http://localhost:3000";
+    return null;
+  }),
+};
+
 
 const mockNotification = {
   id: "notif-uuid-1",
@@ -67,6 +78,7 @@ describe("NotificationController", () => {
         { provide: PushWorkerService, useValue: mockPushWorker },
         { provide: UnsubscribeRepository, useValue: mockUnsubscribeRepo },
         { provide: FeatureFlagService, useValue: mockFeatureFlags },
+        { provide: ConfigService, useValue: mockConfig },
       ],
     })
       .overrideGuard(JwtAuthGuard)
