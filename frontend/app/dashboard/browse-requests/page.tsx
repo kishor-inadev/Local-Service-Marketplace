@@ -15,7 +15,7 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { ErrorState } from "@/components/ui/ErrorState";
 import { requestService } from '@/services/request-service';
 import { formatDate, formatCurrency } from '@/utils/helpers';
-import { Search, Filter, MapPin, Calendar, IndianRupee, X, Send } from 'lucide-react';
+import { Search, Filter, MapPin, Calendar, IndianRupee, X, Send, ShieldAlert } from 'lucide-react';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
 import { CreateProposalForm } from '@/components/forms/CreateProposalForm';
 import { getProviderProfileByUserId } from '@/services/user-service';
@@ -64,6 +64,11 @@ export default function BrowseRequestsPage() {
 
   const proposalTargetRequest = filteredRequests.find((r: any) => r.id === proposalTargetId);
 
+  const isProviderUser = can(Permission.PROVIDER_PROFILE_VIEW);
+  const providerNotVerified = isProviderUser && provider && provider.verification_status !== 'verified';
+  const emailNotVerified = isProviderUser && user?.emailVerified === false;
+  const canSubmitProposal = isProviderUser && !providerNotVerified && !emailNotVerified;
+
   return (
 		<ProtectedRoute requiredPermissions={[Permission.REQUESTS_BROWSE]}>
 			<Layout>
@@ -82,6 +87,29 @@ export default function BrowseRequestsPage() {
 								</h1>
 								<p className='text-lg text-gray-600 dark:text-gray-400'>Find new opportunities and submit proposals</p>
 							</div>
+
+							{/* Provider verification warning */}
+							{(providerNotVerified || emailNotVerified) && (
+								<div className='mb-6 flex items-start gap-3 rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-950 px-4 py-3'>
+									<ShieldAlert className='h-5 w-5 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5' />
+									<div className='text-sm text-amber-800 dark:text-amber-200'>
+										{emailNotVerified && (
+											<p className='font-medium'>Your email address is not verified.</p>
+										)}
+										{providerNotVerified && (
+											<p className='font-medium'>
+												Your provider account is{' '}
+												{provider?.verification_status === 'rejected' ? 'rejected' : 'pending admin approval'}.
+											</p>
+										)}
+										<p className='mt-1 text-amber-700 dark:text-amber-300'>
+											{emailNotVerified
+												? 'Please verify your email before submitting proposals.'
+												: 'You can browse requests but cannot submit proposals until an admin approves your account.'}
+										</p>
+									</div>
+								</div>
+							)}
 
 							{/* Filters */}
 							<Card className='mb-6'>
@@ -193,7 +221,9 @@ export default function BrowseRequestsPage() {
 															<Button
 																size='sm'
 																variant='primary'
-																onClick={() => setProposalTargetId(request.id)}
+																disabled={!canSubmitProposal}
+																title={!canSubmitProposal ? 'Verify your email and await account approval before submitting proposals' : undefined}
+																onClick={() => canSubmitProposal && setProposalTargetId(request.id)}
 																className='flex items-center gap-1'>
 																<Send className='h-3 w-3' />
 																Submit Proposal

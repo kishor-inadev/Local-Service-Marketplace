@@ -152,8 +152,42 @@ export default function ProviderDetailPage() {
 
 	const serviceCount = provider.services?.length || 0;
 
+	const professionalServiceJsonLd = {
+		"@context": "https://schema.org",
+		"@type": "ProfessionalService",
+		name: provider.business_name,
+		description: provider.description || `${provider.business_name} — verified local service provider on Local Service Marketplace.`,
+		url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com'}/providers/${providerId}`,
+		image: provider.avatar_url || undefined,
+		priceRange: "₹₹",
+		address: { "@type": "PostalAddress", addressCountry: "IN" },
+		aggregateRating: providerRating
+			? {
+					"@type": "AggregateRating",
+					ratingValue: providerRating.toFixed(1),
+					bestRating: "5",
+					ratingCount: String(reviews?.length || 1),
+				}
+			: undefined,
+		hasOfferCatalog: provider.services?.length
+			? {
+					"@type": "OfferCatalog",
+					name: `${provider.business_name} Services`,
+					itemListElement: (provider.services || []).map((svc, i) => ({
+						"@type": "Offer",
+						position: i + 1,
+						itemOffered: { "@type": "Service", name: categoryMap[svc.category_id]?.name || "Service" },
+					})),
+				}
+			: undefined,
+	};
+
 	return (
 		<Layout>
+			<script
+				type='application/ld+json'
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(professionalServiceJsonLd) }}
+			/>
 			<div className='container-custom py-8'>
 				{/* Back Button */}
 				<div className='mb-6'>

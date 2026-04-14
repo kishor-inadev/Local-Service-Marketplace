@@ -36,7 +36,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
         <ErrorBoundary>
           {children}
         </ErrorBoundary>
-        <ReactQueryDevtools initialIsOpen={false} />
+        {process.env.NODE_ENV === 'development' && <ReactQueryDevtools initialIsOpen={false} />}
       </QueryClientProvider>
     </SessionProvider>
   );

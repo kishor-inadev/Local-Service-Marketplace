@@ -60,7 +60,7 @@ const nextConfig = {
 	// API rewrites — use INTERNAL_API_URL for server-side (Docker) if set,
 	// otherwise fall back to the public URL (local dev)
 	async rewrites() {
-		const internalUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:3700";
+		const internalUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || "http://api-gateway:3700";
 		return [{ source: "/api/v1/:path*", destination: `${internalUrl}/api/v1/:path*` }];
 	},
 

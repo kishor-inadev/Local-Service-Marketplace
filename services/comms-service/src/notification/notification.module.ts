@@ -17,6 +17,7 @@ import { NotificationPreferencesRepository } from "./repositories/notification-p
 import { DeviceRepository } from "./repositories/device.repository";
 import { EmailClient } from "./clients/email.client";
 import { SmsClient } from "./clients/sms.client";
+import { WhatsAppClient } from "./clients/whatsapp.client";
 import { UserClient } from "../common/user/user.client";
 
 @Module({
@@ -25,6 +26,7 @@ import { UserClient } from "../common/user/user.client";
       { name: 'comms.email' },
       { name: 'comms.sms' },
       { name: 'comms.push' },
+      { name: 'comms.whatsapp' },
     ),
   ],
   controllers: [NotificationController, NotificationPreferencesController, DeviceController],
@@ -43,6 +45,7 @@ import { UserClient } from "../common/user/user.client";
     DeviceRepository,
     EmailClient,
     SmsClient,
+    WhatsAppClient,
     UserClient,
   ],
   exports: [
@@ -59,6 +62,7 @@ import { UserClient } from "../common/user/user.client";
     DeviceRepository,
     EmailClient,
     SmsClient,
+    WhatsAppClient,
   ],
 })
 export class NotificationModule {}

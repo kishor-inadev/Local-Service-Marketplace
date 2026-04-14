@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 		description:
 			'Learn how Local Service Marketplace uses cookies to improve your experience and what choices you have.',
 		url: '/cookies',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',

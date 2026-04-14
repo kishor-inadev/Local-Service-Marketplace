@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 		description:
 			'Review the terms of service for Local Service Marketplace — rules, policies, and legal agreements for using our platform.',
 		url: '/terms',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',

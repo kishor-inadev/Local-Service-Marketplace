@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 		description:
 			'Frequently asked questions about Local Service Marketplace — answers about accounts, services, payments, and more.',
 		url: '/faq',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',

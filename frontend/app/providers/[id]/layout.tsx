@@ -34,13 +34,13 @@ export async function generateMetadata({
 				url: `/providers/${params.id}`,
 				images: avatar
 					? [{ url: avatar, width: 400, height: 400, alt: name }]
-					: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+					: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 			},
 			twitter: {
 				card: avatar ? 'summary' : 'summary_large_image',
 				title: `${name} | Local Service Marketplace`,
 				description,
-				images: avatar ? [avatar] : ['/og-image.png'],
+				images: avatar ? [avatar] : ['/opengraph-image'],
 			},
 		};
 	} catch {

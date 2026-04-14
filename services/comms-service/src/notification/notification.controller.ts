@@ -326,6 +326,24 @@ export class NotificationController {
   }
 
   /**
+   * Enqueue WhatsApp OTP via comms-service WhatsApp worker.
+   * Called by identity-service when WHATSAPP_OTP_ENABLED=true.
+   */
+  @SkipAuth()
+  @UseGuards(InternalServiceGuard)
+  @Post("whatsapp/otp")
+  @Throttle({ sms: { limit: 5, ttl: 3600000 } })
+  @HttpCode(HttpStatus.OK)
+  async sendWhatsAppOtp(@Body() dto: { phone: string; otp: string }) {
+    this.logger.log(
+      `POST /notifications/whatsapp/otp - Enqueuing WhatsApp OTP to ${dto.phone}`,
+      "NotificationController",
+    );
+    await this.notificationService.enqueueWhatsAppOtp(dto.phone, dto.otp);
+    return { message: "WhatsApp OTP enqueued" };
+  }
+
+  /**
    * Verify OTP
    */
   @SkipAuth()

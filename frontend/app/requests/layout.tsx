@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 		description:
 			'Browse open service requests from customers in your area. Find jobs that match your skills and submit proposals.',
 		url: '/requests',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',

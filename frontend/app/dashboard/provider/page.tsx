@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ImageIcon, Star, FileText, Calendar, Briefcase, Tag } from "lucide-react";
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
+import { StatusBadge } from '@/components/ui/Badge';
 
 export default function ProviderOverviewPage() {
 	const pathname = usePathname();
@@ -113,8 +114,10 @@ export default function ProviderOverviewPage() {
 										</Card>
 										<Card>
 											<CardContent className='pt-6'>
-												<h3 className='font-medium text-gray-900 dark:text-white mb-2'>Status</h3>
-												<p className='text-2xl font-bold text-green-600 dark:text-green-400'>Active</p>
+												<h3 className='font-medium text-gray-900 dark:text-white mb-2'>Verification Status</h3>
+												<div className='pt-1'>
+													<StatusBadge status={provider?.verification_status ?? 'pending'} />
+												</div>
 											</CardContent>
 										</Card>
 									</div>

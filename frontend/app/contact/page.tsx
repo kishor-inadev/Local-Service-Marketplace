@@ -1,4 +1,4 @@
-ï»¿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { Layout } from '@/components/layout/Layout';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { ContactForm } from './_components/ContactForm';
@@ -13,7 +13,7 @@ title: 'Contact Us',
 description:
 'Get in touch with the Local Service Marketplace team. We are here to help with questions, feedback, and support.',
 url: '/contact',
-images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 },
 twitter: {
 card: 'summary_large_image',
@@ -63,10 +63,10 @@ return (
 
 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 <div className="grid md:grid-cols-2 gap-12">
-{/* Contact Form â€” client island */}
+{/* Contact Form — client island */}
 <ContactForm />
 
-{/* Contact Information â€” static, server-rendered */}
+{/* Contact Information — static, server-rendered */}
 <div>
 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
 Contact Information

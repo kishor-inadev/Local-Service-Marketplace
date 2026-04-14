@@ -289,6 +289,11 @@ class AdminService {
 		return response.data;
 	}
 
+	async toggleAadhaarVerified(providerId: string, verified: boolean): Promise<any> {
+		const response = await apiClient.patch<any>(`/providers/${providerId}`, { aadhar_verified: verified });
+		return response.data;
+	}
+
 	async getCategories(): Promise<any[]> {
 		const response = await apiClient.get<any>('/categories');
 		return apiClient.extractList<any>(response.data);

@@ -127,8 +127,9 @@ services:
       - full
     env_file:
       - docker.env
-    ports:
-      - "3001:3001"
+    # ports deliberately omitted — only reachable via api-gateway on internal network
+    expose:
+      - "3001"
     environment:
       - NODE_ENV=production
       - TZ=Asia/Kolkata
@@ -195,8 +196,8 @@ services:
       - full
     env_file:
       - docker.env
-    ports:
-      - "3003:3003"
+    expose:
+      - "3003"
     environment:
       - NODE_ENV=production
       - TZ=Asia/Kolkata
@@ -258,8 +259,8 @@ services:
       - full
     env_file:
       - docker.env
-    ports:
-      - "3006:3006"
+    expose:
+      - "3006"
     environment:
       - NODE_ENV=production
       - TZ=Asia/Kolkata
@@ -347,8 +348,8 @@ services:
       - full
     env_file:
       - docker.env
-    ports:
-      - "3007:3007"
+    expose:
+      - "3007"
     environment:
       - NODE_ENV=production
       - TZ=Asia/Kolkata
@@ -410,8 +411,8 @@ services:
       - full
     env_file:
       - docker.env
-    ports:
-      - "3010:3010"
+    expose:
+      - "3010"
     environment:
       - NODE_ENV=production
       - TZ=Asia/Kolkata
@@ -469,8 +470,8 @@ services:
       - event
       - events
       - full
-    ports:
-      - "3012:3012"
+    expose:
+      - "3012"
     environment:
       - NODE_ENV=production
       - TZ=Asia/Kolkata
