@@ -589,6 +589,18 @@ export class ProposalService {
       );
     }
 
+    // Enforce withdrawal window for providers (admins bypass this)
+    if (!isAdmin && existingProposal.created_at) {
+      const windowHoursStr = await this.proposalRepository.getSystemSetting('proposal_withdrawal_window_hours', '24');
+      const windowHours = parseInt(windowHoursStr, 10) || 24;
+      const ageHours = (Date.now() - new Date(existingProposal.created_at).getTime()) / (1000 * 60 * 60);
+      if (ageHours > windowHours) {
+        throw new BadRequestException(
+          `Proposals can only be withdrawn within ${windowHours} hour${windowHours === 1 ? '' : 's'} of submission. This proposal was submitted ${Math.floor(ageHours)} hours ago.`,
+        );
+      }
+    }
+
     const proposal = await this.proposalRepository.withdrawProposal(
       existingProposal.id,
       existingProposal.provider_id,

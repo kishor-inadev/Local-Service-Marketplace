@@ -7,6 +7,7 @@ import {
 import { HttpModule } from "@nestjs/axios";
 import { GatewayService } from "./services/gateway.service";
 import { MaintenanceService } from "./services/maintenance.service";
+import { RateLimitConfigService } from "./services/rate-limit-config.service";
 import { GatewayController } from "./controllers/gateway.controller";
 import { ServicesHealthController } from "./controllers/health.controller";
 import { LoggingMiddleware } from "./middlewares/logging.middleware";
@@ -23,8 +24,8 @@ import { MaintenanceMiddleware } from "./middlewares/maintenance.middleware";
     }),
   ],
   controllers: [ServicesHealthController, GatewayController],
-  providers: [GatewayService, MaintenanceService],
-  exports: [GatewayService, MaintenanceService],
+  providers: [GatewayService, MaintenanceService, RateLimitConfigService],
+  exports: [GatewayService, MaintenanceService, RateLimitConfigService],
 })
 export class GatewayModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {

@@ -9,18 +9,20 @@ import { WINSTON_MODULE_NEST_PROVIDER } from "nest-winston";
 import rateLimit from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 import { getRedisClient } from "../../common/redis/redis.provider";
+import { RateLimitConfigService } from "../services/rate-limit-config.service";
 
 @Injectable()
 export class RateLimitMiddleware implements NestMiddleware {
-  private limiter: any;
+  private readonly storeOptions: Record<string, any>;
 
   constructor(
     @Inject(WINSTON_MODULE_NEST_PROVIDER)
     private readonly logger: LoggerService,
+    private readonly rateLimitConfigService: RateLimitConfigService,
   ) {
     const redisClient = getRedisClient();
 
-    const storeOptions = redisClient
+    this.storeOptions = redisClient
       ? {
           store: new RedisStore({
             sendCommand: (...args: string[]) =>
@@ -38,17 +40,17 @@ export class RateLimitMiddleware implements NestMiddleware {
         "RateLimitMiddleware",
       );
     }
+  }
 
-    // Configure rate limiter
-    this.limiter = rateLimit({
-      windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 60000, // 1 minute
-      max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500, // Increased from 100 for production capacity
+  use(req: Request, res: Response, next: NextFunction) {
+    const limiter = rateLimit({
+      windowMs: this.rateLimitConfigService.getWindowMs(),
+      max: this.rateLimitConfigService.getMaxRequests(),
       message: "Too many requests from this IP, please try again later.",
-      standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-      legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-      ...storeOptions,
+      standardHeaders: true,
+      legacyHeaders: false,
+      ...this.storeOptions,
       keyGenerator: (req: Request) => {
-        // Use user ID if authenticated, otherwise use IP
         const user = (req as any).user;
         return user?.userId || req.ip;
       },
@@ -66,9 +68,7 @@ export class RateLimitMiddleware implements NestMiddleware {
         });
       },
     });
-  }
-
-  use(req: Request, res: Response, next: NextFunction) {
-    this.limiter(req, res, next);
+    limiter(req, res, next);
   }
 }
+

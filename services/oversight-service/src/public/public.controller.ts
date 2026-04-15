@@ -30,4 +30,30 @@ export class PublicController {
 
 		return { maintenance_mode: maintenanceMode, maintenance_message: maintenanceMessage };
 	}
+
+	/**
+	 * Returns rate-limit configuration values for the api-gateway.
+	 * Called by the gateway RateLimitConfigService with a 60-second TTL cache.
+	 * No authentication required.
+	 */
+	@Get('rate-limit-config')
+	async getRateLimitConfig() {
+		const keys = [
+			'rate_limit_max_requests',
+			'auth_rate_limit_max_requests',
+			'rate_limit_window_ms',
+		];
+		const results = await Promise.allSettled(
+			keys.map((k) => this.systemSettingService.getSettingByKey(k)),
+		);
+
+		const getValue = (i: number, fallback: string) =>
+			results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<any>).value?.value ?? fallback : fallback;
+
+		return {
+			rate_limit_max_requests: parseInt(getValue(0, '500'), 10) || 500,
+			auth_rate_limit_max_requests: parseInt(getValue(1, '10'), 10) || 10,
+			rate_limit_window_ms: parseInt(getValue(2, '60000'), 10) || 60000,
+		};
+	}
 }

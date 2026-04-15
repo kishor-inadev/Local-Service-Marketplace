@@ -24,7 +24,6 @@ import { UserRepository } from "../repositories/user.repository";
 @Injectable()
 export class ProviderService {
   private readonly defaultLimit: number;
-  private readonly PROVIDER_CACHE_TTL = 300; // 5 minutes
   private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
 
   constructor(
@@ -42,6 +41,7 @@ export class ProviderService {
       this.configService.get<string>("DEFAULT_PAGE_LIMIT", "20"),
       10,
     );
+    // defaultLimit may be overridden per-request from system_settings (defaultLimit is kept as fallback)
   }
 
   private sendEmailNotification(payload: { to: string; template: string; variables: Record<string, any> }): void {
@@ -69,6 +69,12 @@ export class ProviderService {
       user_id,
       business_name,
     });
+
+    // Check if new provider registrations are currently enabled
+    const providerRegEnabled = await this.providerRepo.getSystemSetting('provider_registration_enabled', 'true');
+    if (providerRegEnabled === 'false') {
+      throw new BadRequestException('New provider registrations are currently disabled. Please try again later.');
+    }
 
     // Check if provider already exists for this user
     const existingProvider = await this.providerRepo.findByUserId(user_id);
@@ -262,10 +268,12 @@ export class ProviderService {
     // Cache the result
     if (this.redisService.isCacheEnabled()) {
       const cacheKey = `provider:${provider.id}`;
+      const cacheTtlStr = await this.providerRepo.getSystemSetting('provider_cache_ttl_seconds', '300');
+      const cacheTtl = parseInt(cacheTtlStr, 10) || 300;
       await this.redisService.set(
         cacheKey,
         JSON.stringify(response),
-        this.PROVIDER_CACHE_TTL,
+        cacheTtl,
       );
     }
 

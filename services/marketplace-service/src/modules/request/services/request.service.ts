@@ -33,7 +33,6 @@ import { UserClient } from "../../../common/user/user.client";
 
 @Injectable()
 export class RequestService {
-  private readonly CACHE_TTL = 300; // 5 minutes
   private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
 
   constructor(
@@ -71,6 +70,24 @@ export class RequestService {
       throw new BadRequestException(
         "Guest contact information is required for anonymous requests",
       );
+    }
+
+    // Check if guest requests are enabled (only enforce for anonymous submissions)
+    if (!dto.user_id) {
+      const guestEnabled = await this.requestRepository.getSystemSetting('guest_requests_enabled', 'true');
+      if (guestEnabled === 'false') {
+        throw new BadRequestException('Guest (unauthenticated) service requests are currently disabled. Please sign in to submit a request.');
+      }
+    }
+
+    // Enforce active request cap for authenticated customers
+    if (dto.user_id) {
+      const maxActiveStr = await this.requestRepository.getSystemSetting('max_active_requests_per_customer', '10');
+      const maxActive = parseInt(maxActiveStr, 10) || 10;
+      const activeCount = await this.requestRepository.countActiveRequestsByUser(dto.user_id);
+      if (activeCount >= maxActive) {
+        throw new BadRequestException(`You have reached the maximum number of open service requests (${maxActive}). Please close or complete existing requests before creating new ones.`);
+      }
     }
 
     // Create location if provided
@@ -231,7 +248,8 @@ export class RequestService {
       SortOrder.DESC,
     );
 
-    const limit = queryDto.limit || 20;
+    const limitStr = await this.requestRepository.getSystemSetting('default_page_limit', '20');
+    const limit = queryDto.limit || parseInt(limitStr, 10) || 20;
 
     if (queryDto.cursor) {
       const requests =
@@ -291,10 +309,12 @@ export class RequestService {
     // Cache the result
     if (this.redisService.isCacheEnabled()) {
       const cacheKey = `request:${id}`;
+      const cacheTtlStr = await this.requestRepository.getSystemSetting('request_cache_ttl_seconds', '300');
+      const cacheTtl = parseInt(cacheTtlStr, 10) || 300;
       await this.redisService.set(
         cacheKey,
         JSON.stringify(response),
-        this.CACHE_TTL,
+        cacheTtl,
       );
     }
 

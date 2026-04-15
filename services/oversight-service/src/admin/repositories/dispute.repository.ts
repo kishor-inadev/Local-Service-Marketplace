@@ -9,6 +9,30 @@ import { resolveId } from '@/common/utils/resolve-id.util';
 export class DisputeRepository {
 	constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
+	async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+		try {
+			const res = await this.pool.query(
+				'SELECT value FROM system_settings WHERE key = $1',
+				[key],
+			);
+			return res.rows[0]?.value ?? defaultValue;
+		} catch {
+			return defaultValue;
+		}
+	}
+
+	async getJobCompletedAt(jobId: string): Promise<Date | null> {
+		try {
+			const res = await this.pool.query(
+				'SELECT completed_at FROM jobs WHERE id = $1',
+				[jobId],
+			);
+			return res.rows[0]?.completed_at ?? null;
+		} catch {
+			return null;
+		}
+	}
+
 	async createDispute(jobId: string, openedBy: string, reason: string): Promise<Dispute> {
 		const query = `
       INSERT INTO disputes (id, display_id, job_id, opened_by, reason, status, created_at)

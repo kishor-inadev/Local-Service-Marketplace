@@ -41,6 +41,20 @@ export class DisputeService {
 
 	async createDispute(jobId: string, openedBy: string, reason: string): Promise<Dispute> {
 		this.logger.log(`Creating dispute for job ${jobId} by user ${openedBy}`, 'DisputeService');
+
+		// Enforce dispute window: if the job is completed, check how long ago
+		const completedAt = await this.disputeRepository.getJobCompletedAt(jobId);
+		if (completedAt) {
+			const windowDaysStr = await this.disputeRepository.getSystemSetting('dispute_window_days', '30');
+			const windowDays = parseInt(windowDaysStr, 10) || 30;
+			const ageDays = (Date.now() - new Date(completedAt).getTime()) / (1000 * 60 * 60 * 24);
+			if (ageDays > windowDays) {
+				throw new BadRequestException(
+					`Disputes can only be filed within ${windowDays} day${windowDays === 1 ? '' : 's'} of job completion. This job was completed ${Math.floor(ageDays)} day${Math.floor(ageDays) === 1 ? '' : 's'} ago.`,
+				);
+			}
+		}
+
 		const dispute = await this.disputeRepository.createDispute(jobId, openedBy, reason);
 		await this.auditLogRepository.createAuditLog(openedBy, 'create_dispute', 'dispute', dispute.id, { job_id: jobId, reason });
 

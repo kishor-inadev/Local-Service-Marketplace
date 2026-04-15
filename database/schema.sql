@@ -944,7 +944,35 @@ INSERT INTO system_settings (key, value, description) VALUES
   ('contact_phone',                  '+91 98765 43210',     'Public support phone number shown on the contact page'),
   ('contact_address',                '123 Marketplace Tower, MG Road, Bengaluru, Karnataka 560001', 'Public office address shown on the contact page'),
   ('terms_version',                  '1.0',                 'Current version of the Terms of Service document'),
-  ('privacy_version',                '1.0',                 'Current version of the Privacy Policy document')
+  ('privacy_version',                '1.0',                 'Current version of the Privacy Policy document'),
+  ('gst_rate',                       '18',                  'GST rate percentage applied to the platform fee (e.g. 18 means 18%)'),
+  ('registration_enabled',           'true',                'Set to false to disable new customer/user registrations platform-wide'),
+  ('provider_registration_enabled',  'true',                'Set to false to disable new provider profile creation platform-wide'),
+  ('guest_requests_enabled',         'true',                'Allow unauthenticated (guest) users to submit service requests'),
+  ('max_active_requests_per_customer','10',                 'Maximum number of open service requests a single customer can have at one time'),
+  ('refund_window_days',             '30',                  'Days after payment completion within which a refund can be requested'),
+  ('dispute_window_days',            '30',                  'Days after job completion within which a dispute can be filed'),
+  ('proposal_withdrawal_window_hours','24',                 'Hours after submission within which a provider can withdraw a proposal without restriction'),
+  ('max_coupon_discount_percentage', '80',                  'Maximum allowed discount percentage when creating a new coupon'),
+  ('job_auto_complete_days',         '7',                   'Days after a job enters in_progress status before it is auto-completed (requires background job)'),
+  -- Auth token lifetimes
+  ('email_verification_expiry_hours', '24',                  'Hours before an email verification link expires'),
+  ('password_reset_expiry_hours',     '1',                   'Hours before a password reset link expires'),
+  ('magic_link_expiry_hours',         '1',                   'Hours before a magic-link (passwordless login) token expires'),
+  ('session_ttl_days',               '90',                  'Days before a refresh token / user session expires and requires re-login'),
+  ('auto_generated_password_length',  '8',                   'Character length of system-generated temporary passwords'),
+  -- Data retention
+  ('notification_retention_days',     '90',                  'Days before old notification records are purged from the database'),
+  ('failed_delivery_retention_days',  '30',                  'Days before failed notification delivery records are purged'),
+  -- Cache TTLs (seconds)
+  ('provider_cache_ttl_seconds',      '300',                 'Redis cache TTL in seconds for provider profile data'),
+  ('request_cache_ttl_seconds',       '300',                 'Redis cache TTL in seconds for service request list data'),
+  ('job_cache_ttl_seconds',           '180',                 'Redis cache TTL in seconds for job records'),
+  -- Pagination
+  ('default_page_limit',              '20',                  'Default number of items returned per page for all paginated endpoints'),
+  -- Gateway rate limits
+  ('rate_limit_max_requests',         '500',                 'Maximum requests per rate-limit window for general API endpoints'),
+  ('auth_rate_limit_max_requests',    '10',                  'Maximum authentication requests per 15-minute window per IP')
 ON CONFLICT (key) DO NOTHING;
 
 -- =====================================================
@@ -2324,6 +2352,8 @@ VALUES
   ('024', 'rbac_dynamic_permissions', 'integrated_in_schema', 0),
   ('025', 'add_conversations_table', 'integrated_in_schema', 0),
   ('026', 'india_localization', 'integrated_in_schema', 0),
-  ('027', 'add_system_settings', 'integrated_in_schema', 0)
+  ('027', 'add_system_settings', 'integrated_in_schema', 0),
+  ('028', 'add_enforcement_settings', 'integrated_in_schema', 0),
+  ('029', 'add_dynamic_config_settings', 'integrated_in_schema', 0)
 ON CONFLICT (version) DO NOTHING;
 
