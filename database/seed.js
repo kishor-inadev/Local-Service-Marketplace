@@ -7,6 +7,13 @@ const bcrypt = require("bcryptjs");
 const { faker } = require("@faker-js/faker");
 const dotenv = require("dotenv");
 const crypto = require("crypto");
+const {
+	indianFirstNames, indianLastNames, indianServiceBusinessNames,
+	providerBios, requestDescriptionsByCategory, proposalMessages,
+	reviewCommentsByRating, providerResponses, realCouponCodes,
+	disputeReasons, disputeResolutions, conversationMessages,
+	contactSubjects, contactMessageBodies,
+} = require('./seed-data');
 
 // Load environment variables — local .env first, then parent directory
 dotenv.config({ path: require("path").join(__dirname, ".env") });
@@ -168,6 +175,16 @@ class DatabaseSeeder {
 		this.messageIds = [];
 		this.userEmailMap = new Map(); // userId -> email
 		this.userDefaultPaymentSet = new Set();
+		this.emailCounter = 0; // used by nextEmail()
+	}
+
+	/** Returns kishor81160@gmail.com for the first call, kishor81160+N@gmail.com for subsequent calls. */
+	nextEmail() {
+		const email = this.emailCounter === 0
+			? 'kishor81160@gmail.com'
+			: `kishor81160+${this.emailCounter}@gmail.com`;
+		this.emailCounter++;
+		return email;
 	}
 
 	async run() {
@@ -530,12 +547,12 @@ class DatabaseSeeder {
 
 		// Create 1 admin
 		const adminId = uuid();
-		const adminEmail = "admin@marketplace.com";
+		const adminEmail = this.nextEmail();
 		await safeInsert(
 			`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, status) 
        VALUES ($1, $2, $3, $4, $5, $6, $7, (SELECT id FROM roles WHERE name = $7), $8, $9)
        ON CONFLICT (email) DO NOTHING`,
-			[adminId, displayId('USR'), adminEmail, "Admin User", "+12345678900", hashedPassword, "admin", true, "active"],
+			[adminId, displayId('USR'), adminEmail, "Kishor Admin", "+91 98765 43210", hashedPassword, "admin", true, "active"],
 		);
 		const existingAdmin = await safeQuery("SELECT id FROM users WHERE email = $1", [adminEmail]);
 		if (existingAdmin.rows.length > 0) {
@@ -547,7 +564,7 @@ class DatabaseSeeder {
 		}
 
 		// Second admin
-		const admin2Email = "admin2@marketplace.com";
+		const admin2Email = this.nextEmail();
 		const admin2Id = uuid();
 		await safeInsert(
 			`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, phone_verified, timezone, language, status)
@@ -557,8 +574,8 @@ class DatabaseSeeder {
 				admin2Id,
 				displayId('USR'),
 				admin2Email,
-				"Admin Support",
-				"+12345678901",
+				"Kishor Support",
+				"+91 98765 43211",
 				hashedPassword,
 				"admin",
 				true,
@@ -579,9 +596,9 @@ class DatabaseSeeder {
 		// Create 200 customers
 		for (let i = 0; i < 200; i++) {
 			const id = uuid();
-			const firstName = faker.person.firstName();
-			const lastName = faker.person.lastName();
-			const email = uniqueEmail(firstName, lastName);
+			const firstName = randomPick(indianFirstNames);
+			const lastName = randomPick(indianLastNames);
+			const email = this.nextEmail();
 
 			await safeInsert(
 				`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, phone_verified, profile_picture_url, timezone, language, last_login_at, status) 
@@ -619,9 +636,9 @@ class DatabaseSeeder {
 		// Create 120 providers
 		for (let i = 0; i < 120; i++) {
 			const id = uuid();
-			const firstName = faker.person.firstName();
-			const lastName = faker.person.lastName();
-			const email = uniqueEmail(firstName, lastName);
+			const firstName = randomPick(indianFirstNames);
+			const lastName = randomPick(indianLastNames);
+			const email = this.nextEmail();
 
 			await safeInsert(
 				`INSERT INTO users (id, display_id, email, name, phone, password_hash, role, role_id, email_verified, phone_verified, profile_picture_url, timezone, language, last_login_at, status) 
@@ -851,8 +868,8 @@ class DatabaseSeeder {
 					id,
 					displayId('PRV'),
 					userId,
-					faker.company.name() + " " + uuid().substring(0, 8),
-					faker.company.catchPhrase() + ". " + faker.lorem.paragraph(),
+					randomPick(indianServiceBusinessNames),
+					randomPick(providerBios),
 					faker.image.url(),
 					parseFloat((Math.random() * 2 + 3).toFixed(2)),
 					randomInt(0, 200),
@@ -860,7 +877,7 @@ class DatabaseSeeder {
 					randomInt(10, 50),
 					randomInt(30, 180),
 					randomPick(["pending", "verified", "verified", "verified"]),
-					JSON.stringify([{ name: faker.lorem.words(3), issuer: faker.company.name(), year: randomInt(2018, 2024) }]),
+					JSON.stringify([{ name: faker.lorem.words(3), issuer: randomPick(indianServiceBusinessNames), year: randomInt(2018, 2024) }]),
 				],
 			);
 			const existing = await safeQuery("SELECT id FROM providers WHERE user_id = $1", [userId]);
@@ -1012,8 +1029,8 @@ class DatabaseSeeder {
 					faker.location.streetAddress(),
 					city.name,
 					city.state,
-					faker.location.zipCode(),
-					"US",
+					`${randomInt(100000, 999999)}`,
+					"IN",
 				],
 			);
 
@@ -1052,6 +1069,8 @@ class DatabaseSeeder {
 			}
 			const categoryId = randomPick(this.categoryIds);
 			const locationId = randomPick(this.locationIds);
+			const catName = this.categoryNameMap.get(categoryId) || 'default';
+			const reqDesc = randomPick(requestDescriptionsByCategory[catName] || requestDescriptionsByCategory['default']);
 
 			const success = await safeInsert(
 				`INSERT INTO service_requests (id, display_id, user_id, category_id, location_id, description, budget, images, preferred_date, urgency, expiry_date, view_count, status, guest_name, guest_email, guest_phone, created_at) 
@@ -1062,7 +1081,7 @@ class DatabaseSeeder {
 					userId,
 					categoryId,
 					locationId,
-					faker.lorem.paragraphs(2),
+					reqDesc,
 					randomInt(50, 5000) * 100,
 					JSON.stringify([faker.image.url(), faker.image.url()]),
 					randomDate(new Date(), new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)),
@@ -1089,7 +1108,7 @@ class DatabaseSeeder {
 					`INSERT INTO service_request_search (request_id, category, location, description) 
            VALUES ($1, $2, $3, $4)
            ON CONFLICT (request_id) DO NOTHING`,
-					[id, categoryName, cityName, faker.lorem.paragraph()],
+					[id, categoryName, cityName, reqDesc],
 				);
 			}
 		}
@@ -1122,11 +1141,11 @@ class DatabaseSeeder {
 					requestId,
 					providerId,
 					randomInt(50, 5000) * 100,
-					faker.lorem.paragraph(),
+					randomPick(proposalMessages),
 					randomInt(1, 40),
 					startDate,
 					completionDate,
-					status === "rejected" ? faker.lorem.sentence() : null,
+					status === "rejected" ? randomPick(disputeReasons) : null,
 					status,
 					randomDate(new Date(2024, 0, 1), new Date()),
 				],
@@ -1384,8 +1403,8 @@ class DatabaseSeeder {
 						job.customer_id,
 						job.provider_id,
 						rating,
-						faker.lorem.paragraph(),
-						hasResponse ? faker.lorem.sentence() : null,
+						randomPick(reviewCommentsByRating[rating] || reviewCommentsByRating[3]),
+						hasResponse ? randomPick(providerResponses) : null,
 						hasResponse ? randomDate(reviewCreatedAt, new Date()) : null,
 						randomInt(0, 20),
 						true,
@@ -1465,7 +1484,7 @@ class DatabaseSeeder {
 						displayId('MSG'),
 						jobId,
 						randomPick(participants),
-						faker.lorem.sentences(randomInt(1, 3)),
+						randomPick(conversationMessages),
 						isRead,
 						isRead ? randomDate(new Date(2024, 0, 1), new Date()) : null,
 						randomDate(new Date(2024, 0, 1), new Date()),
@@ -1603,7 +1622,9 @@ class DatabaseSeeder {
 
 		for (let i = 0; i < 180; i++) {
 			const id = uuid();
-			const code = crypto.randomBytes(4).toString("hex").toUpperCase();
+			const code = i < realCouponCodes.length
+				? realCouponCodes[i]
+				: `PROMO${String(i - realCouponCodes.length + 1).padStart(3, '0')}`;
 
 			await safeInsert(
 				`INSERT INTO coupons (id, display_id, code, discount_percent, max_uses, max_uses_per_user, min_purchase_amount, active, created_by, expires_at) 
@@ -1674,9 +1695,9 @@ class DatabaseSeeder {
 					displayId('DIS'),
 					job.id,
 					job.customer_id,
-					faker.lorem.paragraph(),
+					randomPick(disputeReasons),
 					status,
-					isResolved ? faker.lorem.sentence() : null,
+					isResolved ? randomPick(disputeResolutions) : null,
 					isResolved && adminId ? adminId : null,
 					isResolved ? randomDate(new Date(2024, 0, 1), new Date()) : null,
 					randomDate(new Date(2024, 0, 1), new Date()),
@@ -1987,10 +2008,10 @@ class DatabaseSeeder {
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)`,
 				[
 					uuid(),
-					faker.person.fullName(),
-					uniqueEmail(faker.person.firstName(), faker.person.lastName()),
-					faker.lorem.sentence(),
-					faker.lorem.paragraphs(2),
+					`${randomPick(indianFirstNames)} ${randomPick(indianLastNames)}`,
+					this.nextEmail(),
+					randomPick(contactSubjects),
+					randomPick(contactMessageBodies),
 					status,
 					hasUser ? randomPick(this.userIds) : null,
 					isAssigned ? randomPick(this.adminIds) : null,
