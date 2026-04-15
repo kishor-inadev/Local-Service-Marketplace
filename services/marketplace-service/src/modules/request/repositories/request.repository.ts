@@ -15,6 +15,26 @@ import { resolveId } from "@/common/utils/resolve-id.util";
 export class RequestRepository {
   constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+    try {
+      const res = await this.pool.query(
+        'SELECT value FROM system_settings WHERE key = $1',
+        [key],
+      );
+      return res.rows[0]?.value ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
+  async countActiveRequestsByUser(userId: string): Promise<number> {
+    const res = await this.pool.query(
+      "SELECT COUNT(*)::int AS cnt FROM service_requests WHERE user_id = $1 AND status = 'open' AND deleted_at IS NULL",
+      [userId],
+    );
+    return res.rows[0]?.cnt ?? 0;
+  }
+
   async createRequest(dto: CreateRequestDto): Promise<ServiceRequest> {
     const [userId, categoryId] = await Promise.all([
       dto.user_id

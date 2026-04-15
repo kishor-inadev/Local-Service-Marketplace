@@ -13,6 +13,7 @@ import { SystemSettingRepository } from './repositories/system-setting.repositor
 import { ContactMessageRepository } from './repositories/contact-message.repository';
 import { NotificationClient } from '../common/notification/notification.client';
 import { UserClient } from '../common/user/user.client';
+import { PublicController } from '../public/public.controller';
 
 @Module({
 	imports: [
@@ -21,7 +22,7 @@ import { UserClient } from '../common/user/user.client';
 			{ name: 'oversight.notification' },
 		),
 	],
-	controllers: [AdminController, DisputeController],
+	controllers: [AdminController, DisputeController, PublicController],
 	providers: [
 		DisputeService,
 		AuditLogService,

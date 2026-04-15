@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 		description:
 			'Read our privacy policy — how we collect, use, and protect your personal information on Local Service Marketplace.',
 		url: '/privacy',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',

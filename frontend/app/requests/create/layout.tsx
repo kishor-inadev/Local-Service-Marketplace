@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 		description:
 			'Post your service request on Local Service Marketplace. Describe what you need, set your budget, and receive proposals from verified local providers.',
 		url: '/requests/create',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',

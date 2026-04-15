@@ -8,6 +8,18 @@ import { AdminCreateUserDto } from "../../user/dto/admin-create-user.dto";
 export class UserRepository {
   constructor(@Inject(DATABASE_POOL) private readonly pool: Pool) {}
 
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+    try {
+      const res = await this.pool.query(
+        'SELECT value FROM system_settings WHERE key = $1',
+        [key],
+      );
+      return res.rows[0]?.value ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
   async create(
     email: string,
     passwordHash: string,

@@ -101,7 +101,7 @@ export default function AuditLogsPage() {
           <Card className="mb-6">
             <CardContent className="p-4">
               <div className="flex flex-wrap gap-3">
-                <div className="relative flex-1 min-w-[200px]">
+                <div className="relative flex-1 min-w-full sm:min-w-[200px]">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
                   <input
                     type="text"
@@ -116,14 +116,14 @@ export default function AuditLogsPage() {
                   placeholder="Filter by User ID..."
                   value={userId}
                   onChange={(e) => { setUserId(e.target.value); setPage(1); }}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm w-56"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm w-full sm:w-56"
                 />
                 <input
                   type="text"
                   placeholder="Filter by action..."
                   value={actionFilter}
                   onChange={(e) => { setActionFilter(e.target.value); setPage(1); }}
-                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm w-44"
+                  className="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary-500 text-sm w-full sm:w-44"
                 />
                 {(userId || actionFilter || search) && (
                   <Button variant="outline" size="sm" onClick={() => { setUserId(''); setActionFilter(''); setSearch(''); setPage(1); }}>
@@ -148,8 +148,10 @@ export default function AuditLogsPage() {
           ) : (
             <>
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="overflow-x-auto">
+                <div className="min-w-[640px]">
                 {/* Table header */}
-                <div className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 bg-gray-50 dark:bg-gray-800/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
+                <div className="grid grid-cols-[1.5fr_1.5fr_1.5fr_1fr_1fr] gap-4 px-4 py-3 bg-gray-50 dark:bg-gray-800/50 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider border-b border-gray-200 dark:border-gray-700">
                   <span>Timestamp</span>
                   <span>User</span>
                   <span>Action</span>
@@ -160,7 +162,7 @@ export default function AuditLogsPage() {
                   {filtered.map((log) => (
                     <div
                       key={log.id}
-                      className="grid grid-cols-[1fr_1fr_1fr_1fr_1fr] gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors text-sm">
+                      className="grid grid-cols-[1.5fr_1.5fr_1.5fr_1fr_1fr] gap-4 px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors text-sm">
                       <span className="text-gray-500 dark:text-gray-400 whitespace-nowrap">
                         {formatDate(log.created_at)}
                       </span>
@@ -181,6 +183,8 @@ export default function AuditLogsPage() {
                       </span>
                     </div>
                   ))}
+                </div>
+                </div>
                 </div>
               </div>
 

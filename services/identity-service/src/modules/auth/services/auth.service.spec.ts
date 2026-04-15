@@ -56,6 +56,7 @@ const makeService = (
     findByPhone: jest.fn(),
     create: jest.fn(),
     updateLastLogin: jest.fn().mockResolvedValue(undefined),
+    getSystemSetting: jest.fn().mockResolvedValue(null),
   };
   const sessionRepo = overrides.sessionRepo ?? {
     create: jest.fn().mockResolvedValue(undefined),
@@ -110,6 +111,7 @@ describe("AuthService.login", () => {
         userRepo: {
           findByEmail: jest.fn().mockResolvedValue(user),
           updateLastLogin: jest.fn().mockResolvedValue(undefined),
+          getSystemSetting: jest.fn().mockResolvedValue(null),
         },
       });
 
@@ -138,6 +140,7 @@ describe("AuthService.login", () => {
       userRepo: {
         findByEmail: jest.fn().mockResolvedValue(user),
         updateLastLogin: jest.fn(),
+        getSystemSetting: jest.fn().mockResolvedValue(null),
       },
     });
 
@@ -154,6 +157,7 @@ describe("AuthService.login", () => {
       userRepo: {
         findByEmail: jest.fn().mockResolvedValue(null),
         updateLastLogin: jest.fn(),
+        getSystemSetting: jest.fn().mockResolvedValue(null),
       },
     });
 
@@ -181,6 +185,7 @@ describe("AuthService.login", () => {
       userRepo: {
         findByEmail: jest.fn().mockResolvedValue(user),
         updateLastLogin: jest.fn(),
+        getSystemSetting: jest.fn().mockResolvedValue(null),
       },
     });
 
@@ -204,6 +209,7 @@ describe("AuthService.register", () => {
         findByPhone: jest.fn().mockResolvedValue(null),
         create: jest.fn().mockResolvedValue(createdUser),
         updateLastLogin: jest.fn(),
+        getSystemSetting: jest.fn().mockResolvedValue(null),
       },
     });
 
@@ -225,6 +231,7 @@ describe("AuthService.register", () => {
         findByPhone: jest.fn().mockResolvedValue(null),
         create: jest.fn(),
         updateLastLogin: jest.fn(),
+        getSystemSetting: jest.fn().mockResolvedValue(null),
       },
     });
 

@@ -24,7 +24,6 @@ import { UserRepository } from "../repositories/user.repository";
 @Injectable()
 export class ProviderService {
   private readonly defaultLimit: number;
-  private readonly PROVIDER_CACHE_TTL = 300; // 5 minutes
   private readonly workersEnabled = process.env.WORKERS_ENABLED === 'true';
 
   constructor(
@@ -42,6 +41,7 @@ export class ProviderService {
       this.configService.get<string>("DEFAULT_PAGE_LIMIT", "20"),
       10,
     );
+    // defaultLimit may be overridden per-request from system_settings (defaultLimit is kept as fallback)
   }
 
   private sendEmailNotification(payload: { to: string; template: string; variables: Record<string, any> }): void {
@@ -69,6 +69,12 @@ export class ProviderService {
       user_id,
       business_name,
     });
+
+    // Check if new provider registrations are currently enabled
+    const providerRegEnabled = await this.providerRepo.getSystemSetting('provider_registration_enabled', 'true');
+    if (providerRegEnabled === 'false') {
+      throw new BadRequestException('New provider registrations are currently disabled. Please try again later.');
+    }
 
     // Check if provider already exists for this user
     const existingProvider = await this.providerRepo.findByUserId(user_id);
@@ -164,6 +170,14 @@ export class ProviderService {
 
     // Update service categories
     if (service_categories !== undefined) {
+      // Enforce max_services_per_provider system setting
+      const maxServicesStr = await this.providerRepo.getSystemSetting('max_services_per_provider', '10');
+      const maxServices = Math.max(1, parseInt(maxServicesStr, 10) || 10);
+      if (service_categories.length > maxServices) {
+        throw new BadRequestException(
+          `Providers can offer at most ${maxServices} service categories`,
+        );
+      }
       await this.providerServiceRepo.replaceServices(
         provider.id,
         service_categories,
@@ -228,10 +242,19 @@ export class ProviderService {
 
     const response = {
       id: provider.id,
+      display_id: provider.display_id,
       user_id: provider.user_id,
       business_name: provider.business_name,
       description: provider.description,
+      verification_status: provider.verification_status,
+      aadhar_verified: provider.aadhar_verified,
+      profile_picture_url: provider.profile_picture_url,
       rating: provider.rating,
+      total_jobs_completed: provider.total_jobs_completed,
+      years_of_experience: provider.years_of_experience,
+      service_area_radius: provider.service_area_radius,
+      response_time_avg: provider.response_time_avg,
+      certifications: provider.certifications,
       services: services.map((s) => ({ id: s.id, category_id: s.category_id })),
       availability: availability.map((a) => ({
         id: a.id,
@@ -245,10 +268,12 @@ export class ProviderService {
     // Cache the result
     if (this.redisService.isCacheEnabled()) {
       const cacheKey = `provider:${provider.id}`;
+      const cacheTtlStr = await this.providerRepo.getSystemSetting('provider_cache_ttl_seconds', '300');
+      const cacheTtl = parseInt(cacheTtlStr, 10) || 300;
       await this.redisService.set(
         cacheKey,
         JSON.stringify(response),
-        this.PROVIDER_CACHE_TTL,
+        cacheTtl,
       );
     }
 
@@ -366,10 +391,19 @@ export class ProviderService {
       );
       responses.push({
         id: provider.id,
+        display_id: provider.display_id,
         user_id: provider.user_id,
         business_name: provider.business_name,
         description: provider.description,
+        verification_status: provider.verification_status,
+        aadhar_verified: provider.aadhar_verified,
+        profile_picture_url: provider.profile_picture_url,
         rating: provider.rating,
+        total_jobs_completed: provider.total_jobs_completed,
+        years_of_experience: provider.years_of_experience,
+        service_area_radius: provider.service_area_radius,
+        response_time_avg: provider.response_time_avg,
+        certifications: provider.certifications,
         services: services.map((s) => ({
           id: s.id,
           category_id: s.category_id,

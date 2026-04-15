@@ -5,6 +5,7 @@ import { SmsWorker } from './sms.worker';
 import { PushWorker } from './push.worker';
 import { DigestWorker } from './digest.worker';
 import { CleanupWorker } from './cleanup.worker';
+import { WhatsAppWorker } from './whatsapp.worker';
 import { NotificationModule } from '../notification/notification.module';
 import { UserModule } from '../common/user/user.module';
 import { DeadLetterQueueService } from '../common/dlq/dead-letter-queue.service';
@@ -22,11 +23,12 @@ import { getQueueRegistrationOptions } from '../config/queue-config';
  *   - worker pod: WORKERS_ENABLED=true   (workers only, no HTTP traffic)
  * 
  * Queue Configuration:
- *   - Email:   10s timeout, HIGH priority, 3 attempts
- *   - SMS:     15s timeout, HIGH priority, 3 attempts
- *   - Push:    5s timeout,  HIGH priority, 3 attempts
- *   - Digest:  60s timeout, LOW priority,  2 attempts
- *   - Cleanup: 120s timeout, LOW priority, 2 attempts
+ *   - Email:     10s timeout, HIGH priority, 3 attempts
+ *   - SMS:       15s timeout, HIGH priority, 3 attempts
+ *   - Push:      5s timeout,  HIGH priority, 3 attempts
+ *   - WhatsApp:  15s timeout, HIGH priority, 3 attempts
+ *   - Digest:    60s timeout, LOW priority,  2 attempts
+ *   - Cleanup:   120s timeout, LOW priority, 2 attempts
  */
 @Module({
   imports: [
@@ -34,6 +36,7 @@ import { getQueueRegistrationOptions } from '../config/queue-config';
       getQueueRegistrationOptions('comms.email'),
       getQueueRegistrationOptions('comms.sms'),
       getQueueRegistrationOptions('comms.push'),
+      getQueueRegistrationOptions('comms.whatsapp'),
       getQueueRegistrationOptions('comms.digest'),
       getQueueRegistrationOptions('comms.cleanup'),
     ),
@@ -47,6 +50,7 @@ import { getQueueRegistrationOptions } from '../config/queue-config';
     PushWorker,
     DigestWorker,
     CleanupWorker,
+    WhatsAppWorker,
     DeadLetterQueueService,
   ],
 })

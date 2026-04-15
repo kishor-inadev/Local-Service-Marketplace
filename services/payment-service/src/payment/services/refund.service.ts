@@ -44,6 +44,18 @@ export class RefundService {
       throw new BadRequestException("Can only refund completed payments");
     }
 
+    // Enforce refund window: reject if paid_at is older than refund_window_days
+    if (payment.paid_at) {
+      const windowDaysStr = await this.paymentRepository.getSystemSetting('refund_window_days', '30');
+      const windowDays = parseInt(windowDaysStr, 10) || 30;
+      const ageDays = (Date.now() - new Date(payment.paid_at).getTime()) / (1000 * 60 * 60 * 24);
+      if (ageDays > windowDays) {
+        throw new BadRequestException(
+          `Refunds can only be requested within ${windowDays} day${windowDays === 1 ? '' : 's'} of payment. This payment was made ${Math.floor(ageDays)} day${Math.floor(ageDays) === 1 ? '' : 's'} ago.`,
+        );
+      }
+    }
+
     // Calculate refund amount
     const refundAmount = amount || payment.amount;
 

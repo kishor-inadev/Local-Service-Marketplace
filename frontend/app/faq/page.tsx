@@ -3,7 +3,7 @@ import { Layout } from '@/components/layout/Layout';
 import { FAQContent } from './_components/FAQContent';
 import { faqs } from './_data/faqs';
 
-const _SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com';
 
 export const metadata: Metadata = {
 	title: 'FAQ',
@@ -15,7 +15,9 @@ export const metadata: Metadata = {
 		description:
 			'Frequently asked questions about Local Service Marketplace — answers about accounts, services, payments, and more.',
 		url: '/faq',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		type: 'website',
+		locale: 'en_IN',
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',
@@ -38,12 +40,25 @@ const faqJsonLd = {
 	})),
 };
 
+const breadcrumbJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+		{ '@type': 'ListItem', position: 2, name: 'FAQ', item: `${SITE_URL}/faq` },
+	],
+};
+
 export default function FAQPage() {
 	return (
 		<Layout>
 			<script
 				type="application/ld+json"
 				dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+			/>
+			<script
+				type="application/ld+json"
+				dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
 			/>
 			<div className="bg-white dark:bg-gray-900">
 				{/* Hero Section */}

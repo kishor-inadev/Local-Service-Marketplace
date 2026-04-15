@@ -22,10 +22,11 @@ export const metadata: Metadata = {
 	metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || "https://localservicemarketplace.com"),
 	openGraph: {
 		type: "website",
+		locale: "en_IN",
 		siteName: "Local Service Marketplace",
-		images: [{ url: "/og-image.png", width: 1200, height: 630, alt: "Local Service Marketplace" }],
+		images: [{ url: "/opengraph-image", width: 1200, height: 630, alt: "Local Service Marketplace" }],
 	},
-	twitter: { card: "summary_large_image", images: ["/og-image.png"] },
+	twitter: { card: "summary_large_image", images: ["/opengraph-image"] },
 	robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large" } },
 };
 

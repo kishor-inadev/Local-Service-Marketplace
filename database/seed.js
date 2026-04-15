@@ -1893,6 +1893,21 @@ class DatabaseSeeder {
 			{ key: "max_login_attempts", value: "5", description: "Max failed login attempts before lockout" },
 			{ key: "session_timeout_minutes", value: "15", description: "JWT access token lifetime in minutes" },
 			{ key: "otp_expiry_minutes", value: "10", description: "OTP verification code expiry in minutes" },
+			{ key: "maintenance_mode", value: "false", description: "Set to true to put the platform in maintenance mode" },
+			{ key: "maintenance_message", value: "We are performing scheduled maintenance. Please check back shortly.", description: "Message shown to users during maintenance mode" },
+			{ key: "provider_verification_required", value: "true", description: "Require admin verification before providers can accept jobs" },
+			{ key: "max_providers_per_category", value: "500", description: "Maximum number of providers allowed per service category" },
+			{ key: "max_services_per_provider", value: "10", description: "Maximum number of service categories a provider can offer" },
+			{ key: "review_auto_approve_days", value: "7", description: "Days after job completion before review is auto-approved if no response" },
+			{ key: "min_review_length", value: "10", description: "Minimum character count for a review comment" },
+			{ key: "default_currency", value: "INR", description: "Default currency for all monetary values on the platform" },
+			{ key: "default_timezone", value: "Asia/Kolkata", description: "Default timezone for scheduling and display" },
+			{ key: "max_file_upload_size_mb", value: "10", description: "Maximum file upload size in megabytes" },
+			{ key: "allowed_file_types", value: "image/jpeg,image/png,image/webp,application/pdf", description: "Comma-separated list of allowed MIME types for uploads" },
+			{ key: "contact_phone", value: "+91 98765 43210", description: "Public support phone number shown on contact page" },
+			{ key: "contact_address", value: "123 Marketplace Tower, MG Road, Bengaluru, Karnataka 560001", description: "Public office address shown on contact page" },
+			{ key: "terms_version", value: "1.0", description: "Current version of the Terms of Service document" },
+			{ key: "privacy_version", value: "1.0", description: "Current version of the Privacy Policy document" },
 		];
 
 		let count = 0;

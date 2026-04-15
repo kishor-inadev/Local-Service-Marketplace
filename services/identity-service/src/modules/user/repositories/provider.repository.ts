@@ -13,6 +13,19 @@ import { resolveId } from "@/common/utils/resolve-id.util";
 export class ProviderRepository {
   constructor(@Inject(DATABASE_POOL) private readonly pool: Pool) {}
 
+  /** Reads a system setting from the shared system_settings table with a safe fallback. */
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+    try {
+      const res = await this.pool.query(
+        'SELECT value FROM system_settings WHERE key = $1',
+        [key],
+      );
+      return res.rows[0]?.value ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
   async create(
     userId: string,
     businessName: string,

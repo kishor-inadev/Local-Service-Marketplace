@@ -67,7 +67,7 @@ export default function AdminRolesPage() {
   return (
     <ProtectedRoute requiredPermissions={[Permission.ROLES_MANAGE]}>
       <Layout>
-        <div className="max-w-5xl mx-auto space-y-6">
+        <div className="container-custom py-12">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Roles & Permissions</h1>

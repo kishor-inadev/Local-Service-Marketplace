@@ -51,7 +51,16 @@ export class ReviewService {
     // 3. Derive provider_id from the job — do not trust client-supplied value
     createReviewDto.provider_id = job.provider_id;
 
-    // 4. Atomically prevent duplicate reviews via ON CONFLICT in the insert
+    // 4. Enforce minimum review comment length from system settings
+    const minLengthStr = await this.reviewRepository.getSystemSetting('min_review_length', '10');
+    const minLength = Math.max(1, parseInt(minLengthStr, 10) || 10);
+    if (!createReviewDto.comment || createReviewDto.comment.trim().length < minLength) {
+      throw new BadRequestException(
+        `Review comment must be at least ${minLength} characters long`,
+      );
+    }
+
+    // 5. Atomically prevent duplicate reviews via ON CONFLICT in the insert
     const review = await this.reviewRepository.createReview(createReviewDto);
     if (!review) {
       throw new BadRequestException("You have already submitted a review for this job");
@@ -132,9 +141,13 @@ export class ReviewService {
     providerId: string,
     limit: number = 20,
     offset: number = 0,
+    sortBy: string = 'created_at',
+    sortOrder: string = 'desc',
+    minRating?: number,
+    maxRating?: number,
   ): Promise<{ data: Review[]; total: number; averageRating: number }> {
     this.logger.log(
-      `Fetching reviews for provider ${providerId} (limit: ${limit}, offset: ${offset})`,
+      `Fetching reviews for provider ${providerId} (limit: ${limit}, offset: ${offset}, sortBy: ${sortBy}, sortOrder: ${sortOrder})`,
       "ReviewService",
     );
 
@@ -142,6 +155,10 @@ export class ReviewService {
       providerId,
       limit,
       offset,
+      sortBy,
+      sortOrder,
+      minRating,
+      maxRating,
     );
 
     const ratingData =

@@ -131,7 +131,7 @@ export default function EditRolePage() {
   return (
     <ProtectedRoute requiredPermissions={[Permission.ROLES_MANAGE]}>
       <Layout>
-        <div className="max-w-6xl mx-auto space-y-6">
+        <div className="container-custom py-12">
           {/* Header */}
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">

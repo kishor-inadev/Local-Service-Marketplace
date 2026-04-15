@@ -13,6 +13,19 @@ import { resolveId } from "../../common/utils/resolve-id.util";
 export class PaymentRepository {
   constructor(@Inject("DATABASE_POOL") private pool: Pool) { }
 
+  /** Reads a system setting from the shared system_settings table with a safe fallback. */
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+    try {
+      const res = await this.pool.query(
+        'SELECT value FROM system_settings WHERE key = $1',
+        [key],
+      );
+      return res.rows[0]?.value ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
   async createPayment(
     jobId: string,
     userId: string,
@@ -29,11 +42,16 @@ export class PaymentRepository {
       resolveId(this.pool, "providers", providerId),
     ]);
 
-    // Calculate platform fee (10%)
-    const platformFee = Math.floor(amount * 0.1);
+    // Read platform fee and GST rate from system settings (fall back to 15% and 18% if not set)
+    const [feeRateStr, gstRateStr] = await Promise.all([
+      this.getSystemSetting('platform_fee_percentage', '15'),
+      this.getSystemSetting('gst_rate', '18'),
+    ]);
+    const feeRate = Math.max(0, Math.min(100, parseFloat(feeRateStr) || 15)) / 100;
+    const gstRate = Math.max(0, Math.min(100, parseFloat(gstRateStr) || 18));
+
+    const platformFee = Math.floor(amount * feeRate);
     const providerAmount = amount - platformFee;
-    // GST at 18% applies on the platform commission (platform_fee)
-    const gstRate = 18.00;
     const gstAmount = parseFloat((platformFee * gstRate / 100).toFixed(2));
 
     const query = `

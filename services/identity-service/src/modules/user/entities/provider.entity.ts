@@ -12,6 +12,10 @@ export class Provider {
   response_time_avg?: number; // ✅ NEW
   verification_status: string; // ✅ NEW ('pending', 'verified', 'rejected')
   certifications?: any; // ✅ NEW (JSONB)
+  // India-specific fields (migration 026)
+  gstin?: string;   // GSTIN 15-char tax ID
+  pan?: string;     // PAN 10-char tax ID
+  aadhar_verified?: boolean; // KYC verification flag
   created_at: Date;
   updated_at?: Date;
   deleted_at?: Date;

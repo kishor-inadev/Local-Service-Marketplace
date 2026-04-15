@@ -14,6 +14,19 @@ import { BadRequestException } from "@/common/exceptions/http.exceptions";
 export class ProposalRepository {
   constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) { }
 
+  /** Reads a system setting from the shared system_settings table with a safe fallback. */
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+    try {
+      const res = await this.pool.query(
+        'SELECT value FROM system_settings WHERE key = $1',
+        [key],
+      );
+      return res.rows[0]?.value ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
   async getRequestStatus(requestId: string): Promise<string | null> {
     const query = `SELECT status FROM service_requests WHERE id = $1 AND deleted_at IS NULL`;
     const result = await this.pool.query(query, [requestId]);

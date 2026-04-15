@@ -9,6 +9,7 @@ export interface UserData {
   name?: string;
   phone?: string;
   role: string;
+  email_verified?: boolean;
 }
 
 export interface ProviderData {

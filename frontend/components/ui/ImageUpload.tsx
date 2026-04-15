@@ -6,12 +6,13 @@ import { useDropzone } from 'react-dropzone';
 import { X, Upload } from 'lucide-react';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
+import { usePublicSettings } from '@/hooks/usePublicSettings';
 
 interface ImageUploadProps {
   onUpload: (_fs: File[]) => void;
   maxFiles?: number;
-  maxSize?: number; // in MB
-    acceptedFormats?: string[];
+  maxSize?: number; // in MB — if omitted, uses max_file_upload_size_mb from system settings
+  acceptedFormats?: string[];
   currentImages?: string[];
   onRemove?: (_i: number) => void;
 }
@@ -30,12 +31,20 @@ interface ImageUploadProps {
 export function ImageUpload({
   onUpload,
   maxFiles = 5,
-  maxSize = 5,
-  acceptedFormats = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'],
+  maxSize,
+  acceptedFormats,
   currentImages = [],
   onRemove
 }: ImageUploadProps) {
+  const { config } = usePublicSettings();
   const [previews, setPreviews] = useState<string[]>([]);
+
+  // Resolve defaults from system settings when props are omitted
+  const resolvedMaxSize = maxSize ?? config.maxFileUploadSizeMb;
+  const resolvedFormats = acceptedFormats ?? config.allowedFileTypes
+    .split(',')
+    .map((t) => t.trim())
+    .filter((t) => t.startsWith('image/')); // ImageUpload is images-only
 
   const onDrop = useCallback((acceptedFiles: File[], rejectedFiles: any[]) => {
     // Handle rejected files
@@ -43,7 +52,7 @@ export function ImageUpload({
       rejectedFiles.forEach(file => {
         file.errors.forEach((error: any) => {
           if (error.code === 'file-too-large') {
-            toast.error(`File ${file.file.name} is too large. Max size: ${maxSize}MB`);
+            toast.error(`File ${file.file.name} is too large. Max size: ${resolvedMaxSize}MB`);
           } else if (error.code === 'file-invalid-type') {
             toast.error(`File ${file.file.name} has invalid type. Only images allowed.`);
           } else {
@@ -75,13 +84,13 @@ export function ImageUpload({
 
     onUpload(acceptedFiles);
     toast.success(`${acceptedFiles.length} file(s) uploaded`);
-  }, [currentImages.length, previews.length, maxFiles, maxSize, onUpload]);
+  }, [currentImages.length, previews.length, maxFiles, resolvedMaxSize, onUpload]);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
-    accept: acceptedFormats.reduce((acc, format) => ({ ...acc, [format]: [] }), {}),
+    accept: resolvedFormats.reduce((acc, format) => ({ ...acc, [format]: [] }), {} as Record<string, string[]>),
     maxFiles: maxFiles - currentImages.length - previews.length,
-    maxSize: maxSize * 1024 * 1024, // Convert MB to bytes
+    maxSize: resolvedMaxSize * 1024 * 1024,
     multiple: maxFiles > 1
   });
 

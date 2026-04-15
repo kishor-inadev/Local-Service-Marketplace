@@ -28,7 +28,6 @@ import { AnalyticsClient } from "../../../common/analytics/analytics.client";
 
 @Injectable()
 export class JobService {
-  private readonly JOB_CACHE_TTL = 180; // 3 minutes (jobs change status frequently)
   private readonly workersEnabled: boolean;
 
   constructor(
@@ -155,10 +154,12 @@ export class JobService {
     // Cache the result
     if (this.redisService.isCacheEnabled()) {
       const cacheKey = `job:${id}`;
+      const cacheTtlStr = await this.jobRepository.getSystemSetting('job_cache_ttl_seconds', '180');
+      const cacheTtl = parseInt(cacheTtlStr, 10) || 180;
       await this.redisService.set(
         cacheKey,
         JSON.stringify(response),
-        this.JOB_CACHE_TTL,
+        cacheTtl,
       );
     }
 

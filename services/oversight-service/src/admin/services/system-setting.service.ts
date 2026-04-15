@@ -3,9 +3,10 @@ import { WINSTON_MODULE_NEST_PROVIDER } from 'nest-winston';
 import { SystemSettingRepository } from '../repositories/system-setting.repository';
 import { AuditLogRepository } from '../repositories/audit-log.repository';
 import { SystemSetting } from '../entities/system-setting.entity';
-import { NotFoundException } from '../../common/exceptions/http.exceptions';
+import { NotFoundException, ConflictException } from '../../common/exceptions/http.exceptions';
 import { SystemSettingQueryDto } from "../dto/system-setting-query.dto";
 import { resolvePagination } from "../../common/pagination/list-query-validation.util";
+import { CreateSystemSettingDto } from '../dto/create-system-setting.dto';
 
 @Injectable()
 export class SystemSettingService {
@@ -67,5 +68,25 @@ export class SystemSettingService {
 		this.logger.log(`System setting ${key} updated successfully`, "SystemSettingService");
 
 		return updatedSetting;
+	}
+
+	async createSetting(dto: CreateSystemSettingDto, adminId: string): Promise<SystemSetting> {
+		this.logger.log(`Creating system setting ${dto.key} by admin ${adminId}`, "SystemSettingService");
+
+		const existing = await this.systemSettingRepository.getSettingByKey(dto.key);
+		if (existing) {
+			throw new ConflictException(`System setting with key '${dto.key}' already exists`);
+		}
+
+		const newSetting = await this.systemSettingRepository.createSetting(dto.key, dto.value, dto.description, dto.type);
+
+		await this.auditLogRepository.createAuditLog(adminId, "create_system_setting", "system_setting", dto.key, {
+			value: dto.value,
+			description: dto.description,
+		});
+
+		this.logger.log(`System setting ${dto.key} created successfully`, "SystemSettingService");
+
+		return newSetting;
 	}
 }

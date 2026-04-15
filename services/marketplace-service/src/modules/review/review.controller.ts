@@ -21,6 +21,7 @@ import { ReviewRepository } from "./repositories/review.repository";
 import { CreateReviewDto } from "./dto/create-review.dto";
 import { UpdateReviewDto } from "./dto/update-review.dto";
 import { RespondReviewDto } from "./dto/respond-review.dto";
+import { ReviewQueryDto } from "./dto/review-query.dto";
 import { JwtAuthGuard } from "@/common/guards/jwt-auth.guard";
 import { PermissionsGuard as RolesGuard, Roles, RequirePermissions } from '@/common/rbac';
 import { OwnershipGuard } from "@/common/guards/ownership.guard";
@@ -159,20 +160,26 @@ export class ReviewController {
   @Get("provider/:providerId")
   async getProviderReviews(
     @Param("providerId", FlexibleIdPipe) providerId: string,
-    @Query("limit", new DefaultValuePipe(20), ParseIntPipe) limit: number,
-    @Query("offset", new DefaultValuePipe(0), ParseIntPipe) offset: number,
+    @Query() queryDto: ReviewQueryDto,
   ) {
+    const limit = queryDto.limit ?? 20;
+    const page = queryDto.page ?? 1;
+    const offset = (page - 1) * limit;
     const result = await this.reviewService.getProviderReviews(
       providerId,
       limit,
       offset,
+      queryDto.sortBy,
+      queryDto.sortOrder,
+      queryDto.min_rating,
+      queryDto.max_rating,
     );
     return {
       success: true,
       message: "Provider reviews retrieved successfully",
       data: { reviews: result.data, averageRating: result.averageRating },
       meta: {
-        page: Math.floor(offset / limit) + 1,
+        page,
         limit,
         total: result.total,
         totalPages: Math.ceil(result.total / limit),

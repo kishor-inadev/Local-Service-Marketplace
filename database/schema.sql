@@ -916,9 +916,75 @@ CREATE TABLE system_settings (
   key TEXT PRIMARY KEY,
   value TEXT NOT NULL,
   description TEXT,
+  type TEXT NOT NULL DEFAULT 'text' CHECK (type IN ('boolean', 'number', 'textarea', 'text')),
   updated_at TIMESTAMP DEFAULT now(),
   updated_by UUID REFERENCES users(id)
 );
+
+-- Default system settings (key, value, description, type)
+INSERT INTO system_settings (key, value, description, type) VALUES
+  -- ── Platform & Fees ───────────────────────────────────────────────────────
+  ('platform_fee_percentage',        '15',    'Platform commission percentage charged on each payment',                      'number'),
+  ('min_payout_amount',              '5000',  'Minimum provider payout amount in smallest currency unit (paise)',            'number'),
+  ('default_currency',               'INR',   'Default currency code for pricing and payments (ISO 4217)',                   'text'),
+  ('default_timezone',               'Asia/Kolkata', 'Default timezone for scheduling and date/time display',              'text'),
+  -- ── Maintenance ────────────────────────────────────────────────────────────
+  ('maintenance_mode',               'false', 'Set to true to put the platform in maintenance mode',                        'boolean'),
+  ('maintenance_message',            'We are performing scheduled maintenance. Please check back shortly.',
+                                              'Message shown to users during maintenance mode',                              'textarea'),
+  -- ── Registration & Access ──────────────────────────────────────────────────
+  ('registration_enabled',           'true',  'Set to false to disable new customer/user registrations platform-wide',      'boolean'),
+  ('provider_registration_enabled',  'true',  'Set to false to disable new provider profile creation platform-wide',        'boolean'),
+  ('guest_requests_enabled',         'true',  'Allow unauthenticated (guest) users to submit service requests',             'boolean'),
+  ('provider_verification_required', 'true',  'Require providers to be verified before they can submit proposals',          'boolean'),
+  ('max_active_requests_per_customer','10',   'Maximum number of open service requests a single customer can have at one time', 'number'),
+  -- ── Marketplace Rules ──────────────────────────────────────────────────────
+  ('max_proposal_count',             '10',    'Maximum number of proposals a provider can submit for a single request',    'number'),
+  ('max_services_per_provider',      '10',    'Maximum number of service categories a single provider can offer',           'number'),
+  ('max_providers_per_category',     '500',   'Maximum number of providers allowed per service category',                   'number'),
+  ('request_expiry_days',            '30',    'Number of days before an open service request automatically expires',        'number'),
+  ('proposal_withdrawal_window_hours','24',   'Hours after submission within which a provider can withdraw a proposal',     'number'),
+  ('job_auto_complete_days',         '7',     'Days after in_progress before a job is auto-completed (requires bg worker)', 'number'),
+  ('max_coupon_discount_percentage', '80',    'Maximum allowed discount percentage when creating a new coupon',             'number'),
+  -- ── Reviews & Disputes ─────────────────────────────────────────────────────
+  ('min_review_length',              '10',    'Minimum character count required for a review comment',                      'number'),
+  ('review_auto_approve_days',       '7',     'Days after job completion before a review is auto-approved',                 'number'),
+  ('dispute_window_days',            '30',    'Days after job completion within which a dispute can be filed',              'number'),
+  ('refund_window_days',             '30',    'Days after payment completion within which a refund can be requested',       'number'),
+  -- ── Payments ───────────────────────────────────────────────────────────────
+  ('gst_rate',                       '18',    'GST rate percentage applied to the platform fee (e.g. 18 means 18%)',        'number'),
+  -- ── Security & Auth ────────────────────────────────────────────────────────
+  ('max_login_attempts',             '5',     'Maximum failed login attempts before account is temporarily locked',         'number'),
+  ('session_timeout_minutes',        '15',    'JWT access token lifetime in minutes',                                       'number'),
+  ('otp_expiry_minutes',             '10',    'OTP verification code validity in minutes',                                  'number'),
+  ('email_verification_expiry_hours','24',    'Hours before an email verification link expires',                            'number'),
+  ('password_reset_expiry_hours',    '1',     'Hours before a password reset link expires',                                 'number'),
+  ('magic_link_expiry_hours',        '1',     'Hours before a magic-link (passwordless login) token expires',               'number'),
+  ('session_ttl_days',               '90',    'Days before a refresh token / session expires and requires re-login',        'number'),
+  ('auto_generated_password_length', '8',     'Character length of system-generated temporary passwords',                   'number'),
+  -- ── Rate Limits ────────────────────────────────────────────────────────────
+  ('rate_limit_max_requests',        '500',   'Maximum requests per rate-limit window for general API endpoints',           'number'),
+  ('auth_rate_limit_max_requests',   '10',    'Maximum authentication requests per 15-minute window per IP',                'number'),
+  -- ── Cache & Performance ────────────────────────────────────────────────────
+  ('provider_cache_ttl_seconds',     '300',   'Redis cache TTL in seconds for provider profile data',                       'number'),
+  ('request_cache_ttl_seconds',      '300',   'Redis cache TTL in seconds for service request list data',                   'number'),
+  ('job_cache_ttl_seconds',          '180',   'Redis cache TTL in seconds for job records',                                 'number'),
+  ('default_page_limit',             '20',    'Default number of items returned per page for all paginated endpoints',      'number'),
+  -- ── Data Retention ─────────────────────────────────────────────────────────
+  ('notification_retention_days',    '90',    'Days before old notification records are purged from the database',          'number'),
+  ('failed_delivery_retention_days', '30',    'Days before failed notification delivery records are purged',                'number'),
+  -- ── File Uploads ───────────────────────────────────────────────────────────
+  ('max_file_upload_size_mb',        '10',    'Maximum file upload size in megabytes',                                      'number'),
+  ('allowed_file_types',             'image/jpeg,image/png,image/webp,application/pdf',
+                                              'Comma-separated list of allowed MIME types for file uploads',                 'textarea'),
+  -- ── Contact & Legal ────────────────────────────────────────────────────────
+  ('support_email',                  'support@marketplace.com', 'Platform support email address',                          'text'),
+  ('contact_phone',                  '+91 98765 43210',   'Public support phone number shown on the contact page',          'text'),
+  ('contact_address',                '123 Marketplace Tower, MG Road, Bengaluru, Karnataka 560001',
+                                              'Public office address shown on the contact page',                             'textarea'),
+  ('terms_version',                  '1.0',   'Current version of the Terms of Service document',                           'text'),
+  ('privacy_version',                '1.0',   'Current version of the Privacy Policy document',                             'text')
+ON CONFLICT (key) DO NOTHING;
 
 -- =====================================================
 -- ADMIN ACTIONS
@@ -2296,6 +2362,9 @@ VALUES
   ('023', 'schema_integrity_fixes', 'integrated_in_schema', 0),
   ('024', 'rbac_dynamic_permissions', 'integrated_in_schema', 0),
   ('025', 'add_conversations_table', 'integrated_in_schema', 0),
-  ('026', 'india_localization', 'integrated_in_schema', 0)
+  ('026', 'india_localization', 'integrated_in_schema', 0),
+  ('027', 'add_system_settings', 'integrated_in_schema', 0),
+  ('028', 'add_enforcement_settings', 'integrated_in_schema', 0),
+  ('029', 'add_dynamic_config_settings', 'integrated_in_schema', 0)
 ON CONFLICT (version) DO NOTHING;
 

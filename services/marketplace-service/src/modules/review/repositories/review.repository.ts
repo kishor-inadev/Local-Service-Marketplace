@@ -8,6 +8,19 @@ import { resolveId } from "@/common/utils/resolve-id.util";
 export class ReviewRepository {
   constructor(@Inject("DATABASE_POOL") private readonly pool: Pool) {}
 
+  /** Reads a system setting from the shared system_settings table with a safe fallback. */
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+    try {
+      const res = await this.pool.query(
+        'SELECT value FROM system_settings WHERE key = $1',
+        [key],
+      );
+      return res.rows[0]?.value ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
   /** Returns the job row so the service can validate status and resolve provider_id. */
   async getJobForReview(jobId: string): Promise<{ id: string; provider_id: string; status: string; customer_id: string } | null> {
     const id = await resolveId(this.pool, "jobs", jobId).catch(() => null);
@@ -70,17 +83,44 @@ export class ReviewRepository {
     providerId: string,
     limit: number = 20,
     offset: number = 0,
+    sortBy: string = 'created_at',
+    sortOrder: string = 'desc',
+    minRating?: number,
+    maxRating?: number,
   ): Promise<Review[]> {
     providerId = await resolveId(this.pool, "providers", providerId);
+
+    const allowedSortColumns: Record<string, string> = {
+      created_at: 'created_at',
+      rating: 'rating',
+      helpful_count: 'helpful_count',
+    };
+    const col = allowedSortColumns[sortBy] ?? 'created_at';
+    const dir = sortOrder.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+    const conditions: string[] = ['provider_id = $1'];
+    const values: any[] = [providerId];
+    let idx = 2;
+
+    if (minRating !== undefined) {
+      conditions.push(`rating >= $${idx++}`);
+      values.push(minRating);
+    }
+    if (maxRating !== undefined) {
+      conditions.push(`rating <= $${idx++}`);
+      values.push(maxRating);
+    }
+
+    values.push(limit, offset);
     const query = `
       SELECT id, display_id, job_id, user_id, provider_id, rating, comment, response, response_at, helpful_count, verified_purchase, created_at
       FROM reviews
-      WHERE provider_id = $1
-      ORDER BY created_at DESC
-      LIMIT $2 OFFSET $3
+      WHERE ${conditions.join(' AND ')}
+      ORDER BY ${col} ${dir}
+      LIMIT $${idx++} OFFSET $${idx}
     `;
 
-    const result = await this.pool.query(query, [providerId, limit, offset]);
+    const result = await this.pool.query(query, values);
     return result.rows;
   }
 

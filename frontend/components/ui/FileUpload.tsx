@@ -2,12 +2,12 @@
 
 import React, { useRef, useState, ChangeEvent } from 'react';
 import { Upload, X, FileIcon, ImageIcon } from 'lucide-react';
-
 import { cn } from '@/utils/helpers';
+import { usePublicSettings } from '@/hooks/usePublicSettings';
 
 interface FileUploadProps {
   accept?: string;
-  maxSize?: number; // in bytes
+  maxSize?: number; // in bytes — if omitted, uses max_file_upload_size_mb from system settings
   maxFiles?: number;
   multiple?: boolean;
   onFilesSelected: (_f: File[]) => void;
@@ -17,8 +17,8 @@ interface FileUploadProps {
 }
 
 export function FileUpload({
-  accept = 'image/*',
-  maxSize = 5 * 1024 * 1024, // 5MB default
+  accept,
+  maxSize,
   maxFiles = 5,
   multiple = true,
   onFilesSelected,
@@ -26,13 +26,21 @@ export function FileUpload({
   className,
   disabled = false,
 }: FileUploadProps) {
+  const { config } = usePublicSettings();
+
+  // Resolve defaults from system settings when props are omitted
+  const resolvedMaxSize = maxSize ?? config.maxFileUploadSizeMb * 1024 * 1024;
+  const resolvedAccept  = accept  ?? config.allowedFileTypes
+    .split(',')
+    .map((t) => t.trim())
+    .join(',');
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = (file: File): string | null => {
-    if (maxSize && file.size > maxSize) {
-      return `File ${file.name} exceeds maximum size of ${(maxSize / 1024 / 1024).toFixed(2)}MB`;
+    if (resolvedMaxSize && file.size > resolvedMaxSize) {
+      return `File ${file.name} exceeds maximum size of ${(resolvedMaxSize / 1024 / 1024).toFixed(0)}MB`;
     }
     return null;
   };
@@ -126,12 +134,12 @@ export function FileUpload({
         </p>
         <p className="text-xs text-gray-500 dark:text-gray-400">
           {multiple ? `Up to ${maxFiles} files, ` : 'Single file, '}
-          max {(maxSize / 1024 / 1024).toFixed(0)}MB each
+          max {(resolvedMaxSize / 1024 / 1024).toFixed(0)}MB each
         </p>
         <input
           ref={inputRef}
           type="file"
-          accept={accept}
+          accept={resolvedAccept}
           multiple={multiple}
           onChange={handleChange}
           disabled={disabled}

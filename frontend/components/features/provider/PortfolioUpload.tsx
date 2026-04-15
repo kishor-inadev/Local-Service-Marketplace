@@ -6,6 +6,7 @@ import toast from "react-hot-toast";
 import { Upload, X, Image as ImageIcon, AlertCircle } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { createPortfolioItem } from "@/services/user-service";
+import { usePublicSettings } from "@/hooks/usePublicSettings";
 
 interface PortfolioUploadProps {
 	providerId: string;
@@ -13,6 +14,9 @@ interface PortfolioUploadProps {
 }
 
 export function PortfolioUpload({ providerId, onUploadSuccess }: PortfolioUploadProps) {
+	const { config } = usePublicSettings();
+	const maxSizeBytes = config.maxFileUploadSizeMb * 1024 * 1024;
+
 	const [title, setTitle] = useState("");
 	const [description, setDescription] = useState("");
 	const [files, setFiles] = useState<File[]>([]);
@@ -30,13 +34,13 @@ export function PortfolioUpload({ providerId, onUploadSuccess }: PortfolioUpload
 			// Validate each file
 			const validFiles: File[] = [];
 			for (const file of acceptedFiles) {
-				// Check size (5MB max)
-				if (file.size > 5 * 1024 * 1024) {
-					setError(`File ${file.name} exceeds 5MB limit`);
+				// Check size (from system settings)
+				if (file.size > maxSizeBytes) {
+					setError(`File ${file.name} exceeds ${config.maxFileUploadSizeMb}MB limit`);
 					continue;
 				}
 
-				// Check type
+				// Check type — portfolio items are images only
 				if (!file.type.startsWith("image/")) {
 					setError(`File ${file.name} is not an image`);
 					continue;

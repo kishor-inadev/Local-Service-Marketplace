@@ -1,8 +1,9 @@
 import { useState, useCallback } from 'react';
+import { usePublicSettings } from './usePublicSettings';
 
 interface UsePaginationProps {
   initialPage?: number;
-  initialLimit?: number;
+  initialLimit?: number; // if omitted, uses default_page_limit from system settings
 }
 
 interface UsePaginationReturn {
@@ -18,10 +19,13 @@ interface UsePaginationReturn {
 
 export function usePagination({
   initialPage = 1,
-  initialLimit = 20,
+  initialLimit,
 }: UsePaginationProps = {}): UsePaginationReturn {
+  const { config } = usePublicSettings();
+  const resolvedLimit = initialLimit ?? config.defaultPageLimit;
+
   const [page, setPage] = useState(initialPage);
-  const [limit, setLimit] = useState(initialLimit);
+  const [limit, setLimit] = useState(resolvedLimit);
 
   const nextPage = useCallback(() => {
     setPage((prev) => prev + 1);
@@ -37,8 +41,8 @@ export function usePagination({
 
   const reset = useCallback(() => {
     setPage(initialPage);
-    setLimit(initialLimit);
-  }, [initialPage, initialLimit]);
+    setLimit(resolvedLimit);
+  }, [initialPage, resolvedLimit]);
 
   return {
     page,

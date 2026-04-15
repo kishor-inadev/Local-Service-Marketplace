@@ -1,7 +1,8 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { Layout } from '@/components/layout/Layout';
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { ContactForm } from './_components/ContactForm';
+import { getSiteConfig } from '@/services/public-settings-service';
 
 export const metadata: Metadata = {
 title: 'Contact Us',
@@ -13,7 +14,9 @@ title: 'Contact Us',
 description:
 'Get in touch with the Local Service Marketplace team. We are here to help with questions, feedback, and support.',
 url: '/contact',
-images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+type: 'website',
+locale: 'en_IN',
+images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 },
 twitter: {
 card: 'summary_large_image',
@@ -47,11 +50,22 @@ const contactOrgJsonLd = {
 	},
 };
 
-export default function ContactPage() {
+const breadcrumbJsonLd = {
+	'@context': 'https://schema.org',
+	'@type': 'BreadcrumbList',
+	itemListElement: [
+		{ '@type': 'ListItem', position: 1, name: 'Home', item: SITE_URL },
+		{ '@type': 'ListItem', position: 2, name: 'Contact Us', item: `${SITE_URL}/contact` },
+	],
+};
+
+export default async function ContactPage() {
+const cfg = await getSiteConfig();
 return (
 <Layout>
 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(contactPageJsonLd) }} />
 <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(contactOrgJsonLd) }} />
+<script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 <div className="bg-white dark:bg-gray-900">
 {/* Hero Section */}
 <div className="bg-gradient-to-r from-primary-600 to-primary-800 text-white py-16">
@@ -63,10 +77,10 @@ return (
 
 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
 <div className="grid md:grid-cols-2 gap-12">
-{/* Contact Form — client island */}
+{/* Contact Form � client island */}
 <ContactForm />
 
-{/* Contact Information — static, server-rendered */}
+{/* Contact Information — server-rendered from system settings */}
 <div>
 <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
 Contact Information
@@ -82,10 +96,10 @@ Contact Information
 <div className="ml-4">
 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
 <a
-href="mailto:support@localservicemarketplace.com"
+href={`mailto:${cfg.supportEmail}`}
 className="text-primary-600 dark:text-primary-400 hover:underline"
 >
-support@localservicemarketplace.com
+{cfg.supportEmail}
 </a>
 </div>
 </div>
@@ -98,9 +112,13 @@ support@localservicemarketplace.com
 </div>
 <div className="ml-4">
 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Phone</h3>
-<p className="text-gray-600 dark:text-gray-400">
-Available via email or in-app messaging
-</p>
+{cfg.contactPhone ? (
+<a href={`tel:${cfg.contactPhone}`} className="text-primary-600 dark:text-primary-400 hover:underline">
+{cfg.contactPhone}
+</a>
+) : (
+<p className="text-gray-600 dark:text-gray-400">Available via email or in-app messaging</p>
+)}
 </div>
 </div>
 
@@ -112,11 +130,11 @@ Available via email or in-app messaging
 </div>
 <div className="ml-4">
 <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Location</h3>
-<p className="text-gray-600 dark:text-gray-400">
-Servicing your local area
-<br />
-Online &amp; On-site
-</p>
+{cfg.contactAddress ? (
+<p className="text-gray-600 dark:text-gray-400 whitespace-pre-line">{cfg.contactAddress}</p>
+) : (
+<p className="text-gray-600 dark:text-gray-400">Servicing your local area<br />Online &amp; On-site</p>
+)}
 </div>
 </div>
 </div>

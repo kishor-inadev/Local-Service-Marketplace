@@ -33,6 +33,7 @@ export class NotificationService {
     @InjectQueue("comms.email") private readonly emailQueue: Queue,
     @InjectQueue("comms.sms") private readonly smsQueue: Queue,
     @InjectQueue("comms.push") private readonly pushQueue: Queue,
+    @InjectQueue("comms.whatsapp") private readonly whatsappQueue: Queue,
     private readonly notificationRepository: NotificationRepository,
     private readonly deliveryRepository: NotificationDeliveryRepository,
     private readonly unsubscribeRepository: UnsubscribeRepository,
@@ -372,5 +373,25 @@ export class NotificationService {
     const result = await this.smsClient.verifyOtp(phone, code, purpose);
 
     return result;
+  }
+
+  /**
+   * Enqueue WhatsApp OTP via the comms.whatsapp queue.
+   * No-op when WhatsApp queue is unavailable (graceful degradation).
+   */
+  async enqueueWhatsAppOtp(phone: string, otp: string): Promise<void> {
+    try {
+      await this.whatsappQueue.add('deliver-whatsapp-otp', { phone, otp });
+      this.logger.log(
+        `WhatsApp OTP enqueued for ${phone}`,
+        'NotificationService',
+      );
+    } catch (error: any) {
+      this.logger.error(
+        `Failed to enqueue WhatsApp OTP for ${phone}: ${error.message}`,
+        error.stack,
+        'NotificationService',
+      );
+    }
   }
 }

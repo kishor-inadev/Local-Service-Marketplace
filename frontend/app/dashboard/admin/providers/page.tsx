@@ -11,7 +11,7 @@ import { StatusBadge } from '@/components/ui/Badge';
 import { ProtectedRoute } from '@/components/shared/ProtectedRoute';
 import { adminService } from '@/services/admin-service';
 import { formatDate } from '@/utils/helpers';
-import { ShieldCheck, ShieldX, FileText, ExternalLink, ChevronDown, ChevronUp } from 'lucide-react';
+import { ShieldCheck, ShieldX, FileText, ExternalLink, ChevronDown, ChevronUp, CheckCircle, XCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Permission } from '@/utils/permissions';
 
@@ -32,6 +32,15 @@ function ProviderVerificationCard({ provider, onAction }: { provider: any; onAct
     onError: () => toast.error('Failed to verify provider'),
   });
 
+  const aadhaarMutation = useMutation({
+    mutationFn: (verified: boolean) => adminService.toggleAadhaarVerified(provider.id, verified),
+    onSuccess: (_data, verified) => {
+      toast.success(`Aadhaar ${verified ? 'verified' : 'unverified'}`);
+      onAction();
+    },
+    onError: () => toast.error('Failed to update Aadhaar status'),
+  });
+
   const rejectMutation = useMutation({
     mutationFn: () => adminService.rejectProvider(provider.id, rejectReason),
     onSuccess: () => { toast.success('Provider rejected'); setShowRejectInput(false); onAction(); },
@@ -50,7 +59,7 @@ function ProviderVerificationCard({ provider, onAction }: { provider: any; onAct
               <StatusBadge status={provider.verification_status ?? 'pending'} />
             </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Provider ID: {provider.display_id || provider.id.substring(0, 8)} Â· Joined {formatDate(provider.created_at)}
+              Provider ID: {provider.display_id || provider.id.substring(0, 8)} &middot; Joined {formatDate(provider.created_at)}
             </p>
             {provider.description && (
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 line-clamp-2">{provider.description}</p>
@@ -94,6 +103,40 @@ function ProviderVerificationCard({ provider, onAction }: { provider: any; onAct
                 ))}
               </div>
             )}
+
+            {/* Aadhaar KYC Toggle */}
+            <div className="mt-4 flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+              <span className="text-sm text-gray-700 dark:text-gray-300 font-medium">Aadhaar KYC:</span>
+              {provider.aadhar_verified ? (
+                <>
+                  <span className="inline-flex items-center gap-1 text-sm text-green-600 font-medium">
+                    <CheckCircle className="h-4 w-4" /> Verified
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    isLoading={aadhaarMutation.isPending}
+                    onClick={() => aadhaarMutation.mutate(false)}
+                    className="text-red-600 border-red-300 hover:bg-red-50 text-xs">
+                    Revoke
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <span className="inline-flex items-center gap-1 text-sm text-gray-400">
+                    <XCircle className="h-4 w-4" /> Not verified
+                  </span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    isLoading={aadhaarMutation.isPending}
+                    onClick={() => aadhaarMutation.mutate(true)}
+                    className="text-green-600 border-green-300 hover:bg-green-50 text-xs">
+                    Mark Verified
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         )}
 

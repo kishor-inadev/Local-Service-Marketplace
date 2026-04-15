@@ -10,7 +10,7 @@ export class SystemSettingRepository {
 
 	async getAllSettings(): Promise<SystemSetting[]> {
 		const query = `
-      SELECT key, value, description, updated_at as "updatedAt"
+      SELECT key, value, description, type, updated_at as "updatedAt"
       FROM system_settings
       ORDER BY key
     `;
@@ -21,7 +21,7 @@ export class SystemSettingRepository {
 
 	async getSettingByKey(key: string): Promise<SystemSetting | null> {
 		const query = `
-      SELECT key, value, description, updated_at as "updatedAt"
+      SELECT key, value, description, type, updated_at as "updatedAt"
       FROM system_settings
       WHERE key = $1
     `;
@@ -35,21 +35,21 @@ export class SystemSettingRepository {
       UPDATE system_settings
       SET value = $1, updated_at = CURRENT_TIMESTAMP
       WHERE key = $2
-      RETURNING key, value, description, updated_at as "updatedAt"
+      RETURNING key, value, description, type, updated_at as "updatedAt"
     `;
 
 		const result = await this.pool.query(query, [value, key]);
 		return result.rows[0];
 	}
 
-	async createSetting(key: string, value: string, description?: string): Promise<SystemSetting> {
+	async createSetting(key: string, value: string, description?: string, type = 'text'): Promise<SystemSetting> {
 		const query = `
-      INSERT INTO system_settings (key, value, description)
-      VALUES ($1, $2, $3)
-      RETURNING key, value, description, updated_at as "updatedAt"
+      INSERT INTO system_settings (key, value, description, type)
+      VALUES ($1, $2, $3, $4)
+      RETURNING key, value, description, type, updated_at as "updatedAt"
     `;
 
-		const result = await this.pool.query(query, [key, value, description]);
+		const result = await this.pool.query(query, [key, value, description, type]);
 		return result.rows[0];
 	}
 
@@ -58,7 +58,7 @@ export class SystemSettingRepository {
 		const sortColumn = this.getSortColumn(queryDto.sortBy);
 		const sortOrder = queryDto.sortOrder?.toUpperCase() === "ASC" ? "ASC" : "DESC";
 		const query = `
-      SELECT key, value, description, updated_at as "updatedAt"
+      SELECT key, value, description, type, updated_at as "updatedAt"
       FROM system_settings
       ${whereClause}
       ORDER BY ${sortColumn} ${sortOrder}, key ${sortOrder}

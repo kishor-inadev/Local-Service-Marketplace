@@ -18,12 +18,11 @@ export class TokenService {
 
   async createEmailVerificationToken(userId: string): Promise<string> {
     const token = this.generateRandomToken();
-    const expiresInHours = parseInt(
-      this.configService
-        .get<string>("EMAIL_VERIFICATION_EXPIRES_IN", "24")
-        .replace("h", ""),
-      10,
+    const expiresInHoursStr = await this.emailVerificationTokenRepo.getSystemSetting(
+      'email_verification_expiry_hours',
+      this.configService.get<string>('EMAIL_VERIFICATION_EXPIRES_IN', '24').replace('h', ''),
     );
+    const expiresInHours = parseInt(expiresInHoursStr, 10) || 24;
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
@@ -53,12 +52,11 @@ export class TokenService {
 
   async createPasswordResetToken(userId: string): Promise<string> {
     const token = this.generateRandomToken();
-    const expiresInHours = parseInt(
-      this.configService
-        .get<string>("PASSWORD_RESET_EXPIRES_IN", "1")
-        .replace("h", ""),
-      10,
+    const expiresInHoursStr = await this.emailVerificationTokenRepo.getSystemSetting(
+      'password_reset_expiry_hours',
+      this.configService.get<string>('PASSWORD_RESET_EXPIRES_IN', '1').replace('h', ''),
     );
+    const expiresInHours = parseInt(expiresInHoursStr, 10) || 1;
     const expiresAt = new Date();
     expiresAt.setHours(expiresAt.getHours() + expiresInHours);
 
@@ -72,8 +70,10 @@ export class TokenService {
   async createEmailOtpToken(userId: string): Promise<string> {
     // Generate cryptographically secure 6-digit OTP
     const otp = String(crypto.randomInt(100000, 1000000));
+    const otpMinutesStr = await this.emailVerificationTokenRepo.getSystemSetting('otp_expiry_minutes', '10');
+    const otpMinutes = parseInt(otpMinutesStr, 10) || 10;
     const expiresAt = new Date();
-    expiresAt.setMinutes(expiresAt.getMinutes() + 10); // 10-minute TTL
+    expiresAt.setMinutes(expiresAt.getMinutes() + otpMinutes);
 
     // Only delete short numeric tokens (OTPs ≤ 6 chars) to avoid removing
     // the longer hex email-verification token the user may have just requested.

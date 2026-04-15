@@ -80,7 +80,9 @@ export class ProposalService {
     }
 
     // Cap total lifetime submissions per (provider, request) to prevent spam re-proposals
-    const MAX_PROPOSALS_PER_REQUEST = 3;
+    // Limit is read from system_settings (default 10 if not set)
+    const maxProposalsStr = await this.proposalRepository.getSystemSetting('max_proposal_count', '10');
+    const MAX_PROPOSALS_PER_REQUEST = Math.max(1, parseInt(maxProposalsStr, 10) || 10);
     const totalAttempts = await this.proposalRepository.countProposalsByProviderForRequest(
       dto.request_id,
       dto.provider_id,
@@ -89,6 +91,25 @@ export class ProposalService {
       throw new ConflictException(
         `You have reached the maximum number of proposals (${MAX_PROPOSALS_PER_REQUEST}) for this request`,
       );
+    }
+
+    // Gate provider verification based on the provider_verification_required system setting
+    const verificationRequired = await this.proposalRepository.getSystemSetting('provider_verification_required', 'true');
+    if (this.userClient.isEnabled()) {
+      const providerForGate = await this.userClient.getProviderById(dto.provider_id);
+      if (verificationRequired !== 'false' && providerForGate && providerForGate.verification_status !== 'verified') {
+        throw new BadRequestException(
+          `Cannot submit proposal: your provider account is not yet verified (status: ${providerForGate.verification_status}). Please wait for admin approval.`,
+        );
+      }
+      if (providerForGate?.user_id) {
+        const providerUser = await this.userClient.getUserById(providerForGate.user_id);
+        if (providerUser && providerUser.email_verified === false) {
+          throw new BadRequestException(
+            'Cannot submit proposal: your email address is not verified. Please verify your email first.',
+          );
+        }
+      }
     }
 
     const proposal = await this.proposalRepository.createProposal(dto);
@@ -244,6 +265,14 @@ export class ProposalService {
     if (existingProposal.status !== "pending") {
       throw new BadRequestException(
         `Cannot accept proposal with status: ${existingProposal.status}`,
+      );
+    }
+
+    // Validate that the parent request is still open (not cancelled/closed by another path)
+    const currentRequestStatus = await this.proposalRepository.getRequestStatus(existingProposal.request_id);
+    if (currentRequestStatus !== 'open') {
+      throw new BadRequestException(
+        `Cannot accept proposal: the service request is no longer open (status: ${currentRequestStatus})`,
       );
     }
 
@@ -558,6 +587,18 @@ export class ProposalService {
       throw new BadRequestException(
         `Cannot withdraw proposal with status: ${existingProposal.status}`,
       );
+    }
+
+    // Enforce withdrawal window for providers (admins bypass this)
+    if (!isAdmin && existingProposal.created_at) {
+      const windowHoursStr = await this.proposalRepository.getSystemSetting('proposal_withdrawal_window_hours', '24');
+      const windowHours = parseInt(windowHoursStr, 10) || 24;
+      const ageHours = (Date.now() - new Date(existingProposal.created_at).getTime()) / (1000 * 60 * 60);
+      if (ageHours > windowHours) {
+        throw new BadRequestException(
+          `Proposals can only be withdrawn within ${windowHours} hour${windowHours === 1 ? '' : 's'} of submission. This proposal was submitted ${Math.floor(ageHours)} hours ago.`,
+        );
+      }
     }
 
     const proposal = await this.proposalRepository.withdrawProposal(

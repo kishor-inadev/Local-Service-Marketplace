@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 		description:
 			'Contact our Grievance Officer for complaints under IT Rules 2021 and the Digital Personal Data Protection Act, 2023.',
 		url: '/grievance',
-		images: [{ url: '/og-image.png', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
+		images: [{ url: '/opengraph-image', width: 1200, height: 630, alt: 'Local Service Marketplace' }],
 	},
 	twitter: {
 		card: 'summary_large_image',

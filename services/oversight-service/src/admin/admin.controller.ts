@@ -24,6 +24,7 @@ import { SystemSettingService } from "./services/system-setting.service";
 import { ContactMessageService } from "./services/contact-message.service";
 import { UpdateDisputeDto } from "./dto/update-dispute.dto";
 import { UpdateSystemSettingDto } from "./dto/update-system-setting.dto";
+import { CreateSystemSettingDto } from "./dto/create-system-setting.dto";
 import { CreateContactMessageDto } from "./dto/create-contact-message.dto";
 import { UpdateContactMessageDto } from "./dto/update-contact-message.dto";
 import { DisputeListQueryDto } from "./dto/dispute-list-query.dto";
@@ -115,6 +116,17 @@ export class AdminController {
 		@Headers("x-user-id") adminId: string,
 	) {
 		return this.systemSettingService.updateSetting(key, updateSettingDto.value, adminId);
+	}
+
+	@RequirePermissions('settings.manage')
+	@UseGuards(JwtAuthGuard, RolesGuard)
+	@Post("settings")
+	@HttpCode(HttpStatus.CREATED)
+	async createSetting(
+		@Body() createSettingDto: CreateSystemSettingDto,
+		@Headers("x-user-id") adminId: string,
+	) {
+		return this.systemSettingService.createSetting(createSettingDto, adminId);
 	}
 
 	// Contact Message Endpoints

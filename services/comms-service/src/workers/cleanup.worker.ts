@@ -74,10 +74,12 @@ export class CleanupWorker extends WorkerHost implements OnModuleInit {
   // ─────────────────────────────────────────────────────────────────
 
   private async handlePurgeOldNotifications(): Promise<void> {
-    this.logger.log('CleanupWorker: purging notifications older than 90 days...', 'CleanupWorker');
+    const retentionDaysStr = await this.notificationRepository.getSystemSetting('notification_retention_days', '90');
+    const retentionDays = parseInt(retentionDaysStr, 10) || 90;
+    this.logger.log(`CleanupWorker: purging notifications older than ${retentionDays} days...`, 'CleanupWorker');
 
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 90);
+    cutoff.setDate(cutoff.getDate() - retentionDays);
 
     const deletedCount = await this.notificationRepository.deleteOlderThan(cutoff);
 
@@ -88,10 +90,12 @@ export class CleanupWorker extends WorkerHost implements OnModuleInit {
   }
 
   private async handlePurgeFailedDeliveries(): Promise<void> {
-    this.logger.log('CleanupWorker: purging failed deliveries older than 30 days...', 'CleanupWorker');
+    const retentionDaysStr = await this.notificationRepository.getSystemSetting('failed_delivery_retention_days', '30');
+    const retentionDays = parseInt(retentionDaysStr, 10) || 30;
+    this.logger.log(`CleanupWorker: purging failed deliveries older than ${retentionDays} days...`, 'CleanupWorker');
 
     const cutoff = new Date();
-    cutoff.setDate(cutoff.getDate() - 30);
+    cutoff.setDate(cutoff.getDate() - retentionDays);
 
     const deletedCount = await this.deliveryRepository.deleteFailedOlderThan(cutoff);
 

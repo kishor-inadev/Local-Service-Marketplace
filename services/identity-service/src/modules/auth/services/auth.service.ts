@@ -63,6 +63,15 @@ export class AuthService {
     );
   }
 
+  /** Reads session_ttl_days from system_settings (fail-open: env → 90). */
+  private async getSessionTtlDays(): Promise<number> {
+    const str = await this.userRepo.getSystemSetting(
+      'session_ttl_days',
+      String(this.configService.get<number>('SESSION_TTL_DAYS', 90)),
+    );
+    return parseInt(str, 10) || 90;
+  }
+
   /**
    * Resolves the provider entity ID for a user whose role is 'provider'.
    * Returns undefined for non-providers or when no provider record exists yet.
@@ -137,7 +146,9 @@ export class AuthService {
 
     // Auto-generate password if not provided
     const passwordWasGenerated = !registerDto.password;
-    const rawPassword = registerDto.password || this.generatePassword(8);
+    const pwLengthStr = await this.userRepo.getSystemSetting('auto_generated_password_length', '8');
+    const pwLength = parseInt(pwLengthStr, 10) || 8;
+    const rawPassword = registerDto.password || this.generatePassword(pwLength);
     const passwordHash = await bcrypt.hash(rawPassword, this.saltRounds);
 
     // Create user (no auto-login)
@@ -219,7 +230,7 @@ export class AuthService {
 
     return {
       message:
-        "Registration successful. Please verify your email before logging in.",
+        "Registration successful. Please check your email to verify your account.",
       email: user.email,
       emailSent,
       verificationEmailSent,
@@ -246,6 +257,12 @@ export class AuthService {
       role,
       name,
     });
+
+    // Check if registration is currently enabled
+    const registrationEnabled = await this.userRepo.getSystemSetting('registration_enabled', 'true');
+    if (registrationEnabled === 'false') {
+      throw new BadRequestException('New user registration is currently disabled. Please try again later.');
+    }
 
     // Check if user already exists
     const existingUser = await this.userRepo.findByEmail(email);
@@ -359,7 +376,7 @@ export class AuthService {
 
     // Store refresh token in session
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + this.configService.get<number>('SESSION_TTL_DAYS', 90));
+    expiresAt.setDate(expiresAt.getDate() + await this.getSessionTtlDays());
     await this.sessionRepo.create(user.id, refreshToken, expiresAt, ipAddress);
 
     return {
@@ -439,15 +456,7 @@ export class AuthService {
       throw new UnauthorizedException("Account is not active");
     }
 
-    // Check email verification
-    if (!user.email_verified) {
-      this.logger.warn("Login failed: Email not verified", {
-        context: "AuthService",
-        email,
-      });
-      throw new UnauthorizedException("Please verify your email before logging in");
-    }
-
+    // Email verification is not required to log in — a banner is shown post-login
     // Record successful login
     await this.loginAttemptRepo.create(email, true, ipAddress);
 
@@ -477,7 +486,7 @@ export class AuthService {
 
     // Store refresh token in session
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + this.configService.get<number>('SESSION_TTL_DAYS', 90));
+    expiresAt.setDate(expiresAt.getDate() + await this.getSessionTtlDays());
     await this.sessionRepo.create(user.id, refreshToken, expiresAt, ipAddress);
 
     return {
@@ -864,7 +873,7 @@ export class AuthService {
 
     // Store refresh token in session
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + this.configService.get<number>('SESSION_TTL_DAYS', 90));
+    expiresAt.setDate(expiresAt.getDate() + await this.getSessionTtlDays());
     await this.sessionRepo.create(
       user.id,
       jwtRefreshToken,
@@ -957,15 +966,7 @@ export class AuthService {
       throw new UnauthorizedException("Account is not active");
     }
 
-    // Check email verification
-    if (!user.email_verified) {
-      this.logger.warn("Phone login failed: Email not verified", {
-        context: "AuthService",
-        phone,
-      });
-      throw new UnauthorizedException("Please verify your email before logging in");
-    }
-
+    // Email verification is not required to log in — a banner is shown post-login
     // Record successful login
     await this.loginAttemptRepo.create(phone, true, ipAddress);
 
@@ -992,7 +993,7 @@ export class AuthService {
 
     // Store refresh token in session
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + this.configService.get<number>('SESSION_TTL_DAYS', 90));
+    expiresAt.setDate(expiresAt.getDate() + await this.getSessionTtlDays());
     await this.sessionRepo.create(user.id, refreshToken, expiresAt, ipAddress);
 
     return {
@@ -1072,6 +1073,18 @@ export class AuthService {
     try {
       // Send OTP via SMS service
       await this.smsClient.sendOtp(phone, "login");
+
+      // WhatsApp OTP fallback (when WHATSAPP_OTP_ENABLED=true)
+      if (this.notificationClient.isWhatsAppOtpEnabled()) {
+        const otp = this.configService.get<string>("CURRENT_PHONE_OTP_DEBUG") || "";
+        this.notificationClient.sendWhatsAppOtp(phone, otp).catch((err: any) => {
+          this.logger.warn("WhatsApp OTP fallback failed (non-fatal)", {
+            context: "AuthService",
+            phone,
+            error: err?.message,
+          });
+        });
+      }
 
       this.logger.info("OTP sent successfully", {
         context: "AuthService",
@@ -1173,7 +1186,7 @@ export class AuthService {
 
       // Store refresh token in session
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + this.configService.get<number>('SESSION_TTL_DAYS', 90));
+      expiresAt.setDate(expiresAt.getDate() + await this.getSessionTtlDays());
       await this.sessionRepo.create(
         user.id,
         refreshToken,
@@ -1350,7 +1363,7 @@ export class AuthService {
     );
 
     const expiresAt = new Date();
-    expiresAt.setDate(expiresAt.getDate() + this.configService.get<number>('SESSION_TTL_DAYS', 90));
+    expiresAt.setDate(expiresAt.getDate() + await this.getSessionTtlDays());
     await this.sessionRepo.create(user.id, refreshToken, expiresAt, ipAddress);
 
     this.logger.info("Email OTP login successful", {
@@ -2016,8 +2029,10 @@ export class AuthService {
 
     // Generate token
     const token = this.generateSecureToken(32);
+    const magicLinkHoursStr = await this.userRepo.getSystemSetting('magic_link_expiry_hours', '1');
+    const magicLinkHours = parseInt(magicLinkHoursStr, 10) || 1;
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 1); // 1 hour expiry
+    expiresAt.setHours(expiresAt.getHours() + magicLinkHours);
 
     await this.magicLinkTokenRepo.create(email, token, expiresAt, user?.id);
 

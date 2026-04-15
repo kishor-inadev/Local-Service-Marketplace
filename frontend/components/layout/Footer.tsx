@@ -73,7 +73,6 @@ export function Footer() {
               {[
                 { label: 'About Us', href: ROUTES.ABOUT },
                 { label: 'Careers', href: ROUTES.CAREERS },
-                { label: 'Blog', href: '/blog' },
                 { label: 'Contact', href: ROUTES.CONTACT },
               ].map(l => (
                 <li key={l.href}>

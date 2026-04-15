@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/Input';
 import { FileUpload } from '@/components/ui/FileUpload';
 import { Loading } from '@/components/ui/Loading';
 import { getUserProfile, updateUserProfile, uploadUserProfilePicture } from '@/services/user-service';
+import { usePublicSettings } from '@/hooks/usePublicSettings';
 import { analytics } from '@/utils/analytics';
 import toast from 'react-hot-toast';
 import { ErrorState } from "@/components/ui/ErrorState";
@@ -23,6 +24,7 @@ export default function ProfileEditPage() {
   const queryClient = useQueryClient();
   const { isAuthenticated, isLoading: authLoading } = useAuth();
   const [profileImage, setProfileImage] = useState<File[]>([]);
+  const { config } = usePublicSettings();
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
@@ -141,12 +143,12 @@ export default function ProfileEditPage() {
                   </label>
                   <FileUpload
                     onFilesSelected={setProfileImage}
-                    accept="image/*"
-                    maxSize={5 * 1024 * 1024}
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    maxSize={config.maxFileUploadSizeMb * 1024 * 1024}
                     maxFiles={1}
                   />
                   <p className="mt-1 text-sm text-gray-500">
-                    Upload a profile picture (max 5MB)
+                    JPG, PNG, WebP or GIF — max {config.maxFileUploadSizeMb}MB
                   </p>
                 </div>
 

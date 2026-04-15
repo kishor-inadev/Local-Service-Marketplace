@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { Upload, FileText, X, AlertCircle } from "lucide-react";
 import { useDropzone } from "react-dropzone";
 import { uploadProviderDocument } from "@/services/user-service";
+import { usePublicSettings } from "@/hooks/usePublicSettings";
 
 interface DocumentUploadProps {
 	providerId?: string;
@@ -22,6 +23,9 @@ const DOCUMENT_TYPES: { value: DocumentType; label: string }[] = [
 ];
 
 export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadProps) {
+	const { config } = usePublicSettings();
+	const maxSizeBytes = config.maxFileUploadSizeMb * 1024 * 1024;
+
 	const [selectedType, setSelectedType] = useState<DocumentType>("government_id");
 	const [documentNumber, setDocumentNumber] = useState("");
 	const [expiryDate, setExpiryDate] = useState("");
@@ -33,9 +37,9 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
 		const selectedFile = acceptedFiles[0];
 
 		if (selectedFile) {
-			// Validate file size (5MB max)
-			if (selectedFile.size > 5 * 1024 * 1024) {
-				setError("File size must be less than 5MB");
+			// Validate file size (from system settings)
+			if (selectedFile.size > maxSizeBytes) {
+				setError(`File size must be less than ${config.maxFileUploadSizeMb}MB`);
 				return;
 			}
 
@@ -49,7 +53,7 @@ export function DocumentUpload({ providerId, onUploadSuccess }: DocumentUploadPr
 			setFile(selectedFile);
 			setError(null);
 		}
-	}, []);
+	}, [maxSizeBytes, config.maxFileUploadSizeMb]);
 
 	const { getRootProps, getInputProps, isDragActive } = useDropzone({
 		onDrop,

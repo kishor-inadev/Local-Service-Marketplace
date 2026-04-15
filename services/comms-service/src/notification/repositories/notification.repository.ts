@@ -8,6 +8,18 @@ import { resolveId } from "@/common/utils/resolve-id.util";
 export class NotificationRepository {
   constructor(@Inject("DATABASE_POOL") private pool: Pool) {}
 
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+    try {
+      const res = await this.pool.query(
+        'SELECT value FROM system_settings WHERE key = $1',
+        [key],
+      );
+      return res.rows[0]?.value ?? defaultValue;
+    } catch {
+      return defaultValue;
+    }
+  }
+
   async createNotification(
     userId: string,
     type: string,

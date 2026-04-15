@@ -289,6 +289,11 @@ class AdminService {
 		return response.data;
 	}
 
+	async toggleAadhaarVerified(providerId: string, verified: boolean): Promise<any> {
+		const response = await apiClient.patch<any>(`/providers/${providerId}`, { aadhar_verified: verified });
+		return response.data;
+	}
+
 	async getCategories(): Promise<any[]> {
 		const response = await apiClient.get<any>('/categories');
 		return apiClient.extractList<any>(response.data);
@@ -336,6 +341,11 @@ class AdminService {
 
 	async updateSystemSetting(key: string, value: string): Promise<any> {
 		const response = await apiClient.patch<any>(`/admin/settings/${key}`, { value });
+		return response.data;
+	}
+
+	async createSystemSetting(key: string, value: string, description?: string, type?: string): Promise<any> {
+		const response = await apiClient.post<any>('/admin/settings', { key, value, description, type });
 		return response.data;
 	}
 

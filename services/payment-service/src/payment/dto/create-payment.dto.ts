@@ -16,8 +16,12 @@ export class CreatePaymentDto {
   currency: string;
 
   @IsOptional()
-  @IsEnum(["card", "bank_transfer", "wallet", "cash"])
-  payment_method?: "card" | "bank_transfer" | "wallet" | "cash";
+  @IsEnum(["card", "bank_transfer", "wallet", "cash", "upi", "netbanking"])
+  payment_method?: "card" | "bank_transfer" | "wallet" | "cash" | "upi" | "netbanking";
+
+  @IsOptional()
+  @IsString()
+  upi_id?: string;
 
   @IsOptional()
   @IsString()
