@@ -158,7 +158,7 @@ export default function ProviderDetailPage() {
 		name: provider.business_name,
 		description: provider.description || `${provider.business_name} — verified local service provider on Local Service Marketplace.`,
 		url: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://localservicemarketplace.com'}/providers/${providerId}`,
-		image: provider.avatar_url || undefined,
+		image: provider.profile_picture_url || undefined,
 		priceRange: "₹₹",
 		address: { "@type": "PostalAddress", addressCountry: "IN" },
 		aggregateRating: providerRating

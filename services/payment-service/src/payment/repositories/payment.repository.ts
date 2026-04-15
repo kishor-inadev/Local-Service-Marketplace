@@ -14,7 +14,7 @@ export class PaymentRepository {
   constructor(@Inject("DATABASE_POOL") private pool: Pool) { }
 
   /** Reads a system setting from the shared system_settings table with a safe fallback. */
-  private async getSystemSetting(key: string, defaultValue: string): Promise<string> {
+  async getSystemSetting(key: string, defaultValue: string): Promise<string> {
     try {
       const res = await this.pool.query(
         'SELECT value FROM system_settings WHERE key = $1',
