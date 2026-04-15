@@ -55,33 +55,3 @@ export function usePagination({
     reset,
   };
 }
-
-
-  const nextPage = useCallback(() => {
-    setPage((prev) => prev + 1);
-  }, []);
-
-  const previousPage = useCallback(() => {
-    setPage((prev) => Math.max(1, prev - 1));
-  }, []);
-
-  const goToPage = useCallback((newPage: number) => {
-    setPage(Math.max(1, newPage));
-  }, []);
-
-  const reset = useCallback(() => {
-    setPage(initialPage);
-    setLimit(initialLimit);
-  }, [initialPage, initialLimit]);
-
-  return {
-    page,
-    limit,
-    setPage,
-    setLimit,
-    nextPage,
-    previousPage,
-    goToPage,
-    reset,
-  };
-}

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { Bell, CreditCard, Crown, Lock, Settings as SettingsIcon, ChevronRight } from 'lucide-react';
 import { SettingsLayout } from '@/components/layout/SettingsLayout';
 import { ProtectedRoute } from "@/components/shared/ProtectedRoute";
-import { ROUTES } from '@/config/routes';
+import { ROUTES } from '@/config/constants';
 
 const settingsCards = [
 	{
