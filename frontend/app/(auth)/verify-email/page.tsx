@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { useSession } from "next-auth/react";
 import Link from "next/link";
 import { CheckCircle, XCircle, Loader2, Mail } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +11,7 @@ import { ROUTES } from "@/config/constants";
 
 function VerifyEmailContent() {
 	const router = useRouter();
+	const { data: session, update } = useSession();
 	const searchParams = useSearchParams();
 	const token = searchParams.get("token");
 
@@ -27,10 +29,20 @@ function VerifyEmailContent() {
 
 		authService
 			.verifyEmail(token)
-			.then(() => {
+			.then(async () => {
 				setStatus("success");
-				// Redirect to login after 3 seconds
-				setTimeout(() => router.push(ROUTES.LOGIN + "?verified=1"), 3000);
+
+				// If user is logged in, refresh their session to update emailVerified flag
+				if (session) {
+					await update();
+				}
+
+				// Redirect based on auth status
+				const redirectPath = session
+					? (session.user.role === "admin" ? "/dashboard/admin" : "/dashboard")
+					: ROUTES.LOGIN + "?verified=1";
+
+				setTimeout(() => router.push(redirectPath), 3000);
 			})
 			.catch((err: any) => {
 				const msg =
@@ -58,10 +70,10 @@ function VerifyEmailContent() {
 						<CheckCircle className='mx-auto h-16 w-16 text-green-500 mb-4' />
 						<h1 className='text-2xl font-bold text-gray-900 dark:text-white mb-2'>Email Verified!</h1>
 						<p className='text-gray-600 dark:text-gray-400 mb-6'>
-							Your email has been successfully verified. You'll be redirected to login shortly.
+							Your email has been successfully verified. You'll be redirected to {session ? 'your dashboard' : 'login'} shortly.
 						</p>
-						<Link href={ROUTES.LOGIN}>
-							<Button className='w-full'>Go to Login</Button>
+						<Link href={session ? (session.user.role === "admin" ? "/dashboard/admin" : "/dashboard") : ROUTES.LOGIN}>
+							<Button className='w-full'>Go to {session ? 'Dashboard' : 'Login'}</Button>
 						</Link>
 					</>
 				)}

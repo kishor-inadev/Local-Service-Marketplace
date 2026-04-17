@@ -8,7 +8,7 @@
     "build:all": "pnpm -r build",
     "build:services": "pnpm -r --filter \"!frontend\" build",
     "start:dev": "pnpm -r --parallel start:dev",
-    "services:dev": "pnpm --filter api-gateway --filter identity-service --filter marketplace-service --filter payment-service --filter comms-service --filter oversight-service --filter infrastructure-service --parallel start:dev",
+    "services:dev": "pnpm --filter api-gateway --filter identity-service --filter marketplace-service --filter payment-service --filter comms-service --filter oversight-service --parallel start:dev",
     "infra:up": "docker compose up -d postgres && docker compose -f docker-compose.yml -f docker-compose.level2.yml --profile cache up -d redis",
     "dev": "pnpm infra:up && pnpm services:dev",
     "fe:dev": "cd frontend && npm run dev",

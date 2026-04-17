@@ -56,7 +56,7 @@ const ROLE_ROUTES: Array<{ prefix: string; roles: Role[] }> = [
 const AUTH_REQUIRED_PREFIXES = ["/dashboard", "/checkout", "/onboarding"];
 
 /** Routes that a logged-in user should be bounced away from */
-const AUTH_REDIRECT_ROUTES = ["/login", "/signup", "/phone-login", "/forgot-password", "/reset-password", "/verify-email"];
+const AUTH_REDIRECT_ROUTES = ["/login", "/signup", "/phone-login", "/forgot-password", "/reset-password"];
 
 function matchPermissionRoute(pathname: string) {
 	const sorted = [...PERMISSION_ROUTES].sort((a, b) => b.prefix.length - a.prefix.length);
